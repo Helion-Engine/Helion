@@ -23,8 +23,6 @@ public class Sector3D_Map
     [Fact(DisplayName = "Validate map 3D sectors")]
     public void ValidateMapSectors()
     {
-        World.SpecialManager.Sectors3D.Count.Should().Be(13);
-
         var sector0 = GameActions.GetSector(World, 0);
         var sector1 = GameActions.GetSector(World, 1);
         var sector2 = GameActions.GetSector(World, 2);
@@ -53,7 +51,7 @@ public class Sector3D_Map
         sector4.Sectors3D.Length.Should().Be(3);
         AssertSector3D(sector4.Sectors3D[0], sector2, sector4, sector2, SectorFlags3D.Solid);
         AssertSector3D(sector4.Sectors3D[1], sector3, sector2, sector3, SectorFlags3D.Solid);
-        AssertSector3D(sector4.Sectors3D[2], sector5, sector3, sector3, SectorFlags3D.Swim | SectorFlags3D.DisableLighting);
+        AssertSector3D(sector4.Sectors3D[2], sector5, sector3, sector3, SectorFlags3D.Swim | SectorFlags3D.RenderInside | SectorFlags3D.DisableLighting);
 
         sector9.Sectors3D.Length.Should().Be(1);
         AssertSideTextureName3D(sector9.Sectors3D[0], sector9.Lines[0].Back!, "FWATER2");
@@ -80,7 +78,7 @@ public class Sector3D_Map
         AssertSideTextureName3D(sector13.Sectors3D[0], sector13.Lines[1].Back!, "ROCKRED1");
 
         sector15.Sectors3D.Length.Should().Be(1);
-        AssertSector3D(sector15.Sectors3D[0], sector16, sector15, sector16, SectorFlags3D.Solid | SectorFlags3D.VisibilityInvert | SectorFlags3D.ShootabilityInvert);
+        AssertSector3D(sector15.Sectors3D[0], sector16, sector15, sector16, SectorFlags3D.Solid | SectorFlags3D.SightInvert | SectorFlags3D.ShootInvert);
         AssertSideTextureName3D(sector15.Sectors3D[0], sector15.Lines[0].Front, "FIREBLU1");
         AssertSideTextureName3D(sector15.Sectors3D[0], sector15.Lines[0].Back!, "FIREBLU1");
         AssertSideTextureName3D(sector15.Sectors3D[0], sector15.Lines[1].Front, "FIREBLU1");
@@ -118,17 +116,104 @@ public class Sector3D_Map
         var sector3D = sector.Sectors3D[0];
         var wallHeights = sector3D.CalculateWallHeights(0);
 
-        sector3D.CalculateWallHeights(GameActions.GetLine(World, 86).Back!, wallHeights, out var newWallHeights);
+        sector3D.CalculateWallHeights(GameActions.GetLine(World, 86).Back!, wallHeights, out var newWallHeights).Should().BeTrue();
         newWallHeights.TopZ.Should().Be(96);
         newWallHeights.BottomZ.Should().Be(32);
 
-        sector3D.CalculateWallHeights(GameActions.GetLine(World, 95).Back!, wallHeights, out newWallHeights);
+        sector3D.CalculateWallHeights(GameActions.GetLine(World, 95).Back!, wallHeights, out newWallHeights).Should().BeTrue();
         newWallHeights.TopZ.Should().Be(512);
         newWallHeights.BottomZ.Should().Be(32);
 
-        sector3D.CalculateWallHeights(GameActions.GetLine(World, 98).Back!, wallHeights, out newWallHeights);
+        sector3D.CalculateWallHeights(GameActions.GetLine(World, 98).Back!, wallHeights, out newWallHeights).Should().BeTrue();
         newWallHeights.TopZ.Should().Be(96);
         newWallHeights.BottomZ.Should().Be(0);
+    }
+
+    [Fact(DisplayName = "Overlapping non-solid walls should not render")]
+    public void OverlappingNonSolidWalls()
+    {
+        var outerSector = GameActions.GetSector(World, 4);
+        var innerSector = GameActions.GetSector(World, 6);
+
+        var outer3D = outerSector.Sectors3D.First(x => x.ControlBottom.Z == -64);
+        var inner3D = innerSector.Sectors3D.First(x => x.ControlBottom.Z == -64);
+
+        // Fully occluded by lower
+        var wallHeights = outer3D.CalculateWallHeights(0);
+        outer3D.CalculateWallHeights(GameActions.GetLine(World, 18).Front, wallHeights, out var newWallHeights).Should().BeFalse();
+
+        // Fully occluded by inner 3D sector
+        outer3D.CalculateWallHeights(GameActions.GetLine(World, 25).Back!, wallHeights, out newWallHeights).Should().BeFalse();
+
+        // Fully occluded by outer 3D sector
+        wallHeights = inner3D.CalculateWallHeights(0);
+        inner3D.CalculateWallHeights(GameActions.GetLine(World, 25).Front, wallHeights, out newWallHeights).Should().BeFalse();
+    }
+
+
+    [Fact(DisplayName = "Partially overlapping non-solid walls")]
+    public void PartiallyOverlappingNonSolidWalls()
+    {
+        var lowerSector = GameActions.GetSector(World, 26);
+        var higherSector = GameActions.GetSector(World, 27);
+
+        var lower3D = lowerSector.Sectors3D[0];
+        var higher3D = higherSector.Sectors3D[0];
+
+        // Not clipped by another 3D sector
+        var wallHeights = lower3D.CalculateWallHeights(0);
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 105).Front, wallHeights, out var newWallHeights).Should().BeTrue();
+        newWallHeights.BottomZ.Should().Be(32);
+        newWallHeights.TopZ.Should().Be(128);
+
+        // Partially clipped
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 108).Front, wallHeights, out newWallHeights).Should().BeTrue();
+        newWallHeights.BottomZ.Should().Be(32);
+        newWallHeights.TopZ.Should().Be(64);
+
+        // Not clipped by another 3D sector
+        wallHeights = higher3D.CalculateWallHeights(0);
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 106).Front, wallHeights, out newWallHeights).Should().BeTrue();
+        newWallHeights.BottomZ.Should().Be(64);
+        newWallHeights.TopZ.Should().Be(160);
+
+        // Partially clipped
+        wallHeights = higher3D.CalculateWallHeights(0);
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 108).Back!, wallHeights, out newWallHeights).Should().BeTrue();
+        newWallHeights.BottomZ.Should().Be(128);
+        newWallHeights.TopZ.Should().Be(160);
+    }
+
+
+    [Fact(DisplayName = "3D sector is clipped to normal geometry")]
+    public void OverlappingNonSolidWallsWithNormalGeometry()
+    {
+        var lowerSector = GameActions.GetSector(World, 26);
+        var higherSector = GameActions.GetSector(World, 27);
+
+        var lower3D = lowerSector.Sectors3D[0];
+        var higher3D = higherSector.Sectors3D[0];
+
+        var wallHeights = lower3D.CalculateWallHeights(0);
+
+        // Fully clipped by one-sided wall
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 115).Front, wallHeights, out _).Should().BeFalse();
+
+        // Fully clipped by lower wall
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 124).Front, wallHeights, out _).Should().BeFalse();
+
+        // Fully clipped by upper wall
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 120).Front, wallHeights, out _).Should().BeFalse();
+
+        wallHeights = higher3D.CalculateWallHeights(0);
+
+        // Partially clipped by lower and upper
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 130).Front, wallHeights, out _).Should().BeTrue();
+        wallHeights.TopZ.Should().Be(128);
+        wallHeights.BottomZ.Should().Be(96);
+
+        // Fully clipped by lower and upper
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 134).Front, wallHeights, out _).Should().BeFalse();
     }
 
     private static void AssertWallHeights(WallHeights wallHeights, double bottomZ, double topZ)

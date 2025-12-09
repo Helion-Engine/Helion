@@ -1945,7 +1945,7 @@ public abstract partial class WorldBase : IWorld
             CheckForBlockedHitScanSector3D(start, end, intersect, frontSector, normalSolid, ref minHit, ref hitPlane, ref minDistanceSquared3D, back, out hitSector3D);
 
         if (hitSector3D != null)
-            normalSolid = (hitSector3D.Flags & SectorFlags3D.ShootabilityInvert) == 0;
+            normalSolid = (hitSector3D.Flags & SectorFlags3D.ShootInvert) == 0;
 
         if (minDistanceSquared3D != double.MaxValue)
         {
@@ -1968,7 +1968,7 @@ public abstract partial class WorldBase : IWorld
 
             if (!normalSolid)
             {
-                if ((sector3d.Flags & SectorFlags3D.ShootabilityInvert) != 0)
+                if ((sector3d.Flags & SectorFlags3D.ShootInvert) != 0)
                     continue;
             }
             else

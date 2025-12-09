@@ -1150,9 +1150,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             return true;
 
         if (context == SolidContext.LineOfSight)
-            return (sector3d.Flags & SectorFlags3D.VisibilityInvert) == 0;
+            return (sector3d.Flags & SectorFlags3D.SightInvert) == 0;
 
-        return (sector3d.Flags & SectorFlags3D.ShootabilityInvert) == 0;
+        return (sector3d.Flags & SectorFlags3D.ShootInvert) == 0;
     }
 
     public Sector3D? GetSectorByHeight3D(double heightZ)

@@ -864,6 +864,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 break;
             case ZDoom3DFloorType.Swimmable:
                 sectorFlags |= SectorFlags3D.Swim;
+                sectorFlags |= SectorFlags3D.RenderInside;
                 break;
             case ZDoom3DFloorType.NonSolid:
                 break;
@@ -872,9 +873,9 @@ public sealed class SpecialManager : ITickable, IDisposable
         if ((specialLine.Args.Arg1 & (int)ZDoom3DFloorFlagsForType.RenderInside) != 0)
             sectorFlags |= SectorFlags3D.RenderInside;
         if ((specialLine.Args.Arg1 & (int)ZDoom3DFloorFlagsForType.VisibilityInvert) != 0)
-            sectorFlags |= SectorFlags3D.VisibilityInvert;
+            sectorFlags |= SectorFlags3D.SightInvert;
         if ((specialLine.Args.Arg1 & (int)ZDoom3DFloorFlagsForType.ShootabilityInvert) != 0)
-            sectorFlags |= SectorFlags3D.ShootabilityInvert;
+            sectorFlags |= SectorFlags3D.ShootInvert;
 
         sectorFlags |= (SectorFlags3D)((int)flags * 128);
 

@@ -18,8 +18,8 @@ public enum SectorFlags3D
     Solid = 1,
     Swim = 2,
     RenderInside = 8,
-    VisibilityInvert = 16,
-    ShootabilityInvert = 32,
+    SightInvert = 16,
+    ShootInvert = 32,
     
     DisableLighting = 128,
     RestrictLighting = 256,
@@ -126,16 +126,16 @@ public class Sector3D
     public bool IsInvertedByContext(SolidContext context)
     {
         if (context == SolidContext.LineOfSight)
-            return (Flags & SectorFlags3D.VisibilityInvert) != 0;
+            return (Flags & SectorFlags3D.SightInvert) != 0;
         else
-            return (Flags & SectorFlags3D.ShootabilityInvert) != 0;
+            return (Flags & SectorFlags3D.ShootInvert) != 0;
     }
 
     public bool IsSolidByContext(SolidContext context)
     {
         var isSolid = IsSolid;
-        if ((context == SolidContext.LineOfSight && (Flags & SectorFlags3D.VisibilityInvert) != 0) ||
-            (context == SolidContext.HitScan && (Flags & SectorFlags3D.ShootabilityInvert) != 0))
+        if ((context == SolidContext.LineOfSight && (Flags & SectorFlags3D.SightInvert) != 0) ||
+            (context == SolidContext.HitScan && (Flags & SectorFlags3D.ShootInvert) != 0))
         {
             return !isSolid;
         }
@@ -283,17 +283,17 @@ public class Sector3D
                 if (WallVerticesOccluded(newWallHeights, wall))
                     return false;
 
-                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, newWallHeights.TopZ, wall.TopLeft.PrevZ, newWallHeights.PrevTopZ))
+                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
                     return false;
             }
 
             if (GeometryRenderer.UpperIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
-                WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Ceiling, side.Sector.Ceiling, default, true, ref wall, calculateUV: false);
+                WorldTriangulator.HandleTwoSidedUpper(side, side.Sector.Ceiling, side.PartnerSide.Sector.Ceiling, default, true, ref wall, calculateUV: false);
                 if (WallVerticesOccluded(newWallHeights, wall))
                     return false;
 
-                if (!AdjustWallHeights(ref newWallHeights, newWallHeights.BottomZ, wall.TopLeft.Z, newWallHeights.PrevBottomZ, wall.TopLeft.PrevZ))
+                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
                     return false;
             }
         }
@@ -351,13 +351,13 @@ public class Sector3D
     private static bool AdjustWallHeights(ref WallHeights wallHeights,
         double checkTopZ, double checkBottomZ, double checkPrevTopZ, double checkPrevBottomZ)
     {
-        if (checkTopZ < wallHeights.TopZ && checkTopZ > wallHeights.BottomZ)
+        if (checkTopZ < wallHeights.TopZ && checkTopZ >= wallHeights.BottomZ)
         {
             wallHeights.BottomZ = checkTopZ;
             wallHeights.PrevBottomZ = checkPrevTopZ;
         }
 
-        if (checkBottomZ > wallHeights.BottomZ && checkBottomZ < wallHeights.TopZ)
+        if (checkBottomZ > wallHeights.BottomZ && checkBottomZ <= wallHeights.TopZ)
         {
             wallHeights.TopZ = checkBottomZ;
             wallHeights.PrevTopZ = checkPrevBottomZ;
