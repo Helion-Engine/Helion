@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
-using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
