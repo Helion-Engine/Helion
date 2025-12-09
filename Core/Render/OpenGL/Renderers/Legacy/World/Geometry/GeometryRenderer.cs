@@ -39,6 +39,7 @@ public partial class GeometryRenderer : IDisposable
 {
     private const double MaxSky = 16384;
     private static readonly Sector DefaultSector = CreateDefault();
+    private static readonly GLLegacyTexture TestTexture = new(0, "TEST", default, default, default, default, default);
 
     public readonly PortalRenderer Portals;
     private readonly IConfig m_config;
@@ -91,17 +92,29 @@ public partial class GeometryRenderer : IDisposable
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager)
+        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, bool unitTest = false)
     {
         m_config = config;
         m_program = program;
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
-        Portals = new(archiveCollection, glTextureManager);
         m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
-        m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
+
+        if (unitTest)
+        {
+            Portals = null!;
+            m_staticCacheGeometryRenderer = null!;
+            m_renderCoverWallAction = null!;
+        }
+        else
+        {
+            Portals = new(archiveCollection, glTextureManager);
+            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
+            m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
+
+        }
+
         m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
         var options = VertexOptions.World(1, 1, 0, 0, 0, 0);
@@ -129,7 +142,7 @@ public partial class GeometryRenderer : IDisposable
         line.RenderSegEnd += pushUnit;
     }
 
-    public void UpdateTo(IWorld world)
+    public void UpdateTo(IWorld world, bool unitTest = false)
     {
         m_world = world;
         if (!world.SameAsPreviousMap)
@@ -190,9 +203,12 @@ public partial class GeometryRenderer : IDisposable
         SetRenderCompatibility(world);
         SetFloodSectors(world);
 
-        Portals.UpdateTo(world);
-        m_staticCacheGeometryRenderer.UpdateTo(world);
-        m_worldDataManager.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
+        if (!unitTest)
+        {
+            Portals.UpdateTo(world);
+            m_staticCacheGeometryRenderer.UpdateTo(world);
+            m_worldDataManager.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
+        }
     }
 
     private DynamicVertex[]?[] UpdateVertexWallLookup(DynamicVertex[]?[] vertices, int sideCount, bool free)
@@ -750,8 +766,8 @@ public partial class GeometryRenderer : IDisposable
         }
 
         WallVertices wall = default;
-        texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
-        var brightmapTexture = m_glTextureManager.GetBrightmapTexture(side.Middle.TextureHandle);
+        texture = m_glTextureManager?.GetTexture(side.Middle.TextureHandle) ?? TestTexture;
+        var brightmapTexture = m_glTextureManager?.GetBrightmapTexture(side.Middle.TextureHandle);
         var data = m_vertexLookup[side.Id];
 
         renderSector ??= side.Sector.GetRenderSector(m_transferHeightsView);
@@ -770,7 +786,7 @@ public partial class GeometryRenderer : IDisposable
                 m_fakeCeiling.Z = ceiling.Z + Constants.MaxTextureHeight;
                 floor = m_fakeFloor;
                 ceiling = m_fakeCeiling;
-                texture = m_glTextureManager.BlackTexture;
+                texture = m_glTextureManager?.BlackTexture ?? TestTexture;
                 brightmapTexture = null;
             }
         }

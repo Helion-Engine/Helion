@@ -1,5 +1,4 @@
-﻿using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Texture.Legacy;
+﻿using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
