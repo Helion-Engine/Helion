@@ -428,7 +428,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             RenderWallSliceResult result;
             if (side.Sector.Sectors3D.Length > 0)
             {
-                result = m_geometryRenderer.RenderWallSlices3D(side, side.Middle, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedLowerSliceFunc);
+                result = m_geometryRenderer.RenderWallSlices3D(side, side.Lower, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedLowerSliceFunc);
             }
             else
             {
@@ -457,7 +457,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             RenderWallSliceResult result;
             if (side.Sector.Sectors3D.Length > 0)
             {
-                result = m_geometryRenderer.RenderWallSlices3D(side, side.Middle, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedMiddleSliceFunc);
+                result = m_geometryRenderer.RenderWallSlices3D(side, side.Upper, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedMiddleSliceFunc);
             }
             else
             {

@@ -558,20 +558,6 @@ public class DefinitionEntries
     private void CreateImageDefinitionsFrom(ArchiveCollection archiveCollection, PnamesTextureXCollection collection)
     {
         var processed = new HashSet<string>();
-        foreach (var archive in archiveCollection.Archives)
-        {
-            if (archive is not Wad wadArchive)
-                continue;
-
-            var ns = ResourceNamespace.Textures;
-            foreach (var textureEntry in wadArchive.TxEntries)
-            {
-                var name = textureEntry.Path.Name;
-                var component = new TextureDefinitionComponent(name, Vec2I.Zero);
-                var def = new TextureDefinition(name, (0, 0), ns, [component], isAutoImageTexture: true);
-                ProcessTextureDefinition(archiveCollection, processed, def);
-            }
-        }
 
         if (collection.Valid)
         {
@@ -585,6 +571,21 @@ public class DefinitionEntries
                 var textureDefinitions = textureX.ToTextureDefinitions(pnames);
                 foreach (var def in textureDefinitions)
                     ProcessTextureDefinition(archiveCollection, processed, def);
+            }
+        }
+
+        foreach (var archive in archiveCollection.Archives)
+        {
+            if (archive is not Wad wadArchive)
+                continue;
+
+            var ns = ResourceNamespace.Textures;
+            foreach (var textureEntry in wadArchive.TxEntries)
+            {
+                var name = textureEntry.Path.Name;
+                var component = new TextureDefinitionComponent(name, Vec2I.Zero);
+                var def = new TextureDefinition(name, (0, 0), ns, [component], isAutoImageTexture: true);
+                ProcessTextureDefinition(archiveCollection, processed, def);
             }
         }
     }

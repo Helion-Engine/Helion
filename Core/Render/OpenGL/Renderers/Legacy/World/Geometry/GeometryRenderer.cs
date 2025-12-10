@@ -100,6 +100,7 @@ public partial class GeometryRenderer : IDisposable
         m_worldDataManager = worldDataManager;
         m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_archiveCollection = archiveCollection;
+        m_fakeSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_sliceSector);
 
         if (unitTest)
         {
@@ -777,7 +778,7 @@ public partial class GeometryRenderer : IDisposable
         var ceiling = renderSector.Ceiling;
         if (renderSkySide)
         {
-            RenderSkySide(side, renderSector, null, texture, out skyVertices);
+            RenderSkySide(side, renderSector, null, texture, isFront, out skyVertices);
 
             // One-sided walls without a texture would HOM and stop BSP traversal. Draw a black texture to block rendering.
             if (skyVertices == null && side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
@@ -1170,7 +1171,7 @@ public partial class GeometryRenderer : IDisposable
         SectorPlane bottom = otherSector.Ceiling;
 
         if (renderSkySide)
-            RenderSkySide(facingSide, facingSector, otherSector, texture, out skyVertices2);
+            RenderSkySide(facingSide, facingSector, otherSector, texture, isFrontSide, out skyVertices2);
         if (renderSkySideOnly)
             return;
 
@@ -1280,7 +1281,7 @@ public partial class GeometryRenderer : IDisposable
         return m_wallVertices;
     }
 
-    private void RenderSkySide(Side facingSide, Sector facingSector, Sector? otherSector, GLLegacyTexture texture, out SkyGeometryVertex[]? skyVertices)
+    private void RenderSkySide(Side facingSide, Sector facingSector, Sector? otherSector, GLLegacyTexture texture, bool isFront, out SkyGeometryVertex[]? skyVertices)
     {
         skyVertices = null;
         if (otherSector == null)
@@ -1295,7 +1296,6 @@ public partial class GeometryRenderer : IDisposable
                 return;
         }
 
-        bool isFront = facingSide.IsFront;
         SectorPlane floor = facingSector.Floor;
         SectorPlane ceiling = facingSector.Ceiling;
 
