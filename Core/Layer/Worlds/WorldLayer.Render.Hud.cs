@@ -74,7 +74,7 @@ public partial class WorldLayer
     private readonly SpanString m_weaponSpriteSpan = new("123456");
     private readonly SpanString m_weaponFlashSpriteSpan = new("123456");
     
-    private readonly StatusBarRenderer m_statusBarRenderer = new(); 
+    private readonly StatusBarRenderer m_statusBarRenderer; 
 
     private readonly SpanString m_healthString = new();
     private readonly SpanString m_armorString = new();
@@ -468,7 +468,7 @@ public partial class WorldLayer
                 }
             }
 
-            var context = new StatusBarContext(Player, automapVisible, isWidescreen, fps, consoleMsg, isCentered);
+            var context = new StatusBarContext(World, Player, automapVisible, isWidescreen, fps, consoleMsg, isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName));
             m_statusBarRenderer.Draw(hud, activeLayout, context);
             return;
         }

@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using Helion.Audio;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
+using Helion.Layer.Worlds.StatusBar;
 using Helion.Maps;
 using Helion.Models;
 using Helion.Render.Common.Enums;
@@ -32,6 +29,10 @@ using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.StatusBar;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.Worlds;
@@ -95,6 +96,7 @@ public partial class WorldLayer : IGameLayerParent
         m_profiler = profiler;
         World = world;
         CurrentMap = mapInfoDef;
+        m_statusBarRenderer = new StatusBarRenderer(World);
 
         m_drawHudAction = new(DrawHudContext);
         m_renderWorldAction = new(RenderWorld);

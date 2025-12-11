@@ -144,6 +144,14 @@ public sealed class Inventory
             model.Powerups.Add(Powerups[i].ToPowerupModel());
     }
 
+    public static EntityDefinition? GetBaseInventoryDefinition(EntityDefinition definition)
+    {
+        if (definition.BaseInventoryName == null)
+            GetBaseInventoryName(definition);
+
+        return definition.BaseInventoryDefinition;
+    }
+
     public static string GetBaseInventoryName(EntityDefinition definition)
     {
         if (definition.BaseInventoryName != null)
@@ -165,6 +173,7 @@ public sealed class Inventory
             return definition.BaseInventoryName;
         }
 
+        definition.BaseInventoryDefinition = definition;
         definition.BaseInventoryName = definition.Name;
         return definition.BaseInventoryName;
     }
