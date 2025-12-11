@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common;
@@ -11,6 +10,7 @@ using Helion.Resources;
 using Helion.Resources.Definitions.StatusBar;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
@@ -65,6 +65,14 @@ public class StatusBarRenderer
         { "CRBLACK", Color.Black },
         { "CRUNTRANSLATED", Color.White }
     };
+    
+    private readonly List<RenderGlyph> m_glyphCache = new();
+    private readonly List<CoordData> m_coordPartsCache = new();
+    private readonly SpanString m_fmtSpan = new();
+    private readonly SpanString m_lookupKeySpan = new(64);
+
+    private readonly record struct RenderGlyph(string Patch, int Width, int Offset);
+    private readonly record struct CoordData(string Label, int Value, int LabelWidth, int ValWidth);
 
     public static StatusBarCoverage GetCoverage(StatusBarLayoutDef layout)
     {
@@ -79,13 +87,13 @@ public class StatusBarRenderer
         {
             if (child.Component != null)
             {
-                switch (child.Component.Type.ToLowerInvariant())
+                switch (child.Component.ComponentType)
                 {
-                    case "stat_totals": mask |= StatusBarCoverage.Stats; break;
-                    case "time": mask |= StatusBarCoverage.Time; break;
-                    case "message": mask |= StatusBarCoverage.Messages; break;
-                    case "level_title": mask |= StatusBarCoverage.MapTitle; break;
-                    case "fps_counter": mask |= StatusBarCoverage.FPS; break;
+                    case StatusBarComponentType.StatTotals: mask |= StatusBarCoverage.Stats; break;
+                    case StatusBarComponentType.Time: mask |= StatusBarCoverage.Time; break;
+                    case StatusBarComponentType.Message: mask |= StatusBarCoverage.Messages; break;
+                    case StatusBarComponentType.LevelTitle: mask |= StatusBarCoverage.MapTitle; break;
+                    case StatusBarComponentType.FpsCounter: mask |= StatusBarCoverage.FPS; break;
                 }
                 // Recurse into component children
                 if (child.Component.Children != null)
@@ -283,7 +291,10 @@ public class StatusBarRenderer
 
         if (anim.Frames.Count > 0)
         {
-            double totalDuration = anim.Frames.Sum(f => f.Duration);
+            double totalDuration = 0;
+            foreach (var frame in anim.Frames)
+                totalDuration += frame.Duration;
+
             if (totalDuration > 0)
             {
                 double timePerLoop = totalDuration * Constants.TicksPerSecond;
@@ -318,14 +329,22 @@ public class StatusBarRenderer
             return;
 
         Vec2I pos = ResolvePosition(comp, parentPos, widescreenOffset);
-        string text = string.Empty;
         var config = WorldStatic.World.Config.Hud;
         
         float alpha = comp.Translucency ? 0.5f : 1.0f;
         StatusBarAlignment alignment = comp.Alignment;
 
         var sbarDef = WorldStatic.World.ArchiveCollection.Definitions.StatusBarDefinition;
-        var fontDef = sbarDef.HudFonts.FirstOrDefault(f => f.Name.EqualsIgnoreCase(comp.Font));
+        
+        StatusBarHudFontDef? fontDef = null;
+        foreach (var f in sbarDef.HudFonts)
+        {
+            if (f.Name.EqualsIgnoreCase(comp.Font))
+            {
+                fontDef = f;
+                break;
+            }
+        }
         
         int fontHeight = 8;
         if (fontDef != null && StemToHelionFontMap.TryGetValue(fontDef.Stem, out var helionFontName))
@@ -333,43 +352,52 @@ public class StatusBarRenderer
             int h = hud.GetFontMaxHeight(helionFontName);
             if (h > 0) fontHeight = h;
         }
-
-        switch (comp.Type.ToLowerInvariant())
+        
+        switch (comp.ComponentType)
         {
-            case "stat_totals":
+            case StatusBarComponentType.StatTotals:
                 if (!config.ShowStats.Value) return;
                 DrawStatTotals(hud, comp, pos, fontDef, fontHeight, alpha);
-                DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset);
-                return;
+                break;
 
-            case "time":
+            case StatusBarComponentType.Time:
                 TimeSpan t = TimeSpan.FromSeconds(WorldStatic.World.LevelTime / 35.0);
-                text = $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
+                m_fmtSpan.Clear();
+                m_fmtSpan.Append((int)t.TotalHours, 2);
+                m_fmtSpan.Append(':');
+                m_fmtSpan.Append(t.Minutes, 2);
+                m_fmtSpan.Append(':');
+                m_fmtSpan.Append(t.Seconds, 2);
+                RenderLines(hud, m_fmtSpan.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
-            case "coordinates":
+            case StatusBarComponentType.Coordinates:
                 DrawCoordinates(hud, comp, pos, fontDef, fontHeight, alpha, context);
-                DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset);
-                return;
-            case "speedometer":
+                break;
+            case StatusBarComponentType.Speedometer:
                 // A joke case for Woof!, handled anyway!
-                text = GetSpeedometerText(context.Player);
+                string speedText = GetSpeedometerText(context.Player);
+                RenderLines(hud, speedText.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
-            case "level_title":
-                text = WorldStatic.World.MapInfo.GetDisplayNameWithPrefix(WorldStatic.World.ArchiveCollection.Language);
+            case StatusBarComponentType.LevelTitle:
+                string levelTitle = WorldStatic.World.MapInfo.GetDisplayNameWithPrefix(WorldStatic.World.ArchiveCollection.Language);
+                RenderLines(hud, levelTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
-            case "fps_counter":
+            case StatusBarComponentType.FpsCounter:
                 if (!config.ShowFPS.Value) return;
-                text = context.Fps.ToString(CultureInfo.InvariantCulture);
+                m_fmtSpan.Clear();
+                m_fmtSpan.Append(context.Fps);
+                RenderLines(hud, m_fmtSpan.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
-            case "message":
-                text = context.ConsoleMessage ?? string.Empty;
+            case StatusBarComponentType.Message:
+                string msg = context.ConsoleMessage ?? string.Empty;
                 if (context.IsMessageCentered)
                 {
                     pos = (160, 66); 
                     alignment = StatusBarAlignment.HCenter;
                 }
+                RenderLines(hud, msg.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
-            case "announce_level_title":
+            case StatusBarComponentType.AnnounceLevelTitle:
                 double duration = comp.Duration > 0 ? comp.Duration : 2.5;
                 double fadeInTime = 0.25;
                 double fadeOutTime = 1.0;
@@ -388,53 +416,69 @@ public class StatusBarRenderer
                     alpha *= (float)(1.0 - progress);
                 }
                 
-                text = WorldStatic.World.MapInfo.GetDisplayNameWithPrefix(WorldStatic.World.ArchiveCollection.Language);
+                string annTitle = WorldStatic.World.MapInfo.GetDisplayNameWithPrefix(WorldStatic.World.ArchiveCollection.Language);
+                RenderLines(hud, annTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
-            case "render_stats": 
-            case "command_history": 
-            case "chat":
+            case StatusBarComponentType.RenderStats: 
+            case StatusBarComponentType.CommandHistory: 
+            case StatusBarComponentType.Chat:
                 // Helion is singleplayer, no chat functionality.
                 break;
         }
 
-        // Generic Text Drawing Logic (used for Time, FPS, Coordinates, etc.)
-        if (!string.IsNullOrEmpty(text))
+        DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset);
+    }
+    
+    private void RenderLines(IHudRenderContext hud, ReadOnlySpan<char> text, Vec2I pos, 
+        StatusBarHudFontDef? fontDef, int fontHeight, StatusBarAlignment alignment, string? translation, float alpha)
+    {
+        if (text.IsEmpty) return;
+
+        Vec2I drawPos = pos;
+        
+        int lineStart = 0;
+        for (int i = 0; i < text.Length; i++)
         {
-            var lines = text.Split('\n');
-            Vec2I drawPos = pos;
-
-            foreach (var line in lines)
+            if (text[i] == '\n')
             {
-                if (string.IsNullOrEmpty(line)) 
-                {
-                    drawPos.Y += fontHeight;
-                    continue;
-                }
-
-                int drawnWidth = 0;
-                if (fontDef != null)
-                {
-                    drawnWidth = DrawHudText(hud, line, fontDef, drawPos, alignment, comp.Translation, alpha);
-                }
-                
-                // Fallback
-                if (drawnWidth == 0)
-                {
-                    Align align = ConvertAlignment(alignment);
-                    hud.Text(line, Constants.Fonts.Small, 8, drawPos, both: align, alpha: alpha);
-                }
-                
+                var line = text.Slice(lineStart, i - lineStart);
+                DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
                 drawPos.Y += fontHeight;
+                lineStart = i + 1;
             }
         }
+        
+        if (lineStart <= text.Length)
+        {
+            var line = text.Slice(lineStart);
+            if (line.Length > 0 || lineStart < text.Length)
+                DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
+        }
+    }
 
-        DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset);
+    private void DrawSingleLine(IHudRenderContext hud, ReadOnlySpan<char> line, Vec2I drawPos, 
+        StatusBarHudFontDef? fontDef, StatusBarAlignment alignment, string? translation, float alpha)
+    {
+        if (line.IsEmpty) return;
+
+        int drawnWidth = 0;
+        if (fontDef != null)
+        {
+            drawnWidth = DrawHudText(hud, line, fontDef, drawPos, alignment, translation, alpha);
+        }
+        
+        // Fallback
+        if (drawnWidth == 0)
+        {
+            Align align = ConvertAlignment(alignment);
+            hud.Text(line, Constants.Fonts.Small, 8, drawPos, both: align, alpha: alpha);
+        }
     }
 
     /// <summary>
     /// Draws text using SBARDEF HudFont. Returns the total width of the drawn text in pixels.
     /// </summary>
-    private static int DrawHudText(IHudRenderContext hud, string text, StatusBarHudFontDef fontDef, 
+    private int DrawHudText(IHudRenderContext hud, ReadOnlySpan<char> text, StatusBarHudFontDef fontDef, 
         Vec2I pos, StatusBarAlignment alignment, string? translation, float alpha, bool draw = true)
     {
         Color? drawColor = null;
@@ -446,7 +490,6 @@ public class StatusBarRenderer
 
         if (StemToHelionFontMap.TryGetValue(fontDef.Stem, out string? helionFont))
         {
-            // If we are just measuring, we can skip the alignment/anchor logic setup for drawing
             if (draw)
             {
                 Align anchor;
@@ -477,17 +520,15 @@ public class StatusBarRenderer
                     color: drawColor, alpha: alpha);
             }
                 
-            // Measure to return width
             return hud.MeasureText(text, helionFont, 8).Width;
         }
 
         int totalWidth = 0;
         int maxHeight = 0;
-        bool anyPatchFound = false;
-        List<(string Patch, int Width)> glyphs = new(text.Length);
+        
+        m_glyphCache.Clear();
         
         int monoWidth = 0;
-        
         // Type 1: Monospaced, based off the widest glyph
         if (fontDef.Type == 1)
         {
@@ -548,7 +589,6 @@ public class StatusBarRenderer
                 if (found)
                 {
                     maxHeight = Math.Max(maxHeight, height);
-                    anyPatchFound = true;
                 }
                 else
                 {
@@ -561,13 +601,11 @@ public class StatusBarRenderer
                  width = monoWidth;
             }
 
-            glyphs.Add((patch, width));
+            m_glyphCache.Add(new RenderGlyph(patch, width, 0));
             totalWidth += width;
         }
 
-        if (!anyPatchFound && text.Trim().Length > 0) return 0;
-
-        // If not drawing, just return the width now
+        if (m_glyphCache.Count == 0 && text.Length > 0) return 0;
         if (!draw) return totalWidth;
 
         int drawX = pos.X;
@@ -581,14 +619,14 @@ public class StatusBarRenderer
 
         Align align = Align.TopLeft;
 
-        foreach (var (patch, width) in glyphs)
+        foreach (var g in m_glyphCache)
         {
-            if (!string.IsNullOrEmpty(patch))
+            if (!string.IsNullOrEmpty(g.Patch))
             {
-                DrawSBarTexture(hud, patch, (drawX, drawY), align, useDoomOffsets: false, 
+                DrawSBarTexture(hud, g.Patch, (drawX, drawY), align, useDoomOffsets: false, 
                     translation: translation, alpha: alpha);
             }
-            drawX += width;
+            drawX += g.Width;
         }
 
         return totalWidth;
@@ -670,12 +708,24 @@ public class StatusBarRenderer
         }
 
         var sbarDef = WorldStatic.World.ArchiveCollection.Definitions.StatusBarDefinition;
-        var fontDef = sbarDef.NumberFonts.FirstOrDefault(f => f.Name.EqualsIgnoreCase(number.Font));
+
+        StatusBarNumberFontDef? fontDef = null;
+        foreach (var f in sbarDef.NumberFonts)
+        {
+            if (f.Name.EqualsIgnoreCase(number.Font))
+            {
+                fontDef = f;
+                break;
+            }
+        }
         
         if (fontDef == null) return;
 
-        string text = value.ToString(CultureInfo.InvariantCulture);
-        if (isPercent) text += "%";
+        m_fmtSpan.Clear();
+        m_fmtSpan.Append(value);
+        if (isPercent) m_fmtSpan.Append('%');
+        
+        ReadOnlySpan<char> text = m_fmtSpan.AsSpan();
 
         Vec2I pos = ResolvePosition(number, parentPos, widescreenOffset);
 
@@ -711,8 +761,8 @@ public class StatusBarRenderer
                 Type1WidthCache[fontDef.Stem] = monoWidth;
             }
         }
-
-        List<(string Patch, int Width, int Offset)> glyphs = new(text.Length);
+        
+        m_glyphCache.Clear();
 
         foreach (char c in text)
         {
@@ -740,7 +790,7 @@ public class StatusBarRenderer
                 }
             }
 
-            glyphs.Add((patch, width, xOffset));
+            m_glyphCache.Add(new RenderGlyph(patch, width, xOffset));
             totalWidth += width;
         }
 
@@ -757,172 +807,156 @@ public class StatusBarRenderer
         
         bool isBottomAnchor = yAnchor == Align.BottomLeft;
 
-        foreach (var (patch, width, xOffset) in glyphs)
+        foreach (var g in m_glyphCache)
         {
-            Vec2I drawPos = (drawX + xOffset, drawY);
+            Vec2I drawPos = (drawX + g.Offset, drawY);
             
             if (isBottomAnchor) drawPos.Y -= 1;
 
-            if (hud.Textures.HasImage(patch))
-                hud.Image(patch, drawPos, anchor: yAnchor, color: drawColor, alpha: alpha);
-            else if (hud.Textures.HasImage(patch, ResourceNamespace.Sprites))
-                hud.Image(patch, drawPos, anchor: yAnchor, resourceNamespace: ResourceNamespace.Sprites, color: drawColor, alpha: alpha);
+            if (hud.Textures.HasImage(g.Patch))
+                hud.Image(g.Patch, drawPos, anchor: yAnchor, color: drawColor, alpha: alpha);
+            else if (hud.Textures.HasImage(g.Patch, ResourceNamespace.Sprites))
+                hud.Image(g.Patch, drawPos, anchor: yAnchor, resourceNamespace: ResourceNamespace.Sprites, color: drawColor, alpha: alpha);
             
-            drawX += width;
+            drawX += g.Width;
         }
 
         DrawChildren(hud, number, pos, containerHeight, context, widescreenOffset);
     }
     
-    private static void DrawStatTotals(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos, 
+    private void DrawStatTotals(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos, 
         StatusBarHudFontDef? fontDef, int fontHeight, float alpha)
     {
         var stats = WorldStatic.World.LevelStats;
         
-        var statList = new[] 
-        {
-            ("K", stats.KillCount, stats.TotalMonsters),
-            ("I", stats.ItemCount, stats.TotalItems),
-            ("S", stats.SecretCount, stats.TotalSecrets)
-        };
+        DrawStatPart(hud, "K: ", stats.KillCount, stats.TotalMonsters, ref pos, comp, fontDef, fontHeight, alpha);
+        DrawStatPart(hud, "I: ", stats.ItemCount, stats.TotalItems, ref pos, comp, fontDef, fontHeight, alpha);
+        DrawStatPart(hud, "S: ", stats.SecretCount, stats.TotalSecrets, ref pos, comp, fontDef, fontHeight, alpha);
+    }
 
-        Vec2I cursor = pos;
-        bool isVertical = comp.Vertical;
-        StatusBarAlignment alignment = comp.Alignment;
+    private void DrawStatPart(IHudRenderContext hud, string label, int count, int total, ref Vec2I cursor, 
+        StatusBarComponentDef comp, StatusBarHudFontDef? fontDef, int fontHeight, float alpha)
+    {
+        string? defaultColor = comp.Translation;
+        string? valueColor = defaultColor;
 
-        // Local helper function to avoid repeating draw/fallback/measure logic
-        int DrawTextPart(string text, Vec2I position, string? translation)
-        {
-            int width = 0;
-            if (fontDef != null)
-            {
-                width = DrawHudText(hud, text, fontDef, position, alignment, translation, alpha);
-            }
-            
-            if (width == 0) // Fallback if HUD font is missing or drawing failed
-            {
-                Align align = ConvertAlignment(alignment);
-                Color? color = null;
-                if (!string.IsNullOrEmpty(translation) && StandardTextColors.TryGetValue(translation, out var c))
-                    color = c;
-                
-                hud.Text(text, Constants.Fonts.Small, 8, position, both: align, alpha: alpha, color: color);
-                width = hud.MeasureText(text, Constants.Fonts.Small, 8).Width;
-            }
-            return width;
-        }
+        if (total != int.MinValue && total > 0 && count >= total) 
+            valueColor = "CRGREEN";
+        
+        int labelWidth = DrawTextPart(hud, label.AsSpan(), cursor, defaultColor, comp.Alignment, fontDef, alpha);
+        
+        Vec2I valuePos = cursor;
+        valuePos.X += labelWidth;
+        
+        m_fmtSpan.Clear();
+        m_fmtSpan.Append(count);
+        m_fmtSpan.Append('/');
+        m_fmtSpan.Append(total);
 
-        foreach (var (label, count, total) in statList)
-        {
-            string labelText = $"{label}: ";
-            string valueText = $"{count}/{total}";
-            
-            string? defaultColor = comp.Translation;
-            string? valueColor = defaultColor;
+        int valueWidth = DrawTextPart(hud, m_fmtSpan.AsSpan(), valuePos, valueColor, comp.Alignment, fontDef, alpha);
 
-            if (total != int.MinValue && total > 0 && count >= total) 
-                valueColor = "CRGREEN";
-
-            int labelWidth = DrawTextPart(labelText, cursor, defaultColor);
-
-            Vec2I valuePos = cursor;
-            valuePos.X += labelWidth;
-            int valueWidth = DrawTextPart(valueText, valuePos, valueColor);
-
-            if (isVertical) 
-            {
-                cursor.Y += fontHeight;
-            }
-            else 
-            {
-                cursor.X += labelWidth + valueWidth + 8; // Padding
-            }
-        }
+        if (comp.Vertical) 
+            cursor.Y += fontHeight;
+        else 
+            cursor.X += labelWidth + valueWidth + 8; // Padding
     }
     
-    private static void DrawCoordinates(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos, 
+    private void DrawCoordinates(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos, 
         StatusBarHudFontDef? fontDef, int fontHeight, float alpha, StatusBarContext context)
     {
         var playerPos = context.Player.Position;
-        var coords = new[] { ("X", (int)playerPos.X), ("Y", (int)playerPos.Y), ("Z", (int)playerPos.Z) };
+        m_coordPartsCache.Clear();
+        
+        m_coordPartsCache.Add(new CoordData("X: ", (int)playerPos.X, 0, 0));
+        m_coordPartsCache.Add(new CoordData("Y: ", (int)playerPos.Y, 0, 0));
+        m_coordPartsCache.Add(new CoordData("Z: ", (int)playerPos.Z, 0, 0));
 
-        bool isVertical = comp.Vertical;
-        StatusBarAlignment alignment = comp.Alignment;
-
-        var parts = new List<(string Lbl, int LblW, string Val, int ValW)>();
         int totalHorizontalWidth = 0;
         
-        int Measure(string t, string? trans)
+        for (int i = 0; i < m_coordPartsCache.Count; i++)
         {
-            if (fontDef != null)
-                return DrawHudText(hud, t, fontDef, (0,0), StatusBarAlignment.Left, trans, alpha, draw: false);
-            return hud.MeasureText(t, Constants.Fonts.Small, 8).Width;
-        }
-
-        for (int i = 0; i < coords.Length; i++)
-        {
-            string l = $"{coords[i].Item1}: ";
-            string v = coords[i].Item2.ToString(CultureInfo.InvariantCulture);
+            var data = m_coordPartsCache[i];
             
-            int lw = Measure(l, "CRGREEN");
-            int vw = Measure(v, comp.Translation);
+            int lw = MeasureSpan(hud, data.Label.AsSpan(), "CRGREEN", fontDef, alpha);
             
-            parts.Add((l, lw, v, vw));
+            m_fmtSpan.Clear();
+            m_fmtSpan.Append(data.Value);
+            int vw = MeasureSpan(hud, m_fmtSpan.AsSpan(), comp.Translation, fontDef, alpha);
+            
+            m_coordPartsCache[i] = data with { LabelWidth = lw, ValWidth = vw };
             
             totalHorizontalWidth += lw + vw;
-            if (i < coords.Length - 1) totalHorizontalWidth += 8; 
+            if (i < m_coordPartsCache.Count - 1) totalHorizontalWidth += 8; 
         }
 
         Vec2I cursor = pos;
         int startX = pos.X;
 
-        if (!isVertical)
+        if (!comp.Vertical)
         {
-            if ((alignment & StatusBarAlignment.Right) != 0) startX -= totalHorizontalWidth;
-            else if ((alignment & StatusBarAlignment.HCenter) != 0) startX -= totalHorizontalWidth / 2;
+            if ((comp.Alignment & StatusBarAlignment.Right) != 0) startX -= totalHorizontalWidth;
+            else if ((comp.Alignment & StatusBarAlignment.HCenter) != 0) startX -= totalHorizontalWidth / 2;
         }
 
         cursor.X = startX;
         
-        void DrawPart(string t, string? trans, Vec2I p)
+        foreach (var data in m_coordPartsCache)
         {
-            if (fontDef != null)
+            if (comp.Vertical)
             {
-                DrawHudText(hud, t, fontDef, p, StatusBarAlignment.Left, trans, alpha, draw: true);
-            }
-            else
-            {
-                Color? color = null;
-                if (!string.IsNullOrEmpty(trans) && StandardTextColors.TryGetValue(trans, out var c))
-                    color = c;
-                hud.Text(t, Constants.Fonts.Small, 8, p, both: Align.TopLeft, alpha: alpha, color: color);
-            }
-        }
-
-        foreach (var part in parts)
-        {
-            if (isVertical)
-            {
-                int lineWidth = part.LblW + part.ValW;
+                int lineWidth = data.LabelWidth + data.ValWidth;
                 int lineX = pos.X;
                 
-                if ((alignment & StatusBarAlignment.Right) != 0) lineX -= lineWidth;
-                else if ((alignment & StatusBarAlignment.HCenter) != 0) lineX -= lineWidth / 2;
+                if ((comp.Alignment & StatusBarAlignment.Right) != 0) lineX -= lineWidth;
+                else if ((comp.Alignment & StatusBarAlignment.HCenter) != 0) lineX -= lineWidth / 2;
                 
-                DrawPart(part.Lbl, "CRGREEN", (lineX, cursor.Y));
-                DrawPart(part.Val, comp.Translation, (lineX + part.LblW, cursor.Y));
+                DrawTextPart(hud, data.Label.AsSpan(), (lineX, cursor.Y), "CRGREEN", StatusBarAlignment.Left, fontDef, alpha);
+                
+                m_fmtSpan.Clear();
+                m_fmtSpan.Append(data.Value);
+                DrawTextPart(hud, m_fmtSpan.AsSpan(), (lineX + data.LabelWidth, cursor.Y), comp.Translation, StatusBarAlignment.Left, fontDef, alpha);
                 
                 cursor.Y += fontHeight;
             }
             else
             {
-                DrawPart(part.Lbl, "CRGREEN", cursor);
-                cursor.X += part.LblW;
+                DrawTextPart(hud, data.Label.AsSpan(), cursor, "CRGREEN", StatusBarAlignment.Left, fontDef, alpha);
+                cursor.X += data.LabelWidth;
                 
-                DrawPart(part.Val, comp.Translation, cursor);
-                cursor.X += part.ValW + 8; 
+                m_fmtSpan.Clear();
+                m_fmtSpan.Append(data.Value);
+                DrawTextPart(hud, m_fmtSpan.AsSpan(), cursor, comp.Translation, StatusBarAlignment.Left, fontDef, alpha);
+                cursor.X += data.ValWidth + 8; 
             }
         }
+    }
+
+    private int MeasureSpan(IHudRenderContext hud, ReadOnlySpan<char> t, string? trans, StatusBarHudFontDef? fontDef, float alpha)
+    {
+        if (fontDef != null)
+            return DrawHudText(hud, t, fontDef, (0,0), StatusBarAlignment.Left, trans, alpha, draw: false);
+        return hud.MeasureText(t, Constants.Fonts.Small, 8).Width;
+    }
+    
+    private int DrawTextPart(IHudRenderContext hud, ReadOnlySpan<char> text, Vec2I position, string? translation, 
+        StatusBarAlignment alignment, StatusBarHudFontDef? fontDef, float alpha)
+    {
+        int width;
+        if (fontDef != null)
+        {
+            width = DrawHudText(hud, text, fontDef, position, alignment, translation, alpha, draw: true);
+        }
+        else
+        {
+            Align align = ConvertAlignment(alignment);
+            Color? color = null;
+            if (!string.IsNullOrEmpty(translation) && StandardTextColors.TryGetValue(translation, out var c))
+                color = c;
+            
+            hud.Text(text, Constants.Fonts.Small, 8, position, both: align, alpha: alpha, color: color);
+            width = hud.MeasureText(text, Constants.Fonts.Small, 8).Width;
+        }
+        return width;
     }
 
     private void DrawChildren(IHudRenderContext hud, StatusBarBaseDef def, Vec2I pos, int containerHeight, StatusBarContext context, float widescreenOffset)
@@ -985,22 +1019,29 @@ public class StatusBarRenderer
         return false;
     }
     
-    private static string GetHudFontPatch(StatusBarHudFontDef font, char c)
+    private string GetHudFontPatch(StatusBarHudFontDef font, char c)
     {
-        string key = font.Stem + c;
-        if (HudFontPatchCache.TryGetValue(key, out string? cached))
+        m_lookupKeySpan.Clear();
+        m_lookupKeySpan.Append(font.Stem);
+        m_lookupKeySpan.Append(c);
+        
+        var lookup = HudFontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
+        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached))
             return cached;
         
         string result = font.Stem + ((int)c).ToString("D3", CultureInfo.InvariantCulture);
-        
-        HudFontPatchCache[key] = result;
+        HudFontPatchCache[font.Stem + c] = result;
         return result;
     }
-
-    private static string GetFontPatch(IHudRenderContext hud, StatusBarNumberFontDef font, char c)
+    
+    private string GetFontPatch(IHudRenderContext hud, StatusBarNumberFontDef font, char c)
     {
-        string key = font.Stem + c;
-        if (FontPatchCache.TryGetValue(key, out string? cached))
+        m_lookupKeySpan.Clear();
+        m_lookupKeySpan.Append(font.Stem);
+        m_lookupKeySpan.Append(c);
+
+        var lookup = FontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
+        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached))
             return cached;
 
         string result;
@@ -1037,7 +1078,7 @@ public class StatusBarRenderer
             result = font.Stem + c;
         }
 
-        FontPatchCache[key] = result;
+        FontPatchCache[font.Stem + c] = result;
         return result;
     }
 

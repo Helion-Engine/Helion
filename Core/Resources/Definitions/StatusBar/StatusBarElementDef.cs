@@ -83,8 +83,20 @@ public class StatusBarFaceDef : StatusBarBaseDef
 
 public class StatusBarComponentDef : StatusBarBaseDef 
 {
+    private string m_type = string.Empty;
+
     [JsonPropertyName("type")]
-    public string Type { get; set; } = string.Empty;
+    public string Type 
+    { 
+        get => m_type; 
+        set 
+        {
+            m_type = value;
+            ComponentType = ParseType(value);
+        }
+    }
+
+    public StatusBarComponentType ComponentType { get; private set; }
 
     [JsonPropertyName("font")]
     public string Font { get; set; } = string.Empty;
@@ -99,6 +111,27 @@ public class StatusBarComponentDef : StatusBarBaseDef
     // Additional undocumented property in woof's SBARDEF!
     [JsonPropertyName("duration")]
     public double Duration { get; set; }
+
+    private static StatusBarComponentType ParseType(string type)
+    {
+        if (string.IsNullOrEmpty(type)) return StatusBarComponentType.Unknown;
+        
+        return type.ToLowerInvariant() switch
+        {
+            "stat_totals" => StatusBarComponentType.StatTotals,
+            "time" => StatusBarComponentType.Time,
+            "coordinates" => StatusBarComponentType.Coordinates,
+            "speedometer" => StatusBarComponentType.Speedometer,
+            "level_title" => StatusBarComponentType.LevelTitle,
+            "fps_counter" => StatusBarComponentType.FpsCounter,
+            "message" => StatusBarComponentType.Message,
+            "announce_level_title" => StatusBarComponentType.AnnounceLevelTitle,
+            "render_stats" => StatusBarComponentType.RenderStats,
+            "command_history" => StatusBarComponentType.CommandHistory,
+            "chat" => StatusBarComponentType.Chat,
+            _ => StatusBarComponentType.Unknown
+        };
+    }
 }
 
     
