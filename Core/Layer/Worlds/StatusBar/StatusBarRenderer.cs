@@ -986,15 +986,20 @@ public class StatusBarRenderer
 
     private static float GetWidescreenOffset(IHudRenderContext hud)
     {
-        float currentAspect = hud.WindowDimension.AspectRatio;
-        if (currentAspect > Constants.DoomVirtualAspectRatio)
+        var scaleWidth = hud.ArchiveCollection.Config.Hud.Width.Value * 320.0;
+        if (scaleWidth > hud.Dimension.Width * Constants.DoomVirtualAspectRatio || scaleWidth == 0)
         {
-            float widthInDoomUnits = 320.0f * (currentAspect / Constants.DoomVirtualAspectRatio);
-            return (widthInDoomUnits - 320.0f) / 2.0f;
+            float currentAspect = hud.WindowDimension.AspectRatio;
+            if (currentAspect > Constants.DoomVirtualAspectRatio)
+            {
+                float widthInDoomUnits = 320.0f * (currentAspect / Constants.DoomVirtualAspectRatio);
+                return (widthInDoomUnits - 320.0f) / 2.0f;
+            }
         }
-        return 0f;
+
+        return -(hud.Dimension.Width - (int)scaleWidth) / 2;
     }
-    
+
     private static bool ResolveGlyph(IHudRenderContext hud, string patch, out int width, out int height)
     {
         if (hud.Textures.TryGet(patch, out var handle))
