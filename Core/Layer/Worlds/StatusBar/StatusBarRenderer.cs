@@ -12,11 +12,11 @@ using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Strings;
 using Helion.Util;
-using Helion.Util.Extensions;
-using Helion.World;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
+using Helion.Resources.Archives.Collection;
+using Helion.World;
 
 namespace Helion.Layer.Worlds.StatusBar;
 
@@ -65,14 +65,30 @@ public class StatusBarRenderer
         { "CRBLACK", Color.Black },
         { "CRUNTRANSLATED", Color.White }
     };
-    
-    private readonly List<RenderGlyph> m_glyphCache = new();
-    private readonly List<CoordData> m_coordPartsCache = new();
+
+    private readonly IWorld m_world;
+    private readonly ArchiveCollection m_archiveCollection;
+    private readonly List<RenderGlyph> m_glyphCache = [];
+    private readonly List<CoordData> m_coordPartsCache = [];
+    private readonly Dictionary<string, StatusBarNumberFontDef> m_fontNumberLookup = [];
+    private readonly Dictionary<string, StatusBarHudFontDef> m_hudFontLookup = [];
     private readonly SpanString m_fmtSpan = new();
     private readonly SpanString m_lookupKeySpan = new(64);
 
     private readonly record struct RenderGlyph(string Patch, int Width, int Offset);
     private readonly record struct CoordData(string Label, int Value, int LabelWidth, int ValWidth);
+
+    public StatusBarRenderer(IWorld world)
+    {
+        m_world = world;
+        m_archiveCollection = world.ArchiveCollection;
+        var sbarDef = world.ArchiveCollection.Definitions.StatusBarDefinition;
+        foreach (var f in sbarDef.NumberFonts)
+            m_fontNumberLookup[f.Name] = f;
+
+        foreach (var f in sbarDef.HudFonts)
+            m_hudFontLookup[f.Name] = f;
+    }
 
     public static StatusBarCoverage GetCoverage(StatusBarLayoutDef layout)
     {
@@ -129,7 +145,7 @@ public class StatusBarRenderer
         {
             string? fillFlat = layout.FillFlat;
             if (string.IsNullOrEmpty(fillFlat))
-                fillFlat = WorldStatic.World.GameInfo.BorderFlat;
+                fillFlat = m_world.GameInfo.BorderFlat;
 
             if (!string.IsNullOrEmpty(fillFlat) && hud.Textures.TryGet(fillFlat, out var bgHandle))
             {
@@ -298,7 +314,7 @@ public class StatusBarRenderer
             if (totalDuration > 0)
             {
                 double timePerLoop = totalDuration * Constants.TicksPerSecond;
-                long currentTick = WorldStatic.World.LevelTime;
+                long currentTick = m_world.LevelTime;
                 double animTime = currentTick % timePerLoop;
 
                 string patch = anim.Frames[0].Lump;
@@ -329,22 +345,12 @@ public class StatusBarRenderer
             return;
 
         Vec2I pos = ResolvePosition(comp, parentPos, widescreenOffset);
-        var config = WorldStatic.World.Config.Hud;
+        var config = m_world.Config.Hud;
         
         float alpha = comp.Translucency ? 0.5f : 1.0f;
         StatusBarAlignment alignment = comp.Alignment;
 
-        var sbarDef = WorldStatic.World.ArchiveCollection.Definitions.StatusBarDefinition;
-        
-        StatusBarHudFontDef? fontDef = null;
-        foreach (var f in sbarDef.HudFonts)
-        {
-            if (f.Name.EqualsIgnoreCase(comp.Font))
-            {
-                fontDef = f;
-                break;
-            }
-        }
+        m_hudFontLookup.TryGetValue(comp.Font, out var fontDef);       
         
         int fontHeight = 8;
         if (fontDef != null && StemToHelionFontMap.TryGetValue(fontDef.Stem, out var helionFontName))
@@ -361,7 +367,7 @@ public class StatusBarRenderer
                 break;
 
             case StatusBarComponentType.Time:
-                TimeSpan t = TimeSpan.FromSeconds(WorldStatic.World.LevelTime / 35.0);
+                TimeSpan t = TimeSpan.FromSeconds(m_world.LevelTime / 35.0);
                 m_fmtSpan.Clear();
                 m_fmtSpan.Append((int)t.TotalHours, 2);
                 m_fmtSpan.Append(':');
@@ -379,7 +385,7 @@ public class StatusBarRenderer
                 RenderLines(hud, speedText.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.LevelTitle:
-                string levelTitle = WorldStatic.World.MapInfo.GetDisplayNameWithPrefix(WorldStatic.World.ArchiveCollection.Language);
+                string levelTitle = m_world.MapInfo.GetDisplayNameWithPrefix(m_archiveCollection.Language);
                 RenderLines(hud, levelTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.FpsCounter:
@@ -401,7 +407,7 @@ public class StatusBarRenderer
                 double duration = comp.Duration > 0 ? comp.Duration : 2.5;
                 double fadeInTime = 0.25;
                 double fadeOutTime = 1.0;
-                double timeSinceStart = WorldStatic.World.LevelTime / Constants.TicksPerSecond;
+                double timeSinceStart = m_world.LevelTime / Constants.TicksPerSecond;
 
                 if (timeSinceStart > duration + fadeOutTime) 
                     return; 
@@ -416,7 +422,7 @@ public class StatusBarRenderer
                     alpha *= (float)(1.0 - progress);
                 }
                 
-                string annTitle = WorldStatic.World.MapInfo.GetDisplayNameWithPrefix(WorldStatic.World.ArchiveCollection.Language);
+                string annTitle = m_world.MapInfo.GetDisplayNameWithPrefix(m_archiveCollection.Language);
                 RenderLines(hud, annTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.RenderStats: 
@@ -707,19 +713,8 @@ public class StatusBarRenderer
             if (value < minVal) value = minVal;
         }
 
-        var sbarDef = WorldStatic.World.ArchiveCollection.Definitions.StatusBarDefinition;
-
-        StatusBarNumberFontDef? fontDef = null;
-        foreach (var f in sbarDef.NumberFonts)
-        {
-            if (f.Name.EqualsIgnoreCase(number.Font))
-            {
-                fontDef = f;
-                break;
-            }
-        }
-        
-        if (fontDef == null) return;
+        if (!m_fontNumberLookup.TryGetValue(number.Font, out var fontDef))
+            return;
 
         m_fmtSpan.Clear();
         m_fmtSpan.Append(value);
@@ -827,7 +822,7 @@ public class StatusBarRenderer
     private void DrawStatTotals(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos, 
         StatusBarHudFontDef? fontDef, int fontHeight, float alpha)
     {
-        var stats = WorldStatic.World.LevelStats;
+        var stats = m_world.LevelStats;
         
         DrawStatPart(hud, "K: ", stats.KillCount, stats.TotalMonsters, ref pos, comp, fontDef, fontHeight, alpha);
         DrawStatPart(hud, "I: ", stats.ItemCount, stats.TotalItems, ref pos, comp, fontDef, fontHeight, alpha);
@@ -1082,10 +1077,10 @@ public class StatusBarRenderer
         return result;
     }
 
-    private static int ResolveNumberValue(Player player, StatusBarNumberType type, int param)
+    private int ResolveNumberValue(Player player, StatusBarNumberType type, int param)
     {
-        var composer = WorldStatic.EntityManager.DefinitionComposer;
-        var dehacked = WorldStatic.World.ArchiveCollection.Definitions.DehackedDefinition;
+        var composer = m_archiveCollection.EntityDefinitionComposer;
+        var dehacked = m_archiveCollection.Definitions.DehackedDefinition;
 
         switch (type)
         {
@@ -1147,9 +1142,9 @@ public class StatusBarRenderer
         return string.Empty;
     }
 
-    private static int GetMaxAmount(Player player, string name)
+    private int GetMaxAmount(Player player, string name)
     {
-        var composer = WorldStatic.EntityManager.DefinitionComposer;
+        var composer = m_archiveCollection.EntityDefinitionComposer;
         var def = composer.GetByName(name);
         if (def == null) return 0;
         

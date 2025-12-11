@@ -13,6 +13,9 @@ namespace Helion.World.StatusBar;
 
 public static class StatusBarConditionResolver
 {
+    private static readonly Dictionary<int, EntityDefinition?> Id24AmmoTypeLookup = [];
+    private static readonly Dictionary<int, EntityDefinition?> Id24PickupLookup = [];
+
     public static bool Evaluate(StatusBarContext context, List<StatusBarConditionDef>? conditions)
     {
         if (conditions == null || conditions.Count == 0)
@@ -28,9 +31,10 @@ public static class StatusBarConditionResolver
 
     private static bool CheckSingle(StatusBarContext context, StatusBarConditionDef c)
     {
+        var world = context.World;
         var player = context.Player;
-        var composer = WorldStatic.EntityManager.DefinitionComposer;
-        var gameConf = WorldStatic.World.ArchiveCollection.Definitions.GameConfDefinition;
+        var composer = context.World.EntityManager.DefinitionComposer;
+        var gameConf = context.World.ArchiveCollection.Definitions.GameConfDefinition;
 
         return c.Condition switch
         {
@@ -53,18 +57,18 @@ public static class StatusBarConditionResolver
             StatusBarConditionType.GameVersionGe => CheckGameVersion(gameConf, c.Param, greaterEqual: true),
             StatusBarConditionType.GameVersionLt => CheckGameVersion(gameConf, c.Param, greaterEqual: false),
             
-            StatusBarConditionType.SessionTypeEq => CheckSessionType(c.Param, equals: true),
-            StatusBarConditionType.SessionTypeNeq => CheckSessionType(c.Param, equals: false),
+            StatusBarConditionType.SessionTypeEq => CheckSessionType(world, c.Param, equals: true),
+            StatusBarConditionType.SessionTypeNeq => CheckSessionType(world, c.Param, equals: false),
             
             StatusBarConditionType.GameModeEq => CheckGameMode(gameConf, c.Param, equals: true),
             StatusBarConditionType.GameModeNeq => CheckGameMode(gameConf, c.Param, equals: false),
             
-            StatusBarConditionType.HudModeEq => CheckHudMode(c.Param),
+            StatusBarConditionType.HudModeEq => CheckHudMode(world, c.Param),
             
             // v1.1 Extensions
             StatusBarConditionType.AutomapModeEq => CheckAutomap(context, c.Param),
-            StatusBarConditionType.WidgetEnabled => CheckWidgetEnabled(c.Param),
-            StatusBarConditionType.WidgetDisabled => !CheckWidgetEnabled(c.Param),
+            StatusBarConditionType.WidgetEnabled => CheckWidgetEnabled(world, player, c.Param),
+            StatusBarConditionType.WidgetDisabled => !CheckWidgetEnabled(world, player, c.Param),
             StatusBarConditionType.WeaponNotOwned => !CheckWeaponOwned(player, c.Param, composer),
             
             StatusBarConditionType.HealthGe => player.Health >= c.Param,
@@ -79,19 +83,19 @@ public static class StatusBarConditionResolver
 
             StatusBarConditionType.SelectedAmmoGe => CheckSelectedAmmo(player, c.Param, greaterEqual: true),
             StatusBarConditionType.SelectedAmmoLt => CheckSelectedAmmo(player, c.Param, greaterEqual: false),
-            StatusBarConditionType.SelectedAmmoPercentGe => CheckSelectedAmmoPercent(player, c.Param, greaterEqual: true),
-            StatusBarConditionType.SelectedAmmoPercentLt => CheckSelectedAmmoPercent(player, c.Param, greaterEqual: false),
+            StatusBarConditionType.SelectedAmmoPercentGe => CheckSelectedAmmoPercent(world, player, context.HasBackPack, c.Param, greaterEqual: true),
+            StatusBarConditionType.SelectedAmmoPercentLt => CheckSelectedAmmoPercent(world, player, context.HasBackPack, c.Param, greaterEqual: false),
 
             StatusBarConditionType.AmmoGe => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: true, composer),
             StatusBarConditionType.AmmoLt => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: false, composer),
-            StatusBarConditionType.AmmoPercentGe => CheckAmmoPercent(player, c.Param2, c.Param, greaterEqual: true, composer),
-            StatusBarConditionType.AmmoPercentLt => CheckAmmoPercent(player, c.Param2, c.Param, greaterEqual: false, composer),
+            StatusBarConditionType.AmmoPercentGe => CheckAmmoPercent(player, context.HasBackPack, c.Param2, c.Param, greaterEqual: true, composer),
+            StatusBarConditionType.AmmoPercentLt => CheckAmmoPercent(player, context.HasBackPack, c.Param2, c.Param, greaterEqual: false, composer),
 
             StatusBarConditionType.WidescreenModeEq => CheckWidescreen(context, c.Param),
             
-            StatusBarConditionType.EpisodeEq => CheckEpisode(c.Param),
-            StatusBarConditionType.LevelGe => CheckLevel(c.Param, greaterEqual: true),
-            StatusBarConditionType.LevelLt => CheckLevel(c.Param, greaterEqual: false),
+            StatusBarConditionType.EpisodeEq => CheckEpisode(world, c.Param),
+            StatusBarConditionType.LevelGe => CheckLevel(world, c.Param, greaterEqual: true),
+            StatusBarConditionType.LevelLt => CheckLevel(world, c.Param, greaterEqual: false),
 
             _ => false
         };
@@ -101,6 +105,9 @@ public static class StatusBarConditionResolver
 
     private static bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
     {
+        if (Id24PickupLookup.TryGetValue(pickupItemType, out definition))
+            return definition != null;
+
         string? entityName = pickupItemType switch
         {
             // Keys
@@ -140,7 +147,6 @@ public static class StatusBarConditionResolver
 
         if (entityName != null)
         {
-            // FIX: Use GetByName instead of GetByNameOrDefault
             definition = composer.GetByName(entityName);
             
             if (definition == null)
@@ -151,15 +157,21 @@ public static class StatusBarConditionResolver
                 else if (entityName == "InvulnerabilitySphere") 
                     definition = composer.GetByName("Invulnerability");
             }
+
+            Id24PickupLookup[pickupItemType] = definition;
             return definition != null;
         }
 
         definition = null;
+        Id24PickupLookup[pickupItemType] = null;
         return false;
     }
 
     public static bool TryGetId24AmmoType(EntityDefinitionComposer composer, int ammoTypeIndex, [NotNullWhen(true)] out EntityDefinition? def)
     {
+        if (Id24AmmoTypeLookup.TryGetValue(ammoTypeIndex, out def))
+            return def != null;
+
         string? ammoName = ammoTypeIndex switch
         {
             0 => "Clip",
@@ -172,10 +184,12 @@ public static class StatusBarConditionResolver
         if (ammoName != null)
         {
             def = composer.GetByName(ammoName);
+            Id24AmmoTypeLookup[ammoTypeIndex] = def;
             return def != null;
         }
 
         def = null;
+        Id24AmmoTypeLookup[ammoTypeIndex] = null;
         return false;
     }
     
@@ -251,10 +265,9 @@ public static class StatusBarConditionResolver
         return greaterEqual ? currentIndex >= param : currentIndex < param;
     }
 
-    private static bool CheckSessionType(int param, bool equals)
+    private static bool CheckSessionType(IWorld world, int param, bool equals)
     {
         int currentType = 0; // Single Player
-        var world = WorldStatic.World;
         if (world.WorldType == WorldType.Deathmatch) currentType = 2;
         else if (world.WorldType == WorldType.Cooperative) currentType = 1;
         return equals ? (currentType == param) : (currentType != param);
@@ -268,10 +281,10 @@ public static class StatusBarConditionResolver
         return equals ? (currentIndex == param) : (currentIndex != param);
     }
 
-    private static bool CheckHudMode(int param)
+    private static bool CheckHudMode(IWorld world, int param)
     {
         // 0 = Standard, 1 = Compact. Helion treats Minimal as Compact.
-        int mode = WorldStatic.World.Config.Hud.StatusBarSize.Value == StatusBarSizeType.Minimal ? 1 : 0;
+        int mode = world.Config.Hud.StatusBarSize.Value == StatusBarSizeType.Minimal ? 1 : 0;
         return mode == param;
     }
 
@@ -313,14 +326,17 @@ public static class StatusBarConditionResolver
         return greaterEqual ? amount >= param : amount < param;
     }
 
-    private static bool CheckSelectedAmmoPercent(Player player, int param, bool greaterEqual)
+    private static bool CheckSelectedAmmoPercent(IWorld world, Player player, bool hasBackPack, int param, bool greaterEqual)
     {
         if (player.Weapon == null) return false;
         string ammoType = player.Weapon.Definition.Properties.Weapons.AmmoType;
         if (string.IsNullOrEmpty(ammoType)) return false;
+
+        var def = world.EntityManager.DefinitionComposer.GetByName(ammoType);
+        if (def == null) return false;
         
-        int amount = player.Inventory.Amount(ammoType);
-        int max = GetMaxAmount(player, ammoType);
+        int amount = player.Inventory.Amount(def);
+        int max = GetMaxAmount(def, hasBackPack);
         if (max == 0) return false;
 
         int percent = (int)((amount / (float)max) * 100);
@@ -336,13 +352,13 @@ public static class StatusBarConditionResolver
         return greaterEqual ? amount >= val : amount < val;
     }
     
-    private static bool CheckAmmoPercent(Player player, int ammoTypeIndex, int val, bool greaterEqual, EntityDefinitionComposer composer)
+    private static bool CheckAmmoPercent(Player player, bool hasBackPack, int ammoTypeIndex, int val, bool greaterEqual, EntityDefinitionComposer composer)
     {
         if (!TryGetId24AmmoType(composer, ammoTypeIndex, out var def))
             return false;
 
-        int amount = player.Inventory.Amount(def.Name);
-        int max = GetMaxAmount(player, def.Name);
+        int amount = player.Inventory.Amount(def);
+        int max = GetMaxAmount(def, hasBackPack);
         if (max == 0) return false;
 
         int percent = (int)((amount / (float)max) * 100);
@@ -354,9 +370,9 @@ public static class StatusBarConditionResolver
         return (param == 1) == context.Widescreen;
     }
 
-    private static bool CheckEpisode(int param)
+    private static bool CheckEpisode(IWorld world, int param)
     {
-        var mapName = WorldStatic.World.MapInfo.MapName;
+        var mapName = world.MapInfo.MapName;
         if (mapName.Length >= 2 && char.ToUpperInvariant(mapName[0]) == 'E' && char.IsDigit(mapName[1]))
         {
             if (int.TryParse(mapName.AsSpan(1, 1), out int ep))
@@ -367,12 +383,12 @@ public static class StatusBarConditionResolver
         return param == 1;
     }
 
-    private static bool CheckLevel(int param, bool greaterEqual)
+    private static bool CheckLevel(IWorld world, int param, bool greaterEqual)
     {
-        return greaterEqual ? WorldStatic.World.MapInfo.LevelNumber >= param : WorldStatic.World.MapInfo.LevelNumber < param;
+        return greaterEqual ? world.MapInfo.LevelNumber >= param : world.MapInfo.LevelNumber < param;
     }
     
-    private static bool CheckWidgetEnabled(int param)
+    private static bool CheckWidgetEnabled(IWorld world, Player player, int param)
     {
         // Mappings based on DSDA/Woof standards
         // 0: Level Stats (Kills/Items/Secrets)
@@ -381,31 +397,27 @@ public static class StatusBarConditionResolver
         // 3: FPS
         // 6: Speedometer
         
-        var config = WorldStatic.World.Config.Hud;
+        var config = world.Config.Hud;
         
         return param switch
         {
             0 => config.ShowStats.Value,
             1 => config.ShowStats.Value, // Helion groups Time with Stats usually
-            2 => WorldStatic.World.GetCameraPlayer().Cheats.IsCheatActive(Cheats.CheatType.ShowPosition),
+            2 => player.Cheats.IsCheatActive(Cheats.CheatType.ShowPosition),
             3 => config.ShowFPS.Value,
             // Helion doesn't have specific booleans for Speedometer yet, default to allowed
             _ => true 
         };
     }
     
-    private static int GetMaxAmount(Player player, string name)
-    {
-        var composer = WorldStatic.EntityManager.DefinitionComposer;
-        var def = composer.GetByName(name);
-        if (def == null) return 0;
-        
-        string baseName = Inventory.GetBaseInventoryName(def);
-        var baseDef = composer.GetByName(baseName);
-        if (baseDef != null) def = baseDef;
+    private static int GetMaxAmount(EntityDefinition def, bool hasBackPack)
+    {        
+        var baseDef = Inventory.GetBaseInventoryDefinition(def);
+        if (baseDef != null)
+            def = baseDef;
 
         int max = def.Properties.Inventory.MaxAmount;
-        if (player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName) 
+        if (hasBackPack
             && def.IsType(Inventory.AmmoClassName) 
             && def.Properties.Ammo.BackpackMaxAmount > max)
         {
