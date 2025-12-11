@@ -1,4 +1,5 @@
-﻿using Helion.Render.OpenGL.Texture.Legacy;
+﻿using Helion.Geometry.Segments;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
@@ -91,12 +92,26 @@ public partial class GeometryRenderer
 
         m_vertices.Clear();
         var anchorZ = side.Line.Flags.Unpegged.Lower ? side.Sector.Floor.Z : side.Sector.Ceiling.Z;
-        var saveUnpeg = side.Line.Flags.Unpegged.Lower;
+        if (wall.Location == WallLocation.Lower && !side.Line.Flags.Unpegged.Lower)
+            anchorZ = otherSector.Floor.Z;
+        else if (wall.Location == WallLocation.Upper && !side.Line.Flags.Unpegged.Upper)
+            anchorZ = otherSector.Ceiling.Z;
+
+        // Because of how the WorldTriangulator handles mapping UV coordinates based on flags they are fudged here to fix alignment.
+        var saveUnpeg = side.Line.Flags.Unpegged;
         side.Line.Flags.Unpegged.Lower = false;
+        side.Line.Flags.Unpegged.Upper = false;
+
+        if (wall.Location == WallLocation.Upper)
+            side.Line.Flags.Unpegged.Upper = true;
+
         var saveOffsetY = wall.Offset.Y;
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
         WorldStatic.LineVertexGapBottomZ = 0;
         var prevHeights = new WallHeights(side.Sector.Ceiling.Z, side.Sector.Ceiling.Z, side.Sector.Ceiling.PrevZ, side.Sector.Ceiling.PrevZ);
+        if (wall.Location == WallLocation.Lower)
+            prevHeights = new WallHeights(otherSector.Floor.Z, otherSector.Floor.Z, otherSector.Floor.PrevZ, otherSector.Floor.PrevZ);
+
         var wallSector3d = side.Sector.Sectors3D[0].FakeSector;
         var wallSector = m_sliceSector;
         wallSector.Ceiling.Z = wallSector3d.Ceiling.Z;
@@ -129,7 +144,7 @@ public partial class GeometryRenderer
             AllowAlpha = allowAlpha,
         };
 
-        SetWallOffset(m_fakeWall, false, saveOffsetY, prevHeights.BottomZ, anchorZ);
+        SetWallOffset(m_fakeWall, false, saveOffsetY, prevHeights.TopZ, anchorZ);
 
         for (int i = 0; i < traverseSide.Sector.Sectors3D.Length; i++)
         {
@@ -173,6 +188,9 @@ public partial class GeometryRenderer
             lightSector = sector3d.LightBottom;
         }
 
+        WorldStatic.LineVertexGapTopZ = saveGapZ;
+        WorldStatic.LineVertexGapBottomZ = saveGapZ;
+
         var floorHeights = new WallHeights(side.Sector.Floor.Z, side.Sector.Floor.Z, side.Sector.Floor.PrevZ, side.Sector.Floor.PrevZ);
         SetSectorToSlice(wallSector, prevHeights, floorHeights);
         args.LightSector = lightSector;
@@ -180,9 +198,7 @@ public partial class GeometryRenderer
         result = renderFunc(args);
         AddVertices(m_vertices, result.Vertices);
 
-        side.Line.Flags.Unpegged.Lower = saveUnpeg;
-        WorldStatic.LineVertexGapTopZ = saveGapZ;
-        WorldStatic.LineVertexGapBottomZ = saveGapZ;
+        side.Line.Flags.Unpegged = saveUnpeg;
         finalResult.Vertices = m_vertices.Data.AsSpan(0, m_vertices.Length);
         return finalResult;
     }

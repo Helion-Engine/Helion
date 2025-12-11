@@ -52,39 +52,80 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
-    [Fact(DisplayName = "Render one-sided sector line sliced by single 3D sector")]
-    public void RenderTwoSidedLowerSlice()
+    [Fact(DisplayName = "Render one-sided middle sector line sliced by single 3D sector")]
+    public void RenderOneSidedMiddleSlice()
     {
-        var sector = GameActions.GetSector(World, 38);
+        var sector = GameActions.GetSector(World, 39);
         sector.Sectors3D.Length.Should().Be(1);
 
-        SetSlices(new WallSlice(512, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, -160)), new WallSlice(160, 0, 128, (64, -128)));
-
-        var side = GameActions.GetLine(World, 158).Front;
-        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderOneSidedSlice);
-        AssertSlices();
-    }
-
-    [Fact(DisplayName = "Render one-sided sector line sliced by single 3D sector")]
-    public void RenderOneSidedLineSlicesSingle3D()
-    {
-        var sector = GameActions.GetSector(World, 36);
-        sector.Sectors3D.Length.Should().Be(1);
-
-        SetSlices(new WallSlice(512, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, -160)), new WallSlice(160, 0, 128, (64, -128)));
-
+        // Anchors to ceiling (500)
+        // Y-Offsets: 500-500=0, 500-288=212, 500-160=340 
+        SetSlices(new WallSlice(500, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, 212)), new WallSlice(160, 0, 128, (64, 340)));
         var side = GameActions.GetLine(World, 149).Front;
-        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderOneSidedSlice);
+        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
         AssertSlices();
     }
 
-    private RenderWallSliceResult RenderOneSidedSlice(RenderWallSliceArgs args)
+    [Fact(DisplayName = "Render one-sided middle sector line sliced by single 3D sector with lower unpeg")]
+    public void RenderOneSidedMiddleSliceLowerUnpeg()
     {
-        //var slice = m_slices[m_sliceIndex++];
-        //args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
-        //args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
-        //args.LightSector.LightLevel.Should().Be(slice.LightLevel);
-        //args.Side.Middle.Offset.Should().Be(slice.Offset);
+        var sector = GameActions.GetSector(World, 39);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        // Anchors to floor (0)
+        // Y-Offsets: 0-500=-500, 0-288=-288, 0-160=-160 
+        SetSlices(new WallSlice(500, 288, 192, (192, -500)), new WallSlice(288, 160, 128, (192, -288)), new WallSlice(160, 0, 128, (192, -160)));
+        var side = GameActions.GetLine(World, 152).Front;
+        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
+        AssertSlices();
+    }
+
+    //[Fact(DisplayName = "Render two-sided lower sector line sliced by single 3D sector")]
+    //public void RenderTwoSidedLowerSlice()
+    //{
+    //    var sector = GameActions.GetSector(World, 39);
+    //    sector.Sectors3D.Length.Should().Be(1);
+
+    //    SetSlices(new WallSlice(512, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, -160)), new WallSlice(160, 0, 128, (64, -128)));
+
+    //    var side = GameActions.GetLine(World, 161).Front;
+    //    GeometryRenderer.RenderWallSlices3D(side, side.Upper, true, side, sector, sector, RenderSlice);
+    //    AssertSlices();
+    //}
+
+    //[Fact(DisplayName = "Render two-sided upper line sliced by single 3D sector")]
+    //public void RenderTwoSidedUpperSlice()
+    //{
+    //    var sector = GameActions.GetSector(World, 41);
+    //    sector.Sectors3D.Length.Should().Be(1);
+
+    //    SetSlices(new WallSlice(500, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, -160)), new WallSlice(160, 0, 128, (64, -128)));
+
+    //    var side = GameActions.GetLine(World, 170).Front;
+    //    GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
+    //    AssertSlices();
+    //}
+
+    //[Fact(DisplayName = "Render one-sided sector line sliced by single 3D sector")]
+    //public void RenderOneSidedLineSlicesSingle3D()
+    //{
+    //    var sector = GameActions.GetSector(World, 36);
+    //    sector.Sectors3D.Length.Should().Be(1);
+
+    //    SetSlices(new WallSlice(512, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, -160)), new WallSlice(160, 0, 128, (64, -128)));
+
+    //    var side = GameActions.GetLine(World, 149).Front;
+    //    GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
+    //    AssertSlices();
+    //}
+
+    private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
+    {
+        var slice = m_slices[m_sliceIndex++];
+        args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
+        args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
+        args.LightSector.LightLevel.Should().Be(slice.LightLevel);
+        args.Side.Middle.Offset.Should().Be(slice.Offset);
         return GeometryRenderer.RenderOneSidedSlice(args);
     }
 

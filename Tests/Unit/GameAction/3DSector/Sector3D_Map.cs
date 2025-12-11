@@ -207,9 +207,9 @@ public class Sector3D_Map
         wallHeights = higher3D.CalculateWallHeights(0);
 
         // Partially clipped by lower and upper
-        higher3D.CalculateWallHeights(GameActions.GetLine(World, 130).Front, wallHeights, out _).Should().BeTrue();
-        wallHeights.TopZ.Should().Be(128);
-        wallHeights.BottomZ.Should().Be(96);
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 130).Front, wallHeights, out var newWallHeights).Should().BeTrue();
+        newWallHeights.TopZ.Should().Be(128);
+        newWallHeights.BottomZ.Should().Be(96);
 
         // Fully clipped by lower and upper
         higher3D.CalculateWallHeights(GameActions.GetLine(World, 134).Front, wallHeights, out _).Should().BeFalse();
