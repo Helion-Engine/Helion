@@ -3,6 +3,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
+using Helion.Layer.Worlds.StatusBar;
 using Helion.Render;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
@@ -31,6 +32,8 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Helion.Resources.Definitions.StatusBar;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -70,6 +73,8 @@ public partial class WorldLayer
     private string m_renderMessageBufferString = StringBuffer.GetString();
     private readonly SpanString m_weaponSpriteSpan = new("123456");
     private readonly SpanString m_weaponFlashSpriteSpan = new("123456");
+    
+    private readonly StatusBarRenderer m_statusBarRenderer; 
 
     private readonly SpanString m_healthString = new();
     private readonly SpanString m_armorString = new();
@@ -108,6 +113,14 @@ public partial class WorldLayer
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
 
+        // Check SBARDEF coverage
+        StatusBarLayoutDef? activeSbarLayout = GetActiveStatusBarLayout();
+        StatusBarCoverage sbarCoverage = StatusBarCoverage.None;
+        if (activeSbarLayout != null)
+        {
+            sbarCoverage = StatusBarRenderer.GetCoverage(activeSbarLayout);
+        }
+
         if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)
             DrawWeapon(hud, hudContext);
 
@@ -119,17 +132,30 @@ public partial class WorldLayer
             SetHudPadding(hud);
 
             int topRightY = m_padding / 2;
-            DrawFPS(hud, ref topRightY);
+            
+            if ((sbarCoverage & StatusBarCoverage.FPS) == 0)
+                DrawFPS(hud, ref topRightY);
+                
             DrawPosition(hud, ref topRightY);
-            DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY);
-            DrawBottomHud(hud, topRightY, hudContext);
+
+            DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY, 
+                suppressStats: (sbarCoverage & StatusBarCoverage.Stats) != 0,
+                suppressTime: (sbarCoverage & StatusBarCoverage.Time) != 0);
+
+            DrawBottomHud(hud, topRightY, hudContext, automapVisible, activeSbarLayout);
+            
             DrawHudEffects(hud);
             hud.DrawPalette(false);
-            DrawRecentConsoleMessages(hud);
-            DrawCenterMessages(hud);
+
+            if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
+            {
+                DrawRecentConsoleMessages(hud);
+                DrawCenterMessages(hud);
+            }
+            
             DrawPause(hud);
 
-            if (automapVisible && m_config.Hud.AutoMap.MapTitle)
+            if (automapVisible && m_config.Hud.AutoMap.MapTitle && (sbarCoverage & StatusBarCoverage.MapTitle) == 0)
                 DrawMapHeader(hud);
 
             hud.DrawPalette(true);
@@ -142,6 +168,43 @@ public partial class WorldLayer
             hud.FillBox((0, 0, hud.Width, hud.Height), color, alpha: alpha);
         }
     }
+    
+    private StatusBarLayoutDef? GetActiveStatusBarLayout()
+    {
+        if (!WorldStatic.World.DrawHud) return null;
+        
+        m_statusBarSizeType = m_config.Hud.StatusBarSize.Value;
+        
+        if (m_statusBarSizeType == StatusBarSizeType.Hidden)
+            return null;
+
+        var sbarDef = World.ArchiveCollection.Definitions.StatusBarDefinition;
+        if (sbarDef.StatusBars.Count > 0)
+        {
+            // Manual overrides from console/config
+            int manualIndex = m_config.Hud.SbarHudMode.Value;
+            if (manualIndex >= 2 && manualIndex < sbarDef.StatusBars.Count)
+            {
+                return sbarDef.StatusBars[manualIndex];
+            }
+            
+            if (m_statusBarSizeType == StatusBarSizeType.Full)
+            {
+                return sbarDef.StatusBars.FirstOrDefault(layout => !layout.FullscreenRender);
+            }
+
+            if (m_statusBarSizeType == StatusBarSizeType.Minimal || 
+                m_statusBarSizeType == StatusBarSizeType.FullNoBackground)
+            {
+                return sbarDef.StatusBars.FirstOrDefault(layout => layout.FullscreenRender);
+            }
+        }
+        
+        // Fallback
+        return null;
+    }
+    
+    
 
     private void SetHudPadding(IHudRenderContext hud)
     {
@@ -188,75 +251,83 @@ public partial class WorldLayer
         hud.Image("M_PAUSE", (0, 8), both: Align.TopMiddle);
     }
 
-    private void DrawStatInfo(IHudRenderContext hud, bool automapVisible, Vec2I start, ref int topRightY)
+    private void DrawStatInfo(IHudRenderContext hud, bool automapVisible, Vec2I start, ref int topRightY, 
+        bool suppressStats = false, bool suppressTime = false)
     {
         if (!m_config.Hud.ShowStats && !automapVisible)
             return;
 
         start.X = -m_padding - m_hudPaddingX;
         Vec2I labelPos = start;
-        int maxLabelWidth = 0;
-        int maxValueWidth = 0;
-        var align = Align.TopRight;
-
-        if (HasTicks)
+        
+        if (!suppressStats)
         {
+            int maxLabelWidth = 0;
+            int maxValueWidth = 0;
+            var align = Align.TopRight;
+
+            if (HasTicks)
+            {
+                for (int i = 0; i < m_renderStats.Length; i++)
+                {
+                    var renderStat = m_renderStats[i];
+                    renderStat.String.Clear();
+                    (var current, var max) = renderStat.GetValues(World);
+                    renderStat.String = AppendStatString(renderStat.String, current, max);
+                    renderStat.RenderLabel = SetRenderableString(renderStat.Label, renderStat.RenderLabel, FixedNumberFont, m_infoFontSize, useDoomScale: false);
+                    renderStat.RenderValue = SetRenderableString(renderStat.String.AsSpan(), renderStat.RenderValue, FixedNumberFont, m_infoFontSize,
+                        GetStatColor(current, max), useDoomScale: false);
+                }
+            }
+
             for (int i = 0; i < m_renderStats.Length; i++)
             {
                 var renderStat = m_renderStats[i];
-                renderStat.String.Clear();
-                (var current, var max) = renderStat.GetValues(World);
-                renderStat.String = AppendStatString(renderStat.String, current, max);
-                renderStat.RenderLabel = SetRenderableString(renderStat.Label, renderStat.RenderLabel, FixedNumberFont, m_infoFontSize, useDoomScale: false);
-                renderStat.RenderValue = SetRenderableString(renderStat.String.AsSpan(), renderStat.RenderValue, FixedNumberFont, m_infoFontSize,
-                    GetStatColor(current, max), useDoomScale: false);
+                maxLabelWidth = Math.Max(renderStat.RenderLabel.DrawArea.Width, maxLabelWidth);
+                maxValueWidth = Math.Max(renderStat.RenderValue.DrawArea.Width, maxValueWidth);
             }
+
+            labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
+            for (int i = 0; i < m_renderStats.Length; i++)
+            {
+                var renderStat = m_renderStats[i];
+                if (!renderStat.ShouldRender(World))
+                    continue;
+                hud.Text(renderStat.RenderLabel, labelPos, both: align, alpha: m_hudAlpha);
+                labelPos.Y += renderStat.RenderLabel.DrawArea.Height;
+            }
+
+            labelPos = start;
+
+            for (int i = 0; i < m_renderStats.Length; i++)
+            {
+                var renderStat = m_renderStats[i];
+                if (!renderStat.ShouldRender(World))
+                    continue;
+                hud.Text(renderStat.RenderValue, labelPos, both: align, alpha: m_hudAlpha);
+                labelPos.Y += renderStat.RenderValue.DrawArea.Height;
+            }
+            labelPos.Y += m_padding;
         }
 
-        for (int i =0; i < m_renderStats.Length; i++)
+        if (!suppressTime)
         {
-            var renderStat = m_renderStats[i];
-            maxLabelWidth = Math.Max(renderStat.RenderLabel.DrawArea.Width, maxLabelWidth);
-            maxValueWidth = Math.Max(renderStat.RenderValue.DrawArea.Width, maxValueWidth);
+            if (HasTicks)
+            {
+                TimeSpan ts = TimeSpan.FromSeconds(World.LevelTime / 35);
+                m_timeString.Clear();
+                m_timeString.Append(ts.Hours, 2);
+                m_timeString.Append(':');
+                m_timeString.Append(ts.Minutes, 2);
+                m_timeString.Append(':');
+                m_timeString.Append(ts.Seconds, 2);
+
+                SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
+            }
+
+            hud.Text(m_renderTimeString, labelPos, both: Align.TopRight, alpha: m_hudAlpha);
+            labelPos.Y += m_renderTimeString.DrawArea.Height;
         }
-
-        labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
-        for (int i = 0; i < m_renderStats.Length; i++)
-        {
-            var renderStat = m_renderStats[i];
-            if (!renderStat.ShouldRender(World))
-                continue;
-            hud.Text(renderStat.RenderLabel, labelPos, both: align, alpha: m_hudAlpha);
-            labelPos.Y += renderStat.RenderLabel.DrawArea.Height;
-        }
-
-        labelPos = start;
-
-        for (int i = 0; i < m_renderStats.Length; i++)
-        {
-            var renderStat = m_renderStats[i];
-            if (!renderStat.ShouldRender(World))
-                continue;
-            hud.Text(renderStat.RenderValue, labelPos, both: align, alpha: m_hudAlpha);
-            labelPos.Y += renderStat.RenderValue.DrawArea.Height;
-        }
-        labelPos.Y += m_padding;
-
-        if (HasTicks)
-        {
-            TimeSpan ts = TimeSpan.FromSeconds(World.LevelTime / 35);
-            m_timeString.Clear();
-            m_timeString.Append(ts.Hours, 2);
-            m_timeString.Append(':');
-            m_timeString.Append(ts.Minutes, 2);
-            m_timeString.Append(':');
-            m_timeString.Append(ts.Seconds, 2);
-
-            SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
-        }
-
-        hud.Text(m_renderTimeString, labelPos, both: align, alpha: m_hudAlpha);
-        labelPos.Y += m_renderTimeString.DrawArea.Height;
 
         topRightY = labelPos.Y;
     }
@@ -358,24 +429,56 @@ public partial class WorldLayer
         y += area.Height + FpsMessageSpacing;
     }
 
-    private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext)
+        
+    private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext, 
+        bool automapVisible, StatusBarLayoutDef? activeLayout)
     {
         if (!WorldStatic.World.DrawHud)
             return;
 
-        m_statusBarSizeType = m_config.Hud.StatusBarSize.Value;
-        switch (m_statusBarSizeType)
+        // Always prioritize SBARDEF if a layout was resolved
+        if (activeLayout != null)
         {
-            case StatusBarSizeType.Minimal:
-                DrawMinimalStatusBar(hud, topRightY);
-                break;
-            case StatusBarSizeType.Hidden:
-                break;
-            default:
-                DrawFullStatusBar(hud);
-                break;
+            bool isWidescreen = hud.WindowDimension.AspectRatio > (4.0f / 3.0f);
+            int fps = (int)Math.Round(m_fpsTracker.AverageFramesPerSecond);
+
+            string? consoleMsg = null;
+            bool isCentered = false; 
+
+            lock (m_console.Messages)
+            {
+                if (m_console.Messages.First != null)
+                {
+                    var msg = m_console.Messages.First.Value;
+                    if (Ticker.NanoTime() - msg.TimeNanos < 4 * 1000L * 1000L * 1000L)
+                    {
+                        isCentered = msg.IsCentered;
+
+                        if (msg.Count > 1)
+                        {
+                            var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.Count);
+                            var span = GetRenderMessageWithCount(worldMsg);
+                            consoleMsg = span.ToString(); 
+                        }
+                        else
+                        {
+                            consoleMsg = msg.Message;
+                        }
+                    }
+                }
+            }
+
+            var context = new StatusBarContext(World, Player, automapVisible, isWidescreen, fps, consoleMsg, isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName));
+            m_statusBarRenderer.Draw(hud, activeLayout, context);
+            return;
         }
+
+        // Fallback to Hardcoded HUDs if no SBARDEF layout was found
+        if (m_statusBarSizeType == StatusBarSizeType.Minimal) { DrawMinimalStatusBar(hud, topRightY); return; }
+        else if (m_statusBarSizeType == StatusBarSizeType.Hidden) { return; }
+        DrawFullStatusBar(hud);
     }
+    
 
     private void DrawWeapon(IHudRenderContext hud, HudRenderContext hudContext)
     {

@@ -39,6 +39,7 @@ public class EntityDefinition
     public int? PainState;
     public int? HealState;
     public string? BaseInventoryName;
+    public EntityDefinition? BaseInventoryDefinition;
     public string DehackedName = string.Empty;
     public bool DefinitionSet;
     public bool IgnoreVanillaSpriteLookup;

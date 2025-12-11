@@ -21,6 +21,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.MusInfo;
 using Helion.Resources.Definitions.Retro;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Resources.Definitions.StatusBar;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.IWad;
@@ -50,6 +51,7 @@ public class DefinitionEntries
     public readonly FontDefinitionCollection Fonts = new();
     public readonly ResourceTracker<TextureDefinition> Textures = new();
     public readonly SoundInfoDefinition SoundInfo = new();
+    public readonly StatusBarDefinition StatusBarDefinition = new();
     public readonly LockDefinitions LockDefinitions = new();
     public readonly LanguageDefinition Language = new();
     public readonly MapInfoDefinition MapInfoDefinition = new();
@@ -119,6 +121,7 @@ public class DefinitionEntries
         m_entryNameToAction["COMPLVL"] = entry => ParseEntry(ParseCompLevel, entry);
         m_entryNameToAction["OPTIONS"] = OptionsDefinition.Parse;
         m_entryNameToAction["MUSINFO"] = entry => ParseEntry(ParseMusInfo, entry);
+        m_entryNameToAction["SBARDEF"] = entry => ParseEntry(ParseSBarDef, entry);
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
@@ -181,6 +184,7 @@ public class DefinitionEntries
     private void ParseLanguageCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);
+    private void ParseSBarDef(string text) => StatusBarDefinition.Parse(text);
     private void ParseUniversalMapInfo(string text) => MapInfoDefinition.ParseUniversalMapInfo(m_archiveCollection.IWadInfo.IWadBaseType, text);
     private void ParseGldefs(Entry entry) => GldefsDefinition.Parse(entry, m_archiveCollection.IWadInfo.IWadBaseType);
 
