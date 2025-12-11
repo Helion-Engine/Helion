@@ -91,19 +91,12 @@ public partial class GeometryRenderer
         traverseSide ??= side;
 
         m_vertices.Clear();
-        var anchorZ = side.Line.Flags.Unpegged.Lower ? side.Sector.Floor.Z : side.Sector.Ceiling.Z;
-        if (wall.Location == WallLocation.Lower && !side.Line.Flags.Unpegged.Lower)
-            anchorZ = otherSector.Floor.Z;
-        else if (wall.Location == WallLocation.Upper && !side.Line.Flags.Unpegged.Upper)
-            anchorZ = otherSector.Ceiling.Z;
 
         // Because of how the WorldTriangulator handles mapping UV coordinates based on flags they are fudged here to fix alignment.
+        var anchorZ = CalculateAnchorZ(side, wall, otherSector);
         var saveUnpeg = side.Line.Flags.Unpegged;
         side.Line.Flags.Unpegged.Lower = false;
-        side.Line.Flags.Unpegged.Upper = false;
-
-        if (wall.Location == WallLocation.Upper)
-            side.Line.Flags.Unpegged.Upper = true;
+        side.Line.Flags.Unpegged.Upper = wall.Location == WallLocation.Upper;
 
         var saveOffsetY = wall.Offset.Y;
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
@@ -172,7 +165,7 @@ public partial class GeometryRenderer
             }
 
             if (result.AddOffset)
-                SetWallOffset(m_fakeWall, isOffset3D, saveOffsetY, heights.TopZ, anchorZ);            
+                SetWallOffset(m_fakeWall, isOffset3D, saveOffsetY, heights.TopZ, anchorZ);
 
             // Render the inside portion of this 3d sector
             SetSectorToSlice(wallSector, heights);
@@ -201,6 +194,24 @@ public partial class GeometryRenderer
         side.Line.Flags.Unpegged = saveUnpeg;
         finalResult.Vertices = m_vertices.Data.AsSpan(0, m_vertices.Length);
         return finalResult;
+    }
+
+    private static double CalculateAnchorZ(Side side, Wall wall, Sector otherSector)
+    {
+        if (wall.Location == WallLocation.Lower)
+        {
+            if (side.Line.Flags.Unpegged.Lower)
+                return otherSector.Ceiling.Z;
+            return otherSector.Floor.Z;
+        }
+        else if (wall.Location == WallLocation.Upper)
+        {
+            if (side.Line.Flags.Unpegged.Upper)
+                return side.Sector.Ceiling.Z;
+            return otherSector.Ceiling.Z;
+        }
+
+        return side.Line.Flags.Unpegged.Lower ? side.Sector.Floor.Z : side.Sector.Ceiling.Z;
     }
 
     private static void SetWallOffset(Wall wall, bool isOffset3D, float saveOffsetY, double sliceTopZ, double anchorZ)
