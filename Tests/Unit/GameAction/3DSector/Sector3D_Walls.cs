@@ -114,18 +114,37 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
-    //[Fact(DisplayName = "Render two-sided upper line sliced by single 3D sector")]
-    //public void RenderTwoSidedUpperSlice()
-    //{
-    //    var sector = GameActions.GetSector(World, 41);
-    //    sector.Sectors3D.Length.Should().Be(1);
+    [Fact(DisplayName = "Render two-sided upper line sliced by single 3D sector")]
+    public void RenderTwoSidedUpperSlice()
+    {
+        var sector = GameActions.GetSector(World, 41);
+        sector.Sectors3D.Length.Should().Be(1);
 
-    //    SetSlices(new WallSlice(500, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, -160)), new WallSlice(160, 0, 128, (64, -128)));
+        // Anchors to other ceiling (32)
+        // Y-Offsets: 32-500=116, 32-288=-256, 32-160=-128
+        SetSlices(new WallSlice(500, 288, 192, (0, -468)), new WallSlice(288, 160, 128, (0, -256)), new WallSlice(160, 0, 128, (0, -128)));
 
-    //    var side = GameActions.GetLine(World, 170).Front;
-    //    GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
-    //    AssertSlices();
-    //}
+        var line = GameActions.GetLine(World, 170);
+        line.Flags.Unpegged.Upper.Should().BeFalse();
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Render two-sided upper line sliced by single 3D sector with upper unpeg")]
+    public void RenderTwoSidedUpperSliceUnpeg()
+    {
+        var sector = GameActions.GetSector(World, 41);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        // Anchors to other ceiling (500)
+        // Y-Offsets: 500-500=0, 500-288=212, 500-160=340
+        SetSlices(new WallSlice(500, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, 212)), new WallSlice(160, 0, 128, (64, 340)));
+
+        var line = GameActions.GetLine(World, 153);
+        line.Flags.Unpegged.Upper.Should().BeTrue();
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderSlice);
+        AssertSlices();
+    }
 
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
