@@ -146,6 +146,24 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+    [Fact(DisplayName = "Render one-sided middle sector line sliced by multiple 3D sectors")]
+    public void RenderOneSidedMiddleSliceMultiple()
+    {
+        var sector = GameActions.GetSector(World, 56);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        // Anchors to ceiling (500)
+        // Y-Offsets: 500-500=0, 500-288=212, 500-160=340
+        SetSlices(new WallSlice(500, 288, 192, (0, 0)),
+            new WallSlice(288, 256, 160, (0, 212)), 
+            new WallSlice(256, 192, 160, (0, 244)),
+            new WallSlice(192, 160, 255, (0, 308)),
+            new WallSlice(160, 0, 255, (0, 340)));
+        var side = GameActions.GetLine(World, 247).Front;
+        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
+        AssertSlices();
+    }
+
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
         var slice = m_slices[m_sliceIndex++];

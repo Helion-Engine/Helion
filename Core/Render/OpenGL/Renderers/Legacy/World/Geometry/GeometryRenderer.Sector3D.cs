@@ -106,7 +106,6 @@ public partial class GeometryRenderer
         side.Line.Flags.Unpegged.Lower = false;
         side.Line.Flags.Unpegged.Upper = wall.Location == WallLocation.Upper;
 
-        var saveOffsetY = wall.Offset.Y;
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
         WorldStatic.LineVertexGapBottomZ = 0;
         var prevHeights = new WallHeights(side.Sector.Ceiling.Z, side.Sector.Ceiling.Z, side.Sector.Ceiling.PrevZ, side.Sector.Ceiling.PrevZ);
@@ -129,7 +128,7 @@ public partial class GeometryRenderer
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Offset.X =  wall.Offset.X + side.Offset.X;
 
-        var offsetY = saveOffsetY + (float)offsetTopZ + side.Offset.Y;
+        var offsetY = wall.Offset.Y + side.Offset.Y + (float)offsetTopZ;
 
         var lightSector = side.Sector.Sectors3D[0].ParentSector;
         RenderWallSliceResult result;
