@@ -27,4 +27,7 @@ public class ConfigDeveloper: ConfigElement<ConfigDeveloper>
 
     [ConfigInfo("Force usage of ReversedZ. Only used if Developer.ReversedZ is set.", save: true, restartRequired: true)]
     public readonly ConfigValue<bool> ReversedZ = new(false);
+
+    [ConfigInfo("Log garbage collection events.", save: true)]
+    public readonly ConfigValue<bool> LogGC = new(false);
 }
