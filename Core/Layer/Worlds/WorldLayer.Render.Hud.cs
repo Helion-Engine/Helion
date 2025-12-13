@@ -49,7 +49,6 @@ public partial class WorldLayer
     private const int TopOffset = 1;
     private const int MessageSpacing = 1;
     private const int FpsMessageSpacing = 2;
-    private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
     private const long MessageTransitionSpan = 350L * 1000L * 1000L;
     private const ResourceNamespace SpriteLookupNamespace = ResourceNamespace.Sprites;
     private static readonly Color PickupColor = (255, 255, 128);
@@ -450,13 +449,13 @@ public partial class WorldLayer
                 if (m_console.Messages.First != null)
                 {
                     var msg = m_console.Messages.First.Value;
-                    if (Ticker.NanoTime() - msg.TimeNanos < 4 * 1000L * 1000L * 1000L)
+                    if (Ticker.NanoTime() - msg.TimeNanos < Constants.MaxMessageVisibleTimeNanos)
                     {
                         isCentered = msg.IsCentered;
 
-                        if (msg.Count > 1)
+                        if (msg.StackCount > 1)
                         {
-                            var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.Count);
+                            var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
                             var span = GetRenderMessageWithCount(worldMsg);
                             consoleMsg = span.ToString(); 
                         }
@@ -1172,10 +1171,10 @@ public partial class WorldLayer
                     break;
 
                 long timeSinceMessage = currentNanos - msg.TimeNanos;
-                if (timeSinceMessage > MaxVisibleTimeNanos || m_parent.ConsoleLayer != null)
+                if (timeSinceMessage > Constants.MaxMessageVisibleTimeNanos || m_parent.ConsoleLayer != null)
                     break;
                                 
-                m_messages.Add(new(msg.Message, CalculateFade(timeSinceMessage), msg.Count));
+                m_messages.Add(new(msg.Message, CalculateFade(timeSinceMessage), msg.StackCount));
                 messagesDrawn++;
                 lastMessageTime = timeSinceMessage;
             }
@@ -1238,7 +1237,7 @@ public partial class WorldLayer
             {
                 var msg = node.Value;
 
-                if (currentNanos - msg.TimeNanos > MaxVisibleTimeNanos)
+                if (currentNanos - msg.TimeNanos > Constants.MaxMessageVisibleTimeNanos)
                     break;
 
                 if (msg.IsCentered)
@@ -1278,18 +1277,18 @@ public partial class WorldLayer
 
     private int CalculateSlide(IHudRenderContext hud, long timeSinceMessage)
     {
-        const long SlideNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;
+        const long SlideNanoRange = Constants.MaxMessageVisibleTimeNanos - MessageTransitionSpan;
         if (timeSinceMessage < SlideNanoRange)
             return 0;
 
         var dim = hud.MeasureText("I", SmallHudFont, 8);
-        double frac = 1.0 - (double)(MaxVisibleTimeNanos - timeSinceMessage) / MessageTransitionSpan;
+        double frac = 1.0 - (double)(Constants.MaxMessageVisibleTimeNanos - timeSinceMessage) / MessageTransitionSpan;
         return (int)(-(dim.Height + MessageSpacing) * frac * m_config.Hud.GetHudScaled(1));
     }
 
     private static float CalculateFade(long timeSinceMessage)
     {
-        const long OpaqueNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;
+        const long OpaqueNanoRange = Constants.MaxMessageVisibleTimeNanos - MessageTransitionSpan;
         if (timeSinceMessage < OpaqueNanoRange)
             return 1.0f;
 
