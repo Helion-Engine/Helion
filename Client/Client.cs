@@ -139,8 +139,6 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
-
-        SetLogGC(m_config.Developer.LogGC);
     }
 
     private void InitGpuPreference()

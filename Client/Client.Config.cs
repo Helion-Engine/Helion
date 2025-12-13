@@ -38,6 +38,7 @@ public partial class Client
         m_config.Developer.LogGC.OnChanged += LogGC_OnChanged;
 
         CalculateHudScale();
+        SetLogGC(m_config.Developer.LogGC);
     }
 
     private void LogGC_OnChanged(object? sender, bool e)
