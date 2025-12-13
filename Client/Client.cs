@@ -67,6 +67,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private readonly SaveGameScreenshotGenerator m_screenshotGenerator;
     private readonly DiscordHandler m_discord = new();
+    private readonly Stopwatch m_stopwatch = Stopwatch.StartNew();
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
@@ -138,6 +139,8 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+
+        SetLogGC(m_config.Developer.LogGC);
     }
 
     private void InitGpuPreference()
