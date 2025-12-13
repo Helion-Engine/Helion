@@ -1,5 +1,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.World.Entities.Players;
 using OpenTK.Windowing.Common;
@@ -34,7 +35,41 @@ public partial class Client
         m_config.Controller.GyroNoise.OnChanged += GameControllerNoise_OnChanged;
         m_config.Controller.GyroDrift.OnChanged += GameControllerDrift_OnChanged;
 
+        m_config.Developer.LogGC.OnChanged += LogGC_OnChanged;
+
         CalculateHudScale();
+        SetLogGC(m_config.Developer.LogGC);
+    }
+
+    private void LogGC_OnChanged(object? sender, bool e)
+    {
+        SetLogGC(e);
+    }
+
+    private void SetLogGC(bool e)
+    {
+        if (e)
+        {
+            GCNotifier.GarbageCollected += GCNotifier_GarbageCollected;
+            GCNotifier.Start();
+        }
+        else
+        {
+            GCNotifier.GarbageCollected -= GCNotifier_GarbageCollected;
+        }
+    }
+
+    private void GCNotifier_GarbageCollected()
+    {
+        if (!m_config.Developer.LogGC)
+            return;
+
+        var eventMessage = $"GC Event {m_stopwatch.Elapsed}";
+        var world = m_layerManager.WorldLayer?.World;
+        if (world != null)
+            world.DisplayMessage(world.Player, null, eventMessage, true);
+        else
+            Log.Info(eventMessage);
     }
 
     private void CalculateHudScale()
