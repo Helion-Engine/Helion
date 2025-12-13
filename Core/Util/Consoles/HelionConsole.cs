@@ -165,22 +165,28 @@ public class HelionConsole : Target
     {
         if (message.Length == 0)
             return;
-        
+
+        var currentNanos = Ticker.NanoTime();
         if (!isCentered && Messages.First != null)
         {
             ConsoleMessage lastMsg = Messages.First.Value;
             if (!lastMsg.IsCentered && lastMsg.Message == message)
             {
-                lastMsg.Count++;
+                long timeSinceMessage = currentNanos - lastMsg.TimeNanos;
+                if (timeSinceMessage > Constants.MaxMessageVisibleTimeNanos)
+                    lastMsg.StackCount = 1;
+                else
+                    lastMsg.StackCount++;
+
                 if (!m_forceExpireMessages)
-                    lastMsg.TimeNanos = Ticker.NanoTime();
+                    lastMsg.TimeNanos = currentNanos;
                 return;
             }
         }
 
         lock (Messages)
         {
-            var node = m_dataCache.GetConsoleMessageNode(m_dataCache.GetConsoleMessage(message, m_forceExpireMessages ? 0 : Ticker.NanoTime(), color, isCentered));
+            var node = m_dataCache.GetConsoleMessageNode(m_dataCache.GetConsoleMessage(message, m_forceExpireMessages ? 0 : currentNanos, color, isCentered));
             Messages.AddFirst(node);
             RemoveExcessMessagesIfAny();
         }
