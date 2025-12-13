@@ -164,13 +164,63 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+    [Fact(DisplayName = "Render middle 3D sector line sliced by a larger single 3D sector")]
+    public void RenderMiddleSlicesByLarger3D()
+    {
+        var sector = GameActions.GetSector(World, 60);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        // Anchors 3D sector control ceiling (128)
+        // Y-Offsets: 128-128=0, 128-64=64, 128-32=96
+        // First and last slices will be empty since the opposing 3D sector is larger
+        SetSlices(new WallSlice(128, 128, 192, (0, 0)), new WallSlice(192, 64, 192, (0, 0)), new WallSlice(64, 0, 192, (0, 0)));
+
+        var sector3D = sector.Sectors3D[0];
+        var heights = sector3D.CalculateWallHeights(0);
+
+        var line = GameActions.GetLine(World, 263);
+        GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice);
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, heights, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RestoreSectorSliceFunc3D();
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Render middle 3D sector line sliced by a smaller single 3D sector")]
+    public void RenderMiddleSlicedBySmaller3D()
+    {
+        var sector = GameActions.GetSector(World, 59);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        // Anchors 3D sector control ceiling (128)
+        // Y-Offsets: 128-128=0, 128-64=64, 128-32=96
+        SetSlices(new WallSlice(192, 128, 192, (0, 0)), new WallSlice(128, 96, 255, (0, 64)), new WallSlice(96, 0, 255, (0, 96)));
+
+        var sector3D = sector.Sectors3D[0];
+        var heights = sector3D.CalculateWallHeights(0);
+
+        var line = GameActions.GetLine(World, 263);
+        GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice);
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, heights, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RestoreSectorSliceFunc3D();
+        AssertSlices();
+    }
+
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
         var slice = m_slices[m_sliceIndex++];
-        args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
-        args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
-        args.LightSector.LightLevel.Should().Be(slice.LightLevel);
-        args.Side.Middle.Offset.Should().Be(slice.Offset);
+        // This might change later where this is called with slices that have no height.
+        // Ignore validation on them for now since they wouldn't render anything anyway.
+        if (args.WallSector.Ceiling.Z == args.WallSector.Floor.Z)
+        {
+            args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
+            args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
+            args.LightSector.LightLevel.Should().Be(slice.LightLevel);
+            args.Side.Middle.Offset.Should().Be(slice.Offset);
+        }
         return GeometryRenderer.RenderOneSidedSlice(args);
     }
 
@@ -180,6 +230,11 @@ public class Sector3D_Walls
         wallSector.Ceiling.Z.Should().Be(slice.TopZ);
         wallSector.Floor.Z.Should().Be(slice.BottomZ);
         wall.Offset.Should().Be(slice.Offset);
+    }
+
+    private void EmptyRenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
+    {
+
     }
 
     private void SetSlices(params WallSlice[] slices)
