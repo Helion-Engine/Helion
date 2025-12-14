@@ -1,6 +1,7 @@
 ﻿using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
@@ -59,8 +60,8 @@ public partial class GeometryRenderer
             useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentBack);
             useSide.Offset = parentBack.Offset;
             useSide.Middle.Offset = parentBack.Middle.Offset;
-            var result = RenderWallSlices3D(useSide, useSide.Middle, true, null!, wallSector, null!, m_renderSectorSliceFunc3D,
-                offsetSide: parentBack, renderSkySide: false, allowAlpha: true, traverseSide: parentBack, anchorSector3D: sector3d);
+            var result = RenderWallSlices3D(useSide, useSide.Middle, true, null!, wallSector, parentFront?.Sector!, m_renderSectorSliceFunc3D,
+                offsetSide: parentBack, renderSkySide: false, allowAlpha: true, traverseSide: parentBack, anchorSector3D: sector3d, wallHeights3D: newWallHeights);
 
             if (result.Vertices.Length > 0 && renderVertices != null)
                 renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
@@ -82,8 +83,8 @@ public partial class GeometryRenderer
                 useSide.Middle.Offset = parentFront.Middle.Offset;
             }
 
-            var result = RenderWallSlices3D(useSide, useSide.Middle, false, null!, wallSector, null!, m_renderSectorSliceFunc3D,
-                offsetSide: parentFront, renderSkySide: false, allowAlpha: true, traverseSide: parentFront, anchorSector3D: sector3d);
+            var result = RenderWallSlices3D(useSide, useSide.Middle, false, null!, wallSector, parentBack?.Sector!, m_renderSectorSliceFunc3D,
+                offsetSide: parentFront, renderSkySide: false, allowAlpha: true, traverseSide: parentFront, anchorSector3D: sector3d, wallHeights3D: newWallHeights);
 
             if (result.Vertices.Length > 0 && renderVertices != null)
                 renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
@@ -93,7 +94,8 @@ public partial class GeometryRenderer
     public RenderWallSliceResult RenderWallSlices3D(Side side, Wall wall, bool isFrontSide,
         Side otherSide, Sector facingSector, Sector otherSector,
         Func<RenderWallSliceArgs, RenderWallSliceResult> renderFunc,
-        Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false, Side? traverseSide = null, Sector3D? anchorSector3D = null)
+        Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false,
+        Side? traverseSide = null, Sector3D? anchorSector3D = null, WallHeights? wallHeights3D = null)
     {
         RenderWallSliceResult finalResult = default;
         if (side.Sector.Sectors3D.Length == 0)
@@ -111,8 +113,8 @@ public partial class GeometryRenderer
 
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
         WorldStatic.LineVertexGapBottomZ = 0;
-        var prevHeights = CalculateWallHeights(side, wall, otherSector, anchorSector3D);
 
+        var prevHeights = CalculateWallHeights(side, wall, otherSector, wallHeights3D);
         var wallSector3d = side.Sector.Sectors3D[0].FakeSector;
         SetWallSliceSector(side, wallSector3d, m_sliceSector);
 
@@ -214,14 +216,15 @@ public partial class GeometryRenderer
         wallSector.FloorSkyTextureHandle = side.Sector.FloorSkyTextureHandle;
     }
 
-    private static WallHeights CalculateWallHeights(Side side, Wall wall, Sector otherSector, Sector3D? anchorSector3D)
+    private static WallHeights CalculateWallHeights(Side side, Wall wall, Sector otherSector, WallHeights? wallHeights3D)
     {
-        // Drawing 3D middle needs to be anchored to the parent's control top
-        if (wall.Location == WallLocation.Middle3D && anchorSector3D != null)
-            return new WallHeights(anchorSector3D.ControlTop.Z, anchorSector3D.ControlTop.Z, anchorSector3D.ControlTop.PrevZ, anchorSector3D.ControlTop.PrevZ);
+        Assert.Precondition(wall.Location != WallLocation.Middle3D || wallHeights3D.HasValue, "Rendering 3D middle requires WallHeights3D to be set.");
+        // Drawing 3D middle needs to be anchored to the parent's control top. Use 3D sector's calculated wall heights to adjust to upper textures.
+        if (wall.Location == WallLocation.Middle3D && wallHeights3D.HasValue)
+            return new WallHeights(wallHeights3D.Value.TopZ, wallHeights3D.Value.TopZ, wallHeights3D.Value.PrevTopZ, wallHeights3D.Value.PrevTopZ);
         // Lower walls anchored to floor
         else if (wall.Location == WallLocation.Lower)
-           return new WallHeights(otherSector.Floor.Z, otherSector.Floor.Z, otherSector.Floor.PrevZ, otherSector.Floor.PrevZ);
+            return new WallHeights(otherSector.Floor.Z, otherSector.Floor.Z, otherSector.Floor.PrevZ, otherSector.Floor.PrevZ);
         // Everything else is anchored to ceiling
         return new WallHeights(side.Sector.Ceiling.Z, side.Sector.Ceiling.Z, side.Sector.Ceiling.PrevZ, side.Sector.Ceiling.PrevZ);
     }
