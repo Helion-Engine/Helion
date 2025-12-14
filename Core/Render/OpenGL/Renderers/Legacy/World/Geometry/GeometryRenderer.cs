@@ -1303,6 +1303,7 @@ public partial class GeometryRenderer : IDisposable
         if (facingSide.Line.Back != null && otherSector != null && RenderBlock.IsSkyBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
+            // TODO this renders even if it won't be seen (floor == ceiling z and other sector == ceiling z)
             WorldTriangulator.HandleOneSided(facingSide, facingSide, floor, ceiling, texture.UVInverse, ref wall,
                 overrideFloor: facingSide.PartnerSide!.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
         }

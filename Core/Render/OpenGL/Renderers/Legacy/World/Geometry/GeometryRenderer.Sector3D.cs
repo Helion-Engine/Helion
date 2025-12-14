@@ -117,6 +117,9 @@ public partial class GeometryRenderer
         SetWallSliceSector(side, wallSector3d, m_sliceSector);
 
         m_fakeSide.Line = side.Line;
+        m_fakeSide.IsFront = isFrontSide;
+        m_fakeSide.PartnerSide = side.PartnerSide;
+        m_fakeSide.ScrollData = side.ScrollData;
         m_fakeSide.Sector = side.Sector;
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Offset.X = wall.Offset.X + side.Offset.X;

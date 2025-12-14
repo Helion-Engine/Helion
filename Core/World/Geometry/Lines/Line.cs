@@ -69,9 +69,15 @@ public sealed class Line
         Alpha = 1;
 
         front.Line = this;
+        front.IsFront = true;
 
         if (back != null)
+        {
             back.Line = this;
+            back.IsFront = false;
+            back.PartnerSide = front;
+            front.PartnerSide = back;
+        }
 
         m_length = -1;
         m_angle = double.MinValue;

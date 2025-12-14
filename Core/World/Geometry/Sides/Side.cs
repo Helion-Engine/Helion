@@ -45,8 +45,8 @@ public sealed class Side
     public SideTexture FloodTextures;
     public byte LightLevel;
 
-    public bool IsFront => this == Line.Front;
-    public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
+    public bool IsFront;
+    public Side? PartnerSide;
 
     public SideScrollData? ScrollData;
 
