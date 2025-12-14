@@ -396,4 +396,6 @@ public static class Constants
 
     public const int ScreenshotSaveWidth = 320;
     public const int ScreenshotSaveHeight = 240;
+
+    public const long MaxMessageVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
 }

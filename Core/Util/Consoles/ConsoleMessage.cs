@@ -8,7 +8,7 @@ public class ConsoleMessage
     public long TimeNanos;
     public Color Color;
     public bool IsCentered;
-    public int Count = 1;
+    public int StackCount = 1;
 
     public void Set(string message, long timeNanos, Color color, bool isCentered)
     {
@@ -16,6 +16,6 @@ public class ConsoleMessage
         TimeNanos = timeNanos;
         Color = color;
         IsCentered = isCentered;
-        Count = 1;
+        StackCount = 1;
     }
 }
