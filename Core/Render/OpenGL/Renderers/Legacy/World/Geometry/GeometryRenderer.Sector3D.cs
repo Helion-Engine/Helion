@@ -40,55 +40,45 @@ public partial class GeometryRenderer
     public void RenderSectorLine3D(Sector3D sector3d, int lineIndex, bool renderFront, bool renderBack, in WallHeights wallHeights,
         Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
     {
-        var newWallHeights = wallHeights;
         var wallSector = sector3d.FakeSector;
-        var sectorLine = sector3d.FakeSector.Lines[lineIndex];
+        var sectorLine = wallSector.Lines[lineIndex];
         var parentSectorLine = sector3d.ParentSector.Lines[lineIndex];
-        var useSide = sectorLine.Front;
 
         var flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
         var parentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
         var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
-        if (renderFront && parentBack != null && sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights))
+        if (renderFront && parentBack != null)
+            RenderSide3D(sector3d, sectorLine.Front, parentBack, parentFront, wallHeights, wallSector, true, renderVertices);
+
+        if (renderBack && sector3d.ShouldRenderInsideWalls && sectorLine.Back != null)
+            RenderSide3D(sector3d, sectorLine.Back, parentFront, parentBack, wallHeights, wallSector, false, renderVertices);
+    }
+
+    private void RenderSide3D(Sector3D sector3d, Side useSide, Side? parentSide, Side? oppositeParentSide,
+        in WallHeights wallHeights, Sector wallSector, bool isFront,
+        Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
+    {
+        if (parentSide == null || !sector3d.CalculateWallHeights(parentSide, wallHeights, out var newWallHeights))
+            return;
+
+        wallSector.Ceiling.Z = newWallHeights.TopZ;
+        wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
+        wallSector.Floor.Z = newWallHeights.BottomZ;
+        wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
+
+        useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentSide);
+        if (parentSide != null)
         {
-            wallSector.Ceiling.Z = newWallHeights.TopZ;
-            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
-            wallSector.Floor.Z = newWallHeights.BottomZ;
-            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
-
-            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentBack);
-            useSide.Offset = parentBack.Offset;
-            useSide.Middle.Offset = parentBack.Middle.Offset;
-            var result = RenderWallSlices3D(useSide, useSide.Middle, true, null!, wallSector, parentFront?.Sector!, m_renderSectorSliceFunc3D,
-                offsetSide: parentBack, renderSkySide: false, allowAlpha: true, traverseSide: parentBack, anchorSector3D: sector3d, wallHeights3D: newWallHeights);
-
-            if (result.Vertices.Length > 0 && renderVertices != null)
-                renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
+            useSide.Offset = parentSide.Offset;
+            useSide.Middle.Offset = parentSide.Middle.Offset;
         }
 
-        if (renderBack && sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
-            (parentFront == null || sector3d.CalculateWallHeights(parentFront, wallHeights, out newWallHeights)))
-        {
-            wallSector.Ceiling.Z = newWallHeights.TopZ;
-            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
-            wallSector.Floor.Z = newWallHeights.BottomZ;
-            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
+        var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
+            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: parentSide, anchorSector3D: sector3d,  wallHeights3D: newWallHeights);
 
-            useSide = sectorLine.Back;
-            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentFront);
-            if (parentFront != null)
-            {
-                useSide.Offset = parentFront.Offset;
-                useSide.Middle.Offset = parentFront.Middle.Offset;
-            }
-
-            var result = RenderWallSlices3D(useSide, useSide.Middle, false, null!, wallSector, parentBack?.Sector!, m_renderSectorSliceFunc3D,
-                offsetSide: parentFront, renderSkySide: false, allowAlpha: true, traverseSide: parentFront, anchorSector3D: sector3d, wallHeights3D: newWallHeights);
-
-            if (result.Vertices.Length > 0 && renderVertices != null)
-                renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
-        }
+        if (result.Vertices.Length > 0 && renderVertices != null)
+            renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
     }
 
     public RenderWallSliceResult RenderWallSlices3D(Side side, Wall wall, bool isFrontSide,
