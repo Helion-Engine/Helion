@@ -244,19 +244,18 @@ public class Sector3D
         if (ParentSector.Sectors3D.Length == 0)
             return m_wallHeights;
 
-        var entity = GetSectorEntity3D();
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
-            var checkSector3d = ParentSector.Sectors3D[i];
-            if (checkSector3d == this)
+            var checkSector3D = ParentSector.Sectors3D[i];
+            if (checkSector3D == this)
                 break;
 
-            if (!entity.OverlapsZ(checkSector3d.GetSectorEntity3D()))
-                continue;
-
-            if (!AdjustWallHeights(ref m_wallHeights, 
-                checkSector3d.ControlTop.Z, checkSector3d.ControlBottom.Z, checkSector3d.ControlTop.PrevZ, checkSector3d.ControlBottom.PrevZ))
-                break;
+            if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ControlBottom.Z)
+            {
+                if (!AdjustWallHeights(ref m_wallHeights,
+                    checkSector3D.ControlTop.Z, checkSector3D.ControlBottom.Z, checkSector3D.ControlTop.PrevZ, checkSector3D.ControlBottom.PrevZ))
+                    break;
+            }
         }
 
         FakeTop.Z = m_wallHeights.TopZ;
