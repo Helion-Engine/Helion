@@ -82,6 +82,22 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+    [Fact(DisplayName = "Render two-sided middle line sliced by single 3D sector with lower unpeg")]
+    public void RenderTwoSidedMiddleSliceLowerUnpeg()
+    {
+        var sector = GameActions.GetSector(World, 64);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        // Anchors to other ceiling (500)
+        // Y-Offsets: 500-500=0, 500-48=452, 500-32=468
+        SetSlices(new WallSlice(500, 48, 192, (0, 0)), new WallSlice(48, 32, 192, (0, 452)), new WallSlice(32, 0, 192, (0, 468)));
+
+        var line = GameActions.GetLine(World, 279);
+        line.Flags.Unpegged.Lower.Should().BeTrue();
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderSlice);
+        AssertSlices();
+    }
+
     [Fact(DisplayName = "Render two-sided lower sector line sliced by single 3D sector")]
     public void RenderTwoSidedLowerSlice()
     {
@@ -164,6 +180,7 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+
     [Fact(DisplayName = "Render middle 3D sector line sliced by a larger single 3D sector")]
     public void RenderMiddleSlicesByLarger3D()
     {
@@ -173,7 +190,7 @@ public class Sector3D_Walls
         // Anchors 3D sector control ceiling (128)
         // Y-Offsets: 128-128=0, 128-64=64, 128-32=96
         // First and last slices will be empty since the opposing 3D sector is larger
-        SetSlices(new WallSlice(128, 128, 192, (0, 0)), new WallSlice(192, 64, 192, (0, 0)), new WallSlice(64, 0, 192, (0, 0)));
+        SetSlices(new WallSlice(128, 128, 192, (0, 0)), new WallSlice(192, 64, 192, (0, 0)), new WallSlice(64, 0, 192, (0, 64)));
 
         var sector3D = sector.Sectors3D[0];
         var heights = sector3D.CalculateWallHeights(0);
@@ -195,7 +212,7 @@ public class Sector3D_Walls
 
         // Anchors 3D sector control ceiling (128)
         // Y-Offsets: 128-128=0, 128-64=64, 128-32=96
-        SetSlices(new WallSlice(192, 128, 192, (0, 0)), new WallSlice(128, 96, 255, (0, 64)), new WallSlice(96, 0, 255, (0, 96)));
+        SetSlices(new WallSlice(192, 128, 128, (0, 0)), new WallSlice(128, 96, 255, (0, 64)), new WallSlice(96, 0, 255, (0, 96)));
 
         var sector3D = sector.Sectors3D[0];
         var heights = sector3D.CalculateWallHeights(0);
@@ -214,7 +231,7 @@ public class Sector3D_Walls
         var slice = m_slices[m_sliceIndex++];
         // This might change later where this is called with slices that have no height.
         // Ignore validation on them for now since they wouldn't render anything anyway.
-        if (args.WallSector.Ceiling.Z == args.WallSector.Floor.Z)
+        if (args.WallSector.Ceiling.Z != args.WallSector.Floor.Z)
         {
             args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
             args.WallSector.Floor.Z.Should().Be(slice.BottomZ);

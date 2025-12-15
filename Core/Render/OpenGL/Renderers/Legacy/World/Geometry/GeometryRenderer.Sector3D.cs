@@ -98,7 +98,7 @@ public partial class GeometryRenderer
         // Because of how the WorldTriangulator handles mapping UV coordinates based on flags they are fudged here to fix alignment.
         var anchorZ = CalculateAnchorZ(side, wall, otherSector, anchorSector3D);
         var saveUnpeg = side.Line.Flags.Unpegged;
-        side.Line.Flags.Unpegged.Lower = false;
+        side.Line.Flags.Unpegged.Lower = wall.Location == WallLocation.Middle && side.PartnerSide != null && side.Line.Flags.Unpegged.Lower;
         side.Line.Flags.Unpegged.Upper = wall.Location == WallLocation.Upper;
 
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
@@ -237,6 +237,10 @@ public partial class GeometryRenderer
         else if (wall.Location == WallLocation.Middle3D && anchorSector3D != null)
         {
             return anchorSector3D.ControlTop.Z;
+        }
+        else if (wall.Location == WallLocation.Middle && side.PartnerSide != null)
+        {
+            return side.Sector.Ceiling.Z;
         }
 
         return side.Line.Flags.Unpegged.Lower ? side.Sector.Floor.Z : side.Sector.Ceiling.Z;
