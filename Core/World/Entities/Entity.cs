@@ -31,7 +31,7 @@ namespace Helion.World.Entities;
 /// <summary>
 /// An actor in a world.
 /// </summary>
-public partial class Entity : IDisposable, ITickable, ISoundSource
+public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilingAnchor
 {
     public const double WaterSinkSpeed = 0.5;
     public const double WaterSinkFactor = 0.125;
@@ -77,6 +77,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Entity? OnEntity() => m_onEntity != null && m_onEntity.Id == m_onEntityId ? m_onEntity : null;
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity? OverEntity() => m_overEntity != null && m_overEntity.Id == m_overEntityId ? m_overEntity : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity? LowestCeilingEntity() => LowestCeilingObject is Entity entity && entity.Id == m_lowCeilEntityId ? entity : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity? HighestFloorEntity() => HighestFloorObject is Entity entity && entity.Id == m_highFloorEntityId ? entity : null;
 
     public EntityDefinition Definition;
     public EntityProperties Properties;
@@ -93,8 +97,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Sector LowestCeilingSector;
     public Sector? LightCeilingSector3D;
     // Can be Sector or Entity
-    public object HighestFloorObject;
-    public object LowestCeilingObject;
+    public IFloorCeilingAnchor HighestFloorObject;
+    public IFloorCeilingAnchor LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public DynamicArray<Sector> IntersectSectors = new();
@@ -168,6 +172,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     private int m_ownerId;
     private int m_onEntityId;
     private int m_overEntityId;
+    private int m_lowCeilEntityId;
+    private int m_highFloorEntityId;
 
     public Entity()
     {
@@ -337,8 +343,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.HighSec = HighestFloorSector.Id;
         entityModel.LowSec = LowestCeilingSector.Id;
 
-        entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
-        entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
+        entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject, m_highFloorEntityId);
+        entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject, m_lowCeilEntityId);
         entityModel.OnGround = OnGround;
         entityModel.Gravity = Gravity;
         entityModel.Alpha = Alpha;
@@ -351,17 +357,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return entityModel;
     }
 
-    private static int? GetMidTexLine(object obj)
+    private static int? GetBoundingEntityForModel(IFloorCeilingAnchor obj, int validateEntityId)
     {
-        if (obj is not Entity entity || entity.MidTexLine == null)
-            return null;
-
-        return entity.MidTexLine.Id;
-    }
-
-    private static int? GetBoundingEntityForModel(object obj)
-    {
-        if (obj is not Entity entity)
+        if (obj is not Entity entity || entity.Id != validateEntityId)
             return null;
 
         if (entity.MidTexLine != null)
@@ -416,6 +414,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     {
         m_owner = entity;
         m_ownerId = entity == null ? 0 : entity.Id;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetLowestCeilingEntity(Entity entity)
+    {
+        LowestCeilingObject = entity;
+        m_lowCeilEntityId = entity.Id;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetHighestFloorEntity(Entity entity)
+    {
+        HighestFloorObject = entity;
+        m_highFloorEntityId = entity.Id;
     }
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
@@ -1202,6 +1214,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         m_overEntity = null;
         m_overEntityId = 0;
+
+        m_lowCeilEntityId = 0;
+        m_highFloorEntityId = 0;
 
         if (!WaitSoundDispose)
             FreeToDataCache();

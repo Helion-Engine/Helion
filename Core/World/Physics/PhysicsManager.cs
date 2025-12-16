@@ -639,14 +639,14 @@ public sealed class PhysicsManager
 
     private static void PushUpBlockingEntity(Entity pusher)
     {
-        if (pusher.LowestCeilingObject is not Entity)
+        var lowCeilEntity = pusher.LowestCeilingEntity();
+        if (lowCeilEntity == null)
             return;
 
-        var entity = (Entity)pusher.LowestCeilingObject;
-        if (entity.Flags.ActLikeBridge())
+        if (lowCeilEntity.Flags.ActLikeBridge())
             return;
 
-        entity.Position.Z = pusher.Position.Z + pusher.Height;
+        lowCeilEntity.Position.Z = pusher.Position.Z + pusher.Height;
     }
 
     private static void PushDownBlockingEntities(Entity pusher)
@@ -914,7 +914,8 @@ public sealed class PhysicsManager
 
             if (highestFloor > short.MinValue)
             {
-                if (entity.LowestCeilingObject is Entity blockEntity)
+                var blockEntity = entity.LowestCeilingEntity();
+                if (blockEntity != null)
                     entity.BlockingEntity = blockEntity;
                 else
                     entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
@@ -924,7 +925,8 @@ public sealed class PhysicsManager
         bool clippedFloor = entity.Position.Z <= highestFloor;
         if (entity.Position.Z <= highestFloor && highestFloor < short.MaxValue)
         {
-            if (entity.HighestFloorObject is Entity highestEntity &&
+            var highestEntity = entity.HighestFloorEntity();
+            if (highestEntity != null &&
                 highestEntity.Position.Z + highestEntity.Height <= entity.Position.Z + entity.GetMaxStepHeight())
             {
                 entity.SetOnEntity(highestEntity);
@@ -935,7 +937,8 @@ public sealed class PhysicsManager
 
             if (clippedFloor)
             {
-                if (entity.HighestFloorObject is Entity blockEntity)
+                var blockEntity = entity.HighestFloorEntity();
+                if (blockEntity != null)
                     entity.BlockingEntity = blockEntity;
                 else if (entity.BlockingSectorPlane == null && entity.Velocity.Z < 0)
                     entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
@@ -1048,12 +1051,12 @@ public sealed class PhysicsManager
 
         // Make checks inclusive to prioritize entity over sector. Otherwise this can cause issues with monsters on 3d bridges/midtex lines dropping of when they shouldn't.
         if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height >= highestFloor.Floor.Z)
-            entity.HighestFloorObject = highestFloorEntity;
+            entity.SetHighestFloorEntity(highestFloorEntity);
         else
             entity.HighestFloorObject = highestFloor;
 
         if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z + lowestCeilingEntity.Height < lowestCeiling.Ceiling.Z)
-            entity.LowestCeilingObject = lowestCeilingEntity;
+            entity.SetLowestCeilingEntity(lowestCeilingEntity);
         else
             entity.LowestCeilingObject = lowestCeiling;
     }
@@ -1463,7 +1466,8 @@ doneLinkToSectors:
         tryMove.DropOffZ_3D = double.MaxValue;
         tryMove.Subsector = m_world.ToSubsector(x, y);
 
-        if (entity.HighestFloorObject is Entity highFloorEntity)
+        var highFloorEntity = entity.HighestFloorEntity();
+        if (highFloorEntity != null && highFloorEntity.Flags.Solid())
         {
             if (highFloorEntity.MidTexLine != null)
                 highFloorEntity = GetMidTexEntity(highFloorEntity.MidTexLine.Id);
@@ -1476,7 +1480,8 @@ doneLinkToSectors:
             tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.Floor.Z;
         }
 
-        if (entity.LowestCeilingObject is Entity lowCeilEntity)
+        var lowCeilEntity = entity.LowestCeilingEntity();
+        if (lowCeilEntity != null && lowCeilEntity.Flags.Solid())
         {
             if (lowCeilEntity.MidTexLine != null)
                 lowCeilEntity = GetMidTexEntity(lowCeilEntity.MidTexLine.Id);

@@ -9,7 +9,6 @@ using Helion.Resources.Definitions;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
-using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
@@ -25,7 +24,7 @@ using Vector2D = Helion.Models.Vector2D;
 
 namespace Helion.World.Geometry.Sectors;
 
-public sealed class Sector
+public sealed class Sector : IFloorCeilingAnchor
 {
     public static readonly Sector Default = CreateDefault();
 

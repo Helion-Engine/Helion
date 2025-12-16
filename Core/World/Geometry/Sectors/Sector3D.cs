@@ -46,7 +46,7 @@ public enum SolidContext
     HitScan
 }
 
-public class Sector3D
+public sealed class Sector3D
 {
     public int ParentSectorId;
     public int SectorId;
