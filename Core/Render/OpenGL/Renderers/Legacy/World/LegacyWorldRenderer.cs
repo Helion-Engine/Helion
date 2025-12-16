@@ -499,8 +499,8 @@ public class LegacyWorldRenderer : WorldRenderer
         var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Add) || 
             m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.ColorAdd);
-        var alphaWalls = m_worldDataManager.HasAlphaWalls();
-        if (!fuzzData && !alphaData && !alphaWalls)
+        var alphaGeometry = m_worldDataManager.HasAlphaGeometry();
+        if (!fuzzData && !alphaData && !alphaGeometry)
             return;
 
         m_oitFrameBuffer.StartRender();
@@ -530,20 +530,20 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationTransparentProgram.VertexGapClampUV(false);
         SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo, m_vanillaRender);
         GL.ActiveTexture(BindTextures.BoundTexture);
-        m_worldDataManager.RenderAlphaWalls();
+        m_worldDataManager.RenderAlphaGeometry();
 
         ResetBlendEquations();
         framebuffer.Bind();
 
         m_entityRenderer.RenderOitCompositePass(renderInfo);
 
-        if (alphaWalls)
+        if (alphaGeometry)
         {
             m_interpolationCompositeProgram.Bind();
             m_interpolationCompositeProgram.VertexGapClampUV(false);
             SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo, m_vanillaRender);
             GL.ActiveTexture(BindTextures.BoundTexture);
-            m_worldDataManager.RenderAlphaWalls();
+            m_worldDataManager.RenderWalls();
         }
 
         if (fuzzData)

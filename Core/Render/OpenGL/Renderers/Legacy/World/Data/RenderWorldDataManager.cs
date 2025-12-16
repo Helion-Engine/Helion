@@ -67,14 +67,14 @@ public class RenderWorldDataManager : IDisposable
         m_lookup.Get(GeometryType.TwoSidedMiddleWall).Draw();
     }
 
-    public void RenderAlphaWalls()
+    public void RenderAlphaGeometry()
     {
-        m_lookup.Get(GeometryType.AlphaWall).Draw();
+        m_lookup.Get(GeometryType.Alpha).Draw();
     }
 
-    public bool HasAlphaWalls()
+    public bool HasAlphaGeometry()
     {
-        return m_lookup.Get(GeometryType.AlphaWall).RenderData.Count > 0;
+        return m_lookup.Get(GeometryType.Alpha).RenderData.Count > 0;
     }
 
     public void RenderFlats()
