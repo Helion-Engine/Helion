@@ -499,7 +499,7 @@ public class LegacyWorldRenderer : WorldRenderer
         var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Add) || 
             m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.ColorAdd);
-        var alphaWalls = m_worldDataManager.HasAlphaWalls();
+        var alphaWalls = m_worldDataManager.HasAlphaWalls() || m_worldDataManager.HasAlphaAdditive();
         if (!fuzzData && !alphaData && !alphaWalls)
             return;
 
@@ -531,6 +531,7 @@ public class LegacyWorldRenderer : WorldRenderer
         SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo, m_vanillaRender);
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_worldDataManager.RenderAlphaWalls();
+        m_worldDataManager.RenderAlphaAdditive();
 
         ResetBlendEquations();
         framebuffer.Bind();
@@ -543,7 +544,15 @@ public class LegacyWorldRenderer : WorldRenderer
             m_interpolationCompositeProgram.VertexGapClampUV(false);
             SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo, m_vanillaRender);
             GL.ActiveTexture(BindTextures.BoundTexture);
+
             m_worldDataManager.RenderAlphaWalls();
+
+            if (m_worldDataManager.HasAlphaAdditive())
+            {
+                SetBlendEquation(RenderDataStyle.Add);
+                m_worldDataManager.RenderAlphaAdditive();
+                SetBlendEquation(RenderDataStyle.Normal);
+            }
         }
 
         if (fuzzData)
@@ -553,7 +562,23 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.DepthMask(true);
     }
 
-    private static void ResetBlendEquations()
+    public static void SetBlendEquation(RenderDataStyle style)
+    {
+        switch(style)
+        {
+            case RenderDataStyle.Add:
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+                break;
+            case RenderDataStyle.ColorAdd:
+                GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+                break;
+            default:
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                break;
+        }
+    }
+
+    public static void ResetBlendEquations()
     {
         GL.BlendEquation(BlendEquationMode.FuncAdd);
         GL.Enable(EnableCap.Blend);

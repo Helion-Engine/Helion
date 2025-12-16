@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
-public class EntityRenderer : IDisposable
+public sealed class EntityRenderer : IDisposable
 {
     const int MinBarWidth = 20;
     const int MaxBarWidth = 80;
@@ -480,19 +480,17 @@ public class EntityRenderer : IDisposable
 
         if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.Add))
         {
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+            LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.Add);
             m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
         }
 
         if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.ColorAdd))
         {
-            GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+            LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.ColorAdd);
             m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
         }
 
-        GL.BlendEquation(BlendEquationMode.FuncAdd);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
+        LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.Normal);
         m_programComposite.Unbind();
     }
 

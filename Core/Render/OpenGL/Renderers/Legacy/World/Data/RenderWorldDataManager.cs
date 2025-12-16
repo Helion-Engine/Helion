@@ -7,9 +7,9 @@ using Helion.World.Geometry.Walls;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
-public class RenderWorldDataManager : IDisposable
+public sealed class RenderWorldDataManager : IDisposable
 {
-    private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup = new(() =>  new RenderWorldDataList());
+    private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup = new(() => new RenderWorldDataList());
     private RenderWorldData? m_coverWalls;
 
     public bool BufferCoverWalls = true;
@@ -72,9 +72,18 @@ public class RenderWorldDataManager : IDisposable
         m_lookup.Get(GeometryType.AlphaWall).Draw();
     }
 
+    public void RenderAlphaAdditive()
+    {
+        m_lookup.Get(GeometryType.AlphaAdditive).Draw();
+    }
+
     public bool HasAlphaWalls()
     {
         return m_lookup.Get(GeometryType.AlphaWall).RenderData.Count > 0;
+    }
+    public bool HasAlphaAdditive()
+    {
+        return m_lookup.Get(GeometryType.AlphaAdditive).RenderData.Count > 0;
     }
 
     public void RenderFlats()

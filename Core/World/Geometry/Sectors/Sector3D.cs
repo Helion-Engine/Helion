@@ -74,6 +74,7 @@ public sealed class Sector3D
     public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
     public bool ShouldRenderWalls => ControlTop.Z - ControlBottom.Z > 0;
     public bool ShouldRenderInsideWalls => (Flags & SectorFlags3D.RenderInside) != 0;
+    public bool IsAdditiveAlpha => (Flags & SectorFlags3D.AdditiveTransparency) != 0;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
 

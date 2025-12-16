@@ -460,12 +460,12 @@ public partial class GeometryRenderer : IDisposable
                 if (sector3d.ControlTop.Z != sector3d.ParentSector.Floor.Z)
                 {
                     RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha);
+                        lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha, alphaAdditive: sector3d.IsAdditiveAlpha);
 
                     if (sector3d.FakeBottomFlipped != null)
                     {
                         RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                            lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha);
+                            lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha, alphaAdditive: sector3d.IsAdditiveAlpha);
                     }
                 }
             }
@@ -484,12 +484,12 @@ public partial class GeometryRenderer : IDisposable
                 if (sector3d.ControlBottom.Z != sector3d.ParentSector.Floor.Z)
                 {
                     RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha);
+                        lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha, alphaAdditive: sector3d.IsAdditiveAlpha);
 
                     if (sector3d.FakeTopFlipped != null)
                     {
                         RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                            lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha);
+                            lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha, alphaAdditive: sector3d.IsAdditiveAlpha);
                     }
                 }
             }
@@ -751,7 +751,7 @@ public partial class GeometryRenderer : IDisposable
     }
 
     public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture,
-        Sector? renderSector = null, Sector? lightLevelSector = null, Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false)
+        Sector? renderSector = null, Sector? lightLevelSector = null, Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false, bool alphaAdditive = false)
     {
         skyVertices = null;
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
@@ -810,9 +810,11 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var geometryType = side.Alpha < 1 ? GeometryType.AlphaWall : GeometryType.Wall;
+            if (alphaAdditive)
+                geometryType = GeometryType.AlphaAdditive;
             var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
             renderData.Vbo.Add(data);
-            if (m_vanillaRender && side.Alpha == 1)
+            if (m_vanillaRender && side.Alpha == 1 && !alphaAdditive)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location);
         }
         vertices = data;
@@ -1547,7 +1549,7 @@ public partial class GeometryRenderer : IDisposable
     }
 
     public void RenderSectorFlats(Sector renderSector, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood,
-        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, Sector? lightLevelSector = null, bool allowAlpha = false)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, Sector? lightLevelSector = null, bool allowAlpha = false, bool alphaAdditive = false)
     {
         if (renderSector.Id >= m_subsectors.Length)
         {
@@ -1558,17 +1560,20 @@ public partial class GeometryRenderer : IDisposable
 
         var subsectors = m_subsectors[renderSector.Id];
         var invalidatedLookup = floor ? m_floorVertexLookupInvalidated : m_ceilingVertexLookupInvalidated;
-        RenderFlat(subsectors, renderPlane, geometryPlane, floor, renderFlood, invalidatedLookup, out vertices, out skyVertices, lightLevelSector, allowAlpha);
+        RenderFlat(subsectors, renderPlane, geometryPlane, floor, renderFlood, invalidatedLookup, out vertices, out skyVertices, lightLevelSector, allowAlpha, alphaAdditive: alphaAdditive);
     }
 
     private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood,
         BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
-        Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1)
+        Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1, bool alphaAdditive = false)
     {
         var isSky = TextureManager.IsSkyTexture(renderPlane.TextureHandle);
         var texture = m_glTextureManager.GetTexture(renderPlane.TextureHandle);
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(renderPlane.TextureHandle);
         var geometryType = alpha < 1 ? GeometryType.AlphaWall : GeometryType.Flat;
+        if (alphaAdditive)
+            geometryType = GeometryType.AlphaAdditive;
+
         var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
         var flatChanged = FlatChanged(renderPlane);
         var sector = subsectors[0].Sector;
