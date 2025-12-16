@@ -461,12 +461,12 @@ public partial class GeometryRenderer : IDisposable
                 {
                     RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha);
-                }
 
-                if (sector3d.FakeBottomFlipped != null)
-                {
-                    RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha);
+                    if (sector3d.FakeBottomFlipped != null)
+                    {
+                        RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                            lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha);
+                    }
                 }
             }
             else
@@ -481,16 +481,16 @@ public partial class GeometryRenderer : IDisposable
             set.Ceiling.LastRenderGametick = m_world.Gametick;
             if (sector3d != null)
             {
-                if (sector3d.ControlBottom.Z != sector3d.ParentSector.Ceiling.Z)
+                if (sector3d.ControlBottom.Z != sector3d.ParentSector.Floor.Z)
                 {
                     RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha);
-                }
 
-                if (sector3d.FakeTopFlipped != null)
-                {
-                    RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha);
+                    if (sector3d.FakeTopFlipped != null)
+                    {
+                        RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                            lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha);
+                    }
                 }
             }
             else
@@ -812,7 +812,7 @@ public partial class GeometryRenderer : IDisposable
             var geometryType = side.Alpha < 1 ? GeometryType.AlphaWall : GeometryType.Wall;
             var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
             renderData.Vbo.Add(data);
-            if (m_vanillaRender)
+            if (m_vanillaRender && side.Alpha == 1)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location);
         }
         vertices = data;
