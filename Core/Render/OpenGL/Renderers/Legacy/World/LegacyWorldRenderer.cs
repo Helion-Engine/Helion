@@ -207,19 +207,21 @@ public class LegacyWorldRenderer : WorldRenderer
         for (var islandNode = sectorList.Head; islandNode != null; islandNode = islandNode.Next)
         {
             var sectorIsland = islandNode.Value.Island;
-            if (sectorIsland.BlockmapCount == m_renderData.CheckCount)
+            var sector = islandNode.Value.Sector;
+            // Multiple 3D sectors can link in the same island so this check can't short here.
+            // The island node's sector is the fake 3D sector so using the CheckCount on it is valid below.
+            if (sector.Sector3D == null && sectorIsland.BlockmapCount == m_renderData.CheckCount)
                 continue;
 
             sectorIsland.BlockmapCount = m_renderData.CheckCount;
             if (sectorIsland.ParentIsland != null && sectorIsland.ParentIsland != m_renderData.ViewIsland)
                 continue;
 
-            var sector = islandNode.Value.Sector;
             if (sector.CheckCount == m_renderData.CheckCount)
                 continue;
 
-            double dx1 = Math.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
-            double dy1 = Math.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
+            var dx1 = Math.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
+            var dy1 = Math.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
             if (dx1 * dx1 + dy1 * dy1 <= m_renderData.MaxDistanceSquared)
             {
                 m_geometryRenderer.RenderSector(sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);

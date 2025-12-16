@@ -88,6 +88,7 @@ public partial class GeometryRenderer : IDisposable
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = [];
     private int[] m_drawnSides = [];
+    private readonly Dictionary<int, DynamicVertex[]> m_vertexPlaneLookup3D = [];
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -459,13 +460,13 @@ public partial class GeometryRenderer : IDisposable
                 if (sector3d.ControlTop.Z != sector3d.ParentSector.Floor.Z)
                 {
                     RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightTop);
+                        lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha);
                 }
 
                 if (sector3d.FakeBottomFlipped != null)
                 {
                     RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightTop);
+                        lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha);
                 }
             }
             else
@@ -483,13 +484,13 @@ public partial class GeometryRenderer : IDisposable
                 if (sector3d.ControlBottom.Z != sector3d.ParentSector.Ceiling.Z)
                 {
                     RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightBottom);
+                        lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha);
                 }
 
                 if (sector3d.FakeTopFlipped != null)
                 {
                     RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightBottom);
+                        lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha);
                 }
             }
             else
@@ -799,16 +800,17 @@ public partial class GeometryRenderer : IDisposable
             int addAlpha = allowAlpha ? 0 : 1;
             WorldTriangulator.HandleOneSided(side, offsetSide ?? side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha);
+                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha, alpha: side.Alpha);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha);
+                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha, alpha: side.Alpha);
 
             m_vertexLookup[side.Id] = data;
         }
 
         if (m_buffer)
         {
-            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
+            var geometryType = side.Alpha < 1 ? GeometryType.AlphaWall : GeometryType.Wall;
+            var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
             renderData.Vbo.Add(data);
             if (m_vanillaRender)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location);
@@ -1561,20 +1563,23 @@ public partial class GeometryRenderer : IDisposable
 
     private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood,
         BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
-        Sector? lightLevelSector = null, bool allowAlpha = false)
+        Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1)
     {
-        bool isSky = TextureManager.IsSkyTexture(renderPlane.TextureHandle);
-        GLLegacyTexture texture = m_glTextureManager.GetTexture(renderPlane.TextureHandle);
-        GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(renderPlane.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Flat, brightmapTexture);
-        bool flatChanged = FlatChanged(renderPlane);
+        var isSky = TextureManager.IsSkyTexture(renderPlane.TextureHandle);
+        var texture = m_glTextureManager.GetTexture(renderPlane.TextureHandle);
+        var brightmapTexture = m_glTextureManager.GetBrightmapTexture(renderPlane.TextureHandle);
+        var geometryType = alpha < 1 ? GeometryType.AlphaWall : GeometryType.Flat;
+        var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
+        var flatChanged = FlatChanged(renderPlane);
         var sector = subsectors[0].Sector;
         int id = geometryPlane.Sector.Id;
         var renderSector = sector.GetRenderSector(m_transferHeightsView);
         lightLevelSector ??= renderSector;
         var textureVector = new Vec2F(texture.Dimension.Vector.X, texture.Dimension.Vector.Y);
 
-        bool invalidated = flatInvalidatedVertexLookup[id];
+        var generateSector3D = WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null;
+
+        var invalidated = flatInvalidatedVertexLookup[id];
         if (invalidated)
         {
             flatInvalidatedVertexLookup.Set(id, false);
@@ -1584,8 +1589,8 @@ public partial class GeometryRenderer : IDisposable
         int indexStart = 0;
         if (isSky)
         {
-            SkyGeometryVertex[] lookupData = GetSkySectorVertices(subsectors, floor, id, out bool generate);
-            if (generate || flatChanged)
+            var lookupData = GetSkySectorVertices(subsectors, floor, id, out bool generate);
+            if (generate || flatChanged || generateSector3D)
             {
                 for (int j = 0; j < subsectors.Length; j++)
                 {
@@ -1594,7 +1599,7 @@ public partial class GeometryRenderer : IDisposable
                         continue;
 
                     WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, renderPlane, floor, textureVector, m_subsectorVertices,
-                        floor || (WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null) ? renderPlane.Z : MaxSky);
+                        floor || generateSector3D ? renderPlane.Z : MaxSky);
                     ref var root = ref m_subsectorVertices.Data[0];
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
                     {
@@ -1613,7 +1618,7 @@ public partial class GeometryRenderer : IDisposable
         }
         else
         {
-            DynamicVertex[] lookupData = GetSectorVertices(subsectors, floor, id, out bool generate);
+            var lookupData = generateSector3D ? GetSectorVertices3D(subsectors, geometryPlane, out var generate) : GetSectorVertices(subsectors, floor, id, out generate);
             if (generate || flatChanged)
             {
                 int colorMapIndex, lightIndex;
@@ -1650,7 +1655,7 @@ public partial class GeometryRenderer : IDisposable
                     {
                         ref var second = ref m_subsectorVertices.Data[i];
                         ref var third = ref m_subsectorVertices.Data[i + 1];
-                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, colorMapIndex, flatLightLevel, upper, lower, addAlpha);
+                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, colorMapIndex, flatLightLevel, upper, lower, addAlpha, alpha);
                         indexStart += 3;
                     }
                 }
@@ -1670,6 +1675,22 @@ public partial class GeometryRenderer : IDisposable
                 }
             }
         }
+    }
+
+    private static readonly DynamicVertex[][] EmptyLookup = new DynamicVertex[1][];
+
+    private DynamicVertex[] GetSectorVertices3D(DynamicArray<Subsector> subsectors, SectorPlane geometryPlane, out bool generate)
+    {
+        if (m_vertexPlaneLookup3D.TryGetValue(geometryPlane.Id, out var vertices))
+        {
+            generate = false;
+            return vertices;
+        }
+
+        generate = true;
+        vertices = InitSectorVertices(subsectors, 0, EmptyLookup);
+        m_vertexPlaneLookup3D[geometryPlane.Id] = vertices;
+        return vertices;
     }
 
     private DynamicVertex[] GetSectorVertices(DynamicArray<Subsector> subsectors, bool floor, int id, out bool generate)
@@ -2063,9 +2084,9 @@ public partial class GeometryRenderer : IDisposable
     }
 
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
-        int lightLevelBufferIndex, int colorMapIndex, int flatLightLevel, int upper, int lower, int addAlpha)
+        int lightLevelBufferIndex, int colorMapIndex, int flatLightLevel, int upper, int lower, int addAlpha, float alpha)
     {
-        var options = VertexOptions.World(0, 1, addAlpha, upper, lower, lightLevelBufferIndex);
+        var options = VertexOptions.World(0, alpha, addAlpha, upper, lower, lightLevelBufferIndex);
         float colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {

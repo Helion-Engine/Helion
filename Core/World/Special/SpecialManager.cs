@@ -856,6 +856,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         var sectorFlags = SectorFlags3D.None;
         var type = (ZDoom3DFloorType)(specialLine.Args.Arg1 & 0x3);
         var flags = (ZDoom3DFloorFlags)specialLine.Args.Arg2;
+        var alpha = specialLine.Args.Arg3 / 255f;
 
         switch(type)
         {
@@ -863,8 +864,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 sectorFlags |= SectorFlags3D.Solid;
                 break;
             case ZDoom3DFloorType.Swimmable:
-                sectorFlags |= SectorFlags3D.Swim;
-                sectorFlags |= SectorFlags3D.RenderInside;
+                sectorFlags |= SectorFlags3D.Swim | SectorFlags3D.RenderInside;
                 break;
             case ZDoom3DFloorType.NonSolid:
                 break;
@@ -896,7 +896,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front.Middle.TextureHandle, sectorFlags);
+            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front.Middle.TextureHandle, sectorFlags, alpha);
             sectors3d.Add(sector3d);
             frontSector.TaggedSectors3D[taggedSectorIndex++] = sector3d;
             if (counts.TryGetValue(sector.Id, out var count))

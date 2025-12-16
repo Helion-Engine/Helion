@@ -62,6 +62,7 @@ public sealed class Side
     public int CeilingFloodKey;
     public SectorPlanes MidTextureFlood;
     public SideFlags Flags;
+    public float Alpha = 1f;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
         : this(id, offset, upper, middle, lower, sector, 0, false, false, false, false)

@@ -14,6 +14,8 @@ namespace Helion.World.Geometry.Sectors;
 
 public sealed class SectorPlane : ISoundSource
 {
+    private static int StaticPlaneId;
+
     public SectorPlaneFace Facing;
     public PlaneD Plane;
     public Sector Sector;
@@ -23,6 +25,7 @@ public sealed class SectorPlane : ISoundSource
     public short LightLevel;
     public int LastRenderChangeGametick;
     public int LastRenderGametick;
+    public int Id;
 
     public RenderOffsets RenderOffsets;
     public SectorDynamic Dynamic;
@@ -43,6 +46,7 @@ public sealed class SectorPlane : ISoundSource
 
     public SectorPlane(SectorPlaneFace facing, double z, int textureHandle, short lightLevel, in RenderOffsets renderOffsets = default)
     {
+        Id = ++StaticPlaneId;
         Facing = facing;
         Z = z;
         PrevZ = z;
@@ -205,5 +209,5 @@ public sealed class SectorPlane : ISoundSource
 
     public float GetSoundRadius() => 32;
 
-    public override string ToString() => $"Z: {Z} Face: {Facing} Texture: {TextureHandle}";
+    public override string ToString() => $"Id={Id} Z={Z} Face={Facing} Texture={TextureHandle}";
 }

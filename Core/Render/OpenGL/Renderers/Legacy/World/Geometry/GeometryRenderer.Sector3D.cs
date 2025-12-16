@@ -113,6 +113,7 @@ public partial class GeometryRenderer
         m_fakeSide.PartnerSide = side.PartnerSide;
         m_fakeSide.ScrollData = side.ScrollData;
         m_fakeSide.Sector = side.Sector;
+        m_fakeSide.Alpha = anchorSector3D == null ? 1f : anchorSector3D.Alpha;
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Offset.X = wall.Offset.X + side.Offset.X;
 

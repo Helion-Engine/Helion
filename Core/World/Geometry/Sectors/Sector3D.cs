@@ -64,6 +64,7 @@ public sealed class Sector3D
     public Sector LightBottom;
     public Sector? LightMiddle;
     public SectorFlags3D Flags;
+    public float Alpha;
 
     private readonly Entity Entity;
     private WallHeights m_wallHeights;
@@ -76,7 +77,7 @@ public sealed class Sector3D
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
 
-    public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags)
+    public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, float alpha)
     {
         SectorId = world.Geometry.CreateNewSectorId();
         ParentSectorId = parentSectorId;
@@ -87,7 +88,10 @@ public sealed class Sector3D
         {
             FakeTopFlipped = new(SectorPlaneFace.Ceiling, 0, 0, 0);
             FakeBottomFlipped = new(SectorPlaneFace.Floor, 0, 0, 0);
-            FakeSectorFlipped = new(SectorId, 0, 0, FakeBottomFlipped, FakeTopFlipped, default, default);
+            FakeSectorFlipped = new(SectorId, 0, 0, FakeBottomFlipped, FakeTopFlipped, default, default)
+            {
+                Sector3D = this
+            };
         }
 
         FakeSector = new(SectorId, 0, 0, FakeBottom, FakeTop, default, default)
@@ -103,6 +107,7 @@ public sealed class Sector3D
         LightTop = ParentSector;
         LightBottom = ParentSector;
         Flags = flags;
+        Alpha = alpha;
         Entity = new();
         Entity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
         Entity.Sector3D = this;

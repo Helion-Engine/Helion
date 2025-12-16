@@ -21,50 +21,58 @@ public partial class StaticCacheGeometryRenderer
             AddSector3D(sector.Sectors3D[i], SectorPlanes.Floor | SectorPlanes.Ceiling, update);
     }
 
-    private void AddSector3D(Sector3D sector3d, SectorPlanes planes, bool update)
+    private void AddSector3D(Sector3D sector3D, SectorPlanes planes, bool update)
     {
-        var saveTransfer = sector3d.ParentSector.TransferFloorLightSector;
-        sector3d.ParentSector.TransferFloorLightSector = sector3d.ParentSector;
+        if (sector3D.Alpha < 1f)
+        {
+            sector3D.FakeSector.Floor.Dynamic |= SectorDynamic.Alpha;
+            sector3D.FakeSector.Ceiling.Dynamic |= SectorDynamic.Alpha;
+            m_world.RenderBlockmap.LinkDynamic(m_world, sector3D);
+            return;
+        }
+
+        var saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
+        sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
 
         if ((planes & SectorPlanes.Floor) != 0)
         {
-            AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: true, update: update, renderSector: sector3d.ControlSector,
-                lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottom, allowAlpha: true);
+            AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
+                lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottom, allowAlpha: true);
 
-            if (sector3d.FakeBottomFlipped != null)
+            if (sector3D.FakeBottomFlipped != null)
             {
-                AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: false, update: update, renderSector: sector3d.ControlSector,
-                    lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottomFlipped, allowAlpha: true);
+                AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
+                    lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottomFlipped, allowAlpha: true);
             }
         }
 
         if ((planes & SectorPlanes.Ceiling) != 0)
         {
-            AddSectorPlane(sector3d.ParentSector, sector3d.ControlBottom.Facing, floor: false, update: update, renderSector: sector3d.ControlSector,
-                lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTop, allowAlpha: true);
+            AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
+                lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTop, allowAlpha: true);
 
-            if (sector3d.FakeTopFlipped != null)
+            if (sector3D.FakeTopFlipped != null)
             {
-                AddSectorPlane(sector3d.ParentSector, sector3d.ControlBottom.Facing, floor: true, update: update, renderSector: sector3d.ControlSector,
-                    lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTopFlipped, allowAlpha: true);
+                AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
+                    lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTopFlipped, allowAlpha: true);
             }
         }
 
-        sector3d.ParentSector.TransferFloorLightSector = saveTransfer;
+        sector3D.ParentSector.TransferFloorLightSector = saveTransfer;
 
-        if (!sector3d.ShouldRenderWalls)
+        if (!sector3D.ShouldRenderWalls)
             return;
 
-        var wallHeights = m_geometryRenderer.SetSectorForLineRendering3D(sector3d);
-        for (int i = 0; i < sector3d.FakeSector.Lines.Length; i++)
+        var wallHeights = m_geometryRenderer.SetSectorForLineRendering3D(sector3D);
+        for (int i = 0; i < sector3D.FakeSector.Lines.Length; i++)
         {
-            var sectorLine = sector3d.FakeSector.Lines[i];
+            var sectorLine = sector3D.FakeSector.Lines[i];
             var side = sectorLine.Front;
-            var dynamic = side.IsDynamic || sector3d.ControlSector.IsMoving;
-            if (dynamic && (sector3d.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3d.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
+            var dynamic = side.IsDynamic || sector3D.ControlSector.IsMoving;
+            if (dynamic && (sector3D.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3D.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
                 continue;
 
-            m_geometryRenderer.RenderSectorLine3D(sector3d, i, true, true, wallHeights, m_renderSectorWallVertices3D);
+            m_geometryRenderer.RenderSectorLine3D(sector3D, i, true, true, wallHeights, m_renderSectorWallVertices3D);
         }
     }
 
