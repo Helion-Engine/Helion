@@ -1,4 +1,5 @@
-﻿using Helion.World.Geometry.Sectors;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -9,7 +10,7 @@ public struct RenderWallSliceArgs
     public bool IsFrontSide;
     public bool RenderSkySide;
     public bool AllowAlpha;
-    public bool AlphaAdditive;
+    public RenderDataStyle Style;
     public Sector WallSector;
     public Sector LightSector;
     public Sector FacingSector;

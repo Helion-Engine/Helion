@@ -1,4 +1,5 @@
-﻿using Helion.Render.OpenGL.Texture.Legacy;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Assertion;
@@ -76,7 +77,7 @@ public partial class GeometryRenderer
 
         var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
             offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: parentSide, anchorSector3D: sector3d, wallHeights3D: newWallHeights, 
-            alphaAdditive: sector3d.IsAdditiveAlpha);
+            style: sector3d.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
             renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
@@ -86,7 +87,7 @@ public partial class GeometryRenderer
         Side otherSide, Sector facingSector, Sector otherSector,
         Func<RenderWallSliceArgs, RenderWallSliceResult> renderFunc,
         Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false,
-        Side? traverseSide = null, Sector3D? anchorSector3D = null, WallHeights? wallHeights3D = null, bool alphaAdditive = false)
+        Side? traverseSide = null, Sector3D? anchorSector3D = null, WallHeights? wallHeights3D = null, RenderDataStyle style = RenderDataStyle.Normal)
     {
         RenderWallSliceResult finalResult = default;
         if (side.Sector.Sectors3D.Length == 0)
@@ -134,7 +135,7 @@ public partial class GeometryRenderer
             OtherSector = otherSector,
             OffsetSide = offsetSide,
             AllowAlpha = allowAlpha,
-            AlphaAdditive = alphaAdditive,
+            Style = style,
         };
 
         SetWallOffset(m_fakeWall, offsetY, prevHeights.TopZ, anchorZ);
@@ -303,7 +304,7 @@ public partial class GeometryRenderer
         }
 
         RenderOneSided(args.Side, args.IsFrontSide, out var sideVertices, out var skyVertices, out var texture,
-            renderSector: m_fakeFacing, lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide, allowAlpha: args.AllowAlpha, alphaAdditive: args.AlphaAdditive);
+            renderSector: m_fakeFacing, lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide, allowAlpha: args.AllowAlpha, style: args.Style);
         return new(sideVertices, skyVertices, texture);
     }
 

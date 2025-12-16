@@ -1,4 +1,5 @@
-﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Util;
 using Helion.World.Entities;
@@ -74,7 +75,7 @@ public sealed class Sector3D
     public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
     public bool ShouldRenderWalls => ControlTop.Z - ControlBottom.Z > 0;
     public bool ShouldRenderInsideWalls => (Flags & SectorFlags3D.RenderInside) != 0;
-    public bool IsAdditiveAlpha => (Flags & SectorFlags3D.AdditiveTransparency) != 0;
+    public RenderDataStyle RenderDataStyle;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
 
@@ -109,6 +110,7 @@ public sealed class Sector3D
         LightBottom = ParentSector;
         Flags = flags;
         Alpha = alpha;
+        RenderDataStyle = (Flags & SectorFlags3D.AdditiveTransparency) != 0 ? RenderDataStyle.Add : RenderDataStyle.Normal;
         Entity = new();
         Entity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
         Entity.Sector3D = this;

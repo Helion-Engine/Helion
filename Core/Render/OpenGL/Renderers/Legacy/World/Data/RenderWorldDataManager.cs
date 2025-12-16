@@ -67,23 +67,19 @@ public sealed class RenderWorldDataManager : IDisposable
         m_lookup.Get(GeometryType.TwoSidedMiddleWall).Draw();
     }
 
-    public void RenderAlphaWalls()
+    public bool HasAlpha()
     {
-        m_lookup.Get(GeometryType.AlphaWall).Draw();
+        return HasGeometryType(GeometryType.Translucent) || HasGeometryType(GeometryType.TranslucentAdd) || HasGeometryType(GeometryType.TranslucentColorAdd);
     }
 
-    public void RenderAlphaAdditive()
+    public bool HasStyle(RenderDataStyle style)
     {
-        m_lookup.Get(GeometryType.AlphaAdditive).Draw();
+        return m_lookup.Get(style.ToGeometryType()).RenderData.Count > 0;
     }
 
-    public bool HasAlphaWalls()
+    public bool HasGeometryType(GeometryType type)
     {
-        return m_lookup.Get(GeometryType.AlphaWall).RenderData.Count > 0;
-    }
-    public bool HasAlphaAdditive()
-    {
-        return m_lookup.Get(GeometryType.AlphaAdditive).RenderData.Count > 0;
+        return m_lookup.Get(type).RenderData.Count > 0;
     }
 
     public void RenderFlats()
@@ -94,6 +90,23 @@ public sealed class RenderWorldDataManager : IDisposable
     public void RenderCoverWalls()
     {
         m_coverWalls?.Draw();
+    }
+
+    public void RenderAllAlpha()
+    {
+        Render(GeometryType.Translucent);
+        Render(GeometryType.TranslucentAdd);
+        Render(GeometryType.TranslucentColorAdd);
+    }
+
+    public void Render(GeometryType type)
+    {
+        m_lookup.Get(type).Draw();
+    }
+
+    public void Render(RenderDataStyle style)
+    {
+        m_lookup.Get(style.ToGeometryType()).Draw();
     }
 
     public void Dispose()
