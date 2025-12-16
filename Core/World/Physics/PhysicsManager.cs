@@ -1467,7 +1467,7 @@ doneLinkToSectors:
         tryMove.Subsector = m_world.ToSubsector(x, y);
 
         var highFloorEntity = entity.HighestFloorEntity();
-        if (highFloorEntity != null && highFloorEntity.Flags.Solid())
+        if (highFloorEntity != null && highFloorEntity.Flags.Solid() && highFloorEntity.Flags.ActLikeBridge())
         {
             if (highFloorEntity.MidTexLine != null)
                 highFloorEntity = GetMidTexEntity(highFloorEntity.MidTexLine.Id);
@@ -1481,7 +1481,7 @@ doneLinkToSectors:
         }
 
         var lowCeilEntity = entity.LowestCeilingEntity();
-        if (lowCeilEntity != null && lowCeilEntity.Flags.Solid())
+        if (lowCeilEntity != null && lowCeilEntity.Flags.Solid() && lowCeilEntity.Flags.ActLikeBridge())
         {
             if (lowCeilEntity.MidTexLine != null)
                 lowCeilEntity = GetMidTexEntity(lowCeilEntity.MidTexLine.Id);
