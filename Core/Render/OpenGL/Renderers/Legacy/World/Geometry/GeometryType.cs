@@ -5,6 +5,6 @@ public enum GeometryType
     Wall,
     TwoSidedMiddleWall,
     Flat,
-    Alpha,
+    AlphaWall,
     Count
 }
