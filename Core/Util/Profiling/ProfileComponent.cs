@@ -1,49 +1,54 @@
-﻿namespace Helion.Util.Profiling
+﻿using NLog;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+
+namespace Helion.Util.Profiling;
+
+public record class ProfilerPath(string Name, ProfilerStopwatch Stopwatch);
+
+public interface IProfileComponent
 {
-    using NLog;
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
+    void RecursivelyLogStats(Logger profilerLog, string path, int depth);
+    List<ProfilerPath> Profilers { get; }
+}
 
-    public interface IProfileComponent
-    {
-        void RecursivelyLogStats(Logger profilerLog, string path, int depth);
-    }
+public abstract class ProfileComponent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T> : IProfileComponent
+{
+    public abstract List<ProfilerPath> Profilers { get; }
 
-    public class ProfileComponent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T> : IProfileComponent
+    public void RecursivelyLogStats(Logger profilerLog, string path = "", int depth = 0)
     {
-        public void RecursivelyLogStats(Logger profilerLog, string path = "", int depth = 0)
+        const int RecursiveOverflow = 100;
+
+        if (depth >= RecursiveOverflow)
+            throw new Exception($"Recursive profiler logging overflow: {path}");
+
+        foreach (FieldInfo fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance))
         {
-            const int RecursiveOverflow = 100;
+            string newPath = path == "" ? fieldInfo.Name.ToLowerInvariant() : $"{path}.{fieldInfo.Name.ToLowerInvariant()}";
 
-            if (depth >= RecursiveOverflow)
-                throw new Exception($"Recursive profiler logging overflow: {path}");
-
-            foreach (FieldInfo fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance))
+            if (fieldInfo.FieldType == typeof(ProfilerStopwatch))
             {
-                string newPath = path == "" ? fieldInfo.Name.ToLowerInvariant() : $"{path}.{fieldInfo.Name.ToLowerInvariant()}";
-
-                if (fieldInfo.FieldType == typeof(ProfilerStopwatch))
+                object? profilerObj = fieldInfo.GetValue(this);
+                if (profilerObj == null)
                 {
-                    object? profilerObj = fieldInfo.GetValue(this);
-                    if (profilerObj == null)
-                    {
-                        profilerLog.Error($"Should never have a null {nameof(ProfilerStopwatch)} when printing profiler stats");
-                        continue;
-                    }
-
-                    ProfilerStopwatch profilerStopwatch = (ProfilerStopwatch)profilerObj;
-                    profilerLog.Info($"{newPath}: {profilerStopwatch.TotalMilliseconds:0.####} ms");
+                    profilerLog.Error($"Should never have a null {nameof(ProfilerStopwatch)} when printing profiler stats");
                     continue;
                 }
 
-                object? fieldObj = fieldInfo.GetValue(this);
-                if (fieldObj == null)
-                    continue;
-
-                (fieldObj as IProfileComponent)?.RecursivelyLogStats(profilerLog, newPath, depth + 1);
+                ProfilerStopwatch profilerStopwatch = (ProfilerStopwatch)profilerObj;
+                profilerLog.Info($"{newPath}: {profilerStopwatch.TotalMilliseconds:0.####} ms");
+                continue;
             }
-        }
 
+            object? fieldObj = fieldInfo.GetValue(this);
+            if (fieldObj == null)
+                continue;
+
+            (fieldObj as IProfileComponent)?.RecursivelyLogStats(profilerLog, newPath, depth + 1);
+        }
     }
+
 }

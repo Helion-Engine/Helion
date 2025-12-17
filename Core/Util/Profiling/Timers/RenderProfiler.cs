@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Helion.Util.Profiling.Timers;
 
 public class RenderProfiler: ProfileComponent<RenderProfiler>
@@ -9,6 +11,19 @@ public class RenderProfiler: ProfileComponent<RenderProfiler>
     public readonly ProfilerStopwatch Total = new();
     public readonly ProfilerStopwatch World = new();
     public readonly ProfilerStopwatch Automap = new();
+
+    public override List<ProfilerPath> Profilers { get; } = [];
+
+    public RenderProfiler()
+    {
+        Profilers.Add(new("Render.FlushPipeline", FlushPipeline));
+        Profilers.Add(new("Render.Hud", Hud));
+        Profilers.Add(new("Render.MiscLayers", MiscLayers));
+        Profilers.Add(new("Render.SwapBuffers", SwapBuffers));
+        Profilers.Add(new("Render.Total", Total));
+        Profilers.Add(new("Render.World", World));
+        Profilers.Add(new("Render.Automap", Automap));
+    }
 
     internal void ResetAll()
     {

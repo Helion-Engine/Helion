@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Helion.Util.Profiling;
@@ -11,6 +12,7 @@ public class ProfilerStopwatch: ProfileComponent<ProfilerStopwatch>
 
     public double FrameMilliseconds => m_stopwatch.ElapsedTicks * TicksToMs;
     public double TotalMilliseconds => m_totalTicks * TicksToMs;
+    public override List<ProfilerPath> Profilers { get; } = [];
 
     public void Start()
     {

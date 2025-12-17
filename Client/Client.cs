@@ -139,6 +139,25 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+
+        m_queryHandle = OpenTK.Graphics.OpenGL.GL.GenQuery();
+
+        m_profiler.SetTriggerTimeSpan(TimeSpan.FromMilliseconds(1000.0 / 70.0));
+        m_profiler.TimeThresholdTriggered += Profiler_TimeThresholdTriggered;
+    }
+
+    private void Profiler_TimeThresholdTriggered(object? sender, ProfileTriggerTimeArgs e)
+    {
+        var eventMessage = $"{e.Path.Name} ms={e.Path.Stopwatch.FrameMilliseconds} {m_stopwatch.Elapsed}";
+        var world = m_layerManager.WorldLayer?.World;
+        if (world != null)
+        {
+            world.DisplayMessage(world.Player, null, eventMessage, isCentered: true);
+        }
+        else
+        {
+            Log.Info(eventMessage);
+        }
     }
 
     private void InitGpuPreference()
