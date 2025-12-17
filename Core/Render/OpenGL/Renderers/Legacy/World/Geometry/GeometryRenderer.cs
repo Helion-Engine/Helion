@@ -168,6 +168,8 @@ public partial class GeometryRenderer : IDisposable
         m_skyFloorVertexLookup = UpdateSkyFlatVertices(m_skyFloorVertexLookup, sectorCount, freeData);
         m_skyCeilingVertexLookup = UpdateSkyFlatVertices(m_skyCeilingVertexLookup, sectorCount, freeData);
 
+        m_vertexPlaneLookup3D.Clear();
+
         m_vertexLookupInvalidated = new(sideCount);
         m_vertexAlphaLookupInvalidated = new(sideCount);
         m_floorVertexLookupInvalidated = new(sectorCount);
@@ -1579,9 +1581,6 @@ public partial class GeometryRenderer : IDisposable
         var isSky = TextureManager.IsSkyTexture(renderPlane.TextureHandle);
         var texture = m_glTextureManager.GetTexture(renderPlane.TextureHandle);
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(renderPlane.TextureHandle);
-        //var geometryType = alpha < 1 ? GeometryType.Translucent : GeometryType.Flat;
-        //if (style != RenderDataStyle.Normal)
-        //    geometryType = style.ToGeometryType();
 
         var geometryType = GetGeometryType(alpha, style, GeometryType.Flat);
         var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);

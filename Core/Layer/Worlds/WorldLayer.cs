@@ -26,6 +26,7 @@ using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.StatusBar;
 using NLog;
@@ -268,9 +269,14 @@ public partial class WorldLayer : IGameLayerParent
 
         MapGeometry? geometry;
         if (sameAsPreviousMap && LastMapGeometry != null)
+        {
             geometry = GetGeometryAndReset(LastMapGeometry);
+        }
         else
+        {
+            SectorPlane.ResetId();
             geometry = GeometryBuilder.Create(map, config, archiveCollection.TextureManager);
+        }
 
         if (geometry == null)
             return null;

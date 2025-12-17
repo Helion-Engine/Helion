@@ -60,6 +60,11 @@ public sealed class SectorPlane : ISoundSource
         m_initialRenderOffsets = renderOffsets;
     }
 
+    public static void ResetId()
+    {
+        StaticPlaneId = 0;
+    }
+
     public void Reset(short lightLevel)
     {
         SetZ(m_initialZ);
