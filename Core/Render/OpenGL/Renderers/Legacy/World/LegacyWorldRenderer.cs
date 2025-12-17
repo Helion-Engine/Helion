@@ -444,17 +444,17 @@ public class LegacyWorldRenderer : WorldRenderer
 
             m_interpolationWallClipAlphaProgram.Bind();
             SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo, false);
+
             if (WorldStatic.Sector3D)
             {
                 GL.CullFace(TriangleFace.Front);
-                m_worldDataManager.RenderTwoSidedMiddleWalls();
+                m_worldDataManager.RenderMiddle3D();
                 GL.CullFace(TriangleFace.Back);
-                m_worldDataManager.RenderTwoSidedMiddleWalls();
+                m_worldDataManager.RenderMiddle3D();
             }
-            else
-            {
-                m_worldDataManager.RenderTwoSidedMiddleWalls();
-            }
+            
+            m_worldDataManager.RenderTwoSidedMiddleWalls();
+            
             m_interpolationWallClipAlphaProgram.Unbind();
         }
         else
@@ -487,14 +487,13 @@ public class LegacyWorldRenderer : WorldRenderer
                 if (WorldStatic.Sector3D)
                 {
                     GL.CullFace(TriangleFace.Front);
-                    m_geometryRenderer.RenderStaticTwoSidedWalls();
+                    m_geometryRenderer.RenderStaticMiddle3D();
                     GL.CullFace(TriangleFace.Back);
-                    m_geometryRenderer.RenderStaticTwoSidedWalls();
+                    m_geometryRenderer.RenderStaticMiddle3D();
                 }
-                else
-                {
-                    m_geometryRenderer.RenderStaticTwoSidedWalls();
-                }
+                
+                m_geometryRenderer.RenderStaticTwoSidedWalls();
+                
                 m_staticWallClipAlphaProgram.Unbind();
             }
             else
@@ -619,6 +618,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
         m_worldDataManager.RenderTwoSidedMiddleWalls();
 
+        if (WorldStatic.Sector3D)
+            m_worldDataManager.RenderMiddle3D();
+
         if (m_renderStatic)
         {
             m_staticProgram.Bind();
@@ -626,6 +628,9 @@ public class LegacyWorldRenderer : WorldRenderer
             SetStaticUniforms(m_staticProgram, renderInfo);
             m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_geometryRenderer.RenderStaticTwoSidedWalls();
+
+            if (WorldStatic.Sector3D)
+                m_geometryRenderer.RenderStaticMiddle3D();
         }
     }
 

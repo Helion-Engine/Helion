@@ -67,6 +67,11 @@ public sealed class RenderWorldDataManager : IDisposable
         m_lookup.Get(GeometryType.TwoSidedMiddleWall).Draw();
     }
 
+    public void RenderMiddle3D()
+    {
+        m_lookup.Get(GeometryType.Middle3D).Draw();
+    }
+
     public bool HasAlpha()
     {
         return HasGeometryType(GeometryType.Translucent) || HasGeometryType(GeometryType.TranslucentAdd) || HasGeometryType(GeometryType.TranslucentColorAdd);

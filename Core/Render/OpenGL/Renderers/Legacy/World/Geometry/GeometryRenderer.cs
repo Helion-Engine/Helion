@@ -359,6 +359,9 @@ public partial class GeometryRenderer : IDisposable
     public void RenderStaticTwoSidedWalls() =>
         m_staticCacheGeometryRenderer.RenderTwoSidedMiddleWalls();
 
+    public void RenderStaticMiddle3D() =>
+        m_staticCacheGeometryRenderer.RenderMiddle3D();
+
     public void RenderStaticSkies(RenderInfo renderInfo) =>
          m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
 

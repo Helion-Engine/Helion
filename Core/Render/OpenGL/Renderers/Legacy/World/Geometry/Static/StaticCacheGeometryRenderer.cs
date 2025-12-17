@@ -596,8 +596,13 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         AddVertices(vertices, sideVertices);
     }
 
-    private static GeometryType GetWallType(Side side, Wall wall) =>
-        wall.Location == WallLocation.Middle && side.PartnerSide != null || wall.Location == WallLocation.Middle3D ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
+    private static GeometryType GetWallType(Side side, Wall wall)
+    {
+        if (wall.Location == WallLocation.Middle3D)
+            return GeometryType.Middle3D;
+
+        return wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
+    }
 
     private void SetSideData(ref StaticGeometryData staticGeometry, GeometryType type, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
     {
@@ -738,15 +743,14 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         AddVertices(vertices, renderedVertices);
     }
 
-    public void RenderWalls()
-    {
+    public void RenderWalls() =>
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Wall));
-    }
 
-    public void RenderTwoSidedMiddleWalls()
-    {
+    public void RenderTwoSidedMiddleWalls() =>
         RenderGeometry(m_geometry.GetGeometry(GeometryType.TwoSidedMiddleWall));
-    }
+
+    public void RenderMiddle3D() =>
+         RenderGeometry(m_geometry.GetGeometry(GeometryType.Middle3D));
 
     public void RenderFlats() => 
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));

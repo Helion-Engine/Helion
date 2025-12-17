@@ -7,6 +7,7 @@ public enum GeometryType
 {
     Wall,
     TwoSidedMiddleWall,
+    Middle3D,
     Flat,
     
     Fuzzy,
