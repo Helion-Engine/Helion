@@ -444,7 +444,17 @@ public class LegacyWorldRenderer : WorldRenderer
 
             m_interpolationWallClipAlphaProgram.Bind();
             SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo, false);
-            m_worldDataManager.RenderTwoSidedMiddleWalls();
+            if (WorldStatic.Sector3D)
+            {
+                GL.CullFace(TriangleFace.Front);
+                m_worldDataManager.RenderTwoSidedMiddleWalls();
+                GL.CullFace(TriangleFace.Back);
+                m_worldDataManager.RenderTwoSidedMiddleWalls();
+            }
+            else
+            {
+                m_worldDataManager.RenderTwoSidedMiddleWalls();
+            }
             m_interpolationWallClipAlphaProgram.Unbind();
         }
         else
@@ -473,7 +483,18 @@ public class LegacyWorldRenderer : WorldRenderer
 
                 m_staticWallClipAlphaProgram.Bind();
                 SetStaticUniforms(m_staticWallClipAlphaProgram, renderInfo);
-                m_geometryRenderer.RenderStaticTwoSidedWalls();
+
+                if (WorldStatic.Sector3D)
+                {
+                    GL.CullFace(TriangleFace.Front);
+                    m_geometryRenderer.RenderStaticTwoSidedWalls();
+                    GL.CullFace(TriangleFace.Back);
+                    m_geometryRenderer.RenderStaticTwoSidedWalls();
+                }
+                else
+                {
+                    m_geometryRenderer.RenderStaticTwoSidedWalls();
+                }
                 m_staticWallClipAlphaProgram.Unbind();
             }
             else

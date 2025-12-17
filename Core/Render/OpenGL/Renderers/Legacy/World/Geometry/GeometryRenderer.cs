@@ -562,7 +562,8 @@ public partial class GeometryRenderer : IDisposable
             {
                 var line = sector.Lines[i];
                 var onFront = line.Segment.OnRight(pos2D);
-                var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
+                // Back sides must be rendered with vanilla rendering for back face sprite clipping to function.
+                var onBothSides = m_vanillaRender || onFront != line.Segment.OnRight(prevPos2D);
                 RenderSectorLine3D(sector.Sector3D, i, onFront || onBothSides, !onFront || onBothSides, wallHeights, null);
             }
 
@@ -754,7 +755,7 @@ public partial class GeometryRenderer : IDisposable
 
     public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture,
         Sector? renderSector = null, Sector? lightLevelSector = null, Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false,
-        RenderDataStyle style = RenderDataStyle.Normal)
+        RenderDataStyle style = RenderDataStyle.Normal, GeometryType baseType = GeometryType.Wall)
     {
         skyVertices = null;
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
@@ -812,13 +813,10 @@ public partial class GeometryRenderer : IDisposable
 
         if (m_buffer)
         {
-            //var geometryType = side.Alpha < 1 ? GeometryType.Translucent : GeometryType.Wall;
-            //if (style != RenderDataStyle.Normal)
-            //    geometryType = style.ToGeometryType();
-            var geometryType = GetGeometryType(side.Alpha, style, GeometryType.Wall);
+            var geometryType = GetGeometryType(side.Alpha, style, baseType);
             var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
             renderData.Vbo.Add(data);
-            if (m_vanillaRender && side.Alpha == 1 && style == RenderDataStyle.Normal)
+            if (m_vanillaRender && side.Alpha == 1 && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location);
         }
         vertices = data;

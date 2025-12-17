@@ -304,7 +304,8 @@ public partial class GeometryRenderer
         }
 
         RenderOneSided(args.Side, args.IsFrontSide, out var sideVertices, out var skyVertices, out var texture,
-            renderSector: m_fakeFacing, lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide, allowAlpha: args.AllowAlpha, style: args.Style);
+            renderSector: m_fakeFacing, lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide, 
+            allowAlpha: args.AllowAlpha, style: args.Style, baseType: GeometryType.TwoSidedMiddleWall);
         return new(sideVertices, skyVertices, texture);
     }
 
