@@ -2059,7 +2059,7 @@ doneLinkToSectors:
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
 
-        if ((entity.Flags.NoGravity() && entity.ShouldApplyFriction()) || entity.WaterSubmersionLevel != SubmersionLevel.None)
+        if ((entity.Flags.NoGravity() && entity.ShouldApplyFriction()) || (!entity.Flags.Missile() && entity.WaterSubmersionLevel != SubmersionLevel.None))
             entity.Velocity.Z *= Constants.DefaultFriction;
 
         if (!shouldApplyGravity)
