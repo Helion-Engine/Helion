@@ -140,8 +140,6 @@ public partial class Client : IDisposable, IInputManagement
         UpdateVolume();
         m_ticker.Start();
 
-        m_queryHandle = OpenTK.Graphics.OpenGL.GL.GenQuery();
-
         m_profiler.SetTriggerTimeSpan(TimeSpan.FromMilliseconds(1000.0 / 70.0));
         m_profiler.TimeThresholdTriggered += Profiler_TimeThresholdTriggered;
     }
