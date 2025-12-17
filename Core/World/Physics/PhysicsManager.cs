@@ -1063,12 +1063,23 @@ public sealed class PhysicsManager
 
     private void CanPassTraverseSector3D(Sector sector)
     {
-        for (int i = 0; i < sector.Sectors3D.Length; i++)
+        if (sector.Sectors3D.Length == 0)
+            return;
+
+        // Always set on the first iteration
+        var first = sector.Sectors3D[0];
+        CanPassTraverse(first.GetSectorEntity3D());
+        m_canPassData.CeilingSector3D = first.LightBottom;
+
+        // Subsequent iterations validate against LowestCeilZ
+        for (int i = 1; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            var z = m_canPassData.LowestCeilZ;
+            var prevLowest = m_canPassData.LowestCeilZ;
+
             CanPassTraverse(sector3d.GetSectorEntity3D());
-            if (m_canPassData.LowestCeilZ <= z)
+
+            if (m_canPassData.LowestCeilZ < prevLowest)
                 m_canPassData.CeilingSector3D = sector3d.LightBottom;
         }
     }
