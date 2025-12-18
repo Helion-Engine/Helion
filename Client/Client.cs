@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
@@ -38,6 +31,13 @@ using NLog;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
@@ -68,6 +68,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly SaveGameScreenshotGenerator m_screenshotGenerator;
     private readonly DiscordHandler m_discord = new();
     private readonly Stopwatch m_stopwatch = Stopwatch.StartNew();
+    private readonly FrameLimiter m_frameLimiter = new();
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
@@ -95,6 +96,7 @@ public partial class Client : IDisposable, IInputManagement
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
 
+        InitTimer();
         InitGpuPreference();
 
         m_saveGameManager = new SaveGameManager(config, m_pathsManager, m_archiveCollection, commandLineArgs.SaveDir);
@@ -139,6 +141,15 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private static void InitTimer()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            if (!WinNative.TimeBeginPeriod(1))
+                HelionLog.Error("TimeBeginPeriod error");
+        }
     }
 
     private void InitGpuPreference()
@@ -313,6 +324,8 @@ public partial class Client : IDisposable, IInputManagement
         m_fpsTracker.FinishFrame();
 
         m_profiler.Render.Total.Stop();
+
+        m_frameLimiter.Limit(m_window.MaxFps);
     }
 
     private void Window_MainLoop(FrameEventArgs frameEventArgs)
@@ -513,6 +526,9 @@ public partial class Client : IDisposable, IInputManagement
     {
         if (m_disposed)
             return;
+
+        if (OperatingSystem.IsWindows())
+            WinNative.TimeEndPeriod(1);
 
         PackageDemo();
 
