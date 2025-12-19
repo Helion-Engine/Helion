@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Resources.IWad;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -39,6 +40,10 @@ public class Sector3D_Map
         var sector14 = GameActions.GetSector(World, 14);
         var sector15 = GameActions.GetSector(World, 15);
         var sector16 = GameActions.GetSector(World, 16);
+        var sector66 = GameActions.GetSector(World, 66);
+        var sector67 = GameActions.GetSector(World, 67);
+        var sector68 = GameActions.GetSector(World, 68);
+        var sector69 = GameActions.GetSector(World, 69);
 
         sector0.Sectors3D.Length.Should().Be(0);
 
@@ -82,6 +87,15 @@ public class Sector3D_Map
         AssertSideTextureName3D(sector15.Sectors3D[0], sector15.Lines[0].Back!, "FIREBLU1");
         AssertSideTextureName3D(sector15.Sectors3D[0], sector15.Lines[1].Front, "FIREBLU1");
         AssertSideTextureName3D(sector15.Sectors3D[0], sector15.Lines[1].Back!, "FIREBLU1");
+
+        sector66.Sectors3D.Length.Should().Be(1);
+        AssertSector3D(sector66.Sectors3D[0], sector67, sector66, sector67, SectorFlags3D.Swim | SectorFlags3D.RenderInside, 
+            style: RenderDataStyle.Translucent, alpha: 0.5f);
+
+        sector68.Sectors3D.Length.Should().Be(1);
+        AssertSector3D(sector68.Sectors3D[0], sector69, sector68, sector69, SectorFlags3D.AdditiveTransparency | SectorFlags3D.RenderInside, 
+            style: RenderDataStyle.Add, alpha: 1f);
+
     }
 
     [Fact(DisplayName = "Overlapping sector heights are clipped with other 3D sectors")]
@@ -221,7 +235,8 @@ public class Sector3D_Map
         wallHeights.BottomZ.Should().Be(bottomZ);
     }
 
-    private static void AssertSector3D(Sector3D sector3D, Sector controlSector, Sector lightTop, Sector lightBottom, SectorFlags3D flags)
+    private static void AssertSector3D(Sector3D sector3D, Sector controlSector, Sector lightTop, Sector lightBottom, SectorFlags3D flags,
+        RenderDataStyle style = RenderDataStyle.Normal, float alpha = 1)
     {
         sector3D.ControlSector.Should().Be(controlSector);
         sector3D.ControlTop.Should().Be(controlSector.Ceiling);
@@ -229,6 +244,8 @@ public class Sector3D_Map
         sector3D.LightTop.Should().Be(lightTop);
         sector3D.LightBottom.Should().Be(lightBottom);
         sector3D.Flags.Should().Be(flags);
+        sector3D.RenderDataStyle.Should().Be(style);
+        sector3D.Alpha.Should().BeApproximately(alpha, 2);
     }
 
     private void AssertSideTextureName3D(Sector3D sector3D, Side parentSectorSide, string name)

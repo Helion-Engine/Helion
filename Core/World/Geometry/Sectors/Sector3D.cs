@@ -110,7 +110,14 @@ public sealed class Sector3D
         LightBottom = ParentSector;
         Flags = flags;
         Alpha = alpha;
-        RenderDataStyle = (Flags & SectorFlags3D.AdditiveTransparency) != 0 ? RenderDataStyle.Add : RenderDataStyle.Normal;
+
+        if ((Flags & SectorFlags3D.AdditiveTransparency) != 0)
+            RenderDataStyle = RenderDataStyle.Add;
+        else if (Alpha < 1)
+            RenderDataStyle = RenderDataStyle.Translucent;
+        else
+            RenderDataStyle = RenderDataStyle.Normal;
+
         Entity = new();
         Entity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
         Entity.Sector3D = this;

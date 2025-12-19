@@ -816,20 +816,20 @@ public partial class GeometryRenderer : IDisposable
 
         if (m_buffer)
         {
-            var geometryType = GetGeometryType(side.Alpha, style, baseType);
+            var geometryType = GetGeometryType(style, baseType);
             var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
             renderData.Vbo.Add(data);
-            if (m_vanillaRender && side.Alpha == 1 && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
+            if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location);
         }
         vertices = data;
     }
 
-    private static GeometryType GetGeometryType(float alpha, RenderDataStyle style, GeometryType baseType)
+    private static GeometryType GetGeometryType(RenderDataStyle style, GeometryType baseType)
     {
         if (style != RenderDataStyle.Normal)
             return style.ToGeometryType();
-        return alpha < 1 ? GeometryType.Translucent : baseType;
+        return baseType;
     }
 
     private int GetLightLevelAdd(Side side)
@@ -1583,7 +1583,7 @@ public partial class GeometryRenderer : IDisposable
         var texture = m_glTextureManager.GetTexture(renderPlane.TextureHandle);
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(renderPlane.TextureHandle);
 
-        var geometryType = GetGeometryType(alpha, style, GeometryType.Flat);
+        var geometryType = GetGeometryType(style, GeometryType.Flat);
         var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
         var flatChanged = FlatChanged(renderPlane);
         var sector = subsectors[0].Sector;
