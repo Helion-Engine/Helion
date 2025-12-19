@@ -35,6 +35,7 @@ public class Window : GameWindow, IWindow
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public Renderer Renderer { get; }
+    public int MaxFps { get; private set; }
     private readonly IConfig m_config;
 
     public IInputManager InputManager => m_inputManager;
@@ -452,16 +453,19 @@ public class Window : GameWindow, IWindow
                 break;
         }
 
+
+        UpdateFrequency = 0;
+
         if (maxFps == 0)
         {
             _ = GetMonitors(out MonitorData? current);
-            UpdateFrequency = current?.RefreshRate > 0 && vsync != RenderVsyncMode.Off
+            MaxFps = current?.RefreshRate > 0 && vsync != RenderVsyncMode.Off
                 ? current.RefreshRate
                 : 0;
-
             return;
         }
-        UpdateFrequency = maxFps;
+
+        MaxFps = maxFps;
     }
 
     private void PerformDispose()
