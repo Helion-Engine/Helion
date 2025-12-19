@@ -74,6 +74,7 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_loadComplete;
     private bool m_filesLoaded;
     private bool m_invalidateRng;
+    private uint m_minTimerResolution = 1;
     private OnLoadMapComplete? m_onLoadMapComplete;
     private LoadMapResult? m_loadMapResult;
     private QueueLoadMapParams? m_queueMapLoad;
@@ -143,11 +144,14 @@ public partial class Client : IDisposable, IInputManagement
         m_ticker.Start();
     }
 
-    private static void InitTimer()
+    private void InitTimer()
     {
         if (OperatingSystem.IsWindows())
         {
-            if (!WinNative.TimeBeginPeriod(1))
+            if (WinNative.TimeGetDevCaps(out var timeCaps))
+                m_minTimerResolution = timeCaps.wPeriodMin;
+
+            if (!WinNative.TimeBeginPeriod(m_minTimerResolution))
                 HelionLog.Error("TimeBeginPeriod error");
         }
     }
@@ -528,7 +532,7 @@ public partial class Client : IDisposable, IInputManagement
             return;
 
         if (OperatingSystem.IsWindows())
-            WinNative.TimeEndPeriod(1);
+            WinNative.TimeEndPeriod(m_minTimerResolution);
 
         PackageDemo();
 
