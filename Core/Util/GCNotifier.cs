@@ -6,7 +6,7 @@ public static class GCNotifier
 {
     public static event Action? GarbageCollected;
 
-    private class Sentinel
+    private sealed class Sentinel
     {
         ~Sentinel()
         {
