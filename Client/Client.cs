@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
@@ -38,6 +31,13 @@ using NLog;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
@@ -68,11 +68,13 @@ public partial class Client : IDisposable, IInputManagement
     private readonly SaveGameScreenshotGenerator m_screenshotGenerator;
     private readonly DiscordHandler m_discord = new();
     private readonly Stopwatch m_stopwatch = Stopwatch.StartNew();
+    private readonly FrameLimiter m_frameLimiter = new();
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
     private bool m_filesLoaded;
     private bool m_invalidateRng;
+    private uint m_minTimerResolution = 1;
     private OnLoadMapComplete? m_onLoadMapComplete;
     private LoadMapResult? m_loadMapResult;
     private QueueLoadMapParams? m_queueMapLoad;
@@ -95,6 +97,7 @@ public partial class Client : IDisposable, IInputManagement
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
 
+        InitTimer();
         InitGpuPreference();
 
         m_saveGameManager = new SaveGameManager(config, m_pathsManager, m_archiveCollection, commandLineArgs.SaveDir);
@@ -139,6 +142,18 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private void InitTimer()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            if (WinNative.TimeGetDevCaps(out var timeCaps))
+                m_minTimerResolution = timeCaps.wPeriodMin;
+
+            if (!WinNative.TimeBeginPeriod(m_minTimerResolution))
+                HelionLog.Error("TimeBeginPeriod error");
+        }
     }
 
     private void InitGpuPreference()
@@ -313,6 +328,8 @@ public partial class Client : IDisposable, IInputManagement
         m_fpsTracker.FinishFrame();
 
         m_profiler.Render.Total.Stop();
+
+        m_frameLimiter.Limit(m_window.MaxFps);
     }
 
     private void Window_MainLoop(FrameEventArgs frameEventArgs)
@@ -513,6 +530,9 @@ public partial class Client : IDisposable, IInputManagement
     {
         if (m_disposed)
             return;
+
+        if (OperatingSystem.IsWindows())
+            WinNative.TimeEndPeriod(m_minTimerResolution);
 
         PackageDemo();
 
