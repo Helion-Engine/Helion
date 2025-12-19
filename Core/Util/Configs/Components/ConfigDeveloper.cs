@@ -30,4 +30,7 @@ public class ConfigDeveloper: ConfigElement<ConfigDeveloper>
 
     [ConfigInfo("Log garbage collection events.", save: true)]
     public readonly ConfigValue<bool> LogGC = new(false);
+
+    [ConfigInfo("Logs profiled execution times that take longer than the provided millisecond value. 0=off", save: true)]
+    public readonly ConfigValue<double> ProfilerTimeTrigger = new(0);
 }
