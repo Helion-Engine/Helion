@@ -12,9 +12,9 @@ public class WorldProfiler : ProfileComponent<WorldProfiler>
 
     public WorldProfiler()
     {
-        Profilers.Add(new("World.TickEntity", TickEntity));
-        Profilers.Add(new("World.TickPlayer", TickPlayer));
-        Profilers.Add(new("World.Total", Total));
+        Profilers.Add(new(this, "World.TickEntity", TickEntity));
+        Profilers.Add(new(this, "World.TickPlayer", TickPlayer));
+        Profilers.Add(new(this, "World.Total", Total));
     }
 
     internal void ResetAll()

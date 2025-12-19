@@ -69,7 +69,7 @@ public sealed class Profiler : ProfileComponent<Profiler>
         m_triggerTimeSpan = timeSpan;
     }
 
-    public void DisableTrigger()
+    public void DisableTimeTrigger()
     {
         m_trigger = false;
     }

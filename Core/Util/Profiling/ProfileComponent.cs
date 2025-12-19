@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Helion.Util.Profiling;
 
-public record class ProfilerPath(string Name, ProfilerStopwatch Stopwatch);
+public record class ProfilerPath(IProfileComponent Parent, string Name, ProfilerStopwatch Stopwatch);
 
 public interface IProfileComponent
 {

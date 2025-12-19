@@ -16,13 +16,13 @@ public class RenderProfiler: ProfileComponent<RenderProfiler>
 
     public RenderProfiler()
     {
-        Profilers.Add(new("Render.FlushPipeline", FlushPipeline));
-        Profilers.Add(new("Render.Hud", Hud));
-        Profilers.Add(new("Render.MiscLayers", MiscLayers));
-        Profilers.Add(new("Render.SwapBuffers", SwapBuffers));
-        Profilers.Add(new("Render.Total", Total));
-        Profilers.Add(new("Render.World", World));
-        Profilers.Add(new("Render.Automap", Automap));
+        Profilers.Add(new(this, "Render.FlushPipeline", FlushPipeline));
+        Profilers.Add(new(this, "Render.Hud", Hud));
+        Profilers.Add(new(this, "Render.MiscLayers", MiscLayers));
+        Profilers.Add(new(this, "Render.SwapBuffers", SwapBuffers));
+        Profilers.Add(new(this, "Render.Total", Total));
+        Profilers.Add(new(this, "Render.World", World));
+        Profilers.Add(new(this, "Render.Automap", Automap));
     }
 
     internal void ResetAll()

@@ -143,22 +143,24 @@ public partial class Client : IDisposable, IInputManagement
         UpdateVolume();
         m_ticker.Start();
 
-        m_profiler.SetTriggerTimeSpan(TimeSpan.FromMilliseconds(1000.0 / 70.0));
         m_profiler.TimeThresholdTriggered += Profiler_TimeThresholdTriggered;
     }
 
     private void Profiler_TimeThresholdTriggered(object? sender, ProfileTriggerTimeArgs e)
     {
-        var eventMessage = $"{e.Path.Name} ms={e.Path.Stopwatch.FrameMilliseconds} {m_stopwatch.Elapsed}";
-        var world = m_layerManager.WorldLayer?.World;
-        if (world != null)
+        Log.Info("Time Trigger: " + FormatProfilerPath(e.Path));
+        Log.Info("----------");
+        foreach (var path in e.Path.Parent.Profilers)
         {
-            world.DisplayMessage(world.Player, null, eventMessage, isCentered: true);
+            if (path == e.Path)
+                continue;
+            Log.Info(FormatProfilerPath(path));
         }
-        else
-        {
-            Log.Info(eventMessage);
-        }
+    }
+
+    private string FormatProfilerPath(ProfilerPath path)
+    {
+        return $"{path.Name} ms={path.Stopwatch.FrameMilliseconds} {m_stopwatch.Elapsed}";
     }
 
     private void InitTimer()
