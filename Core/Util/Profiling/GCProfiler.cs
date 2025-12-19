@@ -1,6 +1,8 @@
+using System.Collections.Generic;
+
 namespace Helion.Util.Profiling;
 
-public class GCProfiler: ProfileComponent<GCProfiler>
+public class GCProfiler : ProfileComponent<GCProfiler>
 {
-    // TODO
+    public override List<ProfilerPath> Profilers { get; } = [];
 }

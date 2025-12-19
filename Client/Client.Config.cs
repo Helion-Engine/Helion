@@ -36,9 +36,21 @@ public partial class Client
         m_config.Controller.GyroDrift.OnChanged += GameControllerDrift_OnChanged;
 
         m_config.Developer.LogGC.OnChanged += LogGC_OnChanged;
+        m_config.Developer.ProfilerTimeTrigger.OnChanged += ProfilerTimeTrigger_OnChanged;
 
         CalculateHudScale();
         SetLogGC(m_config.Developer.LogGC);
+    }
+
+    private void ProfilerTimeTrigger_OnChanged(object? sender, double milliseconds)
+    {
+        if (milliseconds <= 0)
+        {
+            m_profiler.DisableTimeTrigger();
+            return;
+        }
+
+        m_profiler.SetTriggerTimeSpan(TimeSpan.FromMilliseconds(milliseconds));
     }
 
     private void LogGC_OnChanged(object? sender, bool e)

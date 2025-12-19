@@ -142,6 +142,25 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+
+        m_profiler.TimeThresholdTriggered += Profiler_TimeThresholdTriggered;
+    }
+
+    private void Profiler_TimeThresholdTriggered(object? sender, ProfileTriggerTimeArgs e)
+    {
+        Log.Info("Time Trigger: " + FormatProfilerPath(e.Path));
+        Log.Info("----------");
+        foreach (var path in e.Path.Parent.Profilers)
+        {
+            if (path == e.Path)
+                continue;
+            Log.Info(FormatProfilerPath(path));
+        }
+    }
+
+    private string FormatProfilerPath(ProfilerPath path)
+    {
+        return $"{path.Name} ms={path.Stopwatch.FrameMilliseconds} {m_stopwatch.Elapsed}";
     }
 
     private void InitTimer()
