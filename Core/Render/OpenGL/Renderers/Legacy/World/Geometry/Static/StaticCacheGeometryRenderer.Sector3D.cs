@@ -1,4 +1,5 @@
-﻿using Helion.Render.OpenGL.Texture.Legacy;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
@@ -23,7 +24,7 @@ public partial class StaticCacheGeometryRenderer
 
     private void AddSector3D(Sector3D sector3D, SectorPlanes planes, bool update)
     {
-        if (sector3D.Alpha < 1f)
+        if (sector3D.Alpha < 1f || sector3D.RenderDataStyle != RenderDataStyle.Normal)
         {
             sector3D.FakeSector.Floor.Dynamic |= SectorDynamic.Alpha;
             sector3D.FakeSector.Ceiling.Dynamic |= SectorDynamic.Alpha;
