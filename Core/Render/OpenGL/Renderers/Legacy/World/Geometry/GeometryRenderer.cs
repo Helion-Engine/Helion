@@ -33,8 +33,6 @@ using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
-public enum PushDir { Back, Forward }
-
 public class GeometryRenderer : IDisposable
 {
     private const double MaxSky = 16384;
@@ -115,15 +113,17 @@ public class GeometryRenderer : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public static void PushSeg(Line line, Side facingSide, PushDir dir)
+    private static void PushSeg(Line line, Side facingSide)
     {
+        if (WorldStatic.LineVertexGap == 0)
+            return;
+
         // Push it out to prevent potential z-fighting. Default pushes out from the sector.
         var angle = facingSide == line.Front ? line.GetAngle() : line.GetAngle() + MathHelper.Pi;
-        if (dir == PushDir.Forward)
-            angle += MathHelper.Pi;
+        angle += MathHelper.Pi;
 
-        // ReversedZ allows for a much smaller push amount. Always max to LineVertexGap to close the middle texture with extended inside wall.
-        var pushUnit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * Math.Max(ShaderVars.ReversedZ ? 0.005 : 0.05, WorldStatic.LineVertexGap);
+        // ReversedZ allows for a much smaller push amount. Always set to LineVertexGap to close the middle texture with extended inside wall.
+        var pushUnit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * WorldStatic.LineVertexGap;
         line.RenderSegStart += pushUnit;
         line.RenderSegEnd += pushUnit;
     }
@@ -1222,7 +1222,7 @@ public class GeometryRenderer : IDisposable
 
             // Don't push with flood plane. This is different from flood fill side and are already pushed.
             if (!facingSector.Flood)
-                PushSeg(line, facingSide, PushDir.Forward);
+                PushSeg(line, facingSide);
 
             var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, false);
             var prevOpening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, true);
