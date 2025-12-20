@@ -99,8 +99,6 @@ public class PortalRenderer : IDisposable
         var saveEnd = line.RenderSegEnd;
         WallVertices wall = default;
 
-        GeometryRenderer.PushSeg(line, facingSide, PushDir.Forward);
-
         if (face == SectorPlaneFace.Floor)
         {
             var top = floodSector.Floor;

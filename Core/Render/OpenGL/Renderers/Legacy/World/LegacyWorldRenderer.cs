@@ -1,5 +1,3 @@
-using System;
-using System.Diagnostics;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
@@ -10,6 +8,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
@@ -21,6 +20,8 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Diagnostics;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
@@ -302,7 +303,7 @@ public class LegacyWorldRenderer : WorldRenderer
         PopulatePrimitives(world);
 
         m_geometryRenderer.RenderSkies(renderInfo);
-        m_geometryRenderer.RenderPortals(renderInfo);
+        RenderFloodFill(renderInfo);
 
         if (m_renderStatic)
             m_geometryRenderer.RenderStaticSkies(renderInfo);
@@ -372,6 +373,19 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
+    }
+
+    private void RenderFloodFill(RenderInfo renderInfo)
+    {
+        // Doom would draw middle textures over flood fill.
+        // Setting the factor using PolygonOffset will push them further away in depth so middle textures are closer and render over.
+        GL.Enable(EnableCap.PolygonOffsetFill);
+        if (ShaderVars.ReversedZ)
+            GL.PolygonOffset(-0.005f, -0.1f);
+        else
+            GL.PolygonOffset(0.05f, 1f);
+        m_geometryRenderer.RenderPortals(renderInfo);
+        GL.Disable(EnableCap.PolygonOffsetFill);
     }
 
     private void WriteSpriteClipBuffers(RenderInfo renderInfo, GLFramebuffer framebuffer)
