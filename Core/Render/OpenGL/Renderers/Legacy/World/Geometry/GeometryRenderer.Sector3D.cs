@@ -19,9 +19,11 @@ public partial class GeometryRenderer
     private readonly DynamicArray<DynamicVertex> m_vertices = new(256);
     private readonly Wall m_fakeWall = new(0, WallLocation.Middle);
     private readonly Side m_fakeSide;
+    private readonly Side m_emptyTraverseSide;
     private readonly Sector m_fakeFacing = Sector.CreateDefault();
     private readonly Sector m_fakeOther = Sector.CreateDefault();
     private readonly Sector m_sliceSector = Sector.CreateDefault();
+    private readonly Sector m_emptyTraverseSector = Sector.CreateDefault();
 
     // Intended for tests only
     public void SetTestRenderSectorSliceFunc3D(Func<RenderWallSliceArgs, RenderWallSliceResult> func) => m_renderSectorSliceFunc3D = func;
@@ -50,14 +52,14 @@ public partial class GeometryRenderer
         var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
         if (renderFront && parentBack != null)
-            RenderSide3D(sector3d, sectorLine.Front, parentBack, parentFront, wallHeights, wallSector, true, renderVertices);
+            RenderSide3D(sector3d, sectorLine.Front, parentBack, parentFront, wallHeights, wallSector, true, false, renderVertices);
 
         if (renderBack && sector3d.ShouldRenderInsideWalls && sectorLine.Back != null)
-            RenderSide3D(sector3d, sectorLine.Back, parentFront, parentBack, wallHeights, wallSector, false, renderVertices);
+            RenderSide3D(sector3d, sectorLine.Back, parentFront, parentBack, wallHeights, wallSector, false, true, renderVertices);
     }
 
     private void RenderSide3D(Sector3D sector3d, Side useSide, Side? parentSide, Side? oppositeParentSide,
-        in WallHeights wallHeights, Sector wallSector, bool isFront,
+        in WallHeights wallHeights, Sector wallSector, bool isFront, bool isRenderInside,
         Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
     {
         if (parentSide == null || !sector3d.CalculateWallHeights(parentSide, wallHeights, out var newWallHeights))
@@ -75,12 +77,23 @@ public partial class GeometryRenderer
             useSide.Middle.Offset = parentSide.Middle.Offset;
         }
 
+        // Don't traverse when rendering inside of 3d sector with alpha. These are forced to render through top to bottom without being cut.
+        // Rendering is pushed on the GL side with PolygonOffset to not z-fight.
+        var traverseSide = parentSide;
+        if (isRenderInside && sector3d.RenderDataStyle != RenderDataStyle.Normal)
+            traverseSide = m_emptyTraverseSide;
+
         var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
-            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: parentSide, anchorSector3D: sector3d, wallHeights3D: newWallHeights, 
+            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3d, wallHeights3D: newWallHeights, 
             style: sector3d.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
             renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
+    }
+
+    private static int HeightCompare(Sector3D x, Sector3D y)
+    {
+        return y.ControlBottom.Z.CompareTo(x.ControlBottom.Z);
     }
 
     public RenderWallSliceResult RenderWallSlices3D(Side side, Wall wall, bool isFrontSide,

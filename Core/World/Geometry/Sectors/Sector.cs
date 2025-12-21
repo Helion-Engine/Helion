@@ -261,7 +261,7 @@ public sealed class Sector : IFloorCeilingAnchor
 
     private static int HeightCompare(Sector3D x, Sector3D y)
     {
-        return y.ControlBottom.Z.CompareTo(x.ControlBottom.Z);
+        return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
     }
 
     public void SetFriction(double friction)
@@ -958,7 +958,7 @@ public sealed class Sector : IFloorCeilingAnchor
 
     public override int GetHashCode() => Id.GetHashCode();
 
-    public override string ToString() => Sector3D?.ToString() ?? $"Id={Id} [{Floor.Z} -> {Ceiling.Z}]";
+    public override string ToString() => Sector3D?.ToString() ?? $"Id={Id} [{Floor.Z} -> {Ceiling.Z}] LightLevel={LightLevel}";
 
     public void UnlinkFromWorld(IWorld world)
     {

@@ -256,13 +256,14 @@ public sealed class Sector3D
 
         m_lastGameTick = gameTick;
         m_wallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
-        if (ParentSector.Sectors3D.Length == 0)
+
+        if (ParentSector.Sectors3D.Length == 0 || RenderDataStyle != RenderDataStyle.Normal)
             return m_wallHeights;
 
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
             var checkSector3D = ParentSector.Sectors3D[i];
-            if (checkSector3D == this)
+            if (checkSector3D == this || checkSector3D.RenderDataStyle != RenderDataStyle.Normal)
                 break;
 
             if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ControlBottom.Z)

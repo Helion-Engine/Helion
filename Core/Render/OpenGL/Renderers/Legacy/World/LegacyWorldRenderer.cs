@@ -380,12 +380,25 @@ public class LegacyWorldRenderer : WorldRenderer
         // Doom would draw middle textures over flood fill.
         // Setting the factor using PolygonOffset will push them further away in depth so middle textures are closer and render over.
         GL.Enable(EnableCap.PolygonOffsetFill);
+        SetPolygonOffsetFloodFill();
+        m_geometryRenderer.RenderPortals(renderInfo);
+        GL.Disable(EnableCap.PolygonOffsetFill);
+    }
+
+    private static void SetPolygonOffsetFloodFill()
+    {
         if (ShaderVars.ReversedZ)
             GL.PolygonOffset(-0.005f, -0.1f);
         else
             GL.PolygonOffset(0.05f, 1f);
-        m_geometryRenderer.RenderPortals(renderInfo);
-        GL.Disable(EnableCap.PolygonOffsetFill);
+    }
+
+    private static void SetPolygonOffsetAlpha()
+    {
+        if (ShaderVars.ReversedZ)
+            GL.PolygonOffset(-0.05f, -0.1f);
+        else
+            GL.PolygonOffset(0.05f, 1f);
     }
 
     private void WriteSpriteClipBuffers(RenderInfo renderInfo, GLFramebuffer framebuffer)
@@ -499,7 +512,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 SetStaticUniforms(m_staticWallClipAlphaProgram, renderInfo);
 
                 if (WorldStatic.Sector3D)
-                {
+                {                    
                     GL.CullFace(TriangleFace.Front);
                     m_geometryRenderer.RenderStaticMiddle3D();
                     GL.CullFace(TriangleFace.Back);
@@ -564,7 +577,14 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationTransparentProgram.VertexGapClampUV(false);
         SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo, m_vanillaRender);
         GL.ActiveTexture(BindTextures.BoundTexture);
-        m_worldDataManager.RenderAllAlpha();
+
+        if (hasAlphaGeometry)
+        {
+            GL.Enable(EnableCap.PolygonOffsetFill);
+            SetPolygonOffsetAlpha();
+            m_worldDataManager.RenderAllAlpha();
+            GL.Disable(EnableCap.PolygonOffsetFill);
+        }
 
         ResetBlendEquations();
         framebuffer.Bind();
@@ -573,6 +593,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (hasAlphaGeometry)
         {
+            GL.Enable(EnableCap.PolygonOffsetFill);
             m_interpolationCompositeProgram.Bind();
             m_interpolationCompositeProgram.VertexGapClampUV(false);
             SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo, m_vanillaRender);
@@ -593,6 +614,7 @@ public class LegacyWorldRenderer : WorldRenderer
             }
 
             SetBlendEquation(RenderDataStyle.Normal);
+            GL.Disable(EnableCap.PolygonOffsetFill);
         }
 
         if (fuzzData)

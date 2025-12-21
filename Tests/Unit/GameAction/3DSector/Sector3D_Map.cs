@@ -104,15 +104,15 @@ public class Sector3D_Map
         var sector = GameActions.GetSector(World, 17);
         sector.Sectors3D.Length.Should().Be(3);
 
-        // Renders normally from 256 -> 512
+        // Renders normally from 0 -> 512
         sector.Sectors3D[0].ControlTop.Z.Should().Be(512);
-        sector.Sectors3D[0].ControlBottom.Z.Should().Be(256);
-        AssertWallHeights(sector.Sectors3D[0].CalculateWallHeights(0), 256, 512);
+        sector.Sectors3D[0].ControlBottom.Z.Should().Be(0);
+        AssertWallHeights(sector.Sectors3D[0].CalculateWallHeights(0), 0, 512);
 
-        // Partially clipped with previous sector so 0 -> 512 is clipped to 256 -> 512
+        // Fully clipped with previous sector so 256 -> 512 is clipped to 0 -> 0
         sector.Sectors3D[1].ControlTop.Z.Should().Be(512);
-        sector.Sectors3D[1].ControlBottom.Z.Should().Be(0);
-        AssertWallHeights(sector.Sectors3D[1].CalculateWallHeights(0), 0, 256);
+        sector.Sectors3D[1].ControlBottom.Z.Should().Be(256);
+        AssertWallHeights(sector.Sectors3D[1].CalculateWallHeights(0), 0, 0);
 
         // Fully clipped with previous sector so 0 -> 32 is clipped to 0 -> 0
         sector.Sectors3D[2].ControlTop.Z.Should().Be(32);
