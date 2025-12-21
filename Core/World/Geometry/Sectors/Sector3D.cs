@@ -357,6 +357,9 @@ public sealed class Sector3D
         var currentSolid = Flags & SectorFlags3D.Solid;
         var otherSolid = other.Flags & SectorFlags3D.Solid;
 
+        if (RenderDataStyle != RenderDataStyle.Normal && other.RenderDataStyle != RenderDataStyle.Normal)
+            return true;
+
         if (currentSolid != 0 && otherSolid != 0)
             return false;
 
