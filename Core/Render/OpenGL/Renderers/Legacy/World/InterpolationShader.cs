@@ -216,7 +216,7 @@ public class InterpolationShader : RenderProgram
                     float planeClipDepth = texelFetch(planeClipTexture, sampleCoords, 0).g;
                     // This is for alpha walls and vanilla rendering
                     // There is no depth buffer at this point so sample the plane clip texture to discard
-                    if (wallClipDepth < depthFrag || planeClipDepth < depthFrag)
+                    if (wallClipDepth <= depthFrag || planeClipDepth <= depthFrag)
                         discard;
                 }
 
