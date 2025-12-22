@@ -150,6 +150,8 @@ public class Sector3D_Map
 
         var outer3D = outerSector.Sectors3D.First(x => x.ControlBottom.Z == -64);
         var inner3D = innerSector.Sectors3D.First(x => x.ControlBottom.Z == -64);
+        outer3D.IsSolid.Should().BeFalse();
+        inner3D.IsSolid.Should().BeFalse();
 
         // Fully occluded by lower
         var wallHeights = outer3D.CalculateWallHeights(0);
@@ -163,7 +165,31 @@ public class Sector3D_Map
         inner3D.CalculateWallHeights(GameActions.GetLine(World, 25).Front, wallHeights, out newWallHeights).Should().BeFalse();
     }
 
+    [Fact(DisplayName = "Overlapping alpha walls should not render")]
+    public void OverlappingAlphaWalls()
+    {
+        var rightSector = GameActions.GetSector(World, 71);
+        var leftSector = GameActions.GetSector(World, 70);
 
+        var right3D = rightSector.Sectors3D.First(x => x.ControlBottom.Z == 0);
+        var left3D = rightSector.Sectors3D.First(x => x.ControlBottom.Z == 0);
+        right3D.RenderDataStyle.Should().Be(RenderDataStyle.Translucent);
+        left3D.RenderDataStyle.Should().Be(RenderDataStyle.Translucent);
+
+        // Fully occluded by left
+        var wallHeights = right3D.CalculateWallHeights(0);
+        right3D.CalculateWallHeights(GameActions.GetLine(World, 307).Front, wallHeights, out var newWallHeights).Should().BeFalse();
+
+        // Alpha not clipped
+        right3D.CalculateWallHeights(GameActions.GetLine(World, 300).Front, wallHeights, out newWallHeights).Should().BeTrue();
+        wallHeights.TopZ.Should().Be(256);
+        wallHeights.BottomZ.Should().Be(0);
+
+        // Fully occluded by right
+        wallHeights = left3D.CalculateWallHeights(0);
+        left3D.CalculateWallHeights(GameActions.GetLine(World, 307).Front, wallHeights, out newWallHeights).Should().BeFalse();
+    }
+    
     [Fact(DisplayName = "Partially overlapping non-solid walls")]
     public void PartiallyOverlappingNonSolidWalls()
     {
