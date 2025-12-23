@@ -30,7 +30,16 @@ public enum SectorFlags3D
     UseLowerTexture = 4096,
     AdditiveTransparency = 8192,
     Fade = 16384,
-    ResetAbove = 32768
+    ResetAbove = 32768,
+    NoRender = 65536
+}
+
+public enum SectorLightFlags3D
+{
+    None,
+    ToNextTypeZero, // Extra light extends from ceiling of control sector down to top of another type 0 light
+    ToControlFloor, // Extra light extends from ceiling down to the floor of the control sector.
+    ToNextAny // Extra light extends from control sector's ceiling down to the top of another extra light.
 }
 
 public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double prevBottomZ)
@@ -65,6 +74,7 @@ public sealed class Sector3D
     public Sector LightBottom;
     public Sector? LightMiddle;
     public SectorFlags3D Flags;
+    public SectorLightFlags3D LightFlags;
     public float Alpha;
 
     private readonly Entity Entity;
@@ -73,13 +83,14 @@ public sealed class Sector3D
 
     public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
     public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
-    public bool ShouldRenderWalls => ControlTop.Z - ControlBottom.Z > 0;
+    public bool ShouldRenderWalls => ControlTop.Z - ControlBottom.Z > 0 && (Flags & SectorFlags3D.NoRender) == 0;
+    public bool ShouldRenderFlats => ControlTop.Z - ControlBottom.Z >= 0 && (Flags & SectorFlags3D.NoRender) == 0;
     public bool ShouldRenderInsideWalls => (Flags & SectorFlags3D.RenderInside) != 0;
     public RenderDataStyle RenderDataStyle;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
 
-    public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, float alpha)
+    public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
     {
         SectorId = world.Geometry.CreateNewSectorId();
         ParentSectorId = parentSectorId;
@@ -109,6 +120,7 @@ public sealed class Sector3D
         LightTop = ParentSector;
         LightBottom = ParentSector;
         Flags = flags;
+        LightFlags = lightFlags;
         Alpha = alpha;
 
         if ((Flags & SectorFlags3D.AdditiveTransparency) != 0)
@@ -263,8 +275,14 @@ public sealed class Sector3D
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
             var checkSector3D = ParentSector.Sectors3D[i];
+
             if (checkSector3D == this || checkSector3D.RenderDataStyle != RenderDataStyle.Normal)
-                break;
+            {
+                if (LightFlags == SectorLightFlags3D.None)
+                    break;
+
+                continue;
+            }
 
             if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ControlBottom.Z)
             {

@@ -128,6 +128,7 @@ public partial class GeometryRenderer
         m_fakeSide.PartnerSide = side.PartnerSide;
         m_fakeSide.ScrollData = side.ScrollData;
         m_fakeSide.Sector = side.Sector;
+        m_fakeSide.Flags = side.Flags;
         m_fakeSide.Alpha = anchorSector3D == null ? 1f : anchorSector3D.Alpha;
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Offset.X = wall.Offset.X + side.Offset.X;
@@ -192,7 +193,9 @@ public partial class GeometryRenderer
             if (result.AddOffset)
                 SetWallOffset(m_fakeWall, offsetY, heights.BottomZ, anchorZ);
 
-            prevHeights = heights;
+            if (heights.TopZ > heights.BottomZ)
+                prevHeights = heights;
+
             lightSector = sector3d.LightBottom;
         }
 

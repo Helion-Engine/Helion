@@ -31,3 +31,10 @@ public enum ZDoom3DFloorFlags
     Fade = 512,
     ResetAbove = 1024
 }
+
+public enum ZDoom3DFloorLightFlags
+{
+    ToNextTypeZero, // Extra light extends from ceiling of control sector down to top of another type 0 light
+    ToControlFloor, // Extra light extends from ceiling down to the floor of the control sector.
+    ToNextAny // Extra light extends from control sector's ceiling down to the top of another extra light.
+}

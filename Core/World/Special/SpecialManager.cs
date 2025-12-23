@@ -682,10 +682,8 @@ public sealed class SpecialManager : ITickable, IDisposable
         var counts = new Dictionary<int, int>();
         foreach (var line in m_world.Lines)
         {
-            if (line.Special.LineSpecialType != ZDoomLineSpecialType.SectorSet3DFloor)
-                continue;
-
-            SetSector3DFloor(line, sectors3d, counts);
+            if (line.Special.LineSpecialType == ZDoomLineSpecialType.SectorSet3DFloor || line.Special.LineSpecialType == ZDoomLineSpecialType.TransferLight)
+                SetSector3DFloor(line, sectors3d, counts);
         }
 
         WorldStatic.Sector3D = sectors3d.Count > 0;
@@ -857,6 +855,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         var type = (ZDoom3DFloorType)(specialLine.Args.Arg1 & 0x3);
         var flags = (ZDoom3DFloorFlags)specialLine.Args.Arg2;
         var alpha = specialLine.Args.Arg3 / 255f;
+        var lightFlags = SectorLightFlags3D.None;
 
         switch(type)
         {
@@ -879,6 +878,14 @@ public sealed class SpecialManager : ITickable, IDisposable
 
         sectorFlags |= (SectorFlags3D)((int)flags * 128);
 
+        if (specialLine.Special.LineSpecialType == ZDoomLineSpecialType.TransferLight)
+        {
+            // TODO
+            lightFlags = (SectorLightFlags3D)specialLine.Args.Arg1 + 1;
+            sectorFlags = SectorFlags3D.NoRender;
+            alpha = 1;
+        }
+
         var frontSector = specialLine.Front.Sector;
         int taggedSectorIndex = 0;
         if (frontSector.TaggedSectors3D.Length == 0)
@@ -896,7 +903,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front.Middle.TextureHandle, sectorFlags, alpha);
+            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front.Middle.TextureHandle, sectorFlags, lightFlags, alpha);
             sectors3d.Add(sector3d);
             frontSector.TaggedSectors3D[taggedSectorIndex++] = sector3d;
             if (counts.TryGetValue(sector.Id, out var count))

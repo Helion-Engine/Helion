@@ -436,15 +436,18 @@ public partial class GeometryRenderer : IDisposable
     private void RenderSectorFlats(Sector sectorForSubectors, Sector renderSector, Sector set)
     {
         var geometrySector = sectorForSubectors;
-        var sector3d = sectorForSubectors.Sector3D;
+        var sector3D = sectorForSubectors.Sector3D;
         Sector? saveTransfer = null;
-        if (sector3d != null)
+        if (sector3D != null)
         {
-            geometrySector = sector3d.FakeSector;
-            sectorForSubectors = sector3d.ParentSector;
-            renderSector = sector3d.ControlSector;
-            saveTransfer = sector3d.ParentSector.TransferFloorLightSector;
-            sector3d.ParentSector.TransferFloorLightSector = sector3d.ParentSector;
+            if (!sector3D.ShouldRenderFlats)
+                return;
+
+            geometrySector = sector3D.FakeSector;
+            sectorForSubectors = sector3D.ParentSector;
+            renderSector = sector3D.ControlSector;
+            saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
+            sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
         }
 
         var subsectors = m_subsectors[sectorForSubectors.Id];
@@ -455,23 +458,23 @@ public partial class GeometryRenderer : IDisposable
         var ceilingZ = renderSector.Ceiling.Z;
         var prevCeilingZ = renderSector.Ceiling.PrevZ;
 
-        var floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= prevFloorZ || sector3d != null;
-        var ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= prevCeilingZ || sector3d != null;
+        var floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= prevFloorZ || sector3D != null;
+        var ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= prevCeilingZ || sector3D != null;
         if (floorVisible && (m_renderMode == GeometryRenderMode.All || !geometrySector.IsFloorStatic))
         {
             geometrySector.Floor.LastRenderGametick = m_world.Gametick;
             set.Floor.LastRenderGametick = m_world.Gametick;
-            if (sector3d != null)
+            if (sector3D != null)
             {
-                if (sector3d.ControlTop.Z != sector3d.ParentSector.Floor.Z)
+                if (sector3D.ControlTop.Z != sector3D.ParentSector.Floor.Z)
                 {
-                    RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha, style: sector3d.RenderDataStyle);
+                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
-                    if (sector3d.FakeBottomFlipped != null)
+                    if (sector3D.FakeBottomFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                            lightLevelSector: sector3d.LightTop, allowAlpha: true, alpha: sector3d.Alpha, style: sector3d.RenderDataStyle);
+                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                            lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
@@ -485,17 +488,17 @@ public partial class GeometryRenderer : IDisposable
         {
             geometrySector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
-            if (sector3d != null)
+            if (sector3D != null)
             {
-                if (sector3d.ControlBottom.Z != sector3d.ParentSector.Floor.Z)
+                if (sector3D.ControlBottom.Z != sector3D.ParentSector.Floor.Z)
                 {
-                    RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha, style: sector3d.RenderDataStyle);
+                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
-                    if (sector3d.FakeTopFlipped != null)
+                    if (sector3D.FakeTopFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                            lightLevelSector: sector3d.LightBottom, allowAlpha: true, alpha: sector3d.Alpha, style: sector3d.RenderDataStyle);
+                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                            lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
@@ -505,8 +508,8 @@ public partial class GeometryRenderer : IDisposable
             }
         }
 
-        if (sector3d != null && saveTransfer != null)
-            sector3d.ParentSector.TransferFloorLightSector = saveTransfer;
+        if (sector3D != null && saveTransfer != null)
+            sector3D.ParentSector.TransferFloorLightSector = saveTransfer;
     }
 
     public void Dispose()
@@ -838,6 +841,9 @@ public partial class GeometryRenderer : IDisposable
         if (m_contrastMode == RenderContrastMode.Off)
             return 0;
 
+        if (side.Flags.NoFakeContrast)
+            return 0;
+
         const int LightContrast = 16;
         const int DoubleLightContrast = LightContrast * 2;
         if (m_contrastMode == RenderContrastMode.Smooth || side.Flags.SmoothLighting)
@@ -845,9 +851,6 @@ public partial class GeometryRenderer : IDisposable
             var delta = side.Line.Segment.Delta;
             return (int)(Math.Abs(Math.Atan(delta.Y / delta.X)) / MathHelper.HalfPi * DoubleLightContrast - LightContrast);
         }
-
-        if (side.Flags.NoFakeContrast)
-            return 0;
 
         if (side.Line.Segment.Start.Y == side.Line.Segment.End.Y)
             return -LightContrast;
