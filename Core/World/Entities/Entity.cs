@@ -592,7 +592,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public void Kill(Entity? source) =>
         Damage(source, Health, false, DamageType.AlwaysApply);
 
-    private void KillInternal(Entity? source)
+    private void KillInternal(Entity? source, DamageType damageType)
     {
         if (Health > 0)
             Health = 0;
@@ -607,9 +607,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             Flags.FlipMirror();
 
         if (gib && Definition.XDeathState != null)
-            SetXDeathState(source);
+            SetXDeathState(source, damageType);
         else
-            SetDeathState(source);
+            SetDeathState(source, damageType);
     }
 
     public void SetSpawnState()
@@ -636,12 +636,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             FrameState.SetFrameIndex(this, Definition.MeleeState.Value);
     }
 
-    public void SetDeathState(Entity? source)
+    public void SetDeathState(Entity? source, DamageType damageType)
     {
         // Doom didn't check null death states
         var deathState = Definition.DeathState ?? 0;       
         if (!IsDisposed)
-            SetDeath(source, false);
+            SetDeath(source, damageType, false);
                 
         FrameState.SetFrameIndex(this, deathState);
 
@@ -649,10 +649,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             SetDeathRandomizeTicks();
     }
 
-    public void SetXDeathState(Entity? source)
+    public void SetXDeathState(Entity? source, DamageType damageType)
     {
         if (!IsDisposed)
-            SetDeath(source, true);
+            SetDeath(source, damageType, true);
 
         if (Definition.XDeathState.HasValue)
             FrameState.SetFrameIndex(this, Definition.XDeathState.Value);
@@ -838,7 +838,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         if (Health <= 0)
         {
-            KillInternal(source);
+            KillInternal(source, damageType);
             return true;
         }
         else if (setPainState && !Flags.Skullfly() && Definition.PainState != null)
@@ -1274,7 +1274,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         Previous = null;
     }
 
-    protected virtual void SetDeath(Entity? source, bool gibbed)
+    protected virtual void SetDeath(Entity? source, DamageType damageType, bool gibbed)
     {
         if (Flags.Missile())
         {
@@ -1292,7 +1292,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
                 Flags.ClearNoGravity();
         }
 
-        WorldStatic.World.HandleEntityDeath(this, source, gibbed);
+        WorldStatic.World.HandleEntityDeath(this, source, damageType, gibbed);
     }
 
     [Conditional("DEBUG")]

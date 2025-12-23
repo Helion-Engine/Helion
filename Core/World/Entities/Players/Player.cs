@@ -119,6 +119,8 @@ public class Player : Entity
     // Possible line with middle texture clipping player's view.
     public bool ViewLineClip;
     public bool ViewPlaneClip;
+    public int AirSupplyTicks;
+    public int AirTicks;
 
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
@@ -176,6 +178,7 @@ public class Player : Entity
         StatusBar = new PlayerStatusBar(this);
         SetPlayerInfo();
         SetupEvents();
+        ResetAirSupply(false);
     }
 
     public void Set(int index, PlayerModel playerModel, Dictionary<int, EntityModelPair> entities, EntityDefinition definition, IWorld world)
@@ -220,6 +223,11 @@ public class Player : Entity
             SetAttacker(attacker.Entity);
         if (playerModel.Killer.HasValue && entities.TryGetValue(playerModel.Killer.Value, out var killer))
             m_killer = new WeakEntity(killer.Entity);
+
+        if (playerModel.AirTicks.HasValue)
+            AirTicks = playerModel.AirTicks.Value;
+        else
+            ResetAirSupply();
 
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
@@ -314,6 +322,7 @@ public class Player : Entity
         playerModel.ArmorDefinition = ArmorDefinition?.Name;
         playerModel.Armor = Armor;
         playerModel.PlayerStats = PlayerStats;
+        playerModel.AirTicks = AirTicks;
 
         Inventory.ToInventoryModel(playerModel.Inventory);
 
@@ -683,11 +692,30 @@ public class Player : Entity
         SetBob();
         SetViewHeight();
         SetRunningFrameState();
+        CheckAirSupply();
 
         if (IsDead())
             DeathTick();
 
         m_hasNewWeapon = false;
+    }
+
+    private void CheckAirSupply()
+    {
+        if (WaterSubmersionLevel < SubmersionLevel.Full || IsInvulnerable)
+            ResetAirSupply();
+        else
+            AirTicks--;
+
+        if (AirTicks < 0 && (World.Gametick & 31) == 0)
+            World.DamageEntity(this, null, Math.Abs(AirTicks) / (int)Constants.TicksPerSecond, DamageType.Drowning, thrust: Thrust.None);
+    }
+
+    public void ResetAirSupply(bool playSound = true)
+    {
+        if (playSound && AirTicks < 0)
+            World.SoundManager.CreateSoundOn(this, "*gasp", new(this));
+        AirTicks = World.MapInfo.AirSupply;
     }
 
     public override void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
@@ -1615,7 +1643,8 @@ public class Player : Entity
         if (damage < KillDamage)
         {
             damage = WorldStatic.World.SkillDefinition.GetDamage(damage);
-            damage = ApplyArmorDamage(damage);
+            if (damageType != DamageType.Drowning)
+                damage = ApplyArmorDamage(damage);
         }
 
         bool damageApplied = base.Damage(source, damage, setPainState, damageType);
@@ -1661,10 +1690,10 @@ public class Player : Entity
         WorldStatic.SoundManager.CreateSoundOn(this, "*land", new SoundParams(this));
     }
 
-    protected override void SetDeath(Entity? source, bool gibbed)
+    protected override void SetDeath(Entity? source, DamageType damageType, bool gibbed)
     {
         PlayerStats.DeathCount++;
-        base.SetDeath(source, gibbed);
+        base.SetDeath(source, damageType, gibbed);
         m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
 
         if (source != null)

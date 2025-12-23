@@ -281,6 +281,8 @@ public partial class MapInfoDefinition
                 mapDef.ParTime = existing.ParTime;
             if (mapDef.SuckTime == 0)
                 mapDef.SuckTime = existing.SuckTime;
+            if (mapDef.AirSupply == 0)
+                mapDef.AirSupply = existing.AirSupply;
             if (!mapDef.HasOptions())
                 mapDef.SetOptions(existing);
         }
@@ -295,47 +297,49 @@ public partial class MapInfoDefinition
     {
         ConsumeEquals(parser);
 
-        if (item.Equals(MapLevelNumName, StringComparison.OrdinalIgnoreCase))
+        if (item.EqualsIgnoreCase(MapLevelNumName))
             mapDef.LevelNumber = parser.ConsumeInteger();
-        else if (item.Equals(MapTitlePatchName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapTitlePatchName))
         {
             mapDef.TitlePatch = parser.ConsumeString();
             specifiedTitlePatch = true;
         }
-        else if (item.Equals(MapNextName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapNextName))
         {
             mapDef.Next = parser.ConsumeString();
-            if (mapDef.Next.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
+            if (mapDef.Next.EqualsIgnoreCase(MapEndGame))
                 mapDef.EndGame = ParseEndGame(parser);
-            else if (mapDef.Next.Equals(MapEndPicName, StringComparison.OrdinalIgnoreCase))
+            else if (mapDef.Next.EqualsIgnoreCase(MapEndPicName))
                 mapDef.EndPic = ParseEndPic(parser);
         }
-        else if (item.Equals(MapSecretName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapSecretName))
         {
             mapDef.SecretNext = parser.ConsumeString();
-            if (mapDef.SecretNext.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
+            if (mapDef.SecretNext.EqualsIgnoreCase(MapEndGame))
                 mapDef.EndGameSecret = ParseEndGame(parser);
         }
-        else if (item.Equals(MapSky1Name, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapSky1Name))
             mapDef.Sky1 = ParseMapSky(parser);
-        else if (item.Equals(MapSky2Name, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapSky2Name))
             mapDef.Sky2 = ParseMapSky(parser);
-        else if (item.Equals(MapSkyBoxName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapSkyBoxName))
             mapDef.Sky1 = new SkyDef() { Name = parser.ConsumeString() };
-        else if (item.Equals(MapClusterName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapClusterName))
             mapDef.Cluster = parser.ConsumeInteger();
-        else if (item.Equals(MapParName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapParName))
             mapDef.ParTime = parser.ConsumeInteger();
-        else if (item.Equals(MapSuckName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapSuckName))
             mapDef.SuckTime = parser.ConsumeInteger();
-        else if (item.Equals(MapMusicName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapMusicName))
             mapDef.Music = parser.ConsumeString();
-        else if (item.Equals(MapEnterPicName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapEnterPicName))
             mapDef.EnterPic = parser.ConsumeString();
-        else if (item.Equals(MapExitPicName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapExitPicName))
             mapDef.ExitPic = parser.ConsumeString();
-        else if (item.Equals(MapAuthorName, StringComparison.OrdinalIgnoreCase))
+        else if (item.EqualsIgnoreCase(MapAuthorName))
             mapDef.Author = parser.ConsumeString();
+        else if (item.EqualsIgnoreCase(AirSupplyName))
+            mapDef.AirSupply = parser.ConsumeInteger();
     }
 
     private static void WarnMissing(string def, string item, int line) =>

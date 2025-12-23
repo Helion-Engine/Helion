@@ -106,6 +106,8 @@ public partial class MapInfoDefinition
     private static readonly string MapExitPicName = "exitpic";
     private static readonly string MapEndPicName = "endpic";
     private static readonly string MapAuthorName = "author";
+    private static readonly string AirSupplyName = "airsupply";
+
 
     private static readonly HashSet<string> MapNames = new(StringComparer.OrdinalIgnoreCase)
     {

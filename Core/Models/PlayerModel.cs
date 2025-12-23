@@ -47,4 +47,5 @@ public class PlayerModel : EntityModel
     public List<int> Cheats = null!;
     public bool AttackDown;
     public PlayerStats PlayerStats;
+    public int? AirTicks;
 }

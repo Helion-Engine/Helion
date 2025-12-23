@@ -1,3 +1,4 @@
+using Helion.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -38,6 +39,7 @@ public class MapInfoDef : ICloneable
     public List<BossAction> BossActions { get; set; } = [];
     public ClusterDef? ClusterDef { get; set; }
     public bool IsEndGame => EndGame != null || MapInfo.EndGameMaps.Contains(Next);
+    public int AirSupply { get; set; } = 20 * (int)Constants.TicksPerSecond;
 
     public bool HasOption(MapOptions option) => m_levelOptions[(int)option];
     public void SetOption(MapOptions option, bool set)

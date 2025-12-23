@@ -147,7 +147,7 @@ public interface IWorld : IDisposable
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
-    void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
+    void HandleEntityDeath(Entity deathEntity, Entity? deathSource, DamageType damageType, bool gibbed);
     void DisplayMessage(string message, bool isCentered = false);
     void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.

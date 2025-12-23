@@ -2328,7 +2328,7 @@ public abstract partial class WorldBase : IWorld
             if (skyClip)
                 EntityManager.Destroy(entity);
             else
-                entity.SetDeathState(null);
+                entity.SetDeathState(null, DamageType.Normal);
         }
         else if (entity.Flags.Touchy() || (entity.BlockingEntity != null && entity.BlockingEntity.Flags.Touchy()))
         {
@@ -2630,7 +2630,7 @@ public abstract partial class WorldBase : IWorld
         return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial, moveSpecial.Sector);
     }
 
-    public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
+    public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, DamageType damageType, bool gibbed)
     {
         CheckDropItem(deathEntity);
 
@@ -2653,9 +2653,7 @@ public abstract partial class WorldBase : IWorld
 
         if (deathEntity.PlayerObj != null)
         {
-            if (deathSource != null)
-                HandleObituary(deathEntity.PlayerObj, deathSource);
-
+            HandleObituary(deathEntity.PlayerObj, deathSource, damageType);
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
         }
 
@@ -2692,30 +2690,37 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private void HandleObituary(Player player, Entity deathSource)
+    private void HandleObituary(Player player, Entity? deathSource, DamageType damageType)
     {
         if (ArchiveCollection.IWadType == IWadBaseType.ChexQuest)
             return;
 
-        // If the player killed themself then don't display the obituary message
-        // There is probably a special string for this in multiplayer for later
-        Entity killer = deathSource.Owner() ?? deathSource;
-        if (player == killer)
-            return;
+        string? obituary = null;
+        Entity? killer = null;
+        if (deathSource != null)
+        {
+            // If the player killed themself then don't display the obituary message
+            // There is probably a special string for this in multiplayer for later
+            killer = deathSource.Owner() ?? deathSource;
+            if (player == killer)
+                return;
 
-        // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
-        Entity obituarySource = killer;
-        if (killer.IsPlayer)
-            obituarySource = deathSource;
+            // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
+            var obituarySource = killer;
+            if (killer.IsPlayer)
+                obituarySource = deathSource;
 
-        string? obituary;
-        if (obituarySource == deathSource && obituarySource.Definition.Properties.HitObituary.Length > 0)
-            obituary = obituarySource.Definition.Properties.HitObituary;
-        else
-            obituary = obituarySource.Definition.Properties.Obituary;
+            if (obituarySource == deathSource && obituarySource.Definition.Properties.HitObituary.Length > 0)
+                obituary = obituarySource.Definition.Properties.HitObituary;
+            else
+                obituary = obituarySource.Definition.Properties.Obituary;
+        }
+
+        if (damageType == DamageType.Drowning)
+            obituary = "$OB_WATER";
 
         if (!string.IsNullOrEmpty(obituary))
-            DisplayMessage(player, killer.PlayerObj, obituary);
+            DisplayMessage(player, killer?.PlayerObj, obituary);
     }
 
     public virtual void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(null, null, message, isCentered);
