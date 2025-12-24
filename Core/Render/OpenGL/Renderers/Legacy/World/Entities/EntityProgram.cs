@@ -155,7 +155,7 @@ public class EntityProgram : RenderProgram
         out float positionZOut;
         out float offsetZOut;
         out float offsetXYOut;
-        ${SectorColorMapVar}
+        out vec3 sectorColorMapIndexOut;
 
         uniform float timeFrac;
         uniform samplerBuffer sectorColormapTexture;
@@ -177,15 +177,11 @@ public class EntityProgram : RenderProgram
             offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
             offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
 
-            ${SectorColorMap}
+            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, int(sectorIndex)).rgb;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }
-    "
-    .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "out int sectorColorMapIndexOut;" : "out vec3 sectorColorMapIndexOut;")
-    .Replace("${SectorColorMap}", ShaderVars.PaletteColorMode ?
-        "sectorColorMapIndexOut = int(texelFetch(sectorColormapTexture, int(sectorIndex)).r);" :
-        "sectorColorMapIndexOut = texelFetch(sectorColormapTexture, int(sectorIndex)).rgb;");
+    ";
 
     protected override string? GeometryShader() => @"
         #version 330 core
@@ -303,8 +299,8 @@ public class EntityProgram : RenderProgram
             EndPrimitive();
         }  
     "
-    .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "in int sectorColorMapIndexOut[];" : "in vec3 sectorColorMapIndexOut[];")
-    .Replace("${SectorColorMapFrag}", ShaderVars.PaletteColorMode ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
+    .Replace("${SectorColorMapVar}", false ? "in int sectorColorMapIndexOut[];" : "in vec3 sectorColorMapIndexOut[];")
+    .Replace("${SectorColorMapFrag}", false ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
     .Replace("${Depth}", ShaderVars.Depth)
     .Replace("${BoxDefines}", BoxDefines);
 

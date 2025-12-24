@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Dehacked;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
@@ -84,6 +85,7 @@ public class DefinitionEntries
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
     private readonly ArchiveCollection m_archiveCollection;
     private readonly Dictionary<string, Colormap> m_processedTranslationColormaps = [];
+    private readonly Dictionary<Color, Colormap> m_levelSectorColormaps = [];
     private readonly PnamesTextureXCollection m_pnamesTextureXCollection = new();
     private readonly LookupArray<Colormap> m_bloodColorMaps = new();
     private bool m_parseDehacked;
@@ -338,6 +340,13 @@ public class DefinitionEntries
         m_processedTranslationColormaps.Clear();
     }
 
+    public void LoadLevelSectorColorMaps(IEnumerable<Color> colors)
+    {
+        m_levelSectorColormaps.Clear();
+        foreach (var color in colors)
+            GetOrCreateLevelSectorColormap(color);
+    }
+
     private bool GetGameConfPlayerTranslations([NotNullWhen(true)] out Colormap?[]? colormaps)
     {
         var translations = GameConfDefinition?.Data?.PlayerTranslations;
@@ -411,6 +420,39 @@ public class DefinitionEntries
             return bloodColorMap;
 
         return Colormaps[0];
+    }
+
+    public Colormap GetLevelSectorColormap(Color color)
+    {
+        if (m_levelSectorColormaps.TryGetValue(color, out var colormap))
+            return colormap;
+
+        return Colormaps[0];
+    }
+
+    public Colormap? FindLevelSectorColormap(Vec3F color)
+    {
+        foreach (var item in m_levelSectorColormaps)
+        {
+            var colormap = item.Value;
+            if (colormap.ColorMix == color)
+                return colormap;
+        }
+
+        return null;
+    }
+
+    private Colormap GetOrCreateLevelSectorColormap(Color color)
+    {
+        if (m_levelSectorColormaps.TryGetValue(color, out var colormap))
+            return colormap;
+
+        colormap = Colormap.GetSectorRgbColormap(Colormaps[0], color);
+        colormap?.Type = ColorMapType.SectorRgb;
+        colormap ??= Colormaps[0];
+
+        m_levelSectorColormaps[color] = colormap;
+        return colormap;
     }
 
     private void SetGameConfTranslations()

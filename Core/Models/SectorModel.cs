@@ -31,6 +31,7 @@ public struct SectorModel
     public int? TransferCeilingLight;
     public int? TransferHeights;
     public string? ColorMap;
+    public Vector3F? ColorMapRgb;
     public string? TransferHeightsColormapUpper;
     public string? TransferHeightsColormapMiddle;
     public string? TransferHeightsColormapLower;

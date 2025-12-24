@@ -156,6 +156,7 @@ public sealed class Sector : IFloorCeilingAnchor
         ActiveFloorMove = default;
         ActiveCeilingMove = default;
         SectorDamageSpecial = default;
+        Colormap = default;
         ActivatedByLineId = -1;
         Floor.Reset(m_initialLightLevel);
         Ceiling.Reset(m_initialLightLevel);
@@ -402,7 +403,12 @@ public sealed class Sector : IFloorCeilingAnchor
                     sectorModel.CeilingLightLevel = Ceiling.LightLevel;
             }
             if ((DataChanges & SectorDataTypes.ColorMap) != 0)
+            {
+                if (Colormap != null && Colormap.Type == ColorMapType.SectorRgb)
+                    sectorModel.ColorMapRgb = new(Colormap.ColorMix);
+
                 sectorModel.ColorMap = Colormap?.Entry?.Path.Name;
+            }
             if ((DataChanges & SectorDataTypes.Offset) != 0)
             {
                 if (Floor.RenderOffsets.Offset.X != 0 || Floor.RenderOffsets.Offset.Y != 0)
@@ -506,8 +512,18 @@ public sealed class Sector : IFloorCeilingAnchor
 
             DamageAmount = sectorModel.DamageAmount;
 
-            if ((DataChanges & SectorDataTypes.ColorMap) != 0 && sectorModel.ColorMap != null && textureManager.TryGetColormap(sectorModel.ColorMap, out var sectorColorMap))
-                Colormap = sectorColorMap;
+            if ((DataChanges & SectorDataTypes.ColorMap) != 0 && sectorModel.ColorMap != null)
+            {
+                if (sectorModel.ColorMapRgb.HasValue)
+                {
+                    var rgb = new Vec3F(sectorModel.ColorMapRgb.Value.X, sectorModel.ColorMapRgb.Value.Y, sectorModel.ColorMapRgb.Value.Z);
+                    Colormap = world.ArchiveCollection.Definitions.FindLevelSectorColormap(rgb);
+                }
+                else if (textureManager.TryGetColormap(sectorModel.ColorMap, out var sectorColorMap))
+                {
+                    Colormap = sectorColorMap;
+                }
+            }
         }
 
         if (sectorModel.FloorOffset.HasValue)

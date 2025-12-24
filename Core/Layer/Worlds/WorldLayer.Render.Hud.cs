@@ -546,7 +546,7 @@ public partial class WorldLayer
         if (colorMixUniforms.Sector != Vec3F.One)
             colorMix = colorMixUniforms.Sector;
 
-        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :
+        var lightLevelColor =
             ((byte)Math.Min(lightLevel * colorMix.X, 255),
             (byte)Math.Min(lightLevel * colorMix.Y, 255),
             (byte)Math.Min(lightLevel * colorMix.Z, 255));

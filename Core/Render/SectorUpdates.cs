@@ -26,7 +26,7 @@ internal sealed class SectorUpdates
 
     public void Add(Sector sector)
     {
-        if (sector.Id >= m_updateLookup.Count)
+        if (sector.Id >= m_updateLookup.Capacity)
             return;
 
         if (m_updateLookup.Data[sector.Id] == m_counter)

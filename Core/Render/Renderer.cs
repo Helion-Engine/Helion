@@ -271,9 +271,15 @@ public partial class Renderer : IDisposable
     public static ColorMixUniforms GetColorMix(Entity viewer, OldCamera camera)
     {
         ColorMixUniforms uniforms = new(Vec3F.One, Vec3F.One, Vec3F.One);
-        if (!ShaderVars.PaletteColorMode)
+        GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
+        if (ShaderVars.PaletteColorMode)
         {
-            GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
+            // Sectors that have rgb set will always use true color mix even in palette color mode.
+            if (sectorColormap != null && sectorColormap.Type == ColorMapType.SectorRgb)
+                uniforms.Sector = sectorColormap.ColorMix;
+        }
+        else
+        {
             if (globalColormap != null)
                 uniforms.Global = globalColormap.ColorMix;
             if (sectorColormap != null)

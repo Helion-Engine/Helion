@@ -198,7 +198,7 @@ public partial class Renderer
 
     private unsafe void SetSectorColorMapsBuffer(IWorld world, bool alloc)
     {
-        bool usePalette = ShaderVars.PaletteColorMode;
+        bool usePalette = false;
         if (alloc || m_sectorColorMapsBuffer == null)
         {
             // First index will always map to default colormap
@@ -246,20 +246,28 @@ public partial class Renderer
     private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
     {
         int index = (sector.Id + 1) * LightBuffer.BufferSize;
-        if (ShaderVars.PaletteColorMode)
-        {
-            int colorMapIndex = colormap == null ? 0 : colormap.Index;
-            colorMapBuffer[index + LightBuffer.FloorOffset] = colorMapIndex;
-            colorMapBuffer[index + LightBuffer.CeilingOffset] = colorMapIndex;
-            colorMapBuffer[index + LightBuffer.WallOffset] = colorMapIndex;
-            return;
-        }
 
         const int VectorSize = 3;
-        Vec3F setColor = colormap == null ? Vec3F.One : colormap.ColorMix;
+        var setColor = GetSectorSetColor(colormap);
+
         *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = setColor;
         *(Vec3F*)&colorMapBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = setColor;
         *(Vec3F*)&colorMapBuffer[(index + LightBuffer.WallOffset) * VectorSize] = setColor;
+    }
+
+    private static Vec3F GetSectorSetColor(Colormap? colormap)
+    {
+        // True color always uses rgb color mix.
+        // Palette color uses r channel as colormap index when b channel is -1.
+        // When b channel is not -1 then palette color mode will treat as true color mix to support rgb mix values.
+
+        if (!ShaderVars.PaletteColorMode)
+            return colormap == null ? Vec3F.One : colormap.ColorMix;
+
+        if (colormap != null && colormap.Type == ColorMapType.SectorRgb)
+            return colormap.ColorMix;
+
+        return colormap == null ? new Vec3F(0, -1, -1) : new Vec3F(colormap.Index, -1, -1);
     }
 
     public unsafe void SetMapDataBuffer(IWorld world, bool alloc)

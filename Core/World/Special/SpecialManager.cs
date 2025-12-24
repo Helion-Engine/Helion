@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -25,6 +24,9 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
 using Helion.World.Stats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Helion.World.Special;
 
@@ -741,24 +743,30 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
         else
         {
+            HashSet<Color> colorMapColors = [];
             foreach (var line in m_world.Lines)
             {
                 if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
                     HandleLineInitSpecial(line);
+
+                if (line.Special != null && line.Special.LineSpecialType == ZDoomLineSpecialType.SectorSetColor)
+                    colorMapColors.Add(new((byte)line.Args.Arg1, (byte)line.Args.Arg2, (byte)line.Args.Arg3));
             }
 
             for (int i = 0; i < m_world.Sectors.Count; i++)
             {
-                Sector sector = m_world.Sectors[i];
+                var sector = m_world.Sectors[i];
                 if (sector.Secret)
                     levelStats.TotalSecrets++;
                 HandleSectorSpecial(sector);
             }
+
+            m_world.ArchiveCollection.Definitions.LoadLevelSectorColorMaps(colorMapColors);
         }
     }
 
     // This is currently just for the id24 offset and rotate since it needs to set the FlatTransformMethod.
-    // Prevents the method from needing to be serialized and keeps saves backwards compatibile.
+    // Prevents the method from needing to be serialized and keeps saves backwards compatible.
     private void HandleLineInitSpecialFlag(Line line)
     {
         switch (line.Special.LineSpecialType)
@@ -1316,6 +1324,9 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.ThingDestroy:
                 return ActionSpecials.ThingDestroy(m_world, line.Args);
+
+            case ZDoomLineSpecialType.SectorSetColor:
+                return ActionSpecials.SectorSetColor(m_world, line.Args);
         }
 
         return false;
@@ -2050,7 +2061,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         if (line.Special.CanActivateByTag && ((options & SectorTagOptions.IncludeZero) != 0 || line.HasSectorTag))
             return new(m_world.FindBySectorTag(line.SectorTag));
         if (line.Special.CanActivateByBackSide && line.Back != null)
-            return new (line.Back.Sector);
+            return new(line.Back.Sector);
 
         return new(Array.Empty<Sector>());
     }

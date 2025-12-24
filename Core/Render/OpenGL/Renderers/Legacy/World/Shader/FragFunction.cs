@@ -113,7 +113,7 @@ public class FragFunction
             @"
             ${BrigthmapFetch}
 
-            int useColormap = int(mix(colormapIndex, sectorColorMapIndexFrag, float(sectorColorMapIndexFrag > 0)));
+            int useColormap = int(mix(colormapIndex, sectorColorMapIndexFrag.r, float(sectorColorMapIndexFrag.r > 0)));
             ${EntityColorMapFrag}
             int usePalette = paletteIndex;
             int lightLevelOffset = (lightColorIndex * 256);
@@ -205,9 +205,11 @@ public class FragFunction
             if (fragColor.w <= 0.0)
                 discard;
 
-            fragColor.xyz *= min(colorMix, 1);
+            fragColor.rgb *= min(colorMix, 1);
 "
-            + (ShaderVars.PaletteColorMode ? "" : "fragColor.xyz *= min(sectorColorMapIndexFrag, 1);")
+            // If b channel is -1 then r channel is colormap index. if b channel is >= 0 then the rgb values are a true color mix.
+            // This is to support Sector_SetColor to have true color mixes when still using palette color mode.
+            + "fragColor.rgb *= mix(vec3(1), min(sectorColorMapIndexFrag, 1), float(sectorColorMapIndexFrag.b >= 0));"
             + InvulnerabilityFragColor
             + GammaCorrection()
             + postProcess
