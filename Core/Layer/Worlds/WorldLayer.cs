@@ -101,6 +101,7 @@ public partial class WorldLayer : IGameLayerParent
         m_drawHudAction = new(DrawHudContext);
         m_renderWorldAction = new(RenderWorld);
         m_renderAutomapAction = new(RenderAutomap);
+        m_renderWorldViewportAction = new(RenderWorldViewportContext);
         m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
         m_virtualDrawPauseAction = new(VirtualDrawPause);

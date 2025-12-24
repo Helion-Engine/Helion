@@ -8,7 +8,7 @@ public class WorldRenderContext
 {
     public readonly Camera Camera;
     public float InterpolationFrac;
-    public Dimension Viewport { get; } = (640, 480);
+    public Dimension Viewport { get; set; } = (640, 480);
     public bool DrawAutomap;
     public Vec2I AutomapOffset { get; set; } = (0, 0);
     public double AutomapScale { get; set; } = 1.0;

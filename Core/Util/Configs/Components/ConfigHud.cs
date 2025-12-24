@@ -12,10 +12,21 @@ public static class HudView
 {
     public const int FullSizeHudOffsetY = 16;
 
-    public static Vec2I GetViewPortOffset(StatusBarSizeType statusBarSize, Dimension viewport)
+    public static int GetWeaponOffset(StatusBarSizeType statusBarSize, int? customHeight = null)
     {
-        if (statusBarSize == StatusBarSizeType.Full)
-            return (0, (int)(viewport.Height / 200.0 * FullSizeHudOffsetY));
+        int height = customHeight ?? (statusBarSize == StatusBarSizeType.Full ? 32 : 0);
+        return height / 2;
+    }
+
+    public static Vec2I GetViewPortOffset(StatusBarSizeType statusBarSize, Dimension viewport, int? customHeight = null)
+    {
+        int height = customHeight ?? (statusBarSize == StatusBarSizeType.Full ? 32 : 0);
+        
+        if (height > 0)
+        {
+            return (0, (int)(viewport.Height / 200.0 * (height / 2.0)));
+        }
+        
         return (0, 0);
     }
 }
