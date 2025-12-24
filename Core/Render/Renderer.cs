@@ -303,7 +303,9 @@ public partial class Renderer : IDisposable
             skyColormap = globalColormap;
         }
 
-        if (viewer.Sector.TransferFloorLightSector.Colormap != null)
+        if (viewer.LightCeilingSector3D != null && viewer.Position.Z + viewer.ViewZ < viewer.LightCeilingSector3D.Ceiling.Z && viewer.LightCeilingSector3D.Colormap != null)
+            sectorColormap = viewer.LightCeilingSector3D.Colormap;
+        else if (viewer.Sector.Sectors3D.Length == 0 && viewer.Sector.TransferFloorLightSector.Colormap != null)
             sectorColormap = viewer.Sector.TransferFloorLightSector.Colormap;
     }
 

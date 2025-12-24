@@ -16,7 +16,6 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
