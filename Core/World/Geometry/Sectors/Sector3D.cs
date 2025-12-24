@@ -48,6 +48,7 @@ public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double p
     public double BottomZ = bottomZ;
     public double PrevTopZ = prevTopZ;
     public double PrevBottomZ = prevBottomZ;
+    public bool Invalid;
 }
 
 public enum SolidContext
@@ -269,19 +270,25 @@ public sealed class Sector3D
         m_lastGameTick = gameTick;
         m_wallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
 
-        if (ParentSector.Sectors3D.Length == 0 || RenderDataStyle != RenderDataStyle.Normal)
+        if (ParentSector.Sectors3D.Length == 0)// || RenderDataStyle != RenderDataStyle.Normal)
             return m_wallHeights;
 
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
             var checkSector3D = ParentSector.Sectors3D[i];
-
             if (checkSector3D == this || checkSector3D.RenderDataStyle != RenderDataStyle.Normal)
             {
-                if (LightFlags == SectorLightFlags3D.None)
-                    break;
+                if (i < ParentSector.Sectors3D.Length - 1)
+                {
+                    checkSector3D = ParentSector.Sectors3D[i + 1];
+                    if (checkSector3D.ControlTop.Z > m_wallHeights.BottomZ && ShouldClipSector3D(checkSector3D))
+                    {
+                        m_wallHeights.TopZ = checkSector3D.ControlTop.Z;
+                        m_wallHeights.PrevTopZ = checkSector3D.ControlTop.PrevZ;
+                    }
+                }
 
-                continue;
+                break;
             }
 
             if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ControlBottom.Z)
@@ -401,6 +408,7 @@ public sealed class Sector3D
 
         if (checkTopZ >= wallHeights.TopZ && checkBottomZ <= wallHeights.BottomZ)
         {
+            wallHeights.Invalid = true;
             wallHeights.BottomZ = 0;
             wallHeights.TopZ = 0;
             wallHeights.PrevTopZ = 0;

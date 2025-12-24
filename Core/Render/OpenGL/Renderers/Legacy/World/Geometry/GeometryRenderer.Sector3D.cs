@@ -193,9 +193,7 @@ public partial class GeometryRenderer
             if (result.AddOffset)
                 SetWallOffset(m_fakeWall, offsetY, heights.BottomZ, anchorZ);
 
-            if (heights.TopZ > heights.BottomZ)
-                prevHeights = heights;
-
+            prevHeights = heights;
             lightSector = sector3d.LightBottom;
         }
 
@@ -203,6 +201,9 @@ public partial class GeometryRenderer
         WorldStatic.LineVertexGapBottomZ = saveGapZ;
 
         var floorHeights = new WallHeights(side.Sector.Floor.Z, side.Sector.Floor.Z, side.Sector.Floor.PrevZ, side.Sector.Floor.PrevZ);
+        if (prevHeights.Invalid)
+            floorHeights = prevHeights;
+
         SetSectorToSlice(m_sliceSector, prevHeights, floorHeights);
         args.LightSector = lightSector;
         args.Side.LastRenderGametick = -1;
