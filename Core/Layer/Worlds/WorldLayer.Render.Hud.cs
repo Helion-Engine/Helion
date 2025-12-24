@@ -115,6 +115,10 @@ public partial class WorldLayer
 
         // Check SBARDEF coverage
         StatusBarLayoutDef? activeSbarLayout = GetActiveStatusBarLayout();
+        int? sbarHeight = activeSbarLayout != null 
+            ? (activeSbarLayout.FullscreenRender ? 0 : activeSbarLayout.Height) 
+            : null;
+        
         StatusBarCoverage sbarCoverage = StatusBarCoverage.None;
         if (activeSbarLayout != null)
         {
@@ -122,10 +126,10 @@ public partial class WorldLayer
         }
 
         if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)
-            DrawWeapon(hud, hudContext);
+            DrawWeapon(hud, hudContext, sbarHeight);
 
         if ((m_renderHudOptions & RenderHudOptions.Crosshair) != 0 && m_config.Hud.Crosshair)
-            DrawCrosshair(hud);
+            DrawCrosshair(hud, sbarHeight);
 
         if ((m_renderHudOptions & RenderHudOptions.Hud) != 0)
         {
@@ -479,8 +483,7 @@ public partial class WorldLayer
         DrawFullStatusBar(hud);
     }
     
-
-    private void DrawWeapon(IHudRenderContext hud, HudRenderContext hudContext)
+    private void DrawWeapon(IHudRenderContext hud, HudRenderContext hudContext, int? sbarHeight = null)
     {
         if (!WorldStatic.World.DrawHud)
             return;
@@ -496,8 +499,8 @@ public partial class WorldLayer
             if (powerup != null && powerup.DrawPowerupEffect)
                 hudContext.DrawFuzz = true;
 
-            // Doom pushes the gun sprite up when the status bar is showing
-            int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? HudView.FullSizeHudOffsetY : 0;
+            // Push the gun sprite up based on the status bar height
+            int yOffset = HudView.GetWeaponOffset(m_config.Hud.StatusBarSize.Value, sbarHeight);
             DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
             if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                 DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
@@ -644,8 +647,8 @@ public partial class WorldLayer
 
         return sprite;
     }
-
-    private void DrawCrosshair(IHudRenderContext hud)
+    
+    private void DrawCrosshair(IHudRenderContext hud, int? sbarHeight = null)
     {
         int Width = Math.Max((int)(1 * m_scale), 1);
         int HalfWidth = Math.Max(Width / 2, 1);
@@ -674,7 +677,7 @@ public partial class WorldLayer
             totalCrosshairLength += 1;
 
         Vec2I center = m_viewport.Vector / 2;
-        center -= HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, m_viewport);
+        center -= HudView.GetViewPortOffset(m_config.Hud.StatusBarSize.Value, m_viewport, sbarHeight);
 
         Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);
         Vec2I vertical = center - new Vec2I(HalfWidth, crosshairLength);

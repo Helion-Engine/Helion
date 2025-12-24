@@ -1,8 +1,11 @@
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
+using Helion.Resources.Definitions.StatusBar;
+using Helion.World.StatusBar;
 using System;
 
 namespace Helion.Layer.Worlds;
@@ -29,7 +32,30 @@ public partial class WorldLayer
 
         SetWorldContextVars();
 
-        ctx.World(m_worldContext, m_renderWorldAction);
+        StatusBarLayoutDef? activeSbar = GetActiveStatusBarLayout();
+        int sbarHeight = activeSbar != null
+            ? (activeSbar.FullscreenRender ? 0 : activeSbar.Height)
+            : (m_config.Hud.StatusBarSize.Value == StatusBarSizeType.Full ? 32 : 0);
+
+        int nativeWidth = ctx.Surface.Dimension.Width;
+        int nativeHeight = ctx.Surface.Dimension.Height;
+
+        int nativeBarHeight = (int)(nativeHeight / 200.0 * sbarHeight);
+
+        int viewportBottom = nativeBarHeight;
+        int viewportHeight = nativeHeight - viewportBottom;
+
+        Box2I viewportArea = new((0, viewportBottom), (nativeWidth, nativeHeight));
+
+        m_worldContext.Viewport = (nativeWidth, viewportHeight);
+
+        ctx.Viewport(viewportArea, () =>
+        {
+            ctx.World(m_worldContext, m_renderWorldAction);
+        });
+
+        m_worldContext.Viewport = ctx.Surface.Dimension;
+
         m_profiler.Render.World.Stop();
     }
 
