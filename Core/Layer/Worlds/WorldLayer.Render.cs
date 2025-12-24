@@ -20,6 +20,8 @@ public partial class WorldLayer
     private Action<IHudRenderContext> m_drawHudAction;
     private readonly Action<IWorldRenderContext> m_renderWorldAction;
     private readonly Action<IWorldRenderContext> m_renderAutomapAction;
+    private readonly Action m_renderWorldViewportAction;
+    private IRenderableSurfaceContext? m_renderableWorldSurfaceContext;
 
     private RenderHudOptions m_renderHudOptions;
 
@@ -44,15 +46,13 @@ public partial class WorldLayer
 
         int viewportBottom = nativeBarHeight;
         int viewportHeight = nativeHeight - viewportBottom;
-
         Box2I viewportArea = new((0, viewportBottom), (nativeWidth, nativeHeight));
 
         m_worldContext.Viewport = (nativeWidth, viewportHeight);
 
-        ctx.Viewport(viewportArea, () =>
-        {
-            ctx.World(m_worldContext, m_renderWorldAction);
-        });
+        m_renderableWorldSurfaceContext = ctx;
+        ctx.Viewport(viewportArea, m_renderWorldViewportAction);
+        m_renderableWorldSurfaceContext = null;
 
         m_worldContext.Viewport = ctx.Surface.Dimension;
 
@@ -79,6 +79,11 @@ public partial class WorldLayer
     void RenderWorld(IWorldRenderContext context)
     {
         context.Draw(World);
+    }
+    
+    private void RenderWorldViewportContext()
+    {
+        m_renderableWorldSurfaceContext?.World(m_worldContext, m_renderWorldAction);
     }
 
     public void RenderHud(IRenderableSurfaceContext ctx, RenderHudOptions options)
