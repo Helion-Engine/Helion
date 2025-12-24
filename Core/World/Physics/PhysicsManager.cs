@@ -997,6 +997,7 @@ public sealed class PhysicsManager
             m_canPassData.EntityTopZ = entity.Position.Z + entity.Height;
             m_canPassData.HighestFloorZ = highestFloorZ;
             m_canPassData.LowestCeilZ = lowestCeilZ;
+            m_canPassData.LowestCeilLight3D = double.MaxValue;
             m_canPassData.CeilingSector3D = null;
             m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
 
@@ -1048,7 +1049,6 @@ public sealed class PhysicsManager
         entity.HighestFloorSector = highestFloor;
         entity.LowestCeilingSector = lowestCeiling;
 
-
         // Make checks inclusive to prioritize entity over sector. Otherwise this can cause issues with monsters on 3d bridges/midtex lines dropping of when they shouldn't.
         if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height >= highestFloor.Floor.Z)
             entity.SetHighestFloorEntity(highestFloorEntity);
@@ -1063,24 +1063,18 @@ public sealed class PhysicsManager
 
     private void CanPassTraverseSector3D(Sector sector)
     {
-        if (sector.Sectors3D.Length == 0)
-            return;
-
-        // Always set on the first iteration
-        var first = sector.Sectors3D[0];
-        CanPassTraverse(first.GetSectorEntity3D());
-        m_canPassData.CeilingSector3D = first.LightBottom;
-
-        // Subsequent iterations validate against LowestCeilZ
-        for (int i = 1; i < sector.Sectors3D.Length; i++)
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            var prevLowest = m_canPassData.LowestCeilZ;
 
             CanPassTraverse(sector3d.GetSectorEntity3D());
 
-            if (m_canPassData.LowestCeilZ < prevLowest)
+            if (sector3d.ControlTop.Z < m_canPassData.LowestCeilLight3D &&
+                m_canPassData.Entity.Position.Z < sector3d.ControlTop.Z)
+            {
                 m_canPassData.CeilingSector3D = sector3d.LightBottom;
+                m_canPassData.LowestCeilLight3D = m_canPassData.LowestCeilZ;
+            }
         }
     }
 

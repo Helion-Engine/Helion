@@ -12,5 +12,6 @@ internal struct CanPassData
     public double EntityTopZ;
     public double HighestFloorZ;
     public double LowestCeilZ;
+    public double LowestCeilLight3D;
     public bool ClampToLinkedSectors;
 }
