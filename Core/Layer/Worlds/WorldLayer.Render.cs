@@ -1,8 +1,11 @@
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
+using Helion.Resources.Definitions.StatusBar;
+using Helion.World.StatusBar;
 using System;
 
 namespace Helion.Layer.Worlds;
@@ -17,6 +20,8 @@ public partial class WorldLayer
     private Action<IHudRenderContext> m_drawHudAction;
     private readonly Action<IWorldRenderContext> m_renderWorldAction;
     private readonly Action<IWorldRenderContext> m_renderAutomapAction;
+    private readonly Action m_renderWorldViewportAction;
+    private IRenderableSurfaceContext? m_renderableWorldSurfaceContext;
 
     private RenderHudOptions m_renderHudOptions;
 
@@ -29,7 +34,28 @@ public partial class WorldLayer
 
         SetWorldContextVars();
 
-        ctx.World(m_worldContext, m_renderWorldAction);
+        StatusBarLayoutDef? activeSbar = GetActiveStatusBarLayout();
+        int sbarHeight = activeSbar != null
+            ? (activeSbar.FullscreenRender ? 0 : activeSbar.Height)
+            : (m_config.Hud.StatusBarSize.Value == StatusBarSizeType.Full ? 32 : 0);
+
+        int nativeWidth = ctx.Surface.Dimension.Width;
+        int nativeHeight = ctx.Surface.Dimension.Height;
+
+        int nativeBarHeight = (int)(nativeHeight / 200.0 * sbarHeight);
+
+        int viewportBottom = nativeBarHeight;
+        int viewportHeight = nativeHeight - viewportBottom;
+        Box2I viewportArea = new((0, viewportBottom), (nativeWidth, nativeHeight));
+
+        m_worldContext.Viewport = (nativeWidth, viewportHeight);
+
+        m_renderableWorldSurfaceContext = ctx;
+        ctx.Viewport(viewportArea, m_renderWorldViewportAction);
+        m_renderableWorldSurfaceContext = null;
+
+        m_worldContext.Viewport = ctx.Surface.Dimension;
+
         m_profiler.Render.World.Stop();
     }
 
@@ -53,6 +79,11 @@ public partial class WorldLayer
     void RenderWorld(IWorldRenderContext context)
     {
         context.Draw(World);
+    }
+    
+    private void RenderWorldViewportContext()
+    {
+        m_renderableWorldSurfaceContext?.World(m_worldContext, m_renderWorldAction);
     }
 
     public void RenderHud(IRenderableSurfaceContext ctx, RenderHudOptions options)

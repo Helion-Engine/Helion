@@ -7,6 +7,7 @@ using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.StatusBar;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.Resources.Definitions.MapInfo;
@@ -15,7 +16,6 @@ using Helion.Util;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
-using Helion.Resources.Archives.Collection;
 using Helion.World;
 
 namespace Helion.Layer.Worlds.StatusBar;
@@ -139,7 +139,16 @@ public class StatusBarRenderer
         int yOffset = layout.FullscreenRender ? 0 : (200 - layout.Height);
         Vec2I rootPos = (0, yOffset);
         
-        float widescreenOffset = GetWidescreenOffset(hud);
+        float windowAspect = (float)hud.WindowDimension.Width / hud.WindowDimension.Height;
+        float virtualAspect = 320f / 200f;
+
+        float hOffset = 0;
+        float vOffset = 0;
+
+        if (windowAspect > virtualAspect) 
+            hOffset = (200f * windowAspect - 320f) / 2f;
+        else if (windowAspect < virtualAspect)
+            vOffset = (320f / windowAspect - 200f) / 2f;
 
         if (!layout.FullscreenRender)
         {
@@ -149,47 +158,20 @@ public class StatusBarRenderer
 
             if (!string.IsNullOrEmpty(fillFlat) && hud.Textures.TryGet(fillFlat, out var bgHandle))
             {
-                if (widescreenOffset > 0)
+                int bgWidth = bgHandle.Dimension.Width;
+                int bgHeight = bgHandle.Dimension.Height;
+                if (bgHeight <= 0) bgHeight = 64;
+
+                int startX = (int)-Math.Ceiling(hOffset);
+                int endX = 320 + (int)Math.Ceiling(hOffset);
+                int startY = yOffset;
+                int endY = 200 + (int)Math.Ceiling(vOffset); 
+
+                for (int x = (startX / bgWidth - 1) * bgWidth; x < endX; x += bgWidth)
                 {
-                    int bgWidth = bgHandle.Dimension.Width;
-                    int bgHeight = bgHandle.Dimension.Height;
-                    if (bgHeight <= 0) bgHeight = 64;
-
-                    // If the layout claims the full 200 height (like Woof's overlay), 
-                    // we assume the "Solid" part is only the bottom 32 pixels (Standard Doom Bar).
-                    // We clamp the border drawing to that area so we don't cover the 3D view on the sides.
-                    int borderY = yOffset;
-                    int borderHeight = layout.Height;
-
-                    if (layout.Height >= 200)
+                    for (int y = startY; y < endY; y += bgHeight)
                     {
-                        borderHeight = 32;
-                        borderY = 200 - 32;
-                    }
-
-                    int verticalTiles = (borderHeight + bgHeight - 1) / bgHeight; 
-                    int iterations = (int)(widescreenOffset / bgWidth) + 1;
-
-                    // Draw Left Pillars
-                    int xPos = -bgWidth;
-                    for (int i = 0; i < iterations; i++)
-                    {
-                        for (int y = 0; y < verticalTiles; y++)
-                        {
-                            hud.Image(fillFlat, (xPos, borderY + (y * bgHeight)), anchor: Align.TopLeft);
-                        }
-                        xPos -= bgWidth;
-                    }
-
-                    // Draw Right Pillars
-                    xPos = 320;
-                    for (int i = 0; i < iterations; i++)
-                    {
-                        for (int y = 0; y < verticalTiles; y++)
-                        {
-                            hud.Image(fillFlat, (xPos, borderY + (y * bgHeight)), anchor: Align.TopLeft);
-                        }
-                        xPos += bgWidth;
+                        hud.Image(fillFlat, (x, y), anchor: Align.TopLeft);
                     }
                 }
             }
@@ -197,7 +179,7 @@ public class StatusBarRenderer
 
         foreach (var child in layout.Children)
         {
-            DrawElementWrapper(hud, child, rootPos, layout.Height, context, widescreenOffset);
+            DrawElementWrapper(hud, child, rootPos, layout.Height, context, hOffset);
         }
 
         hud.PopVirtualDimension();
@@ -982,22 +964,6 @@ public class StatusBarRenderer
             else if (dynRight) pos.X += offset;
         }
         return pos;
-    }
-
-    private static float GetWidescreenOffset(IHudRenderContext hud)
-    {
-        var scaleWidth = hud.ArchiveCollection.Config.Hud.Width.Value * 320.0;
-        if (scaleWidth > hud.Dimension.Width * Constants.DoomVirtualAspectRatio || scaleWidth == 0)
-        {
-            float currentAspect = hud.WindowDimension.AspectRatio;
-            if (currentAspect > Constants.DoomVirtualAspectRatio)
-            {
-                float widthInDoomUnits = 320.0f * (currentAspect / Constants.DoomVirtualAspectRatio);
-                return (widthInDoomUnits - 320.0f) / 2.0f;
-            }
-        }
-
-        return -(hud.Dimension.Width - (int)scaleWidth) / 2;
     }
 
     private static bool ResolveGlyph(IHudRenderContext hud, string patch, out int width, out int height)
