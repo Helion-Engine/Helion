@@ -611,62 +611,6 @@ public partial class GeometryRenderer : IDisposable
         }
     }
 
-    private void RenderSectorSideWall3D(Sector3D sector3d, int lineIndex, bool renderFront, bool renderBack)
-    {
-        var sectorLine = sector3d.FakeSector.Lines[lineIndex];
-        var parentSectorLine = sector3d.ParentSector.Lines[lineIndex];
-        var useSide = sectorLine.Front;
-        var shouldRender = m_renderMode == GeometryRenderMode.All || useSide.IsDynamic;
-        if (!shouldRender)
-            return;
-
-        var wallHeights = sector3d.CalculateWallHeights(m_world.Gametick);
-        var newWallHeights = wallHeights;
-        var wallSector = sector3d.FakeSector;
-
-        if (m_drawnSides[useSide.Id] == WorldStatic.CheckCounter)
-            return;
-
-        m_drawnSides[useSide.Id] = WorldStatic.CheckCounter;
-
-        bool flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
-        var parentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
-        var checkParentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
-
-        useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentBack);
-
-        wallSector.Ceiling.Z = wallHeights.TopZ;
-        wallSector.Ceiling.PrevZ = wallHeights.PrevTopZ;
-        wallSector.Floor.Z = wallHeights.BottomZ;
-        wallSector.Floor.PrevZ = wallHeights.PrevBottomZ;
-        wallSector.Floor.LastRenderChangeGametick = sector3d.ControlSector.Floor.LastRenderChangeGametick;
-        wallSector.Ceiling.LastRenderChangeGametick = sector3d.ControlSector.Ceiling.LastRenderChangeGametick;
-
-        if (parentBack != null && renderFront)
-        {
-            sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights);
-            wallSector.Ceiling.Z = newWallHeights.TopZ;
-            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
-            wallSector.Floor.Z = newWallHeights.BottomZ;
-            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
-            RenderOneSided(useSide, true, out _, out _, out _, renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
-        }
-
-        if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null && renderBack &&
-            (checkParentFront == null || sector3d.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights)))
-        {
-            useSide = sectorLine.Back;
-            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
-            wallSector.Ceiling.Z = newWallHeights.TopZ;
-            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
-            wallSector.Floor.Z = newWallHeights.BottomZ;
-            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
-            RenderOneSided(useSide, false, out _, out _, out _, renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, renderSkySide: false);
-        }
-
-        return;
-    }
-
     private void CheckFloodFillLine(Side front, Side back)
     {
         if (m_renderMode == GeometryRenderMode.All)

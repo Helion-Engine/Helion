@@ -29,9 +29,11 @@ public enum SectorFlags3D
     UseUpperTexture = 2048,
     UseLowerTexture = 4096,
     AdditiveTransparency = 8192,
-    Fade = 16384,
-    ResetAbove = 32768,
-    NoRender = 65536
+    Fade = 65536,
+    ResetAbove = 131072,
+
+    // Helion Flags
+    NoRender = 262144
 }
 
 public enum SectorLightFlags3D
@@ -49,6 +51,7 @@ public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double p
     public double PrevTopZ = prevTopZ;
     public double PrevBottomZ = prevBottomZ;
     public bool Invalid;
+    public bool Clipped;
 }
 
 public enum SolidContext
@@ -77,6 +80,8 @@ public sealed class Sector3D
     public SectorFlags3D Flags;
     public SectorLightFlags3D LightFlags;
     public float Alpha;
+    public double ClipBottomZ;
+    public double ClipPrevBottomZ;
 
     private readonly Entity Entity;
     private WallHeights m_wallHeights;
@@ -140,6 +145,9 @@ public sealed class Sector3D
             Entity.Flags.SetSolid();
             Entity.Flags.SetActLikeBridge();
         }
+
+        ClipBottomZ = ControlBottom.Z;
+        ClipPrevBottomZ = ControlBottom.PrevZ;
     }
 
     public void Reset()
@@ -269,32 +277,35 @@ public sealed class Sector3D
 
         m_lastGameTick = gameTick;
         m_wallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
+        ClipBottomZ = ControlBottom.Z;
 
-        if (ParentSector.Sectors3D.Length == 0)// || RenderDataStyle != RenderDataStyle.Normal)
+        if (ParentSector.Sectors3D.Length == 0)
             return m_wallHeights;
 
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
             var checkSector3D = ParentSector.Sectors3D[i];
-            if (checkSector3D == this || checkSector3D.RenderDataStyle != RenderDataStyle.Normal)
+            if (checkSector3D == this)
             {
                 if (i < ParentSector.Sectors3D.Length - 1)
                 {
                     checkSector3D = ParentSector.Sectors3D[i + 1];
                     if (checkSector3D.ControlTop.Z > m_wallHeights.BottomZ && ShouldClipSector3D(checkSector3D))
                     {
+                        m_wallHeights.Clipped = true;
                         m_wallHeights.TopZ = checkSector3D.ControlTop.Z;
                         m_wallHeights.PrevTopZ = checkSector3D.ControlTop.PrevZ;
+                        ClipBottomZ = checkSector3D.ControlTop.Z;
                     }
                 }
 
                 break;
             }
 
-            if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ControlBottom.Z)
+            if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ClipBottomZ)
             {
                 if (!AdjustWallHeights(ref m_wallHeights,
-                    checkSector3D.ControlTop.Z, checkSector3D.ControlBottom.Z, checkSector3D.ControlTop.PrevZ, checkSector3D.ControlBottom.PrevZ))
+                    checkSector3D.ControlTop.Z, checkSector3D.ClipBottomZ, checkSector3D.ControlTop.PrevZ, checkSector3D.ClipPrevBottomZ))
                     break;
             }
         }

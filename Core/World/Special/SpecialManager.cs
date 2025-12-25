@@ -856,7 +856,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void SetSector3DFloor(Line specialLine, List<Sector3D> sectors3d, Dictionary<int, int> counts)
+    private void SetSector3DFloor(Line specialLine, List<Sector3D> sectors3D, Dictionary<int, int> counts)
     {
         var sectors = GetSectorsFromSpecialLine(specialLine);
         var sectorFlags = SectorFlags3D.None;
@@ -884,7 +884,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         if ((specialLine.Args.Arg1 & (int)ZDoom3DFloorFlagsForType.ShootabilityInvert) != 0)
             sectorFlags |= SectorFlags3D.ShootInvert;
 
-        sectorFlags |= (SectorFlags3D)((int)flags * 128);
+        sectorFlags |= (SectorFlags3D)((int)flags * 128 & ((int)SectorFlags3D.NoRender - 1));
 
         if (specialLine.Special.LineSpecialType == ZDoomLineSpecialType.TransferLight)
         {
@@ -912,7 +912,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             var sector = sectors.GetSector(i);
             var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front.Middle.TextureHandle, sectorFlags, lightFlags, alpha);
-            sectors3d.Add(sector3d);
+            sectors3D.Add(sector3d);
             frontSector.TaggedSectors3D[taggedSectorIndex++] = sector3d;
             if (counts.TryGetValue(sector.Id, out var count))
                 counts[sector.Id] = ++count;

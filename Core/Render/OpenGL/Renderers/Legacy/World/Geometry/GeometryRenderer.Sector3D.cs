@@ -29,40 +29,40 @@ public partial class GeometryRenderer
     public void SetTestRenderSectorSliceFunc3D(Func<RenderWallSliceArgs, RenderWallSliceResult> func) => m_renderSectorSliceFunc3D = func;
     public void RestoreSectorSliceFunc3D() => m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
-    public WallHeights SetSectorForLineRendering3D(Sector3D sector3d)
+    public WallHeights SetSectorForLineRendering3D(Sector3D sector3D)
     {
-        var wallHeights = sector3d.CalculateWallHeights(m_world.Gametick);
-        var wallSector = sector3d.FakeSector;
+        var wallHeights = sector3D.CalculateWallHeights(m_world.Gametick);
+        var wallSector = sector3D.FakeSector;
         wallSector.Ceiling.Z = wallHeights.TopZ;
         wallSector.Floor.Z = wallHeights.BottomZ;
-        wallSector.Floor.LastRenderChangeGametick = sector3d.ControlSector.Floor.LastRenderChangeGametick;
-        wallSector.Ceiling.LastRenderChangeGametick = sector3d.ControlSector.Ceiling.LastRenderChangeGametick;
+        wallSector.Floor.LastRenderChangeGametick = sector3D.ControlSector.Floor.LastRenderChangeGametick;
+        wallSector.Ceiling.LastRenderChangeGametick = sector3D.ControlSector.Ceiling.LastRenderChangeGametick;
         return wallHeights;
     }
 
-    public void RenderSectorLine3D(Sector3D sector3d, int lineIndex, bool renderFront, bool renderBack, in WallHeights wallHeights,
+    public void RenderSectorLine3D(Sector3D sector3D, int lineIndex, bool renderFront, bool renderBack, in WallHeights wallHeights,
         Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
     {
-        var wallSector = sector3d.FakeSector;
+        var wallSector = sector3D.FakeSector;
         var sectorLine = wallSector.Lines[lineIndex];
-        var parentSectorLine = sector3d.ParentSector.Lines[lineIndex];
+        var parentSectorLine = sector3D.ParentSector.Lines[lineIndex];
 
         var flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
         var parentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
         var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
         if (renderFront && parentBack != null)
-            RenderSide3D(sector3d, sectorLine.Front, parentBack, parentFront, wallHeights, wallSector, true, false, renderVertices);
+            RenderSide3D(sector3D, sectorLine.Front, parentBack, parentFront, wallHeights, wallSector, true, false, renderVertices);
 
-        if (renderBack && sector3d.ShouldRenderInsideWalls && sectorLine.Back != null)
-            RenderSide3D(sector3d, sectorLine.Back, parentFront, parentBack, wallHeights, wallSector, false, true, renderVertices);
+        if (renderBack && sector3D.ShouldRenderInsideWalls && sectorLine.Back != null)
+            RenderSide3D(sector3D, sectorLine.Back, parentFront, parentBack, wallHeights, wallSector, false, true, renderVertices);
     }
 
-    private void RenderSide3D(Sector3D sector3d, Side useSide, Side? parentSide, Side? oppositeParentSide,
+    private void RenderSide3D(Sector3D sector3D, Side useSide, Side? parentSide, Side? oppositeParentSide,
         in WallHeights wallHeights, Sector wallSector, bool isFront, bool isRenderInside,
         Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
     {
-        if (parentSide == null || !sector3d.CalculateWallHeights(parentSide, wallHeights, out var newWallHeights))
+        if (parentSide == null || !sector3D.CalculateWallHeights(parentSide, wallHeights, out var newWallHeights))
             return;
 
         wallSector.Ceiling.Z = newWallHeights.TopZ;
@@ -70,7 +70,7 @@ public partial class GeometryRenderer
         wallSector.Floor.Z = newWallHeights.BottomZ;
         wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
 
-        useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentSide);
+        useSide.Middle.TextureHandle = sector3D.GetTextureHandle(useSide, parentSide);
         if (parentSide != null)
         {
             useSide.Offset = parentSide.Offset;
@@ -80,12 +80,12 @@ public partial class GeometryRenderer
         // Don't traverse when rendering inside of 3d sector with alpha. These are forced to render through top to bottom without being cut.
         // Rendering is pushed on the GL side with PolygonOffset to not z-fight.
         var traverseSide = parentSide;
-        if (isRenderInside && sector3d.RenderDataStyle != RenderDataStyle.Normal)
+        if (isRenderInside && sector3D.RenderDataStyle != RenderDataStyle.Normal)
             traverseSide = m_emptyTraverseSide;
 
         var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
-            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3d, wallHeights3D: newWallHeights, 
-            style: sector3d.RenderDataStyle);
+            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3D, wallHeights3D: newWallHeights, 
+            style: sector3D.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
             renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
@@ -156,14 +156,14 @@ public partial class GeometryRenderer
 
         for (int i = 0; i < traverseSide.Sector.Sectors3D.Length; i++)
         {
-            var sector3d = traverseSide.Sector.Sectors3D[i];
-            var heights = sector3d.CalculateWallHeights(m_world.Gametick);
-            m_sliceSector.Ceiling.LastRenderChangeGametick = sector3d.ControlTop.LastRenderChangeGametick;
-            m_sliceSector.Floor.LastRenderChangeGametick = sector3d.ControlBottom.LastRenderChangeGametick;
+            var sector3D = traverseSide.Sector.Sectors3D[i];
+            var heights = sector3D.CalculateWallHeights(m_world.Gametick);
+            m_sliceSector.Ceiling.LastRenderChangeGametick = sector3D.ControlTop.LastRenderChangeGametick;
+            m_sliceSector.Floor.LastRenderChangeGametick = sector3D.ControlBottom.LastRenderChangeGametick;
 
             // Render the top portion to this 3d sector
             SetSectorToSlice(m_sliceSector, prevHeights, heights);
-            args.LightSector = sector3d.LightTop;
+            args.LightSector = sector3D.LightTop; 
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
 
@@ -182,19 +182,22 @@ public partial class GeometryRenderer
 
             if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
                 SetWallOffset(m_fakeWall, offsetY, heights.TopZ, anchorZ);
-            
-            // Render the inside portion of this 3d sector
-            SetSectorToSlice(m_sliceSector, heights);
-            args.LightSector = sector3d.LightBottom;
-            args.Side.LastRenderGametick = -1;
-            result = renderFunc(args);
-            AddVertices(m_vertices, result.Vertices);
 
-            if (result.AddOffset)
-                SetWallOffset(m_fakeWall, offsetY, heights.BottomZ, anchorZ);
+            // Render the inside portion of this 3D sector
+            if (!heights.Clipped)
+            {
+                SetSectorToSlice(m_sliceSector, heights);
+                args.LightSector = sector3D.LightBottom;
+                args.Side.LastRenderGametick = -1;
+                result = renderFunc(args);
+                AddVertices(m_vertices, result.Vertices);
+
+                if (result.AddOffset)
+                    SetWallOffset(m_fakeWall, offsetY, heights.BottomZ, anchorZ);
+            }
 
             prevHeights = heights;
-            lightSector = sector3d.LightBottom;
+            lightSector = sector3D.LightBottom;
         }
 
         WorldStatic.LineVertexGapTopZ = saveGapZ;
@@ -215,12 +218,12 @@ public partial class GeometryRenderer
         return finalResult;
     }
 
-    private static void SetWallSliceSector(Side side, Sector wallSector3d, Sector wallSector)
+    private static void SetWallSliceSector(Side side, Sector wallSector3D, Sector wallSector)
     {
-        wallSector.Ceiling.Z = wallSector3d.Ceiling.Z;
-        wallSector.Ceiling.PrevZ = wallSector3d.Ceiling.PrevZ;
-        wallSector.Floor.Z = wallSector3d.Floor.Z;
-        wallSector.Floor.PrevZ = wallSector3d.Floor.PrevZ;
+        wallSector.Ceiling.Z = wallSector3D.Ceiling.Z;
+        wallSector.Ceiling.PrevZ = wallSector3D.Ceiling.PrevZ;
+        wallSector.Floor.Z = wallSector3D.Floor.Z;
+        wallSector.Floor.PrevZ = wallSector3D.Floor.PrevZ;
         wallSector.Ceiling.TextureHandle = side.Sector.Ceiling.TextureHandle;
         wallSector.Floor.TextureHandle = side.Sector.Floor.TextureHandle;
         wallSector.CeilingSkyTextureHandle = side.Sector.CeilingSkyTextureHandle;
