@@ -100,8 +100,6 @@ public sealed class Sector : IFloorCeilingAnchor
     private SectorEffect m_initialSectorEffect;
     private InstantKillEffect m_initialKillEffect;
 
-    private static readonly Comparison<Sector3D> HeightComparison = new(HeightCompare);
-
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -223,47 +221,6 @@ public sealed class Sector : IFloorCeilingAnchor
 
     public short FloorRenderLightLevel => TransferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => TransferCeilingLightSector.Ceiling.LightLevel;
-
-    public void SetHeights3D()
-    {
-        if (Sectors3D.Length == 0)
-            return;
-
-        TransferHeights = null;
-        Sectors3D.Sort(HeightComparison);
-
-        var currentLightSector = this;
-        for (int i = 0; i < Sectors3D.Length; i++)
-        {
-            var sector3d = Sectors3D[i];
-            sector3d.LightTop = currentLightSector;
-
-            if ((sector3d.Flags & (SectorFlags3D.RestrictLighting)) != 0)
-            {
-                sector3d.LightMiddle = sector3d.ControlSector;
-                sector3d.LightBottom = currentLightSector;
-                continue;
-            }
-
-            if ((sector3d.Flags & (SectorFlags3D.DisableLighting | SectorFlags3D.RestrictLighting)) != 0)
-            {
-                sector3d.LightMiddle = currentLightSector;
-                sector3d.LightBottom = currentLightSector;
-                continue;
-            }
-
-            currentLightSector = sector3d.ControlSector;
-            sector3d.LightMiddle = currentLightSector;
-            sector3d.LightBottom = currentLightSector;
-        }
-
-        TransferFloorLightSector = currentLightSector;
-    }
-
-    private static int HeightCompare(Sector3D x, Sector3D y)
-    {
-        return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
-    }
 
     public void SetFriction(double friction)
     {

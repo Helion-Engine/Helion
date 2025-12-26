@@ -118,8 +118,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             var sector = world.Sectors[i];
             AddTransferSector(sector);
 
-            if (sector.Sectors3D.Length > 0)
-                sector.SetHeights3D();
+            Sector3D.SetHeights3D(sector);
 
             if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, SectorPlaneFace.Floor, true);

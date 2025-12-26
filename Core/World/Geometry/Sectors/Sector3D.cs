@@ -76,10 +76,11 @@ public sealed class Sector3D
     public SectorPlane? FakeBottomFlipped;
     public Sector LightTop;
     public Sector LightBottom;
-    public Sector? LightMiddle;
+    public Sector LightMiddle;
     public SectorFlags3D Flags;
     public SectorLightFlags3D LightFlags;
     public float Alpha;
+    public bool Clipped;
     public double ClipBottomZ;
     public double ClipPrevBottomZ;
 
@@ -95,6 +96,7 @@ public sealed class Sector3D
     public RenderDataStyle RenderDataStyle;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
+    private static readonly Comparison<Sector3D> SortByTop = new(HeightCompare);
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
     {
@@ -124,6 +126,7 @@ public sealed class Sector3D
         ControlTop = controlSector.Ceiling;
         ControlBottom = controlSector.Floor;
         LightTop = ParentSector;
+        LightMiddle = ParentSector;
         LightBottom = ParentSector;
         Flags = flags;
         LightFlags = lightFlags;
@@ -148,6 +151,84 @@ public sealed class Sector3D
 
         ClipBottomZ = ControlBottom.Z;
         ClipPrevBottomZ = ControlBottom.PrevZ;
+    }
+
+    public static void SetHeights3D(Sector sector)
+    {
+        if (sector.Sectors3D.Length == 0)
+            return;
+
+        sector.TransferHeights = null;
+        sector.Sectors3D.Sort(SortByTop);
+
+        var clipped = false;
+        var currentLightSector = sector;
+        Sector3D? lastSector3D = null;
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+        {
+            var sector3D = sector.Sectors3D[i];
+            sector3D.Clipped = false;
+            sector3D.LightTop = currentLightSector;
+
+            if ((sector3D.Flags & (SectorFlags3D.RestrictLighting)) != 0)
+            {
+                sector3D.LightMiddle = sector3D.ControlSector;
+                sector3D.LightBottom = currentLightSector;
+                continue;
+            }
+
+            if ((sector3D.Flags & (SectorFlags3D.DisableLighting | SectorFlags3D.RestrictLighting)) != 0)
+            {
+                sector3D.LightMiddle = currentLightSector;
+                sector3D.LightBottom = currentLightSector;
+                continue;
+            }
+
+            currentLightSector = sector3D.ControlSector;
+            sector3D.LightMiddle = currentLightSector;
+            sector3D.LightBottom = currentLightSector;
+
+            if (lastSector3D != null && lastSector3D.ControlBottom.Z < sector3D.ControlTop.Z)            
+            {
+                clipped = true;
+                lastSector3D.Clipped = true;
+            }
+
+            lastSector3D = sector3D;
+        }
+
+        // 3D sectors are sorted by top. Need to check bottom planes that clip through others to correctly set light properties.
+        // Only applies to the sector's floor and only need to check 3D sectors that clipped and render flats.
+        if (clipped)
+        {
+            for (int i = 0; i < sector.Sectors3D.Length; i++)
+            {
+                var sector3D = sector.Sectors3D[i];
+                if (!sector3D.Clipped || !sector3D.ShouldRenderFlats)
+                    continue;
+
+                var planeZ = sector3D.ControlBottom.Z;
+                for (int j = 0; j < sector.Sectors3D.Length; j++)
+                {
+                    var checkSector3D = sector.Sectors3D[j];
+                    if (checkSector3D.ControlTop.Z < planeZ)
+                        break;
+
+                    if (planeZ > checkSector3D.ControlBottom.Z)
+                    {
+                        sector3D.LightBottom = checkSector3D.LightBottom;
+                        break;
+                    }
+                }
+            }
+        }
+
+        sector.TransferFloorLightSector = currentLightSector;
+    }
+
+    private static int HeightCompare(Sector3D x, Sector3D y)
+    {
+        return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
     }
 
     public void Reset()

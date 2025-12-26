@@ -722,7 +722,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         foreach ((var sectorId, _) in counts)
         {
             var sector = m_world.Sectors[sectorId];
-            sector.SetHeights3D();
+            Sector3D.SetHeights3D(sector);
         }
     }
 
