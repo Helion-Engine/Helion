@@ -52,6 +52,8 @@ public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double p
     public double PrevBottomZ = prevBottomZ;
     public bool Invalid;
     public bool Clipped;
+
+    public readonly override string ToString() => $"[{BottomZ} -> {TopZ}] Invalid={Invalid} Clipped={Clipped}";
 }
 
 public enum SolidContext
@@ -374,8 +376,8 @@ public sealed class Sector3D
                     if (checkSector3D.ControlTop.Z > m_wallHeights.BottomZ && ShouldClipSector3D(checkSector3D))
                     {
                         m_wallHeights.Clipped = true;
-                        m_wallHeights.TopZ = checkSector3D.ControlTop.Z;
-                        m_wallHeights.PrevTopZ = checkSector3D.ControlTop.PrevZ;
+                        m_wallHeights.BottomZ = checkSector3D.ControlTop.Z;
+                        m_wallHeights.PrevBottomZ = checkSector3D.ControlTop.Z;
                         ClipBottomZ = checkSector3D.ControlTop.Z;
                     }
                 }
