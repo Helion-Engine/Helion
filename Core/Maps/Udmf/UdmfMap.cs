@@ -497,6 +497,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 sector.SkyCeiling = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("moreids"))
                 sector.MoreTags = ParseMoreIds(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("lightcolor"))
+                sector.LightColor = (uint)parser.ParseInt(prop.Value);
 
             else if (prop.Name.EqualsIgnoreCase("scrollfloormode"))
                 GetScrollSector(sector.Id, SectorPlaneFace.Floor, scrollSectors).Flags = (UdmfScrollSectorFlags)parser.ParseInt(prop.Value);

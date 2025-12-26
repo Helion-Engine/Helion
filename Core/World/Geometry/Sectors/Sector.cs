@@ -1,5 +1,6 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
@@ -16,7 +17,6 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using static Helion.World.Entities.EntityManager;
@@ -57,6 +57,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public int DamageAmount;
     public int DamageInterval;
     public int DamageLeakiness;
+    public Color LightColor;
     public string SkyFloor;
     public string SkyCeiling;
     public int? FloorSkyTextureHandle;

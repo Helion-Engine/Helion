@@ -340,11 +340,9 @@ public class DefinitionEntries
         m_processedTranslationColormaps.Clear();
     }
 
-    public void LoadLevelSectorColorMaps(IEnumerable<Color> colors)
+    public void ClearLevelSectorColorMaps()
     {
         m_levelSectorColormaps.Clear();
-        foreach (var color in colors)
-            GetOrCreateLevelSectorColormap(color);
     }
 
     private bool GetGameConfPlayerTranslations([NotNullWhen(true)] out Colormap?[]? colormaps)
@@ -442,7 +440,7 @@ public class DefinitionEntries
         return null;
     }
 
-    private Colormap GetOrCreateLevelSectorColormap(Color color)
+    public Colormap GetOrCreateLevelSectorColormap(Color color)
     {
         if (m_levelSectorColormaps.TryGetValue(color, out var colormap))
             return colormap;

@@ -743,14 +743,16 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
         else
         {
-            HashSet<Color> colorMapColors = [];
+            var definitions = m_world.ArchiveCollection.Definitions;
+            definitions.ClearLevelSectorColorMaps();
+
             foreach (var line in m_world.Lines)
             {
                 if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
                     HandleLineInitSpecial(line);
 
                 if (line.Special != null && line.Special.LineSpecialType == ZDoomLineSpecialType.SectorSetColor)
-                    colorMapColors.Add(new((byte)line.Args.Arg1, (byte)line.Args.Arg2, (byte)line.Args.Arg3));
+                    definitions.GetOrCreateLevelSectorColormap(new((byte)line.Args.Arg1, (byte)line.Args.Arg2, (byte)line.Args.Arg3));
             }
 
             for (int i = 0; i < m_world.Sectors.Count; i++)
@@ -759,9 +761,10 @@ public sealed class SpecialManager : ITickable, IDisposable
                 if (sector.Secret)
                     levelStats.TotalSecrets++;
                 HandleSectorSpecial(sector);
-            }
 
-            m_world.ArchiveCollection.Definitions.LoadLevelSectorColorMaps(colorMapColors);
+                if (sector.LightColor.m_value > 0)
+                    sector.Colormap = definitions.GetOrCreateLevelSectorColormap(sector.LightColor);
+            }
         }
     }
 

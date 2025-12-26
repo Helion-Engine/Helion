@@ -1,5 +1,4 @@
 ﻿using Helion.Geometry.Segments;
-using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
@@ -75,7 +74,8 @@ public class UdmfGeometryBuilder
                 SkyFloor = mapSector.SkyFloor,
                 SkyCeiling = mapSector.SkyCeiling,
                 DamageInterval = mapSector.DamageInterval == 0 ? SectorDamageSpecial.DefaultDamageInterval : mapSector.DamageInterval,
-                MoreTags = mapSector.MoreTags
+                MoreTags = mapSector.MoreTags,
+                LightColor = new(mapSector.LightColor)
             };
 
             if (mapSector.DamageAmount != 0)
