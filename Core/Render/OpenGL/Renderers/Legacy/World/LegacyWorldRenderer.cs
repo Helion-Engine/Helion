@@ -211,7 +211,7 @@ public class LegacyWorldRenderer : WorldRenderer
             var sector = islandNode.Value.Sector;
             // Multiple 3D sectors can link in the same island so this check can't short here.
             // The island node's sector is the fake 3D sector so using the CheckCount on it is valid below.
-            if (sector.Sector3D == null && sectorIsland.BlockmapCount == m_renderData.CheckCount)
+            if (sector.Sector3D == null && sector.Sectors3D.Length == 0 && sectorIsland.BlockmapCount == m_renderData.CheckCount)
                 continue;
 
             sectorIsland.BlockmapCount = m_renderData.CheckCount;

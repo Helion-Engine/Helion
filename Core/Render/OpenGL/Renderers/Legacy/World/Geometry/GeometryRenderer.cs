@@ -88,6 +88,11 @@ public partial class GeometryRenderer : IDisposable
     private int[] m_drawnSides = [];
     private readonly Dictionary<int, DynamicVertex[]> m_vertexPlaneLookup3D = [];
 
+    private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderOneSidedSliceFunc;
+    private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedLowerSliceFunc;
+    private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedUpperSliceFunc;
+    private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
+
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
@@ -113,9 +118,12 @@ public partial class GeometryRenderer : IDisposable
             Portals = new(archiveCollection, glTextureManager);
             m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
             m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
-
         }
 
+        m_renderOneSidedSliceFunc = RenderOneSidedSlice;
+        m_renderTwoSidedLowerSliceFunc = RenderTwoSidedLowerSlice;
+        m_renderTwoSidedUpperSliceFunc = RenderTwoSidedUpperSlice;
+        m_renderTwoSidedMiddleSliceFunc = RenderTwoSidedMiddleSlice;
         m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
         var options = VertexOptions.World(1, 1, 0, 0, 0, 0);
@@ -699,9 +707,16 @@ public partial class GeometryRenderer : IDisposable
             Portals.UpdateFloodFillPlane(side, side.Sector.GetRenderSector(m_transferHeightsView), SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
 
         if (side.Line.Flags.TwoSided && side.Line.Back != null)
+        {
             RenderTwoSided(side, isFrontSide);
+        }
         else if (m_renderMode == GeometryRenderMode.All || side.IsDynamic)
-            RenderOneSided(side, isFrontSide, out _, out _, out _);
+        {
+            if (WorldStatic.Sector3D && side.Sector.Sectors3D.Length > 0)
+                RenderWallSlices3D(side, side.Middle, isFrontSide, side, side.Sector, side.Sector, m_renderOneSidedSliceFunc);
+            else
+                RenderOneSided(side, isFrontSide, out _, out _, out _);
+        }
     }
 
     public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture,
@@ -829,9 +844,9 @@ public partial class GeometryRenderer : IDisposable
 
     private void RenderTwoSided(Side facingSide, bool isFrontSide)
     {
-        Side otherSide = facingSide.PartnerSide!;
-        Sector facingSector = facingSide.Sector.GetRenderSector(m_transferHeightsView);
-        Sector otherSector = otherSide.Sector.GetRenderSector(m_transferHeightsView);
+        var otherSide = facingSide.PartnerSide!;
+        var facingSector = facingSide.Sector.GetRenderSector(m_transferHeightsView);
+        var otherSector = otherSide.Sector.GetRenderSector(m_transferHeightsView);
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
 
@@ -847,19 +862,41 @@ public partial class GeometryRenderer : IDisposable
         }
 
         var visibility = GetSideVisibility(facingSide, otherSide, facingSector, otherSector);
+        var renderSlices3D = WorldStatic.Sector3D && facingSide.Sector.Sectors3D.Length > 0;
 
         if ((visibility & SideTexture.Lower) != 0)
-            RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
+        {
+            if (renderSlices3D)
+                RenderWallSlices3D(facingSide, facingSide.Lower, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedLowerSliceFunc);
+            else
+                RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
+        }
 
         if ((visibility & SideTexture.Upper) != 0)
-            RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
+        {
+            if (renderSlices3D)
+                RenderWallSlices3D(facingSide, facingSide.Upper, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedUpperSliceFunc);
+            else
+                RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
+        }
 
         if ((visibility & SideTexture.Middle) != 0)
         {
-            RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out var midTexVertices);
+            Span<DynamicVertex> vertices;
+            if (renderSlices3D)
+            {
+                var result = RenderWallSlices3D(facingSide, facingSide.Middle, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedMiddleSliceFunc);
+                vertices = result.Vertices;
+            }
+            else
+            {
+                RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out var midTexVertices);
+                vertices = midTexVertices;
 
-            if (midTexVertices != null && m_vanillaRender && m_buffer)
-                RenderMidTexCoverWalls(facingSide, facingSector, otherSector, midTexVertices, visibility, m_renderCoverWallAction);
+            }
+
+            if (vertices.Length > 0 && m_vanillaRender && m_buffer)
+                RenderMidTexCoverWalls(facingSide, facingSector, otherSector, vertices, visibility, m_renderCoverWallAction);
         }
     }
 

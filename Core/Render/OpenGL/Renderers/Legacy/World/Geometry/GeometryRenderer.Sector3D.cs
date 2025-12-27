@@ -91,11 +91,6 @@ public partial class GeometryRenderer
             renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
     }
 
-    private static int HeightCompare(Sector3D x, Sector3D y)
-    {
-        return y.ControlBottom.Z.CompareTo(x.ControlBottom.Z);
-    }
-
     public RenderWallSliceResult RenderWallSlices3D(Side side, Wall wall, bool isFrontSide,
         Side otherSide, Sector facingSector, Sector otherSector,
         Func<RenderWallSliceArgs, RenderWallSliceResult> renderFunc,

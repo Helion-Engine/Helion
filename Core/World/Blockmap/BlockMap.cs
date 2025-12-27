@@ -275,14 +275,14 @@ public class BlockMap
         LinkInternal(world, sector, sector.Id);
     }
 
-    public void LinkDynamic(IWorld world, Sector3D sector3d)
+    public void LinkDynamic(IWorld world, Sector3D sector3D)
     {
-        Assert.Precondition(sector3d.FakeSector.BlockmapNodes.Length == 0, "Forgot to unlink sector from blockmap");
+        Assert.Precondition(sector3D.FakeSector.BlockmapNodes.Length == 0, "Forgot to unlink sector from blockmap");
 
-        if (sector3d.ParentSectorId >= world.Geometry.IslandGeometry.SectorIslands.Length)
+        if (sector3D.ParentSectorId >= world.Geometry.IslandGeometry.SectorIslands.Length)
             return;
 
-        LinkInternal(world, sector3d.FakeSector, sector3d.ParentSectorId);
+        LinkInternal(world, sector3D.FakeSector, sector3D.ParentSectorId);
     }
 
     private void LinkInternal(IWorld world, Sector sector, int sectorId)
