@@ -356,7 +356,7 @@ public partial class GeometryRenderer
         {
             m_fakeFacing.Floor.Z = lowerBottomZ;
             m_fakeFacing.Ceiling.Z = lowerBottomZ;
-            m_fakeFacing.Floor.Z = lowerBottomPrevZ;
+            m_fakeFacing.Floor.PrevZ = lowerBottomPrevZ;
             m_fakeFacing.Ceiling.Z = lowerBottomPrevZ;
         }
 
