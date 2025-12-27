@@ -763,7 +763,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 HandleSectorSpecial(sector);
 
                 if (sector.LightColor.m_value > 0)
-                    sector.Colormap = definitions.GetOrCreateLevelSectorColormap(sector.LightColor);
+                    sector.SetColorMap(definitions.GetOrCreateLevelSectorColormap(sector.LightColor));
             }
         }
     }
