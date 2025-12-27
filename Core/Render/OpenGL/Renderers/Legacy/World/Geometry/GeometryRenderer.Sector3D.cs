@@ -1,4 +1,5 @@
-﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+﻿using Helion.Maps.Specials;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
@@ -20,6 +21,7 @@ public partial class GeometryRenderer
     private readonly Wall m_fakeWall = new(0, WallLocation.Middle);
     private readonly Side m_fakeSide;
     private readonly Side m_emptyTraverseSide;
+    private readonly SideScrollData m_fakeSideScrollData;
     private readonly Sector m_fakeFacing = Sector.CreateDefault();
     private readonly Sector m_fakeOther = Sector.CreateDefault();
     private readonly Sector m_sliceSector = Sector.CreateDefault();
@@ -115,20 +117,22 @@ public partial class GeometryRenderer
         WorldStatic.LineVertexGapBottomZ = 0;
 
         var prevHeights = CalculateWallHeights(side, wall, otherSector, wallHeights3D);
-        var wallSector3d = side.Sector.Sectors3D[0].FakeSector;
-        SetWallSliceSector(side, wallSector3d, m_sliceSector);
+        var wallSector3D = side.Sector.Sectors3D[0].FakeSector;
+        SetWallSliceSector(side, wallSector3D, m_sliceSector);
 
         m_fakeSide.Line = side.Line;
         m_fakeSide.IsFront = isFrontSide;
         m_fakeSide.PartnerSide = side.PartnerSide;
-        m_fakeSide.ScrollData = side.ScrollData;
         m_fakeSide.Sector = side.Sector;
         m_fakeSide.Flags = side.Flags;
         m_fakeSide.Alpha = anchorSector3D == null ? 1f : anchorSector3D.Alpha;
+        m_fakeSide.ScrollData = m_fakeSideScrollData;
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Offset.X = wall.Offset.X + side.Offset.X;
+        m_fakeWall.Location = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location;
+        m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Previous).Y = 0;
 
-        var offsetY = wall.Offset.Y + side.Offset.Y;
+        var offsetY = wall.Offset.Y + side.Offset.Y + (float)(side.ScrollData?.Offset(m_fakeWall.Location, ScrollOffsetType.Current).Y ?? 0);
 
         var lightSector = side.Sector.Sectors3D[0].ParentSector;
         RenderWallSliceResult result;
@@ -147,7 +151,7 @@ public partial class GeometryRenderer
             Style = style,
         };
 
-        SetWallOffset(m_fakeWall, offsetY, prevHeights.TopZ, anchorZ);
+        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, prevHeights.TopZ, prevHeights.PrevTopZ, anchorZ);
 
         for (int i = 0; i < traverseSide.Sector.Sectors3D.Length; i++)
         {
@@ -176,7 +180,7 @@ public partial class GeometryRenderer
             }
 
             if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
-                SetWallOffset(m_fakeWall, offsetY, heights.TopZ, anchorZ);
+                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, heights.TopZ, heights.PrevTopZ, anchorZ);
 
             // Render the inside portion of this 3D sector
             SetSectorToSlice(m_sliceSector, heights);
@@ -186,7 +190,7 @@ public partial class GeometryRenderer
             AddVertices(m_vertices, result.Vertices);
 
             if (result.AddOffset)
-                SetWallOffset(m_fakeWall, offsetY, heights.BottomZ, anchorZ);
+                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, heights.BottomZ, heights.PrevBottomZ, anchorZ);
 
             prevHeights = heights;
             lightSector = sector3D.LightBottom;
@@ -263,9 +267,12 @@ public partial class GeometryRenderer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SetWallOffset(Wall wall, float saveOffsetY, double sliceTopZ, double anchorZ)
+    private static unsafe void SetWallOffset(Side side, Wall wall, float saveOffsetY, double sliceTopZ, double prevSliceTopZ, double anchorZ)
     {
         wall.Offset.Y = saveOffsetY + (float)(anchorZ - sliceTopZ);
+        var prevOffsetY = saveOffsetY + (float)(anchorZ - prevSliceTopZ);
+        var offsetDiffY = prevOffsetY - wall.Offset.Y;
+        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = offsetDiffY;
     }
 
     private static void AddVertices(DynamicArray<DynamicVertex> vertices, Span<DynamicVertex> add)

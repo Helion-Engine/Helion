@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Render.Common.Shared.World;
 using Helion.Util.Container;
 using Helion.World;
@@ -10,6 +11,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Geometry.Walls;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World;
@@ -147,8 +149,8 @@ public static class WorldTriangulator
         // Set offset according to the scroll Y offset. The doom renderer would push the entire texture up/down.
         if (facingSide.ScrollData != null)
         {
-            offset += facingSide.ScrollData.OffsetMiddle.Y;
-            prevOffset += facingSide.ScrollData.LastOffsetMiddle.Y;
+            offset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Y;
+            prevOffset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Previous).Y;
         }
 
         var drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes, vertexGap, restrictSpan);
@@ -430,16 +432,8 @@ public static class WorldTriangulator
         var offsetV = (offsetSide.Offset.Y + offsetSide.Middle.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (offsetSide.ScrollData != null)
         {
-            if (previous)
-            {
-                offsetU += (float)offsetSide.ScrollData.LastOffsetMiddle.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)offsetSide.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V / absScaleY;
-            }
-            else
-            {
-                offsetU += (float)offsetSide.ScrollData.OffsetMiddle.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)offsetSide.ScrollData.OffsetMiddle.Y * textureUVInverse.V / absScaleY;
-            }
+            offsetU += (float)offsetSide.ScrollData.Offset(WallLocation.Middle, previous).X * textureUVInverse.U / absScaleX;
+            offsetV += (float)offsetSide.ScrollData.Offset(WallLocation.Middle, previous).Y * textureUVInverse.V / absScaleY;
         }
 
         float wallSpanU = (float)length * textureUVInverse.U;
@@ -473,16 +467,8 @@ public static class WorldTriangulator
         var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
-            if (previous)
-            {
-                offsetU += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.X / absScaleX;
-                offsetV += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.Y / absScaleY;
-            }
-            else
-            {
-                offsetU += (float)side.ScrollData.OffsetLower.X * textureUVInverse.X / absScaleX;
-                offsetV += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.Y / absScaleY;
-            }
+            offsetU += (float)side.ScrollData.Offset(WallLocation.Lower, previous).X * textureUVInverse.X / absScaleX;
+            offsetV += (float)side.ScrollData.Offset(WallLocation.Lower, previous).Y * textureUVInverse.Y / absScaleY;
         }       
 
         float wallSpanU = (float)length * textureUVInverse.X;
@@ -518,12 +504,7 @@ public static class WorldTriangulator
         var absScaleX = Math.Abs(side.Middle.Scale.X);
         var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
         if (side.ScrollData != null)
-        {
-            if (previous)
-                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.X / absScaleX;
-            else
-                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.X / absScaleX;
-        }
+            offsetU += (float)side.ScrollData.Offset(WallLocation.Middle, previous).X * textureUVInverse.X / absScaleX;
 
         float wallSpanU = (float)length * textureUVInverse.X;
         float leftU = offsetU;
@@ -550,16 +531,8 @@ public static class WorldTriangulator
         var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
-            if (previous)
-            {
-                offsetU += (float)side.ScrollData.LastOffsetUpper.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.LastOffsetUpper.Y * textureUVInverse.V / absScaleY;
-            }
-            else
-            {
-                offsetU += (float)side.ScrollData.OffsetUpper.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.OffsetUpper.Y * textureUVInverse.V / absScaleY;
-            }
+            offsetU += (float)side.ScrollData.Offset(WallLocation.Upper, previous).X * textureUVInverse.U / absScaleX;
+            offsetV += (float)side.ScrollData.Offset(WallLocation.Upper, previous).Y * textureUVInverse.V / absScaleY;
         }
 
         float wallSpanU = (float)length * textureUVInverse.U;

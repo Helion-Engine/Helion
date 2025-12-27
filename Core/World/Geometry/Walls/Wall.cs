@@ -6,7 +6,7 @@ namespace Helion.World.Geometry.Walls;
 
 public sealed class Wall
 {
-    public readonly WallLocation Location;
+    public WallLocation Location;
     public int TextureHandle;
     public byte LightLevel;
     public bool LightLevelAbsolute;

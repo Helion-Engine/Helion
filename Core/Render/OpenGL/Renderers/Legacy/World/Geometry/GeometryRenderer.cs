@@ -104,7 +104,11 @@ public partial class GeometryRenderer : IDisposable
         m_worldDataManager = worldDataManager;
         m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_archiveCollection = archiveCollection;
-        m_fakeSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_sliceSector);
+        m_fakeSideScrollData = new();
+        m_fakeSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_sliceSector)
+        {
+            ScrollData = m_fakeSideScrollData
+        };
         m_emptyTraverseSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_emptyTraverseSector);
 
         if (unitTest)

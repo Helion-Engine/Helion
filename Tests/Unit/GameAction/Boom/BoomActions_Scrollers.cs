@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Xunit;
 
@@ -242,15 +243,15 @@ public partial class BoomActions
 
     private static void AssertScrollDiffOffsets(SideScrollData scrollData, Vec2D offset)
     {
-        (scrollData.LastOffsetUpper - scrollData.OffsetUpper).Should().Be(offset);
-        (scrollData.LastOffsetMiddle - scrollData.OffsetMiddle).Should().Be(offset);
-        (scrollData.LastOffsetLower - scrollData.OffsetLower).Should().Be(offset);
+        (scrollData.GetOffset(WallLocation.Upper, ScrollOffsetType.Previous) - scrollData.GetOffset(WallLocation.Upper, ScrollOffsetType.Current)).Should().Be(offset);
+        (scrollData.GetOffset(WallLocation.Middle, ScrollOffsetType.Previous) - scrollData.GetOffset(WallLocation.Middle, ScrollOffsetType.Current)).Should().Be(offset);
+        (scrollData.GetOffset(WallLocation.Lower, ScrollOffsetType.Previous) - scrollData.GetOffset(WallLocation.Lower, ScrollOffsetType.Current)).Should().Be(offset);
     }
 
     private static void AssertScrollOffsets(SideScrollData scrollData, Vec2D offset)
     {
-        (scrollData.OffsetUpper).Should().Be(offset);
-        (scrollData.OffsetMiddle).Should().Be(offset);
-        (scrollData.OffsetLower).Should().Be(offset);
+        scrollData.GetOffset(WallLocation.Upper, ScrollOffsetType.Current).Should().Be(offset);
+        scrollData.GetOffset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(offset);
+        scrollData.GetOffset(WallLocation.Lower, ScrollOffsetType.Current).Should().Be(offset);
     }
 }

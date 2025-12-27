@@ -13,6 +13,8 @@ using Helion.Geometry.Vectors;
 using Helion.World.Special;
 using Helion.World.Entities.Players;
 using Helion.World.Entities.Definition.States;
+using Helion.Maps.Specials;
+using Helion.World.Geometry.Walls;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -240,9 +242,9 @@ public class Serialization : IDisposable
 
             first.Offset.Should().Be(second.Offset);
             first.DataChanges.Should().Be(second.DataChanges);
-            first.ScrollData?.OffsetUpper.Should().Be(second.ScrollData?.OffsetUpper);
-            first.ScrollData?.OffsetMiddle.Should().Be(second.ScrollData?.OffsetMiddle);
-            first.ScrollData?.OffsetLower.Should().Be(second.ScrollData?.OffsetLower);
+            first.ScrollData?.GetOffset(WallLocation.Upper, ScrollOffsetType.Current).Should().Be(second.ScrollData?.GetOffset(WallLocation.Upper, ScrollOffsetType.Current));
+            first.ScrollData?.GetOffset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(second.ScrollData?.GetOffset(WallLocation.Middle, ScrollOffsetType.Current));
+            first.ScrollData?.GetOffset(WallLocation.Lower, ScrollOffsetType.Current).Should().Be(second.ScrollData?.GetOffset(WallLocation.Lower, ScrollOffsetType.Current));
 
             first.LastRenderGametick.Should().Be(second.LastRenderGametick);
         }
