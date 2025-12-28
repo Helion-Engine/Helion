@@ -243,15 +243,15 @@ public partial class BoomActions
 
     private static void AssertScrollDiffOffsets(SideScrollData scrollData, Vec2D offset)
     {
-        (scrollData.GetOffset(WallLocation.Upper, ScrollOffsetType.Previous) - scrollData.GetOffset(WallLocation.Upper, ScrollOffsetType.Current)).Should().Be(offset);
-        (scrollData.GetOffset(WallLocation.Middle, ScrollOffsetType.Previous) - scrollData.GetOffset(WallLocation.Middle, ScrollOffsetType.Current)).Should().Be(offset);
-        (scrollData.GetOffset(WallLocation.Lower, ScrollOffsetType.Previous) - scrollData.GetOffset(WallLocation.Lower, ScrollOffsetType.Current)).Should().Be(offset);
+        (scrollData.Offset(WallLocation.Upper, ScrollOffsetType.Previous) - scrollData.Offset(WallLocation.Upper, ScrollOffsetType.Current)).Should().Be(offset);
+        (scrollData.Offset(WallLocation.Middle, ScrollOffsetType.Previous) - scrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current)).Should().Be(offset);
+        (scrollData.Offset(WallLocation.Lower, ScrollOffsetType.Previous) - scrollData.Offset(WallLocation.Lower, ScrollOffsetType.Current)).Should().Be(offset);
     }
 
     private static void AssertScrollOffsets(SideScrollData scrollData, Vec2D offset)
     {
-        scrollData.GetOffset(WallLocation.Upper, ScrollOffsetType.Current).Should().Be(offset);
-        scrollData.GetOffset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(offset);
-        scrollData.GetOffset(WallLocation.Lower, ScrollOffsetType.Current).Should().Be(offset);
+        scrollData.Offset(WallLocation.Upper, ScrollOffsetType.Current).Should().Be(offset);
+        scrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(offset);
+        scrollData.Offset(WallLocation.Lower, ScrollOffsetType.Current).Should().Be(offset);
     }
 }
