@@ -874,6 +874,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             }
         }
 
+        WorldStatic.CheckCounter++;
         HandleSectorMoveStart(world, plane);
     }
 
@@ -889,10 +890,43 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             ClearGeometryVertices(coverGeometry);
 
         SkyGeometryManager.ClearGeometryVertices(plane);
+        HandleSectorMoveStartForLines(plane.Sector);
 
-        for (int i = 0; i < plane.Sector.Lines.Length; i++)
+        if (WorldStatic.Sector3D && check3D)
         {
-            var line = plane.Sector.Lines[i];
+            var face = plane.Facing.Flip();
+            for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
+            {
+                var sector3D = plane.Sector.TaggedSectors3D[i];
+                HandleSectorMoveStart(world, sector3D.FakeSector.GetSectorPlane(face), check3D: false);
+                HandleSectorMoveStart(world, sector3D.ParentSector.GetSectorPlane(face), check3D: false);
+
+                // This can also affect rendering of 3D sectors in this parent sector.
+                for (int j = 0; j < sector3D.ParentSector.Sectors3D.Length; j++)
+                {
+                    var parentSector3D = sector3D.ParentSector.Sectors3D[j];
+                    if (parentSector3D == sector3D)
+                        continue;
+
+                    HandleSectorMoveStart3D(world, parentSector3D);
+                }
+
+                if (sector3D.FakeSectorFlipped != null)
+                    HandleSectorMoveStart(world, sector3D.FakeSectorFlipped.GetSectorPlane(face), check3D: false);
+            }
+        }
+    }
+
+    private void HandleSectorMoveStartForLines(Sector sector)
+    {
+        if (sector.CheckCount == WorldStatic.CheckCounter)
+            return;
+
+        sector.CheckCount = WorldStatic.CheckCounter;
+
+        for (int i = 0; i < sector.Lines.Length; i++)
+        {
+            var line = sector.Lines[i];
             UpdateSectorPlaneFloodFill(line);
 
             if (line.Front.IsDynamic || line.Front.Flags.UpperSky)
@@ -926,34 +960,12 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
         }
-
-        if (WorldStatic.Sector3D && check3D)
-        {
-            var face = plane.Facing.Flip();
-            for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
-            {
-                var sector3D = plane.Sector.TaggedSectors3D[i];
-                HandleSectorMoveStart(world, sector3D.FakeSector.GetSectorPlane(face), check3D: false);
-                HandleSectorMoveStart(world, sector3D.ParentSector.GetSectorPlane(face), check3D: false);
-
-                // This can also affect rendering of 3D sectors in this parent sector.
-                for (int j = 0; j < sector3D.ParentSector.Sectors3D.Length; j++)
-                {
-                    var parentSector3D = sector3D.ParentSector.Sectors3D[j];
-                    if (parentSector3D == sector3D)
-                        continue;
-
-                    HandleSectorMoveStart3D(world, parentSector3D);
-                }
-
-                if (sector3D.FakeSectorFlipped != null)
-                    HandleSectorMoveStart(world, sector3D.FakeSectorFlipped.GetSectorPlane(face), check3D: false);
-            }
-        }
     }
 
     private void HandleSectorMoveStart3D(WorldBase world, Sector3D sector3D)
     {
+        sector3D.FakeSector.Floor.SetSectorMoveChanged(world.Gametick);
+        sector3D.FakeSector.Ceiling.SetSectorMoveChanged(world.Gametick);
         HandleSectorMoveStart(world, sector3D.FakeSector.Floor, check3D: false);
         HandleSectorMoveStart(world, sector3D.FakeSector.Ceiling, check3D: false);
     }
@@ -986,6 +998,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         if (plane.Sector.TransferHeights != null && plane.Sector.TransferHeights.ControlSector.IsPlaneMoving(plane.Facing))
             return;
 
+        WorldStatic.CheckCounter++;
         HandleSectorMoveComplete(world, plane.Sector, plane);
     }
 
@@ -999,7 +1012,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        bool floor = plane.Facing == SectorPlaneFace.Floor;
+        var floor = plane.Facing == SectorPlaneFace.Floor;
         m_geometryRenderer.SetBuffer(false);
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
 
@@ -1049,6 +1062,11 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
     private void HandleSectorMoveCompleteForLines(Sector sector)
     {
+        if (sector.CheckCount == WorldStatic.CheckCounter)
+            return;
+
+        sector.CheckCount = WorldStatic.CheckCounter;
+
         int lineCount = sector.Lines.Length;
         for (int i = 0; i < lineCount; i++)
         {
