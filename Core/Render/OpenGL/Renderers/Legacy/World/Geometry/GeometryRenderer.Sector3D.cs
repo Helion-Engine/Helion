@@ -322,6 +322,9 @@ public partial class GeometryRenderer
             m_fakeFacing.Floor.PrevZ = bottomPrevZ;
         }
 
+        if (m_fakeFacing.Ceiling.Z <= m_fakeFacing.Floor.Z && m_fakeFacing.Ceiling.PrevZ <= m_fakeFacing.Floor.PrevZ)
+            return RenderWallSliceResult.Empty3D;
+
         RenderOneSided(args.Side, args.IsFrontSide, out var sideVertices, out var skyVertices, out var texture,
             renderSector: m_fakeFacing, lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide, 
             allowAlpha: args.AllowAlpha, style: args.Style, baseType: GeometryType.Middle3D);
