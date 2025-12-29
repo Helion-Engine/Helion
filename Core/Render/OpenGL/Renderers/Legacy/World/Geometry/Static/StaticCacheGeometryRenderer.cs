@@ -890,7 +890,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             ClearGeometryVertices(coverGeometry);
 
         SkyGeometryManager.ClearGeometryVertices(plane);
-        HandleSectorMoveStartForLines(plane.Sector);
+        HandleSectorMoveStartForLines(world, plane.Sector, !check3D);
 
         if (WorldStatic.Sector3D && check3D)
         {
@@ -917,7 +917,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void HandleSectorMoveStartForLines(Sector sector)
+    private void HandleSectorMoveStartForLines(WorldBase world, Sector sector, bool checkOpposingSector3D)
     {
         if (sector.CheckCount == WorldStatic.CheckCounter)
             return;
@@ -946,6 +946,17 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             if (line.Back == null)
                 continue;
 
+            // Rendering against 3D sectors can be affected
+            if (WorldStatic.Sector3D && checkOpposingSector3D)
+            {
+                var checkSide = line.Front;
+                if (line.Front.Sector == sector)
+                    checkSide = line.Back;
+
+                for (int j = 0; j < checkSide.Sector.Sectors3D.Length; j++)
+                    HandleSectorMoveStart3D(world, checkSide.Sector.Sectors3D[j]);
+            }
+
             if (line.Back.IsDynamic || line.Back.Flags.UpperSky)
             {
                 ClearSideGeometryVertices(line.Back, line.Back.Upper);
@@ -964,6 +975,9 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
     private void HandleSectorMoveStart3D(WorldBase world, Sector3D sector3D)
     {
+        if (sector3D.CheckCount == WorldStatic.CheckCounter)
+            return;
+
         sector3D.FakeSector.Floor.SetSectorMoveChanged(world.Gametick);
         sector3D.FakeSector.Ceiling.SetSectorMoveChanged(world.Gametick);
         HandleSectorMoveStart(world, sector3D.FakeSector.Floor, check3D: false);
@@ -1022,7 +1036,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.SetRenderCeiling(plane);
 
         AddSectorPlane(sector, plane.Facing, floor, true);
-        HandleSectorMoveCompleteForLines(sector);
+        HandleSectorMoveCompleteForLines(world, sector, !check3D);
 
         if (WorldStatic.Sector3D && check3D)
         {
@@ -1060,7 +1074,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         HandleSectorMoveComplete(world, sector3D.FakeSector, sector3D.FakeSector.Floor, check3D: false);
     }
 
-    private void HandleSectorMoveCompleteForLines(Sector sector)
+    private void HandleSectorMoveCompleteForLines(WorldBase world, Sector sector, bool checkOpposingSector3D)
     {
         if (sector.CheckCount == WorldStatic.CheckCounter)
             return;
@@ -1076,6 +1090,16 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
             if (line.Back == null)
                 continue;
+
+            if (WorldStatic.Sector3D && checkOpposingSector3D)
+            {
+                var checkSide = line.Front;
+                if (line.Front.Sector == sector)
+                    checkSide = line.Back;
+
+                for (int j = 0; j < checkSide.Sector.Sectors3D.Length; j++)
+                    HandleSectorMoveComplete3D(world, checkSide.Sector.Sectors3D[j]);
+            }
 
             CheckForFloodFill(line.Front, line.Back, line.Front.Sector.GetRenderSector(TransferHeightView.Middle),
                 line.Back.Sector.GetRenderSector(TransferHeightView.Middle), true);

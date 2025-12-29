@@ -82,6 +82,13 @@ public partial class StaticCacheGeometryRenderer
 
     private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
     {
+        // If this wall slice generated more vertices than previously cached this set needs to be released so a new one can be requested.
+        if (wall.Static.GeometryData != null && vertices.Length > wall.Static.Length)
+        {
+            m_freeManager.Add(wall.Static.GeometryData.TextureHandle, wall.Static);
+            wall.Static.GeometryData = null;
+        }
+
         UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, vertices, null, side, wall, true, texture);
     }
 }

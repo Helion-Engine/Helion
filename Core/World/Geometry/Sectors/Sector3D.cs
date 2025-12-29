@@ -66,6 +66,7 @@ public sealed class Sector3D
 {
     public int ParentSectorId;
     public int SectorId;
+    public int CheckCount;
     public Sector ParentSector;
     public Sector ControlSector;
     public SectorPlane ControlTop;
