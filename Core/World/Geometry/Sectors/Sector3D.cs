@@ -191,7 +191,7 @@ public sealed class Sector3D
             sector3D.LightMiddle = currentLightSector;
             sector3D.LightBottom = currentLightSector;
 
-            if (lastSector3D != null && lastSector3D.ControlBottom.Z < sector3D.ControlTop.Z)            
+            if (lastSector3D != null && lastSector3D.ControlBottom.Z < sector3D.ControlTop.Z)       
             {
                 clipped = true;
                 lastSector3D.Clipped = true;
@@ -374,7 +374,7 @@ public sealed class Sector3D
                 if (i < ParentSector.Sectors3D.Length - 1)
                 {
                     checkSector3D = ParentSector.Sectors3D[i + 1];
-                    if (checkSector3D.ControlTop.Z > m_wallHeights.BottomZ && ShouldClipSector3D(checkSector3D))
+                    if (checkSector3D.ControlTop.Z > m_wallHeights.BottomZ && ShouldClipSector3D(checkSector3D, true))
                     {
                         m_wallHeights.Clipped = true;
                         m_wallHeights.BottomZ = checkSector3D.ControlTop.Z;
@@ -386,7 +386,7 @@ public sealed class Sector3D
                 break;
             }
 
-            if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ClipBottomZ)
+            if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ClipBottomZ && ShouldClipSector3D(checkSector3D, false))
             {
                 if (!AdjustWallHeights(ref m_wallHeights,
                     checkSector3D.ControlTop.Z, checkSector3D.ClipBottomZ, checkSector3D.ControlTop.PrevZ, checkSector3D.ClipPrevBottomZ))
@@ -404,6 +404,7 @@ public sealed class Sector3D
         newWallHeights = wallHeights;
         WallVertices wall = default;
 
+        // TODO May be worth skipping these and just using polygon offset in the renderer..
         if (side.PartnerSide == null)
         {
             WorldTriangulator.HandleOneSided(side, side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall, calculateUV: false);
@@ -458,29 +459,33 @@ public sealed class Sector3D
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
-            var sector3d = sector.Sectors3D[i];
-            if (!ShouldClipSector3D(sector3d))
+            var sector3D = sector.Sectors3D[i];
+            if (!ShouldClipSector3D(sector3D, true))
                 continue;
 
-            if (!AdjustWallHeights(ref newWallHeights, sector3d.ControlTop.Z, sector3d.ControlBottom.PrevZ, sector3d.ControlTop.Z, sector3d.ControlBottom.PrevZ))
+            if (!AdjustWallHeights(ref newWallHeights, sector3D.ControlTop.Z, sector3D.ControlBottom.PrevZ, sector3D.ControlTop.Z, sector3D.ControlBottom.PrevZ))
                 return false;
         }
 
         return true;
     }
 
-    private bool ShouldClipSector3D(Sector3D other)
+    private bool ShouldClipSector3D(Sector3D other, bool clipSolid = false)
     {
         if (other == this)
             return false;
 
-        var currentSolid = Flags & SectorFlags3D.Solid;
-        var otherSolid = other.Flags & SectorFlags3D.Solid;
-
         if (RenderDataStyle != RenderDataStyle.Normal && other.RenderDataStyle != RenderDataStyle.Normal)
             return true;
 
-        if (currentSolid != 0 && otherSolid != 0)
+        var currentAlpha = RenderDataStyle != RenderDataStyle.Normal;
+        var otherAlpha = other.RenderDataStyle != RenderDataStyle.Normal;
+        if (currentAlpha != otherAlpha)
+            return false;
+
+        var currentSolid = Flags & SectorFlags3D.Solid;
+        var otherSolid = other.Flags & SectorFlags3D.Solid;
+        if (clipSolid && currentSolid != 0 && otherSolid != 0)
             return false;
 
         return currentSolid == otherSolid;
