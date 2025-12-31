@@ -1061,18 +1061,37 @@ public sealed class PhysicsManager
             entity.LowestCeilingObject = lowestCeiling;
     }
 
+    public void SetCeilingLightSector3D(Entity entity)
+    {
+        m_canPassData.Entity = entity;
+        m_canPassData.HighestFloorEntity = entity.HighestFloorEntity();
+        m_canPassData.LowestCeilingEntity = entity.LowestCeilingEntity();
+        m_canPassData.EntityTopZ = entity.Position.Z + entity.Height;
+        m_canPassData.HighestFloorZ = entity.HighestFloorZ;
+        m_canPassData.LowestCeilZ = entity.LowestCeilingZ;
+        m_canPassData.LowestCeilLight3D = double.MaxValue;
+        m_canPassData.CeilingSector3D = null;
+        m_canPassData.ClampToLinkedSectors = false;
+
+        for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
+            CanPassTraverseSector3D(entity.IntersectSectors.Data[i]);
+
+        CanPassTraverseSector3D(entity.Sector);
+
+        entity.LightCeilingSector3D = m_canPassData.CeilingSector3D;
+    }
+
     private void CanPassTraverseSector3D(Sector sector)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
-            var sector3d = sector.Sectors3D[i];
+            var sector3D = sector.Sectors3D[i];
+            CanPassTraverse(sector3D.GetSectorEntity3D());
 
-            CanPassTraverse(sector3d.GetSectorEntity3D());
-
-            if (sector3d.ControlTop.Z < m_canPassData.LowestCeilLight3D &&
-                m_canPassData.Entity.Position.Z < sector3d.ControlTop.Z)
+            if (sector3D.ControlTop.Z < m_canPassData.LowestCeilLight3D &&
+                m_canPassData.Entity.Position.Z < sector3D.ControlTop.Z)
             {
-                m_canPassData.CeilingSector3D = sector3d.LightBottom;
+                m_canPassData.CeilingSector3D = sector3D.LightBottom;
                 m_canPassData.LowestCeilLight3D = m_canPassData.LowestCeilZ;
             }
         }

@@ -719,8 +719,20 @@ public abstract partial class WorldBase : IWorld
                 mapSpecials.Initialize(this);
         }
 
+        SetEntityLightSectors();
+
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
+    }
+
+    private void SetEntityLightSectors()
+    {
+        if (!WorldStatic.Sector3D)
+            return;
+
+        // 3D sector heights are set after entities are spawned so the correct light sector needs to be recalculated here.
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+            PhysicsManager.SetCeilingLightSector3D(entity);   
     }
 
     private void SetSectorData()
