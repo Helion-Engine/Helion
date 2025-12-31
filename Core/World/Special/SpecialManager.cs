@@ -678,7 +678,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         return spec;
     }
 
-    public void SetSectors3D()
+    public void InitSectors3D()
     {
         var sectors3d = new List<Sector3D>();
         var counts = new Dictionary<int, int>();
@@ -717,12 +717,6 @@ public sealed class SpecialManager : ITickable, IDisposable
             if (sector.Sectors3D.Length > index)
                 sector.Sectors3D[index] = sector3d;
             index++;
-        }
-        
-        foreach ((var sectorId, _) in counts)
-        {
-            var sector = m_world.Sectors[sectorId];
-            Sector3D.SetHeights3D(sector);
         }
     }
 

@@ -293,7 +293,7 @@ public abstract partial class WorldBase : IWorld
         }
 
         if (!SameAsPreviousMap)
-            SpecialManager.SetSectors3D();
+            SpecialManager.InitSectors3D();
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)
@@ -709,7 +709,7 @@ public abstract partial class WorldBase : IWorld
         AddMapSpecial();
         InitBossBrainTargets();
         SetupMusicChangers();
-        SetSectorSkies();
+        SetSectorData();
 
         if (!SameAsPreviousMap || worldModel == null)
         {
@@ -723,7 +723,7 @@ public abstract partial class WorldBase : IWorld
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
     }
 
-    private void SetSectorSkies()
+    private void SetSectorData()
     {
         for (int i = 0; i < Sectors.Count; i++)
         {
@@ -747,6 +747,9 @@ public abstract partial class WorldBase : IWorld
             {
                 sector.CeilingSkyTextureHandle = skyTextureHandle;
             }
+
+            if (WorldStatic.Sector3D)
+                Sector3D.SetHeights3D(sector);
         }
     }
 
