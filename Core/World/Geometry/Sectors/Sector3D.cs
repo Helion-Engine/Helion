@@ -33,7 +33,8 @@ public enum SectorFlags3D
     ResetAbove = 131072,
 
     // Helion Flags
-    NoRender = 262144
+    NoRender = 1 << 18,
+    LightTransfer = 1 << 19
 }
 
 public enum SectorLightFlags3D
@@ -42,6 +43,12 @@ public enum SectorLightFlags3D
     ToNextTypeZero, // Extra light extends from ceiling of control sector down to top of another type 0 light
     ToControlFloor, // Extra light extends from ceiling down to the floor of the control sector.
     ToNextAny // Extra light extends from control sector's ceiling down to the top of another extra light.
+}
+
+public enum ClipStyle
+{
+    Solid,
+    NotSolid
 }
 
 public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double prevBottomZ)
@@ -97,6 +104,7 @@ public sealed class Sector3D
     public bool ShouldRenderFlats => ControlTop.Z - ControlBottom.Z >= 0 && (Flags & SectorFlags3D.NoRender) == 0;
     public bool ShouldRenderInsideWalls => (Flags & SectorFlags3D.RenderInside) != 0;
     public RenderDataStyle RenderDataStyle;
+    public ClipStyle ClipStyle;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
     private static readonly Comparison<Sector3D> SortByTop = new(HeightCompare);
@@ -154,6 +162,8 @@ public sealed class Sector3D
 
         ClipBottomZ = ControlBottom.Z;
         ClipPrevBottomZ = ControlBottom.PrevZ;
+
+        ClipStyle = RenderDataStyle == RenderDataStyle.Normal && (Flags & SectorFlags3D.LightTransfer) == 0 ? ClipStyle.Solid : ClipStyle.NotSolid;
     }
 
     public static void SetHeights3D(Sector sector)
@@ -478,9 +488,7 @@ public sealed class Sector3D
         if (RenderDataStyle != RenderDataStyle.Normal && other.RenderDataStyle != RenderDataStyle.Normal)
             return true;
 
-        var currentAlpha = RenderDataStyle != RenderDataStyle.Normal;
-        var otherAlpha = other.RenderDataStyle != RenderDataStyle.Normal;
-        if (currentAlpha != otherAlpha)
+        if (ClipStyle != other.ClipStyle)
             return false;
 
         var currentSolid = Flags & SectorFlags3D.Solid;
