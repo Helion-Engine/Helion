@@ -887,7 +887,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             // TODO
             lightFlags = (SectorLightFlags3D)specialLine.Args.Arg1 + 1;
-            sectorFlags = SectorFlags3D.NoRender;
+            sectorFlags = SectorFlags3D.NoRender | SectorFlags3D.LightTransfer;
             alpha = 1;
         }
 
@@ -1840,6 +1840,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             var sector = sectors.GetSector(i);
             sector.TransferCeilingLightSector = line.Front.Sector;
+            sector.SetTransferCeilingLightSector = line.Front.Sector;
             m_world.SetSectorCeilingLightLevel(sector, line.Front.Sector.Ceiling.LightLevel);
         }
     }
@@ -1851,6 +1852,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             var sector = sectors.GetSector(i);
             sector.TransferFloorLightSector = line.Front.Sector;
+            sector.SetTransferFloorLightSector = line.Front.Sector;
             m_world.SetSectorFloorLightLevel(sector, line.Front.Sector.Floor.LightLevel);
         }
     }

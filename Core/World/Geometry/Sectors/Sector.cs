@@ -92,6 +92,8 @@ public sealed class Sector : IFloorCeilingAnchor
 
     public Sector TransferFloorLightSector;
     public Sector TransferCeilingLightSector;
+    public Sector SetTransferFloorLightSector;
+    public Sector SetTransferCeilingLightSector;
 
     public SectorDamageSpecial? SectorDamageSpecial;
 
@@ -130,7 +132,9 @@ public sealed class Sector : IFloorCeilingAnchor
         floor.Sector = this;
         ceiling.Sector = this;
         TransferFloorLightSector = this;
+        SetTransferFloorLightSector = this;
         TransferCeilingLightSector = this;
+        SetTransferCeilingLightSector = this;
         m_initialLightLevel = lightLevel;
         m_initialSectorEffect = SectorEffect;
         m_initialKillEffect = KillEffect;
@@ -145,7 +149,9 @@ public sealed class Sector : IFloorCeilingAnchor
         SectorEffect = m_initialSectorEffect;
         KillEffect = m_initialKillEffect;
         TransferFloorLightSector = this;
+        SetTransferFloorLightSector = this;
         TransferCeilingLightSector = this;
+        SetTransferCeilingLightSector = this;
         RenderLightChangeGametick = default;
         LastRenderGametick = default;
         RenderGametick = default;
@@ -329,8 +335,8 @@ public sealed class Sector : IFloorCeilingAnchor
             SectorDataChanges = (int)DataChanges,
             FloorSkyTexture = FloorSkyTextureHandle,
             CeilingSkyTexture = FloorSkyTextureHandle,
-            TransferFloorLight = TransferFloorLightSector?.Id,
-            TransferCeilingLight = TransferCeilingLightSector?.Id,
+            TransferFloorLight = SetTransferFloorLightSector.Id,
+            TransferCeilingLight = SetTransferCeilingLightSector.Id,
             TransferHeights = TransferHeights?.ControlSector.Id,
             TransferHeightsColormapUpper = TransferHeights?.UpperColormap?.Entry?.Path.Name,
             TransferHeightsColormapMiddle = TransferHeights?.MiddleColormap?.Entry?.Path.Name,
@@ -504,10 +510,16 @@ public sealed class Sector : IFloorCeilingAnchor
             Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
 
         if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
+        {
             TransferFloorLightSector = sectors[sectorModel.TransferFloorLight.Value];
+            SetTransferFloorLightSector = TransferFloorLightSector;
+        }
 
         if (sectorModel.TransferCeilingLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferCeilingLight.Value))
+        {
             TransferCeilingLightSector = sectors[sectorModel.TransferCeilingLight.Value];
+            SetTransferCeilingLightSector = TransferCeilingLightSector;
+        }
 
         if (sectorModel.TransferHeights.HasValue && IsSectorIdValid(sectors, sectorModel.TransferHeights.Value))
         {

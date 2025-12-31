@@ -176,7 +176,10 @@ public sealed class Sector3D
 
         var clipped = false;
         var currentLightSector = sector;
+        var currentLightSector3D = sector.Sectors3D[0];
         Sector3D? lastSector3D = null;
+        Sector? lightFloor = null;
+        Sector? lightCeiling = null;
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3D = sector.Sectors3D[i];
@@ -197,15 +200,23 @@ public sealed class Sector3D
                 continue;
             }
 
+            currentLightSector3D = sector3D;
             currentLightSector = sector3D.ControlSector;
             sector3D.LightMiddle = currentLightSector;
             sector3D.LightBottom = currentLightSector;
 
-            if (lastSector3D != null && lastSector3D.ControlBottom.Z < sector3D.ControlTop.Z)       
+            if (lastSector3D != null && lastSector3D.ControlBottom.Z < sector3D.ControlTop.Z)
             {
                 clipped = true;
                 lastSector3D.Clipped = true;
             }
+
+            // The parent's floor/ceiling can be between higher 3D sectors.
+            if (sector.Floor.Z >= sector3D.ControlBottom.Z && sector.Floor.Z <= sector3D.ControlTop.Z)
+                lightFloor = currentLightSector;
+
+            if (lightCeiling == null && sector.Ceiling.Z >= sector3D.ControlBottom.Z && sector.Ceiling.Z <= sector3D.ControlTop.Z)
+                lightCeiling = currentLightSector;
 
             lastSector3D = sector3D;
         }
@@ -236,7 +247,24 @@ public sealed class Sector3D
             }
         }
 
-        sector.TransferFloorLightSector = currentLightSector;
+        if (sector.SetTransferFloorLightSector == sector)
+            sector.TransferFloorLightSector = GetValidFloorLight(sector, lightFloor, currentLightSector3D);
+
+        if (lightCeiling != null && sector.SetTransferCeilingLightSector == sector)
+            sector.TransferCeilingLightSector = lightCeiling;
+    }
+
+    private static Sector GetValidFloorLight(Sector sector, Sector? lightFloor, Sector3D lightSector3D)
+    {
+        // Light floor takes priority. 
+        if (lightFloor != null)
+            return lightFloor;
+
+        // Validate the last 3D light sector is above the parent's floor.
+        if (sector.Floor.Z < lightSector3D.ControlTop.Z)
+            return lightSector3D.ControlSector;
+
+        return sector;
     }
 
     private static int HeightCompare(Sector3D x, Sector3D y)
