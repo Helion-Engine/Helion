@@ -388,17 +388,19 @@ public sealed class PhysicsManager
         for (int i = 0; i < sector.TaggedSectors3D.Length; i++)
         {
             var testFace = face.Flip();
-            var sector3d = sector.TaggedSectors3D[i];
-            var testMovePlane = sector3d.FakeSector.GetSectorPlane(testFace);
-            var testOpposingMovePlane = sector3d.FakeSector.GetSectorPlane(face);
+            var sector3D = sector.TaggedSectors3D[i];
+            sector3D.FakeSector.Ceiling.SetZ(sector3D.ControlTop.Z);
+            sector3D.FakeSector.Floor.SetZ(sector3D.ControlBottom.Z);
+            var testMovePlane = sector3D.FakeSector.GetSectorPlane(testFace);
+            var testOpposingMovePlane = sector3D.FakeSector.GetSectorPlane(face);
 
             testMovePlane.SetZ(startZ);
-            testOpposingMovePlane.SetZ(sector3d.GetOpposingPlane3D(testFace, startZ).Z);
-            moveSpecial.Sector = sector3d.FakeSector;
+            testOpposingMovePlane.SetZ(sector3D.GetOpposingPlane3D(testFace, startZ).Z);
+            moveSpecial.Sector = sector3D.FakeSector;
             moveSpecial.SectorPlane = testMovePlane;
             moveSpecial.MoveData.SectorMoveType = testFace;
 
-            var status = MoveSectorZ(speed, destZ, moveSpecial, sector3d.ParentSector, checkSector3D: false, resetPlane: sectorPlane, solid: sector3d.IsSolid);
+            var status = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, resetPlane: sectorPlane, solid: sector3D.IsSolid);
 
             moveSpecial.Sector = sector;
             moveSpecial.SectorPlane = sectorPlane;
@@ -541,6 +543,9 @@ public sealed class PhysicsManager
 
         if (moveSpecial.StartClipped)
             return false;
+
+        if (sector.Sector3D != null)
+            return sector.Sector3D.ControlTop.Z < sector.Sector3D.ControlBottom.Z;
 
         return sector.Ceiling.Z < sector.Floor.Z;
     }
