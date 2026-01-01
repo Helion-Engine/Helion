@@ -115,6 +115,8 @@ public sealed class Sector3D
         ParentSectorId = parentSectorId;
         FakeBottom = new(SectorPlaneFace.Floor, 0, 0, 0);
         FakeTop = new(SectorPlaneFace.Ceiling, 0, 0, 0);
+        FakeBottom.RenderOffsets = controlSector.Ceiling.RenderOffsets;
+        FakeTop.RenderOffsets = controlSector.Floor.RenderOffsets;
 
         if ((flags & (SectorFlags3D.Swim | SectorFlags3D.RenderInside)) != 0)
         {
