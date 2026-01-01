@@ -188,14 +188,14 @@ public sealed class Sector3D
             sector3D.Clipped = false;
             sector3D.LightTop = currentLightSector;
 
-            if ((sector3D.Flags & (SectorFlags3D.RestrictLighting)) != 0)
+            if ((sector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
             {
                 sector3D.LightMiddle = sector3D.ControlSector;
                 sector3D.LightBottom = currentLightSector;
                 continue;
             }
 
-            if ((sector3D.Flags & (SectorFlags3D.DisableLighting | SectorFlags3D.RestrictLighting)) != 0)
+            if ((sector3D.Flags & SectorFlags3D.DisableLighting) != 0)
             {
                 sector3D.LightMiddle = currentLightSector;
                 sector3D.LightBottom = currentLightSector;

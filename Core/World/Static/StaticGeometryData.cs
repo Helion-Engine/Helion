@@ -2,16 +2,9 @@
 
 namespace Helion.World.Static;
 
-public struct StaticGeometryData
+public struct StaticGeometryData(GeometryData? geometryData, int index, int length)
 {
-    public GeometryData? GeometryData;
-    public int Index;
-    public int Length;
-
-    public StaticGeometryData(GeometryData? geometryData, int index, int length)
-    {
-        GeometryData = geometryData;
-        Index = index;
-        Length = length;
-    }
+    public GeometryData? GeometryData = geometryData;
+    public int Index = index;
+    public int Length = length;
 }

@@ -32,37 +32,7 @@ public partial class StaticCacheGeometryRenderer
             return;
         }
 
-        var saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
-        sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
-
-        if (sector3D.ShouldRenderFlats)
-        {
-            if ((planes & SectorPlanes.Floor) != 0)
-            {
-                AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
-                    lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottom, allowAlpha: true);
-
-                if (sector3D.FakeBottomFlipped != null)
-                {
-                    AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
-                        lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottomFlipped, allowAlpha: true);
-                }
-            }
-
-            if ((planes & SectorPlanes.Ceiling) != 0)
-            {
-                AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
-                    lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTop, allowAlpha: true);
-
-                if (sector3D.FakeTopFlipped != null)
-                {
-                    AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
-                        lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTopFlipped, allowAlpha: true);
-                }
-            }
-        }
-
-        sector3D.ParentSector.TransferFloorLightSector = saveTransfer;
+        AddSectorPlanes3D(sector3D, planes, update);
 
         if (!sector3D.ShouldRenderWalls)
             return;
@@ -80,15 +50,43 @@ public partial class StaticCacheGeometryRenderer
         }
     }
 
-    private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
+    private void AddSectorPlanes3D(Sector3D sector3D, SectorPlanes planes, bool update)
     {
-        // If this wall slice generated more vertices than previously cached this set needs to be released so a new one can be requested.
-        if (wall.Static.GeometryData != null && vertices.Length > wall.Static.Length)
+        if (!sector3D.ShouldRenderFlats)
+            return;
+
+        var saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
+        sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
+
+        if ((planes & SectorPlanes.Floor) != 0)
         {
-            m_freeManager.Add(wall.Static.GeometryData.TextureHandle, wall.Static);
-            wall.Static.GeometryData = null;
+            AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
+                lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottom, allowAlpha: true);
+
+            if (sector3D.FakeBottomFlipped != null)
+            {
+                AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
+                    lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottomFlipped, allowAlpha: true);
+            }
         }
 
-        UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, vertices, null, side, wall, true, texture);
+        if ((planes & SectorPlanes.Ceiling) != 0)
+        {
+            AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
+                lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTop, allowAlpha: true);
+
+            if (sector3D.FakeTopFlipped != null)
+            {
+                AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
+                    lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTopFlipped, allowAlpha: true);
+            }
+        }
+
+        sector3D.ParentSector.TransferFloorLightSector = saveTransfer;
+    }
+
+    private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
+    {
+        UpdateVertices(ref wall.Static, wall.TextureHandle, vertices, null, side, wall, true, texture);
     }
 }

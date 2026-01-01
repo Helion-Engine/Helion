@@ -4,7 +4,6 @@ using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
@@ -1564,13 +1563,18 @@ public partial class GeometryRenderer : IDisposable
         RenderFlat(subsectors, renderPlane, geometryPlane, floor, renderFlood, invalidatedLookup, out vertices, out skyVertices, lightLevelSector, allowAlpha, style: style);
     }
 
+    // Doom would render flats with no texture ("-") as black. If the flat isn't flagged to allow alpha then the black texture must be used.
+    public int GetFlatTextureHandle(int textureHandle, bool allowAlpha) => 
+        !allowAlpha && textureHandle == Constants.NoTextureIndex ? TextureManager.BlackTextureIndex : textureHandle;
+
     private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood,
         BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
         Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1, RenderDataStyle style = RenderDataStyle.Normal)
     {
-        var isSky = TextureManager.IsSkyTexture(renderPlane.TextureHandle);
-        var texture = m_glTextureManager.GetTexture(renderPlane.TextureHandle);
-        var brightmapTexture = m_glTextureManager.GetBrightmapTexture(renderPlane.TextureHandle);
+        var textureHandle = GetFlatTextureHandle(renderPlane.TextureHandle, allowAlpha);
+        var isSky = TextureManager.IsSkyTexture(textureHandle);
+        var texture = m_glTextureManager.GetTexture(textureHandle);
+        var brightmapTexture = m_glTextureManager.GetBrightmapTexture(textureHandle);
 
         var geometryType = GetGeometryType(style, GeometryType.Flat);
         var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
