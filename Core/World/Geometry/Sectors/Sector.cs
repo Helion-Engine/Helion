@@ -24,8 +24,12 @@ using Vector2D = Helion.Models.Vector2D;
 
 namespace Helion.World.Geometry.Sectors;
 
+public record struct Plane3D(SectorPlane Plane, Sector3D? Sector3D, PlaneFace3D Face);
+public enum PlaneFace3D { Top, Bottom }
+
 public sealed class Sector : IFloorCeilingAnchor
 {
+    public Plane3D[] SectorPlanes3D = [];
     public static readonly Sector Default = CreateDefault();
 
     public const int NoTag = 0;
@@ -985,6 +989,6 @@ public sealed class Sector : IFloorCeilingAnchor
             return;
 
         for (int i = 0; i < TaggedSectors3D.Length; i++)
-            TaggedSectors3D[i].InvalidateWallHeights();
+            TaggedSectors3D[i].CalculateWallHeights();
     }
 }

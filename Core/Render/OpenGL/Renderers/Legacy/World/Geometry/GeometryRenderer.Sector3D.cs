@@ -31,9 +31,9 @@ public partial class GeometryRenderer
     public void SetTestRenderSectorSliceFunc3D(Func<RenderWallSliceArgs, RenderWallSliceResult> func) => m_renderSectorSliceFunc3D = func;
     public void RestoreSectorSliceFunc3D() => m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
-    public WallHeights SetSectorForLineRendering3D(Sector3D sector3D)
+    public static WallHeights SetSectorForLineRendering3D(Sector3D sector3D)
     {
-        var wallHeights = sector3D.CalculateWallHeights(m_world.Gametick);
+        var wallHeights = sector3D.WallHeights;
         var wallSector = sector3D.FakeSector;
         wallSector.Ceiling.Z = wallHeights.TopZ;
         wallSector.Floor.Z = wallHeights.BottomZ;
@@ -156,7 +156,7 @@ public partial class GeometryRenderer
         for (int i = 0; i < traverseSide.Sector.Sectors3D.Length; i++)
         {
             var sector3D = traverseSide.Sector.Sectors3D[i];
-            var heights = sector3D.CalculateWallHeights(m_world.Gametick);
+            var heights = sector3D.WallHeights;
             m_sliceSector.Ceiling.LastRenderChangeGametick = sector3D.ControlTop.LastRenderChangeGametick;
             m_sliceSector.Floor.LastRenderChangeGametick = sector3D.ControlBottom.LastRenderChangeGametick;
 
@@ -184,7 +184,7 @@ public partial class GeometryRenderer
 
             // Render the inside portion of this 3D sector
             SetSectorToSlice(m_sliceSector, heights);
-            args.LightSector = sector3D.LightBottom;
+            args.LightSector = sector3D.LightMiddle;
             args.Side.LastRenderGametick = -1;
             result = renderFunc(args);
             AddVertices(m_vertices, result.Vertices);

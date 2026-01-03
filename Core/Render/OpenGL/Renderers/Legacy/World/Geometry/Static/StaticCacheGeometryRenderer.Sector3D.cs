@@ -37,7 +37,7 @@ public partial class StaticCacheGeometryRenderer
         if (!sector3D.ShouldRenderWalls)
             return;
 
-        var wallHeights = m_geometryRenderer.SetSectorForLineRendering3D(sector3D);
+        var wallHeights = GeometryRenderer.SetSectorForLineRendering3D(sector3D);
         for (int i = 0; i < sector3D.FakeSector.Lines.Length; i++)
         {
             var sectorLine = sector3D.FakeSector.Lines[i];

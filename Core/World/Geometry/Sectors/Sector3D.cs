@@ -1,7 +1,9 @@
-﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
@@ -9,6 +11,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using System;
+using System.Linq;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -59,6 +62,7 @@ public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double p
     public double PrevBottomZ = prevBottomZ;
     public bool Invalid;
     public bool Clipped;
+    public bool SetClipped;
 
     public readonly override string ToString() => $"[{BottomZ} -> {TopZ}] Invalid={Invalid} Clipped={Clipped}";
 }
@@ -93,10 +97,9 @@ public sealed class Sector3D
     public bool Clipped;
     public double ClipBottomZ;
     public double ClipPrevBottomZ;
+    public WallHeights WallHeights;
 
-    private readonly Entity Entity;
-    private WallHeights m_wallHeights;
-    private int m_lastGameTick = -1;
+    private Entity Entity;
 
     public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
     public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
@@ -107,7 +110,8 @@ public sealed class Sector3D
     public ClipStyle ClipStyle;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
-    private static readonly Comparison<Sector3D> SortByTop = new(HeightCompare);
+    private static readonly Comparison<Sector3D> SortSectors3D = new(HeightCompare);
+    private static readonly Comparison<Plane3D> SortPlanes3D = new(PlaneHeightCompare);
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
     {
@@ -173,105 +177,125 @@ public sealed class Sector3D
         if (sector.Sectors3D.Length == 0)
             return;
 
-        sector.TransferHeights = null;
-        sector.Sectors3D.Sort(SortByTop);
-
-        var clipped = false;
-        var currentLightSector = sector;
-        var currentLightSector3D = sector.Sectors3D[0];
-        Sector3D? lastSector3D = null;
-        Sector? lightFloor = null;
-        Sector? lightCeiling = null;
-        for (int i = 0; i < sector.Sectors3D.Length; i++)
+        if (sector.SectorPlanes3D.Length == 0)
         {
-            var sector3D = sector.Sectors3D[i];
-            sector3D.Clipped = false;
-            sector3D.LightTop = currentLightSector;
+            sector.SectorPlanes3D = new Plane3D[(sector.Sectors3D.Length + 1) * 2];
+            var index = 0;
 
-            if ((sector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
-            {
-                sector3D.LightMiddle = sector3D.ControlSector;
-                sector3D.LightBottom = currentLightSector;
-                continue;
-            }
-
-            if ((sector3D.Flags & SectorFlags3D.DisableLighting) != 0)
-            {
-                sector3D.LightMiddle = currentLightSector;
-                sector3D.LightBottom = currentLightSector;
-                continue;
-            }
-
-            currentLightSector3D = sector3D;
-            currentLightSector = sector3D.ControlSector;
-            sector3D.LightMiddle = currentLightSector;
-            sector3D.LightBottom = currentLightSector;
-
-            if (lastSector3D != null && lastSector3D.ControlBottom.Z < sector3D.ControlTop.Z)
-            {
-                clipped = true;
-                lastSector3D.Clipped = true;
-            }
-
-            // The parent's floor/ceiling can be between higher 3D sectors.
-            if (sector.Floor.Z >= sector3D.ControlBottom.Z && sector.Floor.Z <= sector3D.ControlTop.Z)
-                lightFloor = currentLightSector;
-
-            if (lightCeiling == null && sector.Ceiling.Z >= sector3D.ControlBottom.Z && sector.Ceiling.Z <= sector3D.ControlTop.Z)
-                lightCeiling = currentLightSector;
-
-            lastSector3D = sector3D;
-        }
-
-        // 3D sectors are sorted by top. Need to check bottom planes that clip through others to correctly set light properties.
-        // Only applies to the sector's floor and only need to check 3D sectors that clipped and render flats.
-        if (clipped)
-        {
             for (int i = 0; i < sector.Sectors3D.Length; i++)
             {
                 var sector3D = sector.Sectors3D[i];
-                if (!sector3D.Clipped || !sector3D.ShouldRenderFlats)
-                    continue;
-
-                var planeZ = sector3D.ControlBottom.Z;
-                for (int j = 0; j < sector.Sectors3D.Length; j++)
-                {
-                    var checkSector3D = sector.Sectors3D[j];
-                    if (checkSector3D.ControlTop.Z < planeZ)
-                        break;
-
-                    if (planeZ > checkSector3D.ControlBottom.Z)
-                    {
-                        sector3D.LightBottom = checkSector3D.LightBottom;
-                        break;
-                    }
-                }
+                sector.SectorPlanes3D[index++] = new(sector3D.ControlTop, sector3D, PlaneFace3D.Top);
+                sector.SectorPlanes3D[index++] = new(sector3D.ControlBottom, sector3D, PlaneFace3D.Bottom);
             }
+
+            sector.SectorPlanes3D[index++] = new(sector.Ceiling, null, PlaneFace3D.Top);
+            sector.SectorPlanes3D[index++] = new(sector.Floor, null, PlaneFace3D.Bottom);
         }
 
-        if (sector.SetTransferFloorLightSector == sector)
-            sector.TransferFloorLightSector = GetValidFloorLight(sector, lightFloor, currentLightSector3D);
+        sector.TransferHeights = null;
+        sector.Sectors3D.Sort(SortSectors3D);
 
-        if (lightCeiling != null && sector.SetTransferCeilingLightSector == sector)
-            sector.TransferCeilingLightSector = lightCeiling;
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+            sector.Sectors3D[i].CalculateWallHeights();
+
+        sector.SectorPlanes3D.Sort(SortPlanes3D);
+
+        var currentLightSector = sector;
+        Sector3D? currentLightSector3D = null;
+
+        for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
+        {
+            ref var plane3D = ref sector.SectorPlanes3D[i];
+            var sector3D = plane3D.Sector3D;
+            if (sector3D == null)
+            {
+                if (plane3D.Face == PlaneFace3D.Bottom)
+                    plane3D.Plane.Sector.TransferFloorLightSector = currentLightSector;
+                else
+                    plane3D.Plane.Sector.TransferCeilingLightSector = currentLightSector;
+
+                continue;
+            }
+
+            var restrictLight = (sector3D.Flags & SectorFlags3D.RestrictLighting) != 0;
+            SetLight(sector3D, plane3D, currentLightSector, restrictLight);
+
+            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D.Plane))
+                continue;
+
+            currentLightSector = sector3D.ControlSector;
+            currentLightSector3D = sector3D;
+        }
     }
 
-    private static Sector GetValidFloorLight(Sector sector, Sector? lightFloor, Sector3D lightSector3D)
+    private static void SetLight(Sector3D sector3D, in Plane3D plane3D, Sector lightSector, bool restrictLight)
     {
-        // Light floor takes priority. 
-        if (lightFloor != null)
-            return lightFloor;
+        if (restrictLight)
+        {
+            sector3D.LightTop = lightSector;
+            sector3D.LightBottom = lightSector;
+            sector3D.LightMiddle = sector3D.ControlSector;
+            return;
+        }
 
-        // Validate the last 3D light sector is above the parent's floor.
-        if (sector.Floor.Z < lightSector3D.ControlTop.Z)
-            return lightSector3D.ControlSector;
+        sector3D.LightMiddle = lightSector;
 
-        return sector;
+        if (plane3D.Face == PlaneFace3D.Bottom)
+            sector3D.LightBottom = lightSector;
+        else
+            sector3D.LightTop = lightSector;
+    }
+
+    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, SectorPlane nextPlane3D)
+    {
+        if ((nextSector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
+            return true;
+
+        if ((nextSector3D.Flags & SectorFlags3D.DisableLighting) != 0)
+            return true;
+
+        if (currentLightSector3D == null)
+            return false;
+
+        var nextFlags = nextSector3D.Flags;
+        var currentFlags = currentLightSector3D.Flags;
+
+        if ((currentFlags & SectorFlags3D.Swim) != (nextFlags & SectorFlags3D.Swim))
+            return false;
+
+        if ((currentFlags & SectorFlags3D.LightTransfer) != 0 || (nextFlags & SectorFlags3D.LightTransfer) != 0)
+            return false;
+
+        if (!currentLightSector3D.IsSolid && (currentLightSector3D.Flags & (SectorFlags3D.LightTransfer)) != 0 && nextSector3D.IsSolid)
+            return true;
+
+        if (currentLightSector3D.IsSolid && !nextSector3D.IsSolid)
+            return true;
+
+        return false;
     }
 
     private static int HeightCompare(Sector3D x, Sector3D y)
     {
         return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
+    }
+
+    private static int PlaneHeightCompare(Plane3D x, Plane3D y)
+    {
+        var yZ = y.Plane.Z;
+        var xZ = x.Plane.Z;
+
+        if (y.Sector3D != null && y.Face == PlaneFace3D.Bottom)
+            yZ = y.Sector3D.ClipBottomZ;
+
+        if (x.Sector3D != null && x.Face == PlaneFace3D.Bottom)
+            xZ = x.Sector3D.ClipBottomZ;
+
+        if (yZ == xZ && y.Sector3D != null && x.Sector3D != null)
+            return y.Sector3D.ControlTop.Z.CompareTo(x.Sector3D.ControlTop.Z);
+
+        return yZ.CompareTo(xZ);
     }
 
     public void Reset()
@@ -389,22 +413,13 @@ public sealed class Sector3D
         return maxSector?.ControlSector ?? ParentSector;
     }
 
-    public void InvalidateWallHeights()
+    public WallHeights CalculateWallHeights()
     {
-        m_lastGameTick = -1;
-    }
-
-    public WallHeights CalculateWallHeights(int gameTick)
-    {
-        if (gameTick == m_lastGameTick)
-            return m_wallHeights;
-
-        m_lastGameTick = gameTick;
-        m_wallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
+        WallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
         ClipBottomZ = ControlBottom.Z;
 
         if (ParentSector.Sectors3D.Length == 0)
-            return m_wallHeights;
+            return WallHeights;
 
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
@@ -414,12 +429,16 @@ public sealed class Sector3D
                 if (i < ParentSector.Sectors3D.Length - 1)
                 {
                     checkSector3D = ParentSector.Sectors3D[i + 1];
-                    if (checkSector3D.ControlTop.Z > m_wallHeights.BottomZ && ShouldClipSector3D(checkSector3D, true))
+                    if (checkSector3D.ControlTop.Z > WallHeights.BottomZ)
                     {
-                        m_wallHeights.Clipped = true;
-                        m_wallHeights.BottomZ = checkSector3D.ControlTop.Z;
-                        m_wallHeights.PrevBottomZ = checkSector3D.ControlTop.Z;
-                        ClipBottomZ = checkSector3D.ControlTop.Z;
+                        WallHeights.SetClipped = true;
+                        if (ShouldClipSector3D(checkSector3D, true))
+                        {
+                            WallHeights.Clipped = true;
+                            WallHeights.BottomZ = checkSector3D.ControlTop.Z;
+                            WallHeights.PrevBottomZ = checkSector3D.ControlTop.Z;
+                            ClipBottomZ = checkSector3D.ControlTop.Z;
+                        }
                     }
                 }
 
@@ -428,15 +447,15 @@ public sealed class Sector3D
 
             if (ControlBottom.Z < checkSector3D.ControlTop.Z && ControlTop.Z > checkSector3D.ClipBottomZ && ShouldClipSector3D(checkSector3D, false))
             {
-                if (!AdjustWallHeights(ref m_wallHeights,
+                if (!AdjustWallHeights(ref WallHeights,
                     checkSector3D.ControlTop.Z, checkSector3D.ClipBottomZ, checkSector3D.ControlTop.PrevZ, checkSector3D.ClipPrevBottomZ))
                     break;
             }
         }
 
-        FakeTop.Z = m_wallHeights.TopZ;
-        FakeBottom.Z = m_wallHeights.BottomZ;
-        return m_wallHeights;
+        FakeTop.Z = WallHeights.TopZ;
+        FakeBottom.Z = WallHeights.BottomZ;
+        return WallHeights;
     }
 
     public bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights)
@@ -569,5 +588,5 @@ public sealed class Sector3D
         return controlSectorSide.Middle.TextureHandle;
     }
 
-    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";
+    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";
 }
