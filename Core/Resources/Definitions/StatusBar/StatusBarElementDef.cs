@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Helion.Render.Common.Textures;
 using Helion.Resources.Definitions.StatusBar.Enums;
 
 namespace Helion.Resources.Definitions.StatusBar;
@@ -110,6 +111,9 @@ public class StatusBarStringDef : StatusBarBaseDef
 
 public class StatusBarFaceDef : StatusBarBaseDef 
 {
+    [JsonIgnore]
+    public IRenderableTextureHandle? Handle { get; set; }
+    
     // v1.1 Extensions: Image Cropping & Translucency
     [JsonPropertyName("width")]
     public int Width { get; set; }
@@ -202,6 +206,12 @@ public class StatusBarGraphicDef : StatusBarBaseDef
     [JsonPropertyName("patch")]
     public string Patch { get; set; } = string.Empty;
 
+    [JsonIgnore]
+    public string? ResolvedPatchName { get; set; }
+
+    [JsonIgnore]
+    public IRenderableTextureHandle? Handle { get; set; }
+
     // v1.1 Extensions: Image Cropping
     [JsonPropertyName("width")]
     public int Width { get; set; }
@@ -269,6 +279,12 @@ public struct StatusBarFrameDef
 {
     [JsonPropertyName("lump")]
     public string Lump { get; set; }
+
+    [JsonIgnore]
+    public string? ResolvedPatchName { get; set; }
+
+    [JsonIgnore]
+    public IRenderableTextureHandle? Handle { get; set; }
 
     [JsonPropertyName("duration")]
     public double Duration { get; set; }

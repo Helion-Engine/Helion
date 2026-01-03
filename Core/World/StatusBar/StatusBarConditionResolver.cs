@@ -430,7 +430,11 @@ public static class StatusBarConditionResolver
 
     private static bool CheckStatPercent(int current, int total, int target, bool ge)
     {
-        if (total <= 0) return ge ? 100 >= target : 100 < target;
+        if (total <= 0)
+        {
+            return ge ? 100 >= target : 100 < target;
+        }
+
         int pct = (current * 100) / total;
         return ge ? pct >= target : pct < target;
     }
