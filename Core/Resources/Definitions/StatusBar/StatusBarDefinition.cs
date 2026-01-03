@@ -112,6 +112,8 @@ public class StatusBarLayoutDef
     PropertyNameCaseInsensitive = true)]
 [JsonSerializable(typeof(StatusBarFileDef))]
 [JsonSerializable(typeof(StatusBarDefinition))]
+[JsonSerializable(typeof(StatusBarListDef))]
+[JsonSerializable(typeof(StatusBarStringDef))]
 internal sealed partial class StatusBarJsonContext : JsonSerializerContext
 {
 }

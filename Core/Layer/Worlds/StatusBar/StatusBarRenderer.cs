@@ -7,7 +7,6 @@ using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.StatusBar;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.Resources.Definitions.MapInfo;
@@ -16,7 +15,9 @@ using Helion.Util;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
+using Helion.Resources.Archives.Collection;
 using Helion.World;
+using Helion.World.Entities.Inventories.Powerups;
 
 namespace Helion.Layer.Worlds.StatusBar;
 
@@ -38,7 +39,7 @@ public class StatusBarRenderer
     private static readonly Dictionary<string, int> HudType1WidthCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> FontPatchCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> HudFontPatchCache = new(StringComparer.OrdinalIgnoreCase);
-    
+
     // Mapping SBARDEF stems to Helion Internal Fonts to enable grayscale tinting and better rendering
     private static readonly Dictionary<string, string> StemToHelionFontMap = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -47,16 +48,16 @@ public class StatusBarRenderer
         { "STG", Constants.Fonts.SmallGrayFixedWidthNumbers },
         { "STYS", "HudYellowNumbers" }
     };
-    
+
     private static readonly Dictionary<string, Color> StandardTextColors = new(StringComparer.OrdinalIgnoreCase)
     {
         { "CRBRICK", new Color(154, 50, 50) },
         { "CRTAN", new Color(195, 175, 120) },
-        { "CRGRAY", Color.Gray }, 
+        { "CRGRAY", Color.Gray },
         { "CRGREY", Color.Gray },
         { "CRGREEN", new Color(0x90, 0xEE, 0x90) },
         { "CRBROWN", new Color(120, 80, 20) },
-        { "CRGOLD", Color.Gold }, 
+        { "CRGOLD", Color.Gold },
         { "CRRED", Color.Red },
         { "CRBLUE", Color.Blue },
         { "CRORANGE", Color.Orange },
@@ -111,13 +112,13 @@ public class StatusBarRenderer
                     case StatusBarComponentType.LevelTitle: mask |= StatusBarCoverage.MapTitle; break;
                     case StatusBarComponentType.FpsCounter: mask |= StatusBarCoverage.FPS; break;
                 }
-                // Recurse into component children
+
                 if (child.Component.Children != null)
                     mask |= ScanChildren(child.Component.Children);
             }
-            
-            // Recurse into other containers
+
             if (child.Canvas?.Children != null) mask |= ScanChildren(child.Canvas.Children);
+            if (child.List?.Children != null) mask |= ScanChildren(child.List.Children);
             if (child.Graphic?.Children != null) mask |= ScanChildren(child.Graphic.Children);
             if (child.Face?.Children != null) mask |= ScanChildren(child.Face.Children);
             if (child.FaceBackground?.Children != null) mask |= ScanChildren(child.FaceBackground.Children);
@@ -125,27 +126,28 @@ public class StatusBarRenderer
             if (child.Carousel?.Children != null) mask |= ScanChildren(child.Carousel.Children);
             if (child.Number?.Children != null) mask |= ScanChildren(child.Number.Children);
             if (child.Percent?.Children != null) mask |= ScanChildren(child.Percent.Children);
+            if (child.String?.Children != null) mask |= ScanChildren(child.String.Children);
         }
         return mask;
     }
 
     public void Draw(IHudRenderContext hud, StatusBarLayoutDef layout, StatusBarContext context)
     {
-        int width = 320;
-        int height = 200;
-        
+        const int width = 320;
+        const int height = 200;
+
         hud.PushVirtualDimension((width, height), ResolutionScale.Center, Constants.DoomVirtualAspectRatio);
 
         int yOffset = layout.FullscreenRender ? 0 : (200 - layout.Height);
         Vec2I rootPos = (0, yOffset);
-        
+
         float windowAspect = (float)hud.WindowDimension.Width / hud.WindowDimension.Height;
-        float virtualAspect = 320f / 200f;
+        const float virtualAspect = 320f / 200f;
 
         float hOffset = 0;
         float vOffset = 0;
 
-        if (windowAspect > virtualAspect) 
+        if (windowAspect > virtualAspect)
             hOffset = (200f * windowAspect - 320f) / 2f;
         else if (windowAspect < virtualAspect)
             vOffset = (320f / windowAspect - 200f) / 2f;
@@ -165,7 +167,7 @@ public class StatusBarRenderer
                 int startX = (int)-Math.Ceiling(hOffset);
                 int endX = 320 + (int)Math.Ceiling(hOffset);
                 int startY = yOffset;
-                int endY = 200 + (int)Math.Ceiling(vOffset); 
+                int endY = 200 + (int)Math.Ceiling(vOffset);
 
                 for (int x = (startX / bgWidth - 1) * bgWidth; x < endX; x += bgWidth)
                 {
@@ -179,22 +181,34 @@ public class StatusBarRenderer
 
         foreach (var child in layout.Children)
         {
-            DrawElementWrapper(hud, child, rootPos, layout.Height, context, hOffset);
+            DrawElementWrapper(hud, child, rootPos, layout.Height, context, hOffset, rootPos);
         }
 
         hud.PopVirtualDimension();
     }
 
-    private void DrawElementWrapper(IHudRenderContext hud, StatusBarElementWrapper wrapper, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawElementWrapper(IHudRenderContext hud, StatusBarElementWrapper wrapper, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset, Vec2I rootPos)
     {
+        Vec2I effectiveParentPos = parentPos;
+        bool isHudWidget = wrapper.Component != null || wrapper.Carousel != null;
+        if (isHudWidget && parentPos == rootPos)
+        {
+            effectiveParentPos = (0, 0);
+        }
+
         if (wrapper.Canvas != null)
-            DrawBase(hud, wrapper.Canvas, parentPos, containerHeight, context, widescreenOffset);
+            DrawBase(hud, wrapper.Canvas, parentPos, containerHeight, context, widescreenOffset, rootPos);
+        else if (wrapper.List != null)
+            DrawList(hud, wrapper.List, parentPos, containerHeight, context, widescreenOffset, rootPos);
         else if (wrapper.Graphic != null)
             DrawGraphic(hud, wrapper.Graphic, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.Number != null)
-            DrawNumber(hud, wrapper.Number, parentPos, containerHeight, context, isPercent: false, widescreenOffset);
+            DrawNumber(hud, wrapper.Number, parentPos, containerHeight, context, false, widescreenOffset);
         else if (wrapper.Percent != null)
-            DrawNumber(hud, wrapper.Percent, parentPos, containerHeight, context, isPercent: true, widescreenOffset);
+            DrawNumber(hud, wrapper.Percent, parentPos, containerHeight, context, true, widescreenOffset);
+        else if (wrapper.String != null)
+            DrawString(hud, wrapper.String, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.Face != null)
             DrawFace(hud, wrapper.Face, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.FaceBackground != null)
@@ -202,21 +216,102 @@ public class StatusBarRenderer
         else if (wrapper.Animation != null)
             DrawAnimation(hud, wrapper.Animation, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.Component != null)
-            DrawComponent(hud, wrapper.Component, parentPos, containerHeight, context, widescreenOffset);
+            DrawComponent(hud, wrapper.Component, effectiveParentPos, containerHeight, context, widescreenOffset, rootPos);
         else if (wrapper.Carousel != null)
-            DrawCarousel(hud, wrapper.Carousel, parentPos, containerHeight, context, widescreenOffset);
+            DrawCarousel(hud, wrapper.Carousel, effectiveParentPos, containerHeight, context, widescreenOffset, rootPos);
     }
 
-    private void DrawBase(IHudRenderContext hud, StatusBarCanvasDef def, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawBase(IHudRenderContext hud, StatusBarCanvasDef def, Vec2I parentPos, int containerHeight,
+        StatusBarContext context, float widescreenOffset, Vec2I rootPos)
     {
         if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
             return;
 
         Vec2I currentPos = ResolvePosition(def, parentPos, widescreenOffset);
-        DrawChildren(hud, def, currentPos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, def, currentPos, containerHeight, context, widescreenOffset, rootPos);
     }
 
-    private void DrawGraphic(IHudRenderContext hud, StatusBarGraphicDef graphic, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawList(IHudRenderContext hud, StatusBarListDef def, Vec2I parentPos, int containerHeight,
+        StatusBarContext context, float widescreenOffset, Vec2I rootPos)
+    {
+        if (!StatusBarConditionResolver.Evaluate(context, def.Conditions) || def.Children == null)
+            return;
+
+        int childCount = def.Children.Count;
+        Span<Vec2I> sizes = stackalloc Vec2I[childCount];
+        int activeCount = 0;
+        int totalWidth = 0;
+        int totalHeight = 0;
+
+        foreach (var child in def.Children)
+        {
+            if (EvaluateWrapperConditions(child, context))
+            {
+                Vec2I size = MeasureElement(hud, child, context);
+                sizes[activeCount] = size;
+
+                if (def.Horizontal)
+                {
+                    totalWidth += size.X;
+                    if (activeCount > 0) totalWidth += def.Spacing;
+                    totalHeight = Math.Max(totalHeight, size.Y);
+                }
+                else
+                {
+                    totalHeight += size.Y;
+                    if (activeCount > 0) totalHeight += def.Spacing;
+                    totalWidth = Math.Max(totalWidth, size.X);
+                }
+                activeCount++;
+            }
+        }
+
+        if (activeCount == 0) return;
+
+        Vec2I listPos = ResolvePosition(def, parentPos, widescreenOffset);
+
+        if ((def.Alignment & StatusBarAlignment.HCenter) != 0) listPos.X -= totalWidth / 2;
+        else if ((def.Alignment & StatusBarAlignment.Right) != 0) listPos.X -= totalWidth;
+
+        if ((def.Alignment & StatusBarAlignment.Bottom) != 0) listPos.Y -= totalHeight;
+        else if ((def.Alignment & StatusBarAlignment.VCenter) != 0) listPos.Y -= totalHeight / 2;
+
+        int currentIdx = 0;
+        Vec2I cursor = listPos;
+        foreach (var child in def.Children)
+        {
+            if (EvaluateWrapperConditions(child, context))
+            {
+                Vec2I size = sizes[currentIdx];
+                Vec2I childPos = cursor;
+
+                if (def.Horizontal)
+                {
+                    if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
+                        childPos.Y += (totalHeight - size.Y);
+                    else if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
+                        childPos.Y += (totalHeight - size.Y) / 2;
+
+                    DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
+                    cursor.X += size.X + def.Spacing;
+                }
+                else
+                {
+                    if ((def.Alignment & StatusBarAlignment.Right) != 0)
+                        childPos.X += (totalWidth - size.X);
+                    else if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
+                        childPos.X += (totalWidth - size.X) / 2;
+
+                    DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
+                    cursor.Y += size.Y + def.Spacing;
+                }
+                currentIdx++;
+            }
+        }
+    }
+
+    private void DrawGraphic(IHudRenderContext hud, StatusBarGraphicDef graphic, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, graphic.Conditions))
             return;
@@ -226,23 +321,18 @@ public class StatusBarRenderer
         if (!string.IsNullOrEmpty(graphic.Patch))
         {
             Align align = ConvertAlignment(graphic.Alignment);
-            
-            if (graphic.MidOffset != 0)
-            {
-                currentPos.X += graphic.MidOffset;
-            }
-
-            // Waiting on Image Cropping, as Woof! dev plans on changing implementation.
+            if (graphic.MidOffset != 0) currentPos.X += graphic.MidOffset;
 
             float alpha = graphic.Translucency ? 0.5f : 1.0f;
-            DrawSBarTexture(hud, graphic.Patch, currentPos, align, useDoomOffsets: true, 
-                translation: graphic.Translation, alpha: alpha);
+            DrawSBarTexture(hud, graphic.Patch, currentPos, align,
+                graphic.Alignment, graphic.Translation, alpha, graphic.Crop);
         }
 
-        DrawChildren(hud, graphic, currentPos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, graphic, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
-    private void DrawFace(IHudRenderContext hud, StatusBarFaceDef face, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawFace(IHudRenderContext hud, StatusBarFaceDef face, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, face.Conditions))
             return;
@@ -254,14 +344,15 @@ public class StatusBarRenderer
         {
             Align align = ConvertAlignment(face.Alignment);
             float alpha = face.Translucency ? 0.5f : 1.0f;
-            DrawSBarTexture(hud, patch, currentPos, align, useDoomOffsets: true, 
-                translation: face.Translation, alpha: alpha);
+            DrawSBarTexture(hud, patch, currentPos, align,
+                face.Alignment, face.Translation, alpha, face.Crop);
         }
 
-        DrawChildren(hud, face, currentPos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, face, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
-    private void DrawFaceBackground(IHudRenderContext hud, StatusBarFaceDef faceBg, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawFaceBackground(IHudRenderContext hud, StatusBarFaceDef faceBg, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, faceBg.Conditions))
             return;
@@ -273,14 +364,15 @@ public class StatusBarRenderer
         {
             Align align = ConvertAlignment(faceBg.Alignment);
             float alpha = faceBg.Translucency ? 0.5f : 1.0f;
-            DrawSBarTexture(hud, patch, currentPos, align, useDoomOffsets: true, 
-                translation: faceBg.Translation, alpha: alpha);
+            DrawSBarTexture(hud, patch, currentPos, align,
+                faceBg.Alignment, faceBg.Translation, alpha, faceBg.Crop);
         }
 
-        DrawChildren(hud, faceBg, currentPos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, faceBg, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
-    private void DrawAnimation(IHudRenderContext hud, StatusBarAnimationDef anim, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawAnimation(IHudRenderContext hud, StatusBarAnimationDef anim, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, anim.Conditions))
             return;
@@ -290,8 +382,8 @@ public class StatusBarRenderer
         if (anim.Frames.Count > 0)
         {
             double totalDuration = 0;
-            foreach (var frame in anim.Frames)
-                totalDuration += frame.Duration;
+            foreach (var frame1 in anim.Frames)
+                totalDuration += frame1.Duration;
 
             if (totalDuration > 0)
             {
@@ -313,34 +405,53 @@ public class StatusBarRenderer
                 }
 
                 Align align = ConvertAlignment(anim.Alignment);
-                DrawSBarTexture(hud, patch, currentPos, align, useDoomOffsets: true, 
-                    translation: anim.Translation, alpha: 1.0f);
+                DrawSBarTexture(hud, patch, currentPos, align, anim.Alignment, anim.Translation);
             }
         }
 
-        DrawChildren(hud, anim, currentPos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, anim, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
-    private void DrawComponent(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawString(IHudRenderContext hud, StatusBarStringDef def, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset)
+    {
+        if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
+            return;
+
+        Vec2I pos = ResolvePosition(def, parentPos, widescreenOffset);
+        ReadOnlySpan<char> text = GetStringValue(def);
+        if (text.IsEmpty) return;
+
+        m_hudFontLookup.TryGetValue(def.Font, out var fontDef);
+        float alpha = def.Translucency ? 0.5f : 1.0f;
+        int fontHeight = fontDef != null ? hud.GetFontMaxHeight(fontDef.Stem) : 8;
+        if (fontHeight <= 0) fontHeight = 8;
+
+        RenderLines(hud, text, pos, fontDef, fontHeight, def.Alignment, def.Translation, alpha);
+        DrawChildren(hud, def, pos, containerHeight, context, widescreenOffset, (0, 0));
+    }
+
+    private void DrawComponent(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset, Vec2I rootPos)
     {
         if (!StatusBarConditionResolver.Evaluate(context, comp.Conditions))
             return;
 
         Vec2I pos = ResolvePosition(comp, parentPos, widescreenOffset);
         var config = m_world.Config.Hud;
-        
+
         float alpha = comp.Translucency ? 0.5f : 1.0f;
         StatusBarAlignment alignment = comp.Alignment;
 
-        m_hudFontLookup.TryGetValue(comp.Font, out var fontDef);       
-        
+        m_hudFontLookup.TryGetValue(comp.Font, out var fontDef);
+
         int fontHeight = 8;
         if (fontDef != null && StemToHelionFontMap.TryGetValue(fontDef.Stem, out var helionFontName))
         {
             int h = hud.GetFontMaxHeight(helionFontName);
             if (h > 0) fontHeight = h;
         }
-        
+
         switch (comp.ComponentType)
         {
             case StatusBarComponentType.StatTotals:
@@ -362,7 +473,6 @@ public class StatusBarRenderer
                 DrawCoordinates(hud, comp, pos, fontDef, fontHeight, alpha, context);
                 break;
             case StatusBarComponentType.Speedometer:
-                // A joke case for Woof!, handled anyway!
                 string speedText = GetSpeedometerText(context.Player);
                 RenderLines(hud, speedText.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
@@ -380,51 +490,43 @@ public class StatusBarRenderer
                 string msg = context.ConsoleMessage ?? string.Empty;
                 if (context.IsMessageCentered)
                 {
-                    pos = (160, 66); 
+                    pos = (160, 66);
                     alignment = StatusBarAlignment.HCenter;
                 }
                 RenderLines(hud, msg.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.AnnounceLevelTitle:
                 double duration = comp.Duration > 0 ? comp.Duration : 2.5;
-                double fadeInTime = 0.25;
-                double fadeOutTime = 1.0;
+                const double fadeInTime = 0.25;
+                const double fadeOutTime = 1.0;
                 double timeSinceStart = m_world.LevelTime / Constants.TicksPerSecond;
 
-                if (timeSinceStart > duration + fadeOutTime) 
-                    return; 
+                if (timeSinceStart > duration + fadeOutTime)
+                    return;
 
-                if (timeSinceStart < fadeInTime)
-                {
-                    alpha *= (float)(timeSinceStart / fadeInTime);
-                }
+                if (timeSinceStart < fadeInTime) alpha *= (float)(timeSinceStart / fadeInTime);
                 else if (timeSinceStart > duration)
                 {
                     double progress = (timeSinceStart - duration) / fadeOutTime;
                     alpha *= (float)(1.0 - progress);
                 }
-                
+
                 string annTitle = m_world.MapInfo.GetDisplayNameWithPrefix(m_archiveCollection.Language);
                 RenderLines(hud, annTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
-            case StatusBarComponentType.RenderStats: 
-            case StatusBarComponentType.CommandHistory: 
-            case StatusBarComponentType.Chat:
-                // Helion is singleplayer, no chat functionality.
-                break;
         }
 
-        DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset, rootPos);
     }
-    
-    private void RenderLines(IHudRenderContext hud, ReadOnlySpan<char> text, Vec2I pos, 
+
+    private void RenderLines(IHudRenderContext hud, ReadOnlySpan<char> text, Vec2I pos,
         StatusBarHudFontDef? fontDef, int fontHeight, StatusBarAlignment alignment, string? translation, float alpha)
     {
         if (text.IsEmpty) return;
 
         Vec2I drawPos = pos;
-        
         int lineStart = 0;
+
         for (int i = 0; i < text.Length; i++)
         {
             if (text[i] == '\n')
@@ -435,16 +537,15 @@ public class StatusBarRenderer
                 lineStart = i + 1;
             }
         }
-        
-        if (lineStart <= text.Length)
+
+        if (lineStart < text.Length)
         {
             var line = text.Slice(lineStart);
-            if (line.Length > 0 || lineStart < text.Length)
-                DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
+            DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
         }
     }
 
-    private void DrawSingleLine(IHudRenderContext hud, ReadOnlySpan<char> line, Vec2I drawPos, 
+    private void DrawSingleLine(IHudRenderContext hud, ReadOnlySpan<char> line, Vec2I drawPos,
         StatusBarHudFontDef? fontDef, StatusBarAlignment alignment, string? translation, float alpha)
     {
         if (line.IsEmpty) return;
@@ -454,8 +555,7 @@ public class StatusBarRenderer
         {
             drawnWidth = DrawHudText(hud, line, fontDef, drawPos, alignment, translation, alpha);
         }
-        
-        // Fallback
+
         if (drawnWidth == 0)
         {
             Align align = ConvertAlignment(alignment);
@@ -463,10 +563,7 @@ public class StatusBarRenderer
         }
     }
 
-    /// <summary>
-    /// Draws text using SBARDEF HudFont. Returns the total width of the drawn text in pixels.
-    /// </summary>
-    private int DrawHudText(IHudRenderContext hud, ReadOnlySpan<char> text, StatusBarHudFontDef fontDef, 
+    private int DrawHudText(IHudRenderContext hud, ReadOnlySpan<char> text, StatusBarHudFontDef fontDef,
         Vec2I pos, StatusBarAlignment alignment, string? translation, float alpha, bool draw = true)
     {
         Color? drawColor = null;
@@ -482,13 +579,13 @@ public class StatusBarRenderer
             {
                 Align anchor;
                 TextAlign textAlign = TextAlign.Left;
-                
+
                 bool hCenter = (alignment & StatusBarAlignment.HCenter) != 0;
                 bool right = (alignment & StatusBarAlignment.Right) != 0;
                 bool vCenter = (alignment & StatusBarAlignment.VCenter) != 0;
                 bool bottom = (alignment & StatusBarAlignment.Bottom) != 0;
 
-                if (hCenter) 
+                if (hCenter)
                 {
                     anchor = bottom ? Align.BottomMiddle : (vCenter ? Align.Center : Align.TopMiddle);
                     textAlign = TextAlign.Center;
@@ -503,57 +600,50 @@ public class StatusBarRenderer
                     anchor = bottom ? Align.BottomLeft : (vCenter ? Align.MiddleLeft : Align.TopLeft);
                 }
 
-                hud.Text(text, helionFont, 8, pos, textAlign: textAlign, 
-                    window: Align.TopLeft, anchor: anchor, 
+                hud.Text(text, helionFont, 8, pos, textAlign: textAlign,
+                    window: Align.TopLeft, anchor: anchor,
                     color: drawColor, alpha: alpha);
             }
-                
+
             return hud.MeasureText(text, helionFont, 8).Width;
         }
 
         int totalWidth = 0;
         int maxHeight = 0;
-        
+
         m_glyphCache.Clear();
-        
+
         int monoWidth = 0;
-        // Type 1: Monospaced, based off the widest glyph
         if (fontDef.Type == 1)
         {
             if (!HudType1WidthCache.TryGetValue(fontDef.Stem, out monoWidth))
             {
                 monoWidth = 0;
-                for (char c = '!'; c <= '_'; c++)
+                for (char c1 = '!'; c1 <= '_'; c1++)
                 {
-                    string patch = GetHudFontPatch(fontDef, c);
-                    if (ResolveGlyph(hud, patch, out int w, out _))
-                    {
+                    string patch1 = GetHudFontPatch(fontDef, c1);
+                    if (ResolveGlyph(hud, patch1, out int w, out _))
                         monoWidth = Math.Max(monoWidth, w);
-                    }
                 }
                 HudType1WidthCache[fontDef.Stem] = monoWidth;
             }
         }
-        else if (fontDef.Type == 0) // Type 0: Monospaced based on '0'
+        else if (fontDef.Type == 0)
         {
             string zero = GetHudFontPatch(fontDef, '0');
             if (hud.Textures.TryGet(zero, out var zh)) monoWidth = zh.Dimension.Width;
         }
 
-        foreach (char originalChar in text)
+        foreach (var originalChar in text)
         {
-            int width = 0;
+            int width;
             string patch = string.Empty;
             char c = originalChar;
 
             if (c == ' ')
             {
                 string bang = GetHudFontPatch(fontDef, '!');
-                if (hud.Textures.HasImage(bang)) 
-                {
-                    if (hud.Textures.TryGet(bang, out var h)) width = h.Dimension.Width;
-                }
-                else width = 4;
+                width = hud.Textures.TryGet(bang, out var h) ? h.Dimension.Width : 4;
             }
             else
             {
@@ -574,20 +664,11 @@ public class StatusBarRenderer
                     }
                 }
 
-                if (found)
-                {
-                    maxHeight = Math.Max(maxHeight, height);
-                }
-                else
-                {
-                    patch = string.Empty;
-                }
+                if (found) maxHeight = Math.Max(maxHeight, height);
+                else patch = string.Empty;
             }
 
-            if (monoWidth > 0)
-            {
-                 width = monoWidth;
-            }
+            if (monoWidth > 0) width = monoWidth;
 
             m_glyphCache.Add(new RenderGlyph(patch, width, 0));
             totalWidth += width;
@@ -605,14 +686,11 @@ public class StatusBarRenderer
         if ((alignment & StatusBarAlignment.Bottom) != 0) drawY -= maxHeight;
         else if ((alignment & StatusBarAlignment.VCenter) != 0) drawY -= maxHeight / 2;
 
-        Align align = Align.TopLeft;
-
         foreach (var g in m_glyphCache)
         {
             if (!string.IsNullOrEmpty(g.Patch))
             {
-                DrawSBarTexture(hud, g.Patch, (drawX, drawY), align, useDoomOffsets: false, 
-                    translation: translation, alpha: alpha);
+                DrawSBarTexture(hud, g.Patch, (drawX, drawY), Align.TopLeft, alignment, translation, alpha);
             }
             drawX += g.Width;
         }
@@ -620,14 +698,15 @@ public class StatusBarRenderer
         return totalWidth;
     }
 
-    private void DrawCarousel(IHudRenderContext hud, StatusBarCarouselDef carousel, Vec2I parentPos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawCarousel(IHudRenderContext hud, StatusBarCarouselDef carousel, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, float widescreenOffset, Vec2I rootPos)
     {
         if (!StatusBarConditionResolver.Evaluate(context, carousel.Conditions))
             return;
 
         Vec2I pos = ResolvePosition(carousel, parentPos, widescreenOffset);
-        pos.X = 160 + carousel.X; 
-        
+        pos.X = 160;
+
         if (context.Player.Weapon != null)
         {
             string icon = context.Player.Weapon.Definition.Properties.Inventory.Icon;
@@ -635,32 +714,31 @@ public class StatusBarRenderer
             {
                 Align align = ConvertAlignment(carousel.Alignment);
                 float alpha = carousel.Translucency ? 0.5f : 1.0f;
-                DrawSBarTexture(hud, icon, pos, align, useDoomOffsets: true, 
-                    translation: carousel.Translation, alpha: alpha);
+                DrawSBarTexture(hud, icon, pos, align, carousel.Alignment, carousel.Translation, alpha);
             }
         }
 
-        DrawChildren(hud, carousel, pos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, carousel, pos, containerHeight, context, widescreenOffset, rootPos);
     }
 
-    private static void DrawSBarTexture(IHudRenderContext hud, string patch, Vec2I pos, Align align, 
-        bool useDoomOffsets, string? translation = null, float alpha = 1.0f)
+    private static void DrawSBarTexture(IHudRenderContext hud, string patch, Vec2I pos, Align align,
+        StatusBarAlignment sbarAlign, string? translation = null, float alpha = 1.0f, StatusBarCropDef? crop = null)
     {
-        bool isRight = align == Align.TopRight || align == Align.MiddleRight || align == Align.BottomRight;
-        bool isBottom = align == Align.BottomLeft || align == Align.BottomMiddle || align == Align.BottomRight;
-
-        if (isRight) pos.X -= 1;
-        if (isBottom) pos.Y -= 1;
-
-        if (!hud.Textures.TryGet(patch, out var handle))
+        string pName = ResolvePatchName(patch);
+        ResourceNamespace ns = ResourceNamespace.Global;
+        if (!hud.Textures.TryGet(pName, out var handle))
         {
-            if (!hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites))
+            ns = ResourceNamespace.Sprites;
+            if (!hud.Textures.TryGet(pName, out handle, ns))
                 return;
         }
 
+        bool ignoreX = (sbarAlign & StatusBarAlignment.IgnoreLeftOffset) != 0;
+        bool ignoreY = (sbarAlign & StatusBarAlignment.IgnoreTopOffset) != 0;
+
         Vec2I drawPos = pos;
-        if (useDoomOffsets)
-            drawPos += RenderDimensions.TranslateDoomOffset(handle.Offset);
+        if (!ignoreX) drawPos.X += RenderDimensions.TranslateDoomOffset(handle.Offset).X;
+        if (!ignoreY) drawPos.Y += RenderDimensions.TranslateDoomOffset(handle.Offset).Y;
 
         Color? drawColor = null;
         if (!string.IsNullOrEmpty(translation))
@@ -669,24 +747,19 @@ public class StatusBarRenderer
                 drawColor = c;
         }
 
-        if (hud.Textures.HasImage(patch))
-        {
-            hud.Image(patch, drawPos, anchor: align, alpha: alpha, color: drawColor);
-        }
-        else if (hud.Textures.HasImage(patch, ResourceNamespace.Sprites))
-        {
-            hud.Image(patch, drawPos, anchor: align, resourceNamespace: ResourceNamespace.Sprites, alpha: alpha, color: drawColor);
-        }
+        if (crop != null) { /* Future Implementation */ }
+
+        hud.Image(pName, drawPos, anchor: align, resourceNamespace: ns, alpha: alpha, color: drawColor);
     }
 
-    private void DrawNumber(IHudRenderContext hud, StatusBarNumberDef number, Vec2I parentPos, int containerHeight, 
-        StatusBarContext context, bool isPercent, float widescreenOffset)
+    private void DrawNumber(IHudRenderContext hud, StatusBarNumberDef number, Vec2I parentPos,
+        int containerHeight, StatusBarContext context, bool isPercent, float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, number.Conditions))
             return;
 
         int value = ResolveNumberValue(context.Player, number.Type, number.Param);
-        
+
         if (number.MaxLength > 0)
         {
             int maxVal = (int)Math.Pow(10, number.MaxLength) - 1;
@@ -701,22 +774,13 @@ public class StatusBarRenderer
         m_fmtSpan.Clear();
         m_fmtSpan.Append(value);
         if (isPercent) m_fmtSpan.Append('%');
-        
-        ReadOnlySpan<char> text = m_fmtSpan.AsSpan();
 
+        ReadOnlySpan<char> text = m_fmtSpan.AsSpan();
         Vec2I pos = ResolvePosition(number, parentPos, widescreenOffset);
 
-        Color? drawColor = null;
-        if (!string.IsNullOrEmpty(number.Translation))
-        {
-            if (StandardTextColors.TryGetValue(number.Translation, out var c))
-                drawColor = c;
-        }
-
         float alpha = number.Translucency ? 0.5f : 1.0f;
-
         int totalWidth = 0;
-        int monoWidth = 0; 
+        int monoWidth = 0;
 
         if (fontDef.Type == 0)
         {
@@ -738,31 +802,24 @@ public class StatusBarRenderer
                 Type1WidthCache[fontDef.Stem] = monoWidth;
             }
         }
-        
+
         m_glyphCache.Clear();
 
-        foreach (char c in text)
+        foreach (var c in text)
         {
             string patch = GetFontPatch(hud, fontDef, c);
             int width;
             int xOffset = 0;
 
-            if (hud.Textures.TryGet(patch, out var handle))
-                width = handle.Dimension.Width;
-            else
-            {
-                 if (hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites))
-                     width = handle.Dimension.Width;
-                 else
-                     continue;
-            }
-            
+            if (hud.Textures.TryGet(patch, out var handle)) width = handle.Dimension.Width;
+            else if (hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites)) width = handle.Dimension.Width;
+            else continue;
+
             if (fontDef.Type == 0 || fontDef.Type == 1)
             {
                 if (monoWidth > 0)
                 {
-                    if (width < monoWidth)
-                        xOffset = (monoWidth - width) / 2;
+                    if (width < monoWidth) xOffset = (monoWidth - width) / 2;
                     width = monoWidth;
                 }
             }
@@ -774,57 +831,42 @@ public class StatusBarRenderer
         int drawX = pos.X;
         int drawY = pos.Y;
 
-        if ((number.Alignment & StatusBarAlignment.HCenter) != 0)
-            drawX -= totalWidth / 2;
-        else if ((number.Alignment & StatusBarAlignment.Right) != 0)
-            drawX -= totalWidth;
+        if ((number.Alignment & StatusBarAlignment.HCenter) != 0) drawX -= totalWidth / 2;
+        else if ((number.Alignment & StatusBarAlignment.Right) != 0) drawX -= totalWidth;
 
-        Align yAnchor = Align.TopLeft;
-        if ((number.Alignment & StatusBarAlignment.Bottom) != 0) yAnchor = Align.BottomLeft;
-        
-        bool isBottomAnchor = yAnchor == Align.BottomLeft;
+        Align yAnchor = (number.Alignment & StatusBarAlignment.Bottom) != 0 ? Align.BottomLeft : Align.TopLeft;
 
         foreach (var g in m_glyphCache)
         {
             Vec2I drawPos = (drawX + g.Offset, drawY);
-            
-            if (isBottomAnchor) drawPos.Y -= 1;
-
-            if (hud.Textures.HasImage(g.Patch))
-                hud.Image(g.Patch, drawPos, anchor: yAnchor, color: drawColor, alpha: alpha);
-            else if (hud.Textures.HasImage(g.Patch, ResourceNamespace.Sprites))
-                hud.Image(g.Patch, drawPos, anchor: yAnchor, resourceNamespace: ResourceNamespace.Sprites, color: drawColor, alpha: alpha);
-            
+            DrawSBarTexture(hud, g.Patch, drawPos, yAnchor, number.Alignment, number.Translation, alpha);
             drawX += g.Width;
         }
 
-        DrawChildren(hud, number, pos, containerHeight, context, widescreenOffset);
+        DrawChildren(hud, number, pos, containerHeight, context, widescreenOffset, (0, 0));
     }
-    
-    private void DrawStatTotals(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos, 
+
+    private void DrawStatTotals(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos,
         StatusBarHudFontDef? fontDef, int fontHeight, float alpha)
     {
         var stats = m_world.LevelStats;
-        
         DrawStatPart(hud, "K: ", stats.KillCount, stats.TotalMonsters, ref pos, comp, fontDef, fontHeight, alpha);
         DrawStatPart(hud, "I: ", stats.ItemCount, stats.TotalItems, ref pos, comp, fontDef, fontHeight, alpha);
         DrawStatPart(hud, "S: ", stats.SecretCount, stats.TotalSecrets, ref pos, comp, fontDef, fontHeight, alpha);
     }
 
-    private void DrawStatPart(IHudRenderContext hud, string label, int count, int total, ref Vec2I cursor, 
+    private void DrawStatPart(IHudRenderContext hud, string label, int count, int total, ref Vec2I cursor,
         StatusBarComponentDef comp, StatusBarHudFontDef? fontDef, int fontHeight, float alpha)
     {
         string? defaultColor = comp.Translation;
         string? valueColor = defaultColor;
 
-        if (total != int.MinValue && total > 0 && count >= total) 
-            valueColor = "CRGREEN";
-        
+        if (total != int.MinValue && total > 0 && count >= total) valueColor = "CRGREEN";
+
         int labelWidth = DrawTextPart(hud, label.AsSpan(), cursor, defaultColor, comp.Alignment, fontDef, alpha);
-        
         Vec2I valuePos = cursor;
         valuePos.X += labelWidth;
-        
+
         m_fmtSpan.Clear();
         m_fmtSpan.Append(count);
         m_fmtSpan.Append('/');
@@ -832,78 +874,66 @@ public class StatusBarRenderer
 
         int valueWidth = DrawTextPart(hud, m_fmtSpan.AsSpan(), valuePos, valueColor, comp.Alignment, fontDef, alpha);
 
-        if (comp.Vertical) 
-            cursor.Y += fontHeight;
-        else 
-            cursor.X += labelWidth + valueWidth + 8; // Padding
+        if (comp.Vertical) cursor.Y += fontHeight;
+        else cursor.X += labelWidth + valueWidth + 8;
     }
-    
-    private void DrawCoordinates(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos, 
+
+    private void DrawCoordinates(IHudRenderContext hud, StatusBarComponentDef comp, Vec2I pos,
         StatusBarHudFontDef? fontDef, int fontHeight, float alpha, StatusBarContext context)
     {
         var playerPos = context.Player.Position;
         m_coordPartsCache.Clear();
-        
         m_coordPartsCache.Add(new CoordData("X: ", (int)playerPos.X, 0, 0));
         m_coordPartsCache.Add(new CoordData("Y: ", (int)playerPos.Y, 0, 0));
         m_coordPartsCache.Add(new CoordData("Z: ", (int)playerPos.Z, 0, 0));
 
         int totalHorizontalWidth = 0;
-        
         for (int i = 0; i < m_coordPartsCache.Count; i++)
         {
             var data = m_coordPartsCache[i];
-            
             int lw = MeasureSpan(hud, data.Label.AsSpan(), "CRGREEN", fontDef, alpha);
-            
             m_fmtSpan.Clear();
             m_fmtSpan.Append(data.Value);
             int vw = MeasureSpan(hud, m_fmtSpan.AsSpan(), comp.Translation, fontDef, alpha);
-            
             m_coordPartsCache[i] = data with { LabelWidth = lw, ValWidth = vw };
-            
             totalHorizontalWidth += lw + vw;
-            if (i < m_coordPartsCache.Count - 1) totalHorizontalWidth += 8; 
+            if (i < m_coordPartsCache.Count - 1) totalHorizontalWidth += 8;
         }
 
         Vec2I cursor = pos;
-        int startX = pos.X;
-
         if (!comp.Vertical)
         {
-            if ((comp.Alignment & StatusBarAlignment.Right) != 0) startX -= totalHorizontalWidth;
-            else if ((comp.Alignment & StatusBarAlignment.HCenter) != 0) startX -= totalHorizontalWidth / 2;
+            if ((comp.Alignment & StatusBarAlignment.Right) != 0) cursor.X -= totalHorizontalWidth;
+            else if ((comp.Alignment & StatusBarAlignment.HCenter) != 0) cursor.X -= totalHorizontalWidth / 2;
         }
 
-        cursor.X = startX;
-        
         foreach (var data in m_coordPartsCache)
         {
             if (comp.Vertical)
             {
                 int lineWidth = data.LabelWidth + data.ValWidth;
                 int lineX = pos.X;
-                
                 if ((comp.Alignment & StatusBarAlignment.Right) != 0) lineX -= lineWidth;
                 else if ((comp.Alignment & StatusBarAlignment.HCenter) != 0) lineX -= lineWidth / 2;
-                
-                DrawTextPart(hud, data.Label.AsSpan(), (lineX, cursor.Y), "CRGREEN", StatusBarAlignment.Left, fontDef, alpha);
-                
+
+                DrawTextPart(hud, data.Label.AsSpan(), (lineX, cursor.Y), "CRGREEN",
+                    StatusBarAlignment.Left, fontDef, alpha);
                 m_fmtSpan.Clear();
                 m_fmtSpan.Append(data.Value);
-                DrawTextPart(hud, m_fmtSpan.AsSpan(), (lineX + data.LabelWidth, cursor.Y), comp.Translation, StatusBarAlignment.Left, fontDef, alpha);
-                
+                DrawTextPart(hud, m_fmtSpan.AsSpan(), (lineX + data.LabelWidth, cursor.Y),
+                    comp.Translation, StatusBarAlignment.Left, fontDef, alpha);
                 cursor.Y += fontHeight;
             }
             else
             {
-                DrawTextPart(hud, data.Label.AsSpan(), cursor, "CRGREEN", StatusBarAlignment.Left, fontDef, alpha);
+                DrawTextPart(hud, data.Label.AsSpan(), cursor, "CRGREEN",
+                    StatusBarAlignment.Left, fontDef, alpha);
                 cursor.X += data.LabelWidth;
-                
                 m_fmtSpan.Clear();
                 m_fmtSpan.Append(data.Value);
-                DrawTextPart(hud, m_fmtSpan.AsSpan(), cursor, comp.Translation, StatusBarAlignment.Left, fontDef, alpha);
-                cursor.X += data.ValWidth + 8; 
+                DrawTextPart(hud, m_fmtSpan.AsSpan(), cursor,
+                    comp.Translation, StatusBarAlignment.Left, fontDef, alpha);
+                cursor.X += data.ValWidth + 8;
             }
         }
     }
@@ -911,40 +941,169 @@ public class StatusBarRenderer
     private int MeasureSpan(IHudRenderContext hud, ReadOnlySpan<char> t, string? trans, StatusBarHudFontDef? fontDef, float alpha)
     {
         if (fontDef != null)
-            return DrawHudText(hud, t, fontDef, (0,0), StatusBarAlignment.Left, trans, alpha, draw: false);
+            return DrawHudText(hud, t, fontDef, (0, 0), StatusBarAlignment.Left, trans, alpha, false);
         return hud.MeasureText(t, Constants.Fonts.Small, 8).Width;
     }
-    
-    private int DrawTextPart(IHudRenderContext hud, ReadOnlySpan<char> text, Vec2I position, string? translation, 
+
+    private int DrawTextPart(IHudRenderContext hud, ReadOnlySpan<char> text, Vec2I position, string? translation,
         StatusBarAlignment alignment, StatusBarHudFontDef? fontDef, float alpha)
     {
-        int width;
         if (fontDef != null)
-        {
-            width = DrawHudText(hud, text, fontDef, position, alignment, translation, alpha, draw: true);
-        }
-        else
-        {
-            Align align = ConvertAlignment(alignment);
-            Color? color = null;
-            if (!string.IsNullOrEmpty(translation) && StandardTextColors.TryGetValue(translation, out var c))
-                color = c;
-            
-            hud.Text(text, Constants.Fonts.Small, 8, position, both: align, alpha: alpha, color: color);
-            width = hud.MeasureText(text, Constants.Fonts.Small, 8).Width;
-        }
-        return width;
+            return DrawHudText(hud, text, fontDef, position, alignment, translation, alpha);
+
+        Align align = ConvertAlignment(alignment);
+        Color? color = !string.IsNullOrEmpty(translation) && StandardTextColors.TryGetValue(translation, out var c) ? c : null;
+        hud.Text(text, Constants.Fonts.Small, 8, position, both: align, alpha: alpha, color: color);
+        return hud.MeasureText(text, Constants.Fonts.Small, 8).Width;
     }
 
-    private void DrawChildren(IHudRenderContext hud, StatusBarBaseDef def, Vec2I pos, int containerHeight, StatusBarContext context, float widescreenOffset)
+    private void DrawChildren(IHudRenderContext hud, StatusBarBaseDef def, Vec2I pos, int containerHeight,
+        StatusBarContext context, float widescreenOffset, Vec2I rootPos)
     {
-        if (def.Children != null)
+        if (def.Children == null) return;
+        foreach (var child in def.Children)
         {
-            foreach (var child in def.Children)
-            {
-                DrawElementWrapper(hud, child, pos, containerHeight, context, widescreenOffset);
-            }
+            DrawElementWrapper(hud, child, pos, containerHeight, context, widescreenOffset, rootPos);
         }
+    }
+
+    private Vec2I MeasureElement(IHudRenderContext hud, StatusBarElementWrapper wrapper, StatusBarContext context)
+    {
+        Vec2I size = (0, 0);
+        int posX = 0, posY = 0;
+        StatusBarAlignment alignment = 0;
+
+        if (wrapper.Graphic != null)
+        {
+            string p = ResolvePatchName(wrapper.Graphic.Patch);
+            if (!hud.Textures.TryGet(p, out var h))
+                hud.Textures.TryGet(p, out h, ResourceNamespace.Sprites);
+
+            if (h != null)
+            {
+                size = h.Dimension.Vector;
+                if ((wrapper.Graphic.Alignment & StatusBarAlignment.IgnoreLeftOffset) == 0)
+                    posX += RenderDimensions.TranslateDoomOffset(h.Offset).X;
+                if ((wrapper.Graphic.Alignment & StatusBarAlignment.IgnoreTopOffset) == 0)
+                    posY += RenderDimensions.TranslateDoomOffset(h.Offset).Y;
+            }
+            posX += wrapper.Graphic.X; posY += wrapper.Graphic.Y;
+            alignment = wrapper.Graphic.Alignment;
+        }
+        else if (wrapper.Number != null || wrapper.Percent != null)
+        {
+            var num = wrapper.Number ?? wrapper.Percent!;
+            m_fmtSpan.Clear();
+            m_fmtSpan.Append(ResolveNumberValue(context.Player, num.Type, num.Param));
+            if (wrapper.Percent != null) m_fmtSpan.Append('%');
+            size = new Vec2I(MeasureSpan(hud, m_fmtSpan.AsSpan(), null, null, 1.0f), 8);
+            posX += num.X; posY += num.Y;
+            alignment = num.Alignment;
+        }
+        else if (wrapper.Face != null)
+        {
+            string p = context.Player.StatusBar.GetFacePatch();
+            if (hud.Textures.TryGet(p, out var h))
+            {
+                size = h.Dimension.Vector;
+                if ((wrapper.Face.Alignment & StatusBarAlignment.IgnoreLeftOffset) == 0)
+                    posX += RenderDimensions.TranslateDoomOffset(h.Offset).X;
+                if ((wrapper.Face.Alignment & StatusBarAlignment.IgnoreTopOffset) == 0)
+                    posY += RenderDimensions.TranslateDoomOffset(h.Offset).Y;
+            }
+            posX += wrapper.Face.X; posY += wrapper.Face.Y;
+            alignment = wrapper.Face.Alignment;
+        }
+        else if (wrapper.String != null)
+        {
+            var text = GetStringValue(wrapper.String);
+            m_hudFontLookup.TryGetValue(wrapper.String.Font, out var f);
+            size = new Vec2I(MeasureSpan(hud, text, null, f, 1.0f), 8);
+            posX += wrapper.String.X; posY += wrapper.String.Y;
+            alignment = wrapper.String.Alignment;
+        }
+        else if (wrapper.Canvas?.Children != null)
+        {
+            int maxX = 0, maxY = 0;
+            foreach (var child in wrapper.Canvas.Children)
+            {
+                var cSize = MeasureElement(hud, child, context);
+                maxX = Math.Max(maxX, cSize.X);
+                maxY = Math.Max(maxY, cSize.Y);
+            }
+            size = new Vec2I(maxX, maxY);
+            posX += wrapper.Canvas.X; posY += wrapper.Canvas.Y;
+            alignment = wrapper.Canvas.Alignment;
+        }
+        else if (wrapper.List?.Children != null)
+        {
+            int totalW = 0, totalH = 0;
+            foreach (var child in wrapper.List.Children)
+            {
+                var lSize = MeasureElement(hud, child, context);
+                if (wrapper.List.Horizontal)
+                {
+                    totalW += lSize.X + wrapper.List.Spacing;
+                    totalH = Math.Max(totalH, lSize.Y);
+                }
+                else
+                {
+                    totalH += lSize.Y + wrapper.List.Spacing;
+                    totalW = Math.Max(totalW, lSize.X);
+                }
+            }
+            size = new Vec2I(totalW, totalH);
+            posX += wrapper.List.X; posY += wrapper.List.Y;
+            alignment = wrapper.List.Alignment;
+        }
+
+        // Apply alignment shifts
+        if ((alignment & StatusBarAlignment.HCenter) != 0) posX -= size.X / 2;
+        else if ((alignment & StatusBarAlignment.Right) != 0) posX -= size.X;
+        if ((alignment & StatusBarAlignment.VCenter) != 0) posY -= size.Y / 2;
+        else if ((alignment & StatusBarAlignment.Bottom) != 0) posY -= size.Y;
+
+        return new Vec2I(Math.Max(0, posX + size.X), Math.Max(0, posY + size.Y));
+    }
+
+    private static string ResolvePatchName(string patch)
+    {
+        if (string.IsNullOrEmpty(patch)) return patch;
+        if (patch.Contains('/') || patch.Contains('.'))
+        {
+            int lastSlash = patch.LastIndexOf('/') + 1;
+            int lastDot = patch.LastIndexOf('.');
+            if (lastDot < lastSlash) lastDot = patch.Length;
+            return patch.Substring(lastSlash, lastDot - lastSlash);
+        }
+        return patch;
+    }
+
+    private ReadOnlySpan<char> GetStringValue(StatusBarStringDef def)
+    {
+        switch (def.Type)
+        {
+            case 0: return def.Data.AsSpan();
+            case 1: return m_world.MapInfo.GetDisplayNameWithPrefix(m_archiveCollection.Language).AsSpan();
+            case 2: return m_world.MapInfo.Label.AsSpan();
+            case 3: return m_world.MapInfo.Author.AsSpan();
+            default: return ReadOnlySpan<char>.Empty;
+        }
+    }
+
+    private static bool EvaluateWrapperConditions(StatusBarElementWrapper wrapper, StatusBarContext context)
+    {
+        if (wrapper.Canvas != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Canvas.Conditions);
+        if (wrapper.Graphic != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Graphic.Conditions);
+        if (wrapper.Number != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Number.Conditions);
+        if (wrapper.Percent != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Percent.Conditions);
+        if (wrapper.Face != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Face.Conditions);
+        if (wrapper.Animation != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Animation.Conditions);
+        if (wrapper.Component != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Component.Conditions);
+        if (wrapper.Carousel != null) return StatusBarConditionResolver.Evaluate(context, wrapper.Carousel.Conditions);
+        if (wrapper.List != null) return StatusBarConditionResolver.Evaluate(context, wrapper.List.Conditions);
+        if (wrapper.String != null) return StatusBarConditionResolver.Evaluate(context, wrapper.String.Conditions);
+        return true;
     }
 
     private static Vec2I ResolvePosition(StatusBarBaseDef def, Vec2I parentPos, float widescreenOffset)
@@ -952,97 +1111,85 @@ public class StatusBarRenderer
         Vec2I pos = parentPos;
         pos.X += def.X;
         pos.Y += def.Y;
-        
+
         if (widescreenOffset > 0)
         {
-            bool dynLeft = (def.Alignment & StatusBarAlignment.DynamicLeft) != 0;
-            bool dynRight = (def.Alignment & StatusBarAlignment.DynamicRight) != 0;
             int offset = (int)Math.Ceiling(widescreenOffset);
-
-            if (dynLeft && dynRight) { }
-            else if (dynLeft) pos.X -= offset;
-            else if (dynRight) pos.X += offset;
+            if ((def.Alignment & StatusBarAlignment.WidescreenLeft) != 0) pos.X -= offset;
+            else if ((def.Alignment & StatusBarAlignment.WidescreenRight) != 0) pos.X += offset;
         }
         return pos;
     }
 
+    private static float GetWidescreenOffset(IHudRenderContext hud)
+    {
+        var scaleWidth = hud.ArchiveCollection.Config.Hud.Width.Value * 320.0;
+        if (scaleWidth > hud.Dimension.Width * Constants.DoomVirtualAspectRatio || scaleWidth == 0)
+        {
+            float currentAspect = hud.WindowDimension.AspectRatio;
+            if (currentAspect > Constants.DoomVirtualAspectRatio)
+            {
+                float widthInDoomUnits = 320.0f * (currentAspect / Constants.DoomVirtualAspectRatio);
+                return (widthInDoomUnits - 320.0f) / 2.0f;
+            }
+        }
+        return -(hud.Dimension.Width - (int)scaleWidth) / 2.0f;
+    }
+
     private static bool ResolveGlyph(IHudRenderContext hud, string patch, out int width, out int height)
     {
-        if (hud.Textures.TryGet(patch, out var handle))
+        string p = ResolvePatchName(patch);
+        if (hud.Textures.TryGet(p, out var handle) || hud.Textures.TryGet(p, out handle, ResourceNamespace.Sprites))
         {
             width = handle.Dimension.Width;
             height = handle.Dimension.Height;
             return true;
         }
-        else if (hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites))
-        {
-            width = handle.Dimension.Width;
-            height = handle.Dimension.Height;
-            return true;
-        }
-        width = 0; 
-        height = 0;
+        width = height = 0;
         return false;
     }
-    
+
     private string GetHudFontPatch(StatusBarHudFontDef font, char c)
     {
         m_lookupKeySpan.Clear();
         m_lookupKeySpan.Append(font.Stem);
         m_lookupKeySpan.Append(c);
-        
+
         var lookup = HudFontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached))
-            return cached;
-        
+        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached)) return cached;
+
         string result = font.Stem + ((int)c).ToString("D3", CultureInfo.InvariantCulture);
         HudFontPatchCache[font.Stem + c] = result;
         return result;
     }
-    
+
     private string GetFontPatch(IHudRenderContext hud, StatusBarNumberFontDef font, char c)
     {
         m_lookupKeySpan.Clear();
         m_lookupKeySpan.Append(font.Stem);
         m_lookupKeySpan.Append(c);
-
         var lookup = FontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached))
-            return cached;
+        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached)) return cached;
 
         string result;
-        if (c == '-') 
+        if (c == '-')
         {
             string p = font.Stem + "MINUS";
-            if (hud.Textures.HasImage(p)) result = p;
-            else result = font.Stem + "-";
+            result = hud.Textures.HasImage(p) ? p : font.Stem + "-";
         }
-        else if (c == '%') 
+        else if (c == '%')
         {
             string p = font.Stem + "PRCNT";
-            if (hud.Textures.HasImage(p)) result = p;
-            else
-            {
-                p = font.Stem + "PRCN";
-                if (hud.Textures.HasImage(p)) result = p;
-                else
-                {
-                    p = font.Stem + "PERCENT";
-                    if (hud.Textures.HasImage(p)) result = p;
-                    else result = font.Stem + "%";
-                }
-            }
+            if (!hud.Textures.HasImage(p)) p = font.Stem + "PRCN";
+            if (!hud.Textures.HasImage(p)) p = font.Stem + "PERCENT";
+            result = hud.Textures.HasImage(p) ? p : font.Stem + "%";
         }
         else if (char.IsDigit(c))
         {
             string p = font.Stem + "NUM" + c;
-            if (hud.Textures.HasImage(p)) result = p;
-            else result = font.Stem + c;
+            result = hud.Textures.HasImage(p) ? p : font.Stem + c;
         }
-        else
-        {
-            result = font.Stem + c;
-        }
+        else result = font.Stem + c;
 
         FontPatchCache[font.Stem + c] = result;
         return result;
@@ -1051,85 +1198,75 @@ public class StatusBarRenderer
     private int ResolveNumberValue(Player player, StatusBarNumberType type, int param)
     {
         var composer = m_archiveCollection.EntityDefinitionComposer;
-        var dehacked = m_archiveCollection.Definitions.DehackedDefinition;
+        var stats = m_world.LevelStats;
 
         switch (type)
         {
-            case StatusBarNumberType.Health:
-                return Math.Max(0, player.Health);
-            case StatusBarNumberType.Armor:
-                return player.Armor;
-            case StatusBarNumberType.Frags:
-                return GetFrags(player); 
-            
-            case StatusBarNumberType.Ammo: 
-                if (StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var ammoDef))
-                {
-                    return player.Inventory.Amount(ammoDef.Name);
-                }
-                return 0;
-
+            case StatusBarNumberType.Health: return Math.Max(0, player.Health);
+            case StatusBarNumberType.Armor: return player.Armor;
+            case StatusBarNumberType.Ammo:
+                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var ammoDef)
+                    ? player.Inventory.Amount(ammoDef.Name) : 0;
             case StatusBarNumberType.AmmoSelected:
                 string? a = player.AnimationWeapon?.Definition.Properties.Weapons.AmmoType;
                 return !string.IsNullOrEmpty(a) ? player.Inventory.Amount(a) : 0;
-
             case StatusBarNumberType.MaxAmmo:
-                if (StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var maxAmmoDef))
+                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var maxAmmoDef)
+                    ? GetMaxAmount(player, maxAmmoDef.Name) : 0;
+            case StatusBarNumberType.AmmoWeapon:
+                var deh = m_archiveCollection.Definitions.DehackedDefinition;
+                if (deh != null && deh.TryGetId24PickupType(composer, param, out var wDef))
                 {
-                    return GetMaxAmount(player, maxAmmoDef.Name);
-                }
-                return 0;
-
-            case StatusBarNumberType.AmmoWeapon: 
-                if (dehacked != null && dehacked.TryGetId24PickupType(composer, param, out var weaponDef))
-                {
-                    string weaponAmmo = weaponDef.Properties.Weapons.AmmoType;
+                    string weaponAmmo = wDef.Properties.Weapons.AmmoType;
                     return !string.IsNullOrEmpty(weaponAmmo) ? player.Inventory.Amount(weaponAmmo) : 0;
                 }
                 return 0;
-            
-            case StatusBarNumberType.MaxAmmoWeapon: 
-                if (dehacked != null && dehacked.TryGetId24PickupType(composer, param, out var maxWeaponDef))
+            case StatusBarNumberType.MaxAmmoWeapon:
+                var dehM = m_archiveCollection.Definitions.DehackedDefinition;
+                if (dehM != null && dehM.TryGetId24PickupType(composer, param, out var mwDef))
                 {
-                    string maxWeaponAmmo = maxWeaponDef.Properties.Weapons.AmmoType;
+                    string maxWeaponAmmo = mwDef.Properties.Weapons.AmmoType;
                     return !string.IsNullOrEmpty(maxWeaponAmmo) ? GetMaxAmount(player, maxWeaponAmmo) : 0;
                 }
                 return 0;
-
-            default:
-                return 0;
+            case StatusBarNumberType.Kills: return stats.KillCount;
+            case StatusBarNumberType.Items: return stats.ItemCount;
+            case StatusBarNumberType.Secrets: return stats.SecretCount;
+            case StatusBarNumberType.KillsPercent:
+                return stats.TotalMonsters > 0 ? (stats.KillCount * 100) / stats.TotalMonsters : 100;
+            case StatusBarNumberType.ItemsPercent:
+                return stats.TotalItems > 0 ? (stats.ItemCount * 100) / stats.TotalItems : 100;
+            case StatusBarNumberType.SecretsPercent:
+                return stats.TotalSecrets > 0 ? (stats.SecretCount * 100) / stats.TotalSecrets : 100;
+            case StatusBarNumberType.MaxKills: return stats.TotalMonsters;
+            case StatusBarNumberType.MaxItems: return stats.TotalItems;
+            case StatusBarNumberType.MaxSecrets: return stats.TotalSecrets;
+            case StatusBarNumberType.PowerupDuration:
+                PowerupType pt = param switch
+                {
+                    0 => PowerupType.Invulnerable,
+                    1 => PowerupType.Strength,
+                    2 => PowerupType.Invisibility,
+                    3 => PowerupType.IronFeet,
+                    4 => PowerupType.ComputerAreaMap,
+                    5 => PowerupType.LightAmp,
+                    _ => PowerupType.None
+                };
+                return (player.Inventory.GetPowerup(pt)?.Ticks ?? 0) / (int)Constants.TicksPerSecond;
+            default: return 0;
         }
     }
-    
-    private static int GetFrags(Player player)
-    {
-        _ = player;
-        return 0;
-    }
-    
-    private static string GetSpeedometerText(Player player)
-    {
-        _ = player;
-        return string.Empty;
-    }
+
+    private static string GetSpeedometerText(Player player) { _ = player; return string.Empty; }
 
     private int GetMaxAmount(Player player, string name)
     {
-        var composer = m_archiveCollection.EntityDefinitionComposer;
-        var def = composer.GetByName(name);
+        var def = m_archiveCollection.EntityDefinitionComposer.GetByName(name);
         if (def == null) return 0;
-        
-        string baseName = Inventory.GetBaseInventoryName(def);
-        var baseDef = composer.GetByName(baseName);
-        if (baseDef != null) def = baseDef;
-
-        int max = def.Properties.Inventory.MaxAmount;
-        if (player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName) 
-            && def.IsType(Inventory.AmmoClassName) 
-            && def.Properties.Ammo.BackpackMaxAmount > max)
-        {
-            max = def.Properties.Ammo.BackpackMaxAmount;
-        }
+        var baseDef = Inventory.GetBaseInventoryDefinition(def) ?? def;
+        int max = baseDef.Properties.Inventory.MaxAmount;
+        if (player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName) && baseDef.IsType(Inventory.AmmoClassName))
+            max = Math.Max(max, baseDef.Properties.Ammo.BackpackMaxAmount);
         return max;
     }
 
@@ -1140,28 +1277,10 @@ public class StatusBarRenderer
         bool vCenter = (sbarAlign & StatusBarAlignment.VCenter) != 0;
         bool bottom = (sbarAlign & StatusBarAlignment.Bottom) != 0;
 
-        if (bottom)
-        {
-            if (hCenter) return Align.BottomMiddle;
-            if (right) return Align.BottomRight;
-            return Align.BottomLeft;
-        }
-        
-        if (vCenter)
-        {
-            if (hCenter) return Align.Center; 
-            if (right) return Align.MiddleRight;
-            return Align.MiddleLeft;
-        }
+        if (bottom) return hCenter ? Align.BottomMiddle : (right ? Align.BottomRight : Align.BottomLeft);
+        if (vCenter) return hCenter ? Align.Center : (right ? Align.MiddleRight : Align.MiddleLeft);
+        return hCenter ? Align.TopMiddle : (right ? Align.TopRight : Align.TopLeft);
+    }
 
-        if (hCenter) return Align.TopMiddle;
-        if (right) return Align.TopRight;
-        return Align.TopLeft;
-    }
-    
-    private static string GetFaceBackgroundPatch(Player player)
-    {
-        _ = player;
-        return "STFB0";
-    }
+    private static string GetFaceBackgroundPatch(Player player) { _ = player; return "STFB0"; }
 }

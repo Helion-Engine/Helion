@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Resources;
 using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.StatusBar;
 using Helion.World.Entities.Definition;
@@ -8,6 +9,7 @@ using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.Resources.Definitions.StatusBar.Enums;
+using Helion.World.Entities.Inventories.Powerups;
 
 namespace Helion.World.StatusBar;
 
@@ -67,8 +69,8 @@ public static class StatusBarConditionResolver
             
             // v1.1 Extensions
             StatusBarConditionType.AutomapModeEq => CheckAutomap(context, c.Param),
-            StatusBarConditionType.WidgetEnabled => CheckWidgetEnabled(world, player, c.Param),
-            StatusBarConditionType.WidgetDisabled => !CheckWidgetEnabled(world, player, c.Param),
+            StatusBarConditionType.WidgetEnabled => CheckWidgetEnabled(world, player, c.Param, c.ParamString),
+            StatusBarConditionType.WidgetDisabled => !CheckWidgetEnabled(world, player, c.Param, c.ParamString),
             StatusBarConditionType.WeaponNotOwned => !CheckWeaponOwned(player, c.Param, composer),
             
             StatusBarConditionType.HealthGe => player.Health >= c.Param,
@@ -97,6 +99,26 @@ public static class StatusBarConditionResolver
             StatusBarConditionType.LevelGe => CheckLevel(world, c.Param, greaterEqual: true),
             StatusBarConditionType.LevelLt => CheckLevel(world, c.Param, greaterEqual: false),
 
+            // v1.2 Extensions
+            StatusBarConditionType.PatchEmpty => CheckPatchEmpty(context, c.ParamString, true),
+            StatusBarConditionType.PatchNotEmpty => CheckPatchEmpty(context, c.ParamString, false),
+            StatusBarConditionType.KillsLt => world.LevelStats.KillCount < c.Param,
+            StatusBarConditionType.KillsGe => world.LevelStats.KillCount >= c.Param,
+            StatusBarConditionType.ItemsLt => world.LevelStats.ItemCount < c.Param,
+            StatusBarConditionType.ItemsGe => world.LevelStats.ItemCount >= c.Param,
+            StatusBarConditionType.SecretsLt => world.LevelStats.SecretCount < c.Param,
+            StatusBarConditionType.SecretsGe => world.LevelStats.SecretCount >= c.Param,
+            StatusBarConditionType.KillsPercentLt => CheckStatPercent(world.LevelStats.KillCount, world.LevelStats.TotalMonsters, c.Param, false),
+            StatusBarConditionType.KillsPercentGe => CheckStatPercent(world.LevelStats.KillCount, world.LevelStats.TotalMonsters, c.Param, true),
+            StatusBarConditionType.ItemsPercentLt => CheckStatPercent(world.LevelStats.ItemCount, world.LevelStats.TotalItems, c.Param, false),
+            StatusBarConditionType.ItemsPercentGe => CheckStatPercent(world.LevelStats.ItemCount, world.LevelStats.TotalItems, c.Param, true),
+            StatusBarConditionType.SecretsPercentLt => CheckStatPercent(world.LevelStats.SecretCount, world.LevelStats.TotalSecrets, c.Param, false),
+            StatusBarConditionType.SecretsPercentGe => CheckStatPercent(world.LevelStats.SecretCount, world.LevelStats.TotalSecrets, c.Param, true),
+            StatusBarConditionType.PowerupDurationLt => CheckPowerupDuration(player, (PowerupType)c.Param2, c.Param, false),
+            StatusBarConditionType.PowerupDurationGe => CheckPowerupDuration(player, (PowerupType)c.Param2, c.Param, true),
+            StatusBarConditionType.PowerupDurationPercentLt => CheckPowerupPercent(player, (PowerupType)c.Param2, c.Param, false),
+            StatusBarConditionType.PowerupDurationPercentGe => CheckPowerupPercent(player, (PowerupType)c.Param2, c.Param, true),
+
             _ => false
         };
     }
@@ -110,14 +132,12 @@ public static class StatusBarConditionResolver
 
         string? entityName = pickupItemType switch
         {
-            // Keys
             1 => "BlueCard",
             2 => "YellowCard",
             3 => "RedCard",
             4 => "BlueSkull",
             5 => "YellowSkull",
             6 => "RedSkull",
-            // Items
             7 => "Backpack",
             8 => "HealthBonus",
             9 => "Stimpack",
@@ -128,13 +148,11 @@ public static class StatusBarConditionResolver
             14 => "GreenArmor",
             15 => "BlueArmor", 
             16 => "ComputerAreaMap",
-            // Powerups
             17 => "LightAmp",
             18 => "Berserk",
             19 => "BlurSphere", 
             20 => "RadSuit",
             21 => "InvulnerabilitySphere",
-            // Weapons (100+)
             100 => "Chainsaw",
             101 => "Shotgun",
             102 => "SuperShotgun",
@@ -151,7 +169,6 @@ public static class StatusBarConditionResolver
             
             if (definition == null)
             {
-                // Fallbacks
                 if (entityName == "ComputerAreaMap") 
                     definition = composer.GetByName("AllMap");
                 else if (entityName == "InvulnerabilitySphere") 
@@ -243,12 +260,8 @@ public static class StatusBarConditionResolver
     private static bool CheckItemOwned(Player player, int param, EntityDefinitionComposer composer)
     {
         if (!TryGetId24PickupType(composer, param, out var def)) return false;
-        
-        // 1. Inventory Check
         if (player.Inventory.HasItem(def.Name)) return true;
-        // 2. Armor Check
         if (player.ArmorDefinition != null && player.ArmorDefinition == def) return true;
-        // 3. Weapon Check
         if (player.Weapon != null && player.Weapon.Definition == def) return true;
 
         return false;
@@ -283,16 +296,12 @@ public static class StatusBarConditionResolver
 
     private static bool CheckHudMode(IWorld world, int param)
     {
-        // 0 = Standard, 1 = Compact. Helion treats Minimal as Compact.
         int mode = world.Config.Hud.StatusBarSize.Value == StatusBarSizeType.Minimal ? 1 : 0;
         return mode == param;
     }
 
     private static bool CheckAutomap(StatusBarContext context, int param)
     {
-        // 0x01: Enabled
-        // 0x02: Overlay
-        // 0x04: Disabled
         bool visible = context.AutomapVisible;
         if ((param & 0x01) != 0 && visible) return true;
         if ((param & 0x04) != 0 && !visible) return true;
@@ -300,8 +309,6 @@ public static class StatusBarConditionResolver
         return false;
     }
     
-    // --- v1.1 Extension Helpers ---
-
     private static bool CheckHealthPercent(Player player, int param, bool greaterEqual)
     {
         int percent = (int)((player.Health / 100.0f) * 100); 
@@ -388,28 +395,69 @@ public static class StatusBarConditionResolver
         return greaterEqual ? world.MapInfo.LevelNumber >= param : world.MapInfo.LevelNumber < param;
     }
     
-    private static bool CheckWidgetEnabled(IWorld world, Player player, int param)
+    private static bool CheckWidgetEnabled(IWorld world, Player player, int param, string? paramString)
     {
-        // Mappings based on DSDA/Woof standards
-        // 0: Level Stats (Kills/Items/Secrets)
-        // 1: Time
-        // 2: Coords
-        // 3: FPS
-        // 6: Speedometer
-        
-        var config = world.Config.Hud;
-        
+        if (!string.IsNullOrEmpty(paramString))
+        {
+            var config = world.Config.Hud;
+            return paramString.ToLowerInvariant() switch
+            {
+                "stat_totals" => config.ShowStats.Value,
+                "time" => config.ShowStats.Value,
+                "coordinates" => player.Cheats.IsCheatActive(Cheats.CheatType.ShowPosition),
+                "fps_counter" => config.ShowFPS.Value,
+                _ => true 
+            };
+        }
+
+        var cfg = world.Config.Hud;
         return param switch
         {
-            0 => config.ShowStats.Value,
-            1 => config.ShowStats.Value, // Helion groups Time with Stats usually
+            0 => cfg.ShowStats.Value,
+            1 => cfg.ShowStats.Value,
             2 => player.Cheats.IsCheatActive(Cheats.CheatType.ShowPosition),
-            3 => config.ShowFPS.Value,
-            // Helion doesn't have specific booleans for Speedometer yet, default to allowed
+            3 => cfg.ShowFPS.Value,
             _ => true 
         };
     }
-    
+
+    private static bool CheckPatchEmpty(StatusBarContext context, string? patch, bool empty)
+    {
+        if (string.IsNullOrEmpty(patch)) return empty;
+        bool hasImage = context.World.ArchiveCollection.ImageRetriever.Get(patch, ResourceNamespace.Global) != null;
+        return empty ? !hasImage : hasImage;
+    }
+
+    private static bool CheckStatPercent(int current, int total, int target, bool ge)
+    {
+        if (total <= 0) return ge ? 100 >= target : 100 < target;
+        int pct = (current * 100) / total;
+        return ge ? pct >= target : pct < target;
+    }
+
+    private static bool CheckPowerupDuration(Player player, PowerupType type, int seconds, bool ge)
+    {
+        var p = player.Inventory.GetPowerup(type);
+        int currentTicks = p?.Ticks ?? 0;
+        int targetTicks = seconds * 35;
+        return ge ? currentTicks >= targetTicks : currentTicks < targetTicks;
+    }
+
+    private static bool CheckPowerupPercent(Player player, PowerupType type, int targetPct, bool ge)
+    {
+        var p = player.Inventory.GetPowerup(type);
+        if (p == null) return ge ? 0 >= targetPct : 0 < targetPct;
+
+        int maxTicks = type switch {
+            PowerupType.Invulnerable => 700,
+            PowerupType.Strength => 700,
+            _ => 2100
+        };
+
+        int pct = (p.Ticks * 100) / maxTicks;
+        return ge ? pct >= targetPct : pct < targetPct;
+    }
+
     private static int GetMaxAmount(EntityDefinition def, bool hasBackPack)
     {        
         var baseDef = Inventory.GetBaseInventoryDefinition(def);
