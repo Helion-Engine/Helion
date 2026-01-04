@@ -36,7 +36,9 @@ public partial class GeometryRenderer
         var wallHeights = sector3D.WallHeights;
         var wallSector = sector3D.FakeSector;
         wallSector.Ceiling.Z = wallHeights.TopZ;
+        wallSector.Ceiling.PrevZ = wallHeights.PrevTopZ;
         wallSector.Floor.Z = wallHeights.BottomZ;
+        wallSector.Floor.PrevZ = wallHeights.PrevBottomZ;
         wallSector.Floor.LastRenderChangeGametick = sector3D.ControlSector.Floor.LastRenderChangeGametick;
         wallSector.Ceiling.LastRenderChangeGametick = sector3D.ControlSector.Ceiling.LastRenderChangeGametick;
         return wallHeights;
@@ -86,7 +88,7 @@ public partial class GeometryRenderer
             traverseSide = m_emptyTraverseSide;
 
         var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
-            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3D, wallHeights3D: newWallHeights, 
+            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3D, 
             style: sector3D.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
@@ -97,7 +99,7 @@ public partial class GeometryRenderer
         Side otherSide, Sector facingSector, Sector otherSector,
         Func<RenderWallSliceArgs, RenderWallSliceResult> renderFunc,
         Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false,
-        Side? traverseSide = null, Sector3D? anchorSector3D = null, WallHeights? wallHeights3D = null, RenderDataStyle style = RenderDataStyle.Normal)
+        Side? traverseSide = null, Sector3D? anchorSector3D = null, RenderDataStyle style = RenderDataStyle.Normal)
     {
         RenderWallSliceResult finalResult = default;
         if (side.Sector.Sectors3D.Length == 0)
@@ -116,7 +118,6 @@ public partial class GeometryRenderer
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
         WorldStatic.LineVertexGapBottomZ = 0;
 
-        var prevHeights = CalculateWallHeights(side, wall, otherSector, wallHeights3D);
         var wallSector3D = side.Sector.Sectors3D[0].FakeSector;
         SetWallSliceSector(side, wallSector3D, m_sliceSector);
 
@@ -151,18 +152,22 @@ public partial class GeometryRenderer
             Style = style,
         };
 
-        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, prevHeights.TopZ, prevHeights.PrevTopZ, anchorZ);
+        SectorPlane3D? lastPlane3D = null;
+        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, anchorSector3D?.FakeTop ?? side.Sector.Ceiling, anchorZ);
 
-        for (int i = 0; i < traverseSide.Sector.Sectors3D.Length; i++)
+        for (int i = 0; i < traverseSide.Sector.SectorPlanes3D.Length - 1; i++)
         {
-            var sector3D = traverseSide.Sector.Sectors3D[i];
-            var heights = sector3D.WallHeights;
-            m_sliceSector.Ceiling.LastRenderChangeGametick = sector3D.ControlTop.LastRenderChangeGametick;
-            m_sliceSector.Floor.LastRenderChangeGametick = sector3D.ControlBottom.LastRenderChangeGametick;
+            ref var plane3D = ref traverseSide.Sector.SectorPlanes3D[i];
+            ref var nextPlane3D = ref traverseSide.Sector.SectorPlanes3D[i + 1];
 
-            // Render the top portion to this 3d sector
-            SetSectorToSlice(m_sliceSector, prevHeights, heights);
-            args.LightSector = sector3D.LightTop;
+            m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
+            m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;
+
+            m_sliceSector.Ceiling.LastRenderChangeGametick = -1;
+            m_sliceSector.Floor.LastRenderChangeGametick = -1;
+
+            SetSectorToSlice(m_sliceSector, plane3D.Plane, nextPlane3D.Plane);
+            args.LightSector = nextPlane3D.LightSector;
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
 
@@ -180,30 +185,16 @@ public partial class GeometryRenderer
             }
 
             if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
-                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, heights.TopZ, heights.PrevTopZ, anchorZ);
+                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ);
 
-            // Render the inside portion of this 3D sector
-            SetSectorToSlice(m_sliceSector, heights);
-            args.LightSector = sector3D.LightMiddle;
-            args.Side.LastRenderGametick = -1;
-            result = renderFunc(args);
-            AddVertices(m_vertices, result.Vertices);
-
-            if (result.AddOffset)
-                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, heights.BottomZ, heights.PrevBottomZ, anchorZ);
-
-            prevHeights = heights;
-            lightSector = sector3D.LightBottom;
+            lastPlane3D = nextPlane3D;
         }
 
         WorldStatic.LineVertexGapTopZ = saveGapZ;
         WorldStatic.LineVertexGapBottomZ = saveGapZ;
 
-        var floorHeights = new WallHeights(side.Sector.Floor.Z, side.Sector.Floor.Z, side.Sector.Floor.PrevZ, side.Sector.Floor.PrevZ);
-        if (prevHeights.Invalid)
-            floorHeights = prevHeights;
+        SetSectorToSlice(m_sliceSector, lastPlane3D?.Plane ?? side.Sector.Ceiling, side.Sector.Floor);
 
-        SetSectorToSlice(m_sliceSector, prevHeights, floorHeights);
         args.LightSector = lightSector;
         args.Side.LastRenderGametick = -1;
         result = renderFunc(args);
@@ -267,10 +258,10 @@ public partial class GeometryRenderer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe void SetWallOffset(Side side, Wall wall, float saveOffsetY, double sliceTopZ, double prevSliceTopZ, double anchorZ)
+    private static unsafe void SetWallOffset(Side side, Wall wall, float saveOffsetY, SectorPlane top, double anchorZ)
     {
-        wall.Offset.Y = saveOffsetY + (float)(anchorZ - sliceTopZ);
-        var prevOffsetY = saveOffsetY + (float)(anchorZ - prevSliceTopZ);
+        wall.Offset.Y = saveOffsetY + (float)(anchorZ - top.Z);
+        var prevOffsetY = saveOffsetY + (float)(anchorZ - top.PrevZ);
         var offsetDiffY = prevOffsetY - wall.Offset.Y;
         side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = offsetDiffY;
     }
@@ -505,6 +496,19 @@ public partial class GeometryRenderer
             lightLevelSector: args.LightSector, restrictSpan: new(m_fakeFacing.Floor.Z, m_fakeFacing.Ceiling.Z, m_fakeFacing.Floor.PrevZ, m_fakeFacing.Ceiling.PrevZ));
         args.Side.Middle.Offset.Y = saveOffset;
         return new(sideVertices, null, null, addOffset: false);
+    }
+
+    private void SetSectorToSlice(Sector wallSector, SectorPlane top, SectorPlane bottom)
+    {
+        wallSector.Floor.LastRenderChangeGametick = m_world.Gametick;
+        wallSector.Ceiling.LastRenderChangeGametick = m_world.Gametick;
+        wallSector.Ceiling.Z = top.Z;
+        wallSector.Ceiling.PrevZ = top.PrevZ;
+        wallSector.Floor.Z = bottom.Z;
+        wallSector.Floor.PrevZ = bottom.PrevZ;
+
+        if (wallSector.Floor.Z > wallSector.Ceiling.Z)
+            wallSector.Floor.Z = wallSector.Ceiling.Z;
     }
 
     private void SetSectorToSlice(Sector wallSector, WallHeights heights)
