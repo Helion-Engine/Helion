@@ -470,9 +470,9 @@ public sealed class Sector3D
         }
     }
 
-    public bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights)
+    public bool CalculateWallHeights(Side side, out WallHeights newWallHeights)
     {
-        newWallHeights = wallHeights;
+        newWallHeights = WallHeights;
         WallVertices wall = default;
 
         if (side.PartnerSide == null)

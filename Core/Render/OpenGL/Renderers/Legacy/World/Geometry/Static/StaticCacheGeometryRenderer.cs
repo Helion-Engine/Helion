@@ -1167,28 +1167,26 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         if (textureHandle <= Constants.NullCompatibilityTextureIndex)
             return;
 
-        var geometryData = staticGeometry.GeometryData;
         // If this surface generated more vertices than previously cached, release so a new one can be requested. (happens with 3D sectors)
-        if (geometryData != null && staticGeometry.Length < vertices.Length)
+        if (staticGeometry.GeometryData != null && staticGeometry.Length < vertices.Length)
         {
             m_freeManager.Add(staticGeometry);
             staticGeometry.GeometryData = null;
-            geometryData = null;
         }
-
-        if (geometryData == null)
+         
+        if (staticGeometry.GeometryData == null)
         {
             AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat, texture);
             return;
         }
 
         var startIndex = staticGeometry.Index;
-        CopyVertices(geometryData.Vbo.Data.Data, vertices, startIndex);
-        geometryData.Vbo.Bind();
-        geometryData.Vbo.UploadSubData(startIndex, vertices.Length);
+        CopyVertices(staticGeometry.GeometryData.Vbo.Data.Data, vertices, startIndex);
+        staticGeometry.GeometryData.Vbo.Bind();
+        staticGeometry.GeometryData.Vbo.UploadSubData(startIndex, vertices.Length);
 
         // On map reloads the Vbo length is cleared. This ensures it's expanded back out correctly.
-        geometryData.Vbo.Data.Length = Math.Max(geometryData.Vbo.Data.Length, startIndex + vertices.Length);
+        staticGeometry.GeometryData.Vbo.Data.Length = Math.Max(staticGeometry.GeometryData.Vbo.Data.Length, startIndex + vertices.Length);
     }
 
     private void AddOrUpdateCoverWall(Side side, Span<DynamicVertex> sideVertices, WallLocation location)

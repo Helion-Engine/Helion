@@ -575,14 +575,14 @@ public partial class GeometryRenderer : IDisposable
             if (!sector.Sector3D.ShouldRenderWalls)
                 return;
 
-            var wallHeights = SetSectorForLineRendering3D(sector.Sector3D);
+            SetSectorForLineRendering3D(sector.Sector3D);
             for (int i = 0; i < sector.Lines.Length; i++)
             {
                 var line = sector.Lines[i];
                 var onFront = line.Segment.OnRight(pos2D);
                 // Back sides must be rendered with vanilla rendering for back face sprite clipping to function.
                 var onBothSides = m_vanillaRender || onFront != line.Segment.OnRight(prevPos2D);
-                RenderSectorLine3D(sector.Sector3D, i, onFront || onBothSides, !onFront || onBothSides, wallHeights, null);
+                RenderSectorLine3D(sector.Sector3D, i, onFront || onBothSides, !onFront || onBothSides, null);
             }
 
             return;

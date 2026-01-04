@@ -37,7 +37,7 @@ public partial class StaticCacheGeometryRenderer
         if (!sector3D.ShouldRenderWalls)
             return;
 
-        var wallHeights = GeometryRenderer.SetSectorForLineRendering3D(sector3D);
+        GeometryRenderer.SetSectorForLineRendering3D(sector3D);
         for (int i = 0; i < sector3D.FakeSector.Lines.Length; i++)
         {
             var sectorLine = sector3D.FakeSector.Lines[i];
@@ -46,7 +46,7 @@ public partial class StaticCacheGeometryRenderer
             if (dynamic && (sector3D.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3D.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
                 continue;
 
-            m_geometryRenderer.RenderSectorLine3D(sector3D, i, true, true, wallHeights, m_renderSectorWallVertices3D);
+            m_geometryRenderer.RenderSectorLine3D(sector3D, i, true, true, m_renderSectorWallVertices3D);
         }
     }
 
