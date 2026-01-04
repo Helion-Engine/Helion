@@ -163,9 +163,6 @@ public partial class GeometryRenderer
             m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
             m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;
 
-            m_sliceSector.Ceiling.LastRenderChangeGametick = -1;
-            m_sliceSector.Floor.LastRenderChangeGametick = -1;
-
             SetSectorToSlice(m_sliceSector, plane3D.Plane, nextPlane3D.Plane);
             args.LightSector = nextPlane3D.LightSector;
             // This is a hack to force it to ignore the cached vertices
