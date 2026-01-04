@@ -228,14 +228,17 @@ public sealed class Sector3D
 
     private static void SetLight(Sector3D sector3D, ref SectorPlane3D plane3D, Sector lightSector, bool restrictLight)
     {
-        plane3D.LightSector = lightSector;
-
         if (restrictLight)
         {
+            if (plane3D.Face == PlaneFace3D.Top)
+                plane3D.LightSector = lightSector;
+
             sector3D.LightTop = lightSector;
             sector3D.LightBottom = lightSector;
             return;
         }
+        
+        plane3D.LightSector = lightSector;
 
         if (plane3D.Face == PlaneFace3D.Bottom)
             sector3D.LightBottom = lightSector;
