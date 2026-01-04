@@ -81,6 +81,9 @@ public abstract class StatusBarBaseDef
 
     [JsonPropertyName("children")]
     public List<StatusBarElementWrapper>? Children { get; set; }
+    
+    [JsonIgnore]
+    public int ResolvedHeight { get; set; }
 }
 
 public class StatusBarCanvasDef : StatusBarBaseDef { }
