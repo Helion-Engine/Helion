@@ -1173,6 +1173,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         {
             m_freeManager.Add(staticGeometry);
             staticGeometry.GeometryData = null;
+            geometryData = null;
         }
 
         if (geometryData == null)
