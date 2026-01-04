@@ -444,10 +444,10 @@ public partial class GeometryRenderer : IDisposable
 
     // The set sector is optional for the transfer heights control sector.
     // This is so the LastRenderGametick can be set for both the sector and transfer heights sector.
-    private void RenderSectorFlats(Sector sectorForSubectors, Sector renderSector, Sector set)
+    private void RenderSectorFlats(Sector sectorForSubsectors, Sector renderSector, Sector set)
     {
-        var geometrySector = sectorForSubectors;
-        var sector3D = sectorForSubectors.Sector3D;
+        var geometrySector = sectorForSubsectors;
+        var sector3D = sectorForSubsectors.Sector3D;
         Sector? saveTransfer = null;
         if (sector3D != null)
         {
@@ -455,13 +455,13 @@ public partial class GeometryRenderer : IDisposable
                 return;
 
             geometrySector = sector3D.FakeSector;
-            sectorForSubectors = sector3D.ParentSector;
+            sectorForSubsectors = sector3D.ParentSector;
             renderSector = sector3D.ControlSector;
             saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
             sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
         }
 
-        var subsectors = m_subsectors[sectorForSubectors.Id];
+        var subsectors = m_subsectors[sectorForSubsectors.Id];
         set.LastRenderGametick = m_world.Gametick;
 
         var floorZ = renderSector.Floor.Z;

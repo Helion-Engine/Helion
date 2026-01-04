@@ -5,7 +5,6 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Loggers;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -71,6 +70,7 @@ public sealed class PhysicsManager
     private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
     private readonly DynamicArray<Entity> m_stackCrush = new();
     private readonly DynamicArray<Entity> m_clampIgnoreEntities = new();
+    private readonly Sector m_testMoveSector3D = Sector.CreateDefault();
 
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
@@ -389,14 +389,15 @@ public sealed class PhysicsManager
         {
             var testFace = face.Flip();
             var sector3D = sector.TaggedSectors3D[i];
-            sector3D.FakeSector.Ceiling.SetZ(sector3D.ControlTop.Z);
-            sector3D.FakeSector.Floor.SetZ(sector3D.ControlBottom.Z);
-            var testMovePlane = sector3D.FakeSector.GetSectorPlane(testFace);
-            var testOpposingMovePlane = sector3D.FakeSector.GetSectorPlane(face);
+            m_testMoveSector3D.Ceiling.SetZ(sector3D.ControlTop.Z);
+            m_testMoveSector3D.Floor.SetZ(sector3D.ControlBottom.Z);
+            m_testMoveSector3D.Sector3D = sector3D;
+            var testMovePlane = m_testMoveSector3D.GetSectorPlane(testFace);
+            var testOpposingMovePlane = m_testMoveSector3D.GetSectorPlane(face);
 
             testMovePlane.SetZ(startZ);
             testOpposingMovePlane.SetZ(sector3D.GetOpposingPlane3D(testFace, startZ).Z);
-            moveSpecial.Sector = sector3D.FakeSector;
+            moveSpecial.Sector = m_testMoveSector3D;
             moveSpecial.SectorPlane = testMovePlane;
             moveSpecial.MoveData.SectorMoveType = testFace;
 

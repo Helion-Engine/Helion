@@ -22,6 +22,7 @@ public partial class GeometryRenderer
     private readonly Side m_fakeSide;
     private readonly Side m_emptyTraverseSide;
     private readonly SideScrollData m_fakeSideScrollData;
+    private readonly Sector m_wallSector = Sector.CreateDefault();
     private readonly Sector m_fakeFacing = Sector.CreateDefault();
     private readonly Sector m_fakeOther = Sector.CreateDefault();
     private readonly Sector m_sliceSector = Sector.CreateDefault();
@@ -31,22 +32,20 @@ public partial class GeometryRenderer
     public void SetTestRenderSectorSliceFunc3D(Func<RenderWallSliceArgs, RenderWallSliceResult> func) => m_renderSectorSliceFunc3D = func;
     public void RestoreSectorSliceFunc3D() => m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
-    public static void SetSectorForLineRendering3D(Sector3D sector3D)
+    public void SetSectorForLineRendering3D(Sector3D sector3D)
     {
-        var wallSector = sector3D.FakeSector;
-        wallSector.Ceiling.Z = sector3D.WallHeights.TopZ;
-        wallSector.Ceiling.PrevZ = sector3D.WallHeights.PrevTopZ;
-        wallSector.Floor.Z = sector3D.WallHeights.BottomZ;
-        wallSector.Floor.PrevZ = sector3D.WallHeights.PrevBottomZ;
-        wallSector.Floor.LastRenderChangeGametick = sector3D.ControlSector.Floor.LastRenderChangeGametick;
-        wallSector.Ceiling.LastRenderChangeGametick = sector3D.ControlSector.Ceiling.LastRenderChangeGametick;
+        m_wallSector.Ceiling.Z = sector3D.WallHeights.TopZ;
+        m_wallSector.Ceiling.PrevZ = sector3D.WallHeights.PrevTopZ;
+        m_wallSector.Floor.Z = sector3D.WallHeights.BottomZ;
+        m_wallSector.Floor.PrevZ = sector3D.WallHeights.PrevBottomZ;
+        m_wallSector.Floor.LastRenderChangeGametick = sector3D.ControlSector.Floor.LastRenderChangeGametick;
+        m_wallSector.Ceiling.LastRenderChangeGametick = sector3D.ControlSector.Ceiling.LastRenderChangeGametick;
     }
 
     public void RenderSectorLine3D(Sector3D sector3D, int lineIndex, bool renderFront, bool renderBack,
         Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
     {
-        var wallSector = sector3D.FakeSector;
-        var sectorLine = wallSector.Lines[lineIndex];
+        var sectorLine = sector3D.FakeSector.Lines[lineIndex];
         var parentSectorLine = sector3D.ParentSector.Lines[lineIndex];
 
         var flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
@@ -54,10 +53,10 @@ public partial class GeometryRenderer
         var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
         if (renderFront && parentBack != null)
-            RenderSide3D(sector3D, sectorLine.Front, parentBack, parentFront, wallSector, true, false, renderVertices);
+            RenderSide3D(sector3D, sectorLine.Front, parentBack, parentFront, m_wallSector, true, false, renderVertices);
 
         if (renderBack && sector3D.ShouldRenderInsideWalls && sectorLine.Back != null)
-            RenderSide3D(sector3D, sectorLine.Back, parentFront, parentBack, wallSector, false, true, renderVertices);
+            RenderSide3D(sector3D, sectorLine.Back, parentFront, parentBack, m_wallSector, false, true, renderVertices);
     }
 
     private void RenderSide3D(Sector3D sector3D, Side useSide, Side? parentSide, Side? oppositeParentSide,
@@ -66,11 +65,6 @@ public partial class GeometryRenderer
     {
         if (parentSide == null || !sector3D.CalculateWallHeights(parentSide, out var newWallHeights))
             return;
-
-        wallSector.Ceiling.Z = newWallHeights.TopZ;
-        wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
-        wallSector.Floor.Z = newWallHeights.BottomZ;
-        wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
 
         useSide.Middle.TextureHandle = sector3D.GetTextureHandle(useSide, parentSide);
         if (parentSide != null)
@@ -116,7 +110,7 @@ public partial class GeometryRenderer
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
         WorldStatic.LineVertexGapBottomZ = 0;
 
-        var wallSector3D = side.Sector.Sectors3D[0].FakeSector;
+        var wallSector3D = m_wallSector;
         SetWallSliceSector(side, wallSector3D, m_sliceSector);
 
         m_fakeSide.Line = side.Line;

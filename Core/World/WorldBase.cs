@@ -2640,9 +2640,9 @@ public abstract partial class WorldBase : IWorld
         if (moveSpecial.IsInitialMove)
             SectorMoveStart?.Invoke(this, moveSpecial.SectorPlane);
 
+        var status = PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial, moveSpecial.Sector);
         SectorMove?.Invoke(this, moveSpecial.SectorPlane);
-
-        return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial, moveSpecial.Sector);
+        return status;
     }
 
     public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, DamageType damageType, bool gibbed)
