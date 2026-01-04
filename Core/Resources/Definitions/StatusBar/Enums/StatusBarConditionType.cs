@@ -46,5 +46,25 @@ public enum StatusBarConditionType
     WidescreenModeEq = 39,
     EpisodeEq = 40,
     LevelGe = 41,
-    LevelLt = 42
+    LevelLt = 42,
+    
+    // v1.2
+    PatchEmpty = 43,
+    PatchNotEmpty = 44,
+    KillsLt = 45,
+    KillsGe = 46,
+    ItemsLt = 47,
+    ItemsGe = 48,
+    SecretsLt = 49,
+    SecretsGe = 50,
+    KillsPercentLt = 51,
+    KillsPercentGe = 52,
+    ItemsPercentLt = 53,
+    ItemsPercentGe = 54,
+    SecretsPercentLt = 55,
+    SecretsPercentGe = 56,
+    PowerupDurationLt = 57,
+    PowerupDurationGe = 58,
+    PowerupDurationPercentLt = 59,
+    PowerupDurationPercentGe = 60
 }
