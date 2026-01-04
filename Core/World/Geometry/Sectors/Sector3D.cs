@@ -205,6 +205,8 @@ public sealed class Sector3D
             var sector3D = plane3D.Sector3D;
             if (sector3D == null)
             {
+                plane3D.LightSector = currentLightSector;
+
                 if (plane3D.Face == PlaneFace3D.Bottom)
                     plane3D.Plane.Sector.TransferFloorLightSector = currentLightSector;
                 else
@@ -470,7 +472,6 @@ public sealed class Sector3D
         newWallHeights = wallHeights;
         WallVertices wall = default;
 
-        // TODO May be worth skipping these and just using polygon offset in the renderer..
         if (side.PartnerSide == null)
         {
             WorldTriangulator.HandleOneSided(side, side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall, calculateUV: false);
