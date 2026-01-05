@@ -87,7 +87,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Helion.SDLControllerWrapper" Version="2.0.0.0" />
+    <PackageReference Include="Helion.SDLControllerWrapper" Version="2.0.0.1" />
   </ItemGroup>
 
   <ItemGroup>
