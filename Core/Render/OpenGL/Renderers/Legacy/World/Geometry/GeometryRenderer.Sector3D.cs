@@ -110,8 +110,7 @@ public partial class GeometryRenderer
         var saveGapZ = WorldStatic.LineVertexGapBottomZ;
         WorldStatic.LineVertexGapBottomZ = 0;
 
-        var wallSector3D = m_wallSector;
-        SetWallSliceSector(side, wallSector3D, m_sliceSector);
+        SetWallSliceSector(side, m_wallSector, m_sliceSector);
 
         m_fakeSide.Line = side.Line;
         m_fakeSide.IsFront = isFrontSide;
@@ -173,7 +172,7 @@ public partial class GeometryRenderer
                 WorldStatic.LineVertexGapBottomZ = 0;
             }
 
-            if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
+            if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z && (anchorSector3D == null || result.Vertices.Length > 0))
                 SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ);
 
             lastPlane3D = nextPlane3D;
