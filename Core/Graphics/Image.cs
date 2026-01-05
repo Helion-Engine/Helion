@@ -209,6 +209,38 @@ public class Image
             this.Namespace,
             upscaleFactor: upscalingFactor);
     }
+    
+    public Image CloneCrop(int x, int y, int width, int height, Vec2I newOffset)
+    {
+        int srcX = Math.Max(0, Math.Min(x, Width));
+        int srcY = Math.Max(0, Math.Min(y, Height));
+    
+        int actualWidth = Math.Max(0, Math.Min(width, Width - srcX));
+        int actualHeight = Math.Max(0, Math.Min(height, Height - srcY));
+
+        if (actualWidth <= 0 || actualHeight <= 0)
+            return new Image(1, 1, ImageType, newOffset, Namespace);
+
+        uint[] newPixels = new uint[actualWidth * actualHeight];
+        ushort[]? newIndices = m_indices.Length > 0 ? new ushort[actualWidth * actualHeight] : null;
+
+        for (int row = 0; row < actualHeight; row++)
+        {
+            int srcRowOffset = (srcY + row) * Width + srcX;
+            int dstRowOffset = row * actualWidth;
+        
+            Array.Copy(m_pixels, srcRowOffset, newPixels, dstRowOffset, actualWidth);
+
+            if (newIndices == null) continue;
+            
+            for (int col = 0; col < actualWidth; col++)
+            {
+                newIndices[dstRowOffset + col] = m_indices[srcRowOffset + col];
+            }
+        }
+
+        return new Image(newPixels, (actualWidth, actualHeight), ImageType, newOffset, Namespace, newIndices);
+    }
 
     public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels, byte[]? colorTranslation = null)
     {
