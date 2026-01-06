@@ -770,7 +770,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (WorldLayer != null && WorldLayer.ShouldRender && (m_config.Hud.AutoMap.Overlay || !WorldLayer.DrawAutomap))
         {
-            var offset = HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, ctx.Surface.Dimension);
+            var offset = HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, ctx.Surface.Dimension, WorldLayer.GetActiveStatusBarLayout());
             if (WorldLayer.World.DrawHud && (offset.X != 0 || offset.Y != 0))
             {
                 var box = new Box2I((offset.X, offset.Y), (ctx.Surface.Dimension.Width + offset.X, ctx.Surface.Dimension.Height + offset.Y));

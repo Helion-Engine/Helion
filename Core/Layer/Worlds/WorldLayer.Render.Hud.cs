@@ -172,9 +172,10 @@ public partial class WorldLayer
         }
     }
     
-    private StatusBarLayoutDef? GetActiveStatusBarLayout()
+    public StatusBarLayoutDef? GetActiveStatusBarLayout()
     {
-        if (!WorldStatic.World.DrawHud) return null;
+        if (!WorldStatic.World.DrawHud)
+            return null;
         
         m_statusBarSizeType = m_config.Hud.StatusBarSize.Value;
         
@@ -499,7 +500,7 @@ public partial class WorldLayer
                 hudContext.DrawFuzz = true;
 
             // Push the gun sprite up based on the status bar height
-            int yOffset = HudView.GetWeaponOffset(m_config.Hud.StatusBarSize.Value, sbarHeight);
+            int yOffset = HudView.GetWeaponOffset(m_config.Hud.StatusBarSize.Value, GetActiveStatusBarLayout());
             DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
             if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                 DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
@@ -676,7 +677,7 @@ public partial class WorldLayer
             totalCrosshairLength += 1;
 
         Vec2I center = m_viewport.Vector / 2;
-        center -= HudView.GetViewPortOffset(m_config.Hud.StatusBarSize.Value, m_viewport, sbarHeight);
+        center -= HudView.GetViewPortOffset(m_config.Hud.StatusBarSize.Value, m_viewport, GetActiveStatusBarLayout());
 
         Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);
         Vec2I vertical = center - new Vec2I(HalfWidth, crosshairLength);
