@@ -197,25 +197,6 @@ public sealed class Sector : IFloorCeilingAnchor
         return TransferHeights.GetRenderSector(view);
     }
 
-    public bool LightingChanged() => LightingChanged(LastRenderGametick);
-
-    public bool LightingChanged(int gametick)
-    {
-        if (RenderLightChangeGametick >= gametick - 1)
-            return true;
-
-        if (TransferFloorLightSector.Id != Id && TransferFloorLightSector.RenderLightChangeGametick >= gametick - 1)
-            return true;
-
-        if (TransferCeilingLightSector.Id != Id && TransferCeilingLightSector.RenderLightChangeGametick >= gametick - 1)
-            return true;
-
-        if (TransferHeights != null && TransferHeights.ParentSector.Id != TransferHeights.ControlSector.Id && TransferHeights.ControlSector.LightingChanged(gametick))
-            return true;
-
-        return false;
-    }
-
     public bool CheckRenderingChanged(int gametick, bool checkTransferHeights = true)
     {
         if (Floor.LastRenderChangeGametick >= gametick - 1 || Floor.PrevZ != Floor.Z)
