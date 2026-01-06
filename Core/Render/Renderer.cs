@@ -29,6 +29,7 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
+using Helion.Graphics.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -622,13 +623,39 @@ public partial class Renderer : IDisposable
 
     private void HandleDrawImage(DrawImageCommand cmd)
     {
+        ImageBox2I? crop = cmd.HasCrop ? cmd.CropArea : null;
+
         if (cmd.AreaIsTextureDimension)
         {
             Vec2I topLeft = (cmd.DrawArea.Top, cmd.DrawArea.Left);
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex, cmd.BrightmapName);
+            m_hudRenderer.DrawImage(
+                cmd.TextureName, 
+                cmd.ResourceNamespace, 
+                topLeft, 
+                cmd.MultiplyColor, 
+                cmd.Alpha, 
+                cmd.DrawColorMap, 
+                cmd.DrawFuzz, 
+                cmd.DrawPalette, 
+                cmd.ColorMapIndex, 
+                cmd.BrightmapName, 
+                crop);
         }
         else
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex, cmd.BrightmapName);
+        {
+            m_hudRenderer.DrawImage(
+                cmd.TextureName, 
+                cmd.ResourceNamespace, 
+                cmd.DrawArea, 
+                cmd.MultiplyColor, 
+                cmd.Alpha, 
+                cmd.DrawColorMap, 
+                cmd.DrawFuzz, 
+                cmd.DrawPalette, 
+                cmd.ColorMapIndex, 
+                cmd.BrightmapName, 
+                crop);
+        }
     }
 
     private void HandleDrawShape(DrawShapeCommand cmd)
