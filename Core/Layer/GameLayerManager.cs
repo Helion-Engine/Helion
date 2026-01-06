@@ -640,6 +640,7 @@ public class GameLayerManager : IGameLayerManager
 
     public void ShowEndoom(Action closeAction)
     {
+        WorldLayer?.Stop();
         Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.ClientDimension.Height));
     }
 
