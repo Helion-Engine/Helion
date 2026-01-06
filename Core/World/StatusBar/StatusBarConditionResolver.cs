@@ -114,10 +114,10 @@ public static class StatusBarConditionResolver
             StatusBarConditionType.ItemsPercentGe => CheckStatPercent(world.LevelStats.ItemCount, world.LevelStats.TotalItems, c.Param, true),
             StatusBarConditionType.SecretsPercentLt => CheckStatPercent(world.LevelStats.SecretCount, world.LevelStats.TotalSecrets, c.Param, false),
             StatusBarConditionType.SecretsPercentGe => CheckStatPercent(world.LevelStats.SecretCount, world.LevelStats.TotalSecrets, c.Param, true),
-            StatusBarConditionType.PowerupDurationLt => CheckPowerupDuration(player, (PowerupType)c.Param2, c.Param, false),
-            StatusBarConditionType.PowerupDurationGe => CheckPowerupDuration(player, (PowerupType)c.Param2, c.Param, true),
-            StatusBarConditionType.PowerupDurationPercentLt => CheckPowerupPercent(player, (PowerupType)c.Param2, c.Param, false),
-            StatusBarConditionType.PowerupDurationPercentGe => CheckPowerupPercent(player, (PowerupType)c.Param2, c.Param, true),
+            StatusBarConditionType.PowerupDurationLt => CheckPowerupDuration(player, MapSbarPowerup(c.Param2), c.Param, false),
+            StatusBarConditionType.PowerupDurationGe => CheckPowerupDuration(player, MapSbarPowerup(c.Param2), c.Param, true),
+            StatusBarConditionType.PowerupDurationPercentLt => CheckPowerupPercent(player, MapSbarPowerup(c.Param2), c.Param, false),
+            StatusBarConditionType.PowerupDurationPercentGe => CheckPowerupPercent(player, MapSbarPowerup(c.Param2), c.Param, true),
 
             _ => false
         };
@@ -169,10 +169,10 @@ public static class StatusBarConditionResolver
             
             if (definition == null)
             {
-                if (entityName == "ComputerAreaMap") 
-                    definition = composer.GetByName("AllMap");
-                else if (entityName == "InvulnerabilitySphere") 
-                    definition = composer.GetByName("Invulnerability");
+                if (entityName == "ComputerAreaMap") definition = composer.GetByName("AllMap");
+                else if (entityName == "InvulnerabilitySphere") definition = composer.GetByName("Invulnerability");
+                else if (entityName == "LightAmp") definition = composer.GetByName("LiteAmp");
+                else if (entityName == "RadSuit") definition = composer.GetByName("IronFeet");
             }
 
             Id24PickupLookup[pickupItemType] = definition;
@@ -259,7 +259,27 @@ public static class StatusBarConditionResolver
 
     private static bool CheckItemOwned(Player player, int param, EntityDefinitionComposer composer)
     {
-        if (!TryGetId24PickupType(composer, param, out var def)) return false;
+        PowerupType? pType = param switch
+        {
+            16 => PowerupType.ComputerAreaMap,
+            17 => PowerupType.LightAmp,
+            18 => PowerupType.Strength,
+            19 => PowerupType.Invisibility,
+            20 => PowerupType.IronFeet,
+            21 => PowerupType.Invulnerable,
+            _ => null
+        };
+
+        if (pType.HasValue)
+        {
+            return player.Inventory.IsPowerupActive(pType.Value);
+        }
+
+        if (!TryGetId24PickupType(composer, param, out var def))
+        {
+            return false;
+        }
+
         if (player.Inventory.HasItem(def.Name)) return true;
         if (player.ArmorDefinition != null && player.ArmorDefinition == def) return true;
         if (player.Weapon != null && player.Weapon.Definition == def) return true;
@@ -441,6 +461,14 @@ public static class StatusBarConditionResolver
 
     private static bool CheckPowerupDuration(Player player, PowerupType type, int seconds, bool ge)
     {
+        if (type == PowerupType.None) return false;
+
+        if (type == PowerupType.Strength || type == PowerupType.ComputerAreaMap)
+        {
+            int val = player.Inventory.IsPowerupActive(type) ? 1 : 0;
+            return ge ? val >= seconds : val < seconds;
+        }
+
         var p = player.Inventory.GetPowerup(type);
         int currentTicks = p?.Ticks ?? 0;
         int targetTicks = seconds * 35;
@@ -449,17 +477,28 @@ public static class StatusBarConditionResolver
 
     private static bool CheckPowerupPercent(Player player, PowerupType type, int targetPct, bool ge)
     {
+        if (type == PowerupType.None) return false;
+
+        if (type == PowerupType.Strength || type == PowerupType.ComputerAreaMap)
+        {
+            int binaryPct = player.Inventory.IsPowerupActive(type) ? 100 : 0;
+            return ge ? binaryPct >= targetPct : binaryPct < targetPct;
+        }
+
         var p = player.Inventory.GetPowerup(type);
         if (p == null) return ge ? 0 >= targetPct : 0 < targetPct;
 
-        int maxTicks = type switch {
-            PowerupType.Invulnerable => 700,
-            PowerupType.Strength => 700,
-            _ => 2100
+        int maxTicks = type switch 
+        {
+            PowerupType.Invulnerable => 1050,
+            PowerupType.Invisibility => 2100,
+            PowerupType.IronFeet => 2100,
+            PowerupType.LightAmp => 4200,
+            _ => 1050
         };
 
-        int pct = (p.Ticks * 100) / maxTicks;
-        return ge ? pct >= targetPct : pct < targetPct;
+        int durationPct = (int)((p.Ticks * 100L) / maxTicks);
+        return ge ? durationPct >= targetPct : durationPct < targetPct;
     }
 
     private static int GetMaxAmount(EntityDefinition def, bool hasBackPack)
@@ -476,5 +515,19 @@ public static class StatusBarConditionResolver
             max = def.Properties.Ammo.BackpackMaxAmount;
         }
         return max;
+    }
+    
+    private static PowerupType MapSbarPowerup(int sbarIndex)
+    {
+        return sbarIndex switch
+        {
+            0 => PowerupType.Invulnerable,
+            1 => PowerupType.Strength,
+            2 => PowerupType.Invisibility,
+            3 => PowerupType.IronFeet,
+            4 => PowerupType.ComputerAreaMap,
+            5 => PowerupType.LightAmp,
+            _ => PowerupType.None
+        };
     }
 }

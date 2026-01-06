@@ -209,7 +209,7 @@ public class Image
             this.Namespace,
             upscaleFactor: upscalingFactor);
     }
-
+    
     public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels, byte[]? colorTranslation = null)
     {
         uint[] pixels = new uint[image.Indices.Length];
