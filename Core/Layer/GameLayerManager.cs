@@ -640,7 +640,6 @@ public class GameLayerManager : IGameLayerManager
 
     public void ShowEndoom(Action closeAction)
     {
-        m_soundManager.ClearSounds();
         Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.ClientDimension.Height));
     }
 
