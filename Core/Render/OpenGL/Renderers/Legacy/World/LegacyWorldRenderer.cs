@@ -285,7 +285,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (framebuffer.DepthTexture == null)
             throw new Exception("Framebuffer must have a depth texture.");
 
-        var dimension = framebuffer.Dimension; 
+        var dimension = new Dimension(renderInfo.Viewport.Width, renderInfo.Viewport.Height);
         m_oitFrameBuffer.CreateOrUpdate(dimension, framebuffer.DepthTexture);
 
         var prevDownscale = m_downscaleVanillaBuffer;
