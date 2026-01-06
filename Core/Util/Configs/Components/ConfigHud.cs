@@ -5,20 +5,17 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.World.StatusBar;
-using System;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
 public static class HudView
 {
-    const int FullSizeWeaponOffsetY = 16;
     const int FullSizeHudHeight = 32;
 
     public static int GetWeaponOffset(StatusBarSizeType statusBarSize, StatusBarLayoutDef? activeStatusBar)
     {
-        int statusBarHeight = GetStatusBarHeight(statusBarSize, activeStatusBar);
-        return Math.Max(statusBarHeight - FullSizeWeaponOffsetY, 0);
+        return GetStatusBarHeight(statusBarSize, activeStatusBar) / 2;
     }
 
     public static Vec2I GetViewPortOffset(StatusBarSizeType statusBarSize, Dimension viewport, StatusBarLayoutDef? activeStatusBar)
