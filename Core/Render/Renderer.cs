@@ -2,6 +2,7 @@ using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Graphics.Geometry;
 using Helion.Graphics.Palettes;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL;
@@ -29,7 +30,6 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using Helion.Graphics.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -65,7 +65,7 @@ public partial class Renderer : IDisposable
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
-    private readonly FramebufferRenderer m_framebufferRenderer;
+    private readonly FramebufferRenderer m_framebufferRenderer = new();
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly TransitionRenderer m_transitionRenderer;
 
@@ -73,6 +73,7 @@ public partial class Renderer : IDisposable
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
+    private mat4 m_virtualMvp = mat4.Identity;
 
     public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.ClientDimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
@@ -92,7 +93,6 @@ public partial class Renderer : IDisposable
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
-        m_framebufferRenderer = new FramebufferRenderer(config, window);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
         m_mainFramebuffer = GenerateMainFramebuffer();
@@ -101,11 +101,63 @@ public partial class Renderer : IDisposable
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+        m_config.Window.Virtual.Filter.OnChanged += VirtualDrawFilter_OnChanged;
+        m_config.Window.Virtual.Stretch.OnChanged += VirtualStretch_OnChanged;
+        m_config.Window.Virtual.Dimension.OnChanged += VirtualDimension_OnChanged;
 
+        SetBufferTextureFilter(m_virtualFramebuffer, m_config.Window.Virtual.Filter);
         SetPixelGapCorrection(m_config.Render.PixelGapCorrection.Value);
+        SetVirtualFramebufferMvp();
 
         PrintGLInfo();
         SetGLStates();
+    }
+
+    private void VirtualDimension_OnChanged(object? sender, Dimension dimension) =>
+        SetVirtualFramebufferMvp();
+
+    private void VirtualStretch_OnChanged(object? sender, bool stretch) =>
+        SetVirtualFramebufferMvp();
+
+    private void SetVirtualFramebufferMvp()
+    {
+        m_virtualMvp = CalculateVirtualMvp(m_virtualFramebuffer);
+    }
+
+    private mat4 CalculateVirtualMvp(GLFramebuffer buffer)
+    {
+        // We already draw to the unit plane, which means instead of doing a bunch
+        // of orthographic stuff, we can instead scale the X axis to add black bars
+        // depending on whether we want stretched or widescreen.
+        if (m_config.Window.Virtual.Stretch)
+            return mat4.Identity;
+
+        // How much we stretch depends on the window resolution, and the virtual
+        // dimension's resolution. Also don't let it be larger than the NDC box.
+        // Since our vertices are in NDC coordinates, 1.0 is the max we can go.
+        var windowDim = Window.ClientDimension;
+        var textureDim = buffer.ColorAttachment0.Dimension;
+        var scaleX = Math.Min(textureDim.AspectRatio / windowDim.AspectRatio, 1.0f);
+
+        return mat4.Scale(scaleX, 1.0f, 1.0f);
+    }
+
+    private void VirtualDrawFilter_OnChanged(object? sender, VirtualDrawFilter filter)
+    {
+        SetBufferTextureFilter(m_virtualFramebuffer, filter);
+    }
+
+    private void SetBufferTextureFilter(GLFramebuffer buffer, VirtualDrawFilter filter)
+    {
+        buffer.ColorAttachment0.Bind();
+        var isDimensionMatch = buffer.Dimension == Window.ClientDimension;
+        var filterNearest = (
+            isDimensionMatch
+            || filter == VirtualDrawFilter.Nearest
+            || (filter == VirtualDrawFilter.Auto && m_config.Render.Filter.Texture == FilterType.Nearest)
+        );
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(filterNearest ? TextureMagFilter.Nearest : TextureMagFilter.Linear));
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(filterNearest ? TextureMinFilter.Nearest : TextureMinFilter.Linear));
     }
 
     private void PixelGapCorrection_OnChanged(object? sender, bool e) => SetPixelGapCorrection(e);
@@ -438,7 +490,8 @@ public partial class Renderer : IDisposable
 
         // draw main framebuffer to default
         GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-        m_framebufferRenderer.Render(m_mainFramebuffer);
+        FramebufferRenderer.ClearWithViewport(Window.ClientDimension);
+        m_framebufferRenderer.Render(m_mainFramebuffer, mat4.Identity);
     }
 
     private void BindColorMapBuffer()
@@ -757,7 +810,8 @@ public partial class Renderer : IDisposable
     private void DrawVirtualFramebufferToMain()
     {
         m_mainFramebuffer.BindDraw();
-        m_framebufferRenderer.Render(m_virtualFramebuffer);
+        FramebufferRenderer.ClearWithViewport(Window.ClientDimension);
+        m_framebufferRenderer.Render(m_virtualFramebuffer, m_virtualMvp);
     }
 
     protected virtual void Dispose(bool disposing)

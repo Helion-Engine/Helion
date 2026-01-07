@@ -2,32 +2,22 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Util.Configs;
-using Helion.Util.Configs.Components;
-using Helion.Window;
 using OpenTK.Graphics.OpenGL;
 using System;
 
 namespace Helion.Render.OpenGL.Renderers;
 
-public readonly struct FramebufferVertex
+public readonly struct FramebufferVertex(Vec2F pos, Vec2F uv)
 {
     [VertexAttribute]
-    public readonly Vec2F Pos;
+    public readonly Vec2F Pos = pos;
     
     [VertexAttribute]
-    public readonly Vec2F UV;
-
-    public FramebufferVertex(Vec2F pos, Vec2F uv)
-    {
-        Pos = pos;
-        UV = uv;
-    }
+    public readonly Vec2F UV = uv;
 }
 
 public class FramebufferProgram : RenderProgram
@@ -80,18 +70,13 @@ public class FramebufferProgram : RenderProgram
 
 public class FramebufferRenderer : IDisposable
 {
-    private readonly IConfig m_config;
-    private readonly IWindow m_window;
     private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Framebuffer");
     private readonly VertexArrayObject m_vao = new("Framebuffer");
     private readonly FramebufferProgram m_program = new();
     private bool m_disposed;
 
-    public FramebufferRenderer(IConfig config, IWindow window)
+    public FramebufferRenderer()
     {
-        m_config = config;
-        m_window = window;
-
         Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
         UploadVertices();
     }
@@ -115,45 +100,20 @@ public class FramebufferRenderer : IDisposable
         m_vbo.Unbind();
     }
 
-    private mat4 CalculateMvp(GLFramebuffer buffer)
+    public static void ClearWithViewport(Dimension dimension)
     {
-        // We already draw to the unit plane, which means instead of doing a bunch
-        // of orthographic stuff, we can instead scale the X axis to add black bars
-        // depending on whether we want stretched or widescreen.
-        if (m_config.Window.Virtual.Stretch)
-            return mat4.Identity;
-
-        // How much we stretch depends on the window resolution, and the virtual
-        // dimension's resolution. Also don't let it be larger than the NDC box.
-        // Since our vertices are in NDC coordinates, 1.0 is the max we can go.
-        Dimension windowDim = m_window.ClientDimension;
-        Dimension textureDim = buffer.ColorAttachment0.Dimension;
-        float scaleX = Math.Min(textureDim.AspectRatio / windowDim.AspectRatio, 1.0f);
-        
-        return mat4.Scale(scaleX, 1.0f, 1.0f);
-    }
-
-    public void Render(GLFramebuffer buffer)
-    {
-        bool isFullscreen = buffer.Dimension == m_window.ClientDimension;
-        mat4 mvp = isFullscreen ? mat4.Identity : CalculateMvp(buffer);
         (float a, float r, float g, float b) = Color.Black.Normalized;
-
-        GL.Viewport(0, 0, m_window.ClientDimension.Width, m_window.ClientDimension.Height);
+        GL.Viewport(0, 0, dimension.Width, dimension.Height);
         GL.ClearColor(r, g, b, a);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+    }
 
+    public void Render(GLFramebuffer buffer, mat4 mvp)
+    {
         m_program.Bind();
 
         GL.ActiveTexture(BindTextures.BoundTexture);
         buffer.ColorAttachment0.Bind();
-        bool filterNearest = (
-            isFullscreen
-            || m_config.Window.Virtual.Filter == VirtualDrawFilter.Nearest
-            || (m_config.Window.Virtual.Filter == VirtualDrawFilter.Auto && m_config.Render.Filter.Texture == FilterType.Nearest)
-        );
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(filterNearest ? TextureMagFilter.Nearest : TextureMagFilter.Linear));
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(filterNearest ? TextureMinFilter.Nearest : TextureMinFilter.Linear));
         m_program.BoundTexture(BindTextures.BoundTexture);
         m_program.Mvp(mvp);
 
