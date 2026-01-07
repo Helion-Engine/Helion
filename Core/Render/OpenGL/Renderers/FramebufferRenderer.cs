@@ -2,11 +2,13 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Window;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -78,7 +80,6 @@ public class FramebufferProgram : RenderProgram
 
 public class FramebufferRenderer : IDisposable
 {
-    public GLFramebuffer Framebuffer { get; private set; }
     private readonly IConfig m_config;
     private readonly IWindow m_window;
     private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Framebuffer");
@@ -86,12 +87,11 @@ public class FramebufferRenderer : IDisposable
     private readonly FramebufferProgram m_program = new();
     private bool m_disposed;
 
-    public FramebufferRenderer(IConfig config, IWindow window, Dimension dimension)
+    public FramebufferRenderer(IConfig config, IWindow window)
     {
         m_config = config;
         m_window = window;
 
-        Framebuffer = CreateFramebuffer(dimension);
         Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
         UploadVertices();
     }
@@ -100,9 +100,6 @@ public class FramebufferRenderer : IDisposable
     {
         Dispose(false);
     }
-
-    private static GLFramebuffer CreateFramebuffer(in Dimension dimension) =>
-        new("Virtual", dimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
 
     private void UploadVertices()
     {
@@ -118,16 +115,7 @@ public class FramebufferRenderer : IDisposable
         m_vbo.Unbind();
     }
 
-    public void UpdateToDimensionIfNeeded(Dimension dimension)
-    {
-        if (Framebuffer.Dimension == dimension || !dimension.HasPositiveArea)
-            return;
-
-        Framebuffer.Dispose();
-        Framebuffer = CreateFramebuffer(dimension);
-    }
-
-    private mat4 CalculateMvp()
+    private mat4 CalculateMvp(GLFramebuffer buffer)
     {
         // We already draw to the unit plane, which means instead of doing a bunch
         // of orthographic stuff, we can instead scale the X axis to add black bars
@@ -139,15 +127,16 @@ public class FramebufferRenderer : IDisposable
         // dimension's resolution. Also don't let it be larger than the NDC box.
         // Since our vertices are in NDC coordinates, 1.0 is the max we can go.
         Dimension windowDim = m_window.ClientDimension;
-        Dimension textureDim = Framebuffer.ColorAttachment0.Dimension;
+        Dimension textureDim = buffer.ColorAttachment0.Dimension;
         float scaleX = Math.Min(textureDim.AspectRatio / windowDim.AspectRatio, 1.0f);
         
         return mat4.Scale(scaleX, 1.0f, 1.0f);
     }
 
-    public void Render()
+    public void Render(GLFramebuffer buffer)
     {
-        mat4 mvp = CalculateMvp();
+        bool isFullscreen = buffer.Dimension == m_window.ClientDimension;
+        mat4 mvp = isFullscreen ? mat4.Identity : CalculateMvp(buffer);
         (float a, float r, float g, float b) = Color.Black.Normalized;
 
         GL.Viewport(0, 0, m_window.ClientDimension.Width, m_window.ClientDimension.Height);
@@ -157,7 +146,14 @@ public class FramebufferRenderer : IDisposable
         m_program.Bind();
 
         GL.ActiveTexture(BindTextures.BoundTexture);
-        Framebuffer.ColorAttachment0.Bind();
+        buffer.ColorAttachment0.Bind();
+        bool filterNearest = (
+            isFullscreen
+            || m_config.Window.Virtual.Filter == VirtualDrawFilter.Nearest
+            || (m_config.Window.Virtual.Filter == VirtualDrawFilter.Auto && m_config.Render.Filter.Texture == FilterType.Nearest)
+        );
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(filterNearest ? TextureMagFilter.Nearest : TextureMagFilter.Linear));
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(filterNearest ? TextureMinFilter.Nearest : TextureMinFilter.Linear));
         m_program.BoundTexture(BindTextures.BoundTexture);
         m_program.Mvp(mvp);
 
@@ -176,7 +172,6 @@ public class FramebufferRenderer : IDisposable
         m_vbo.Dispose();
         m_vao.Dispose();
         m_program.Dispose();
-        Framebuffer.Dispose();
 
         m_disposed = true;
     }

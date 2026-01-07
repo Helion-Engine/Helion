@@ -19,7 +19,7 @@ public enum RenderWindowState
     BorderlessFullscreenWindow
 }
 
-public enum BlitFilter
+public enum VirtualDrawFilter
 {
     Auto,
     Nearest,
@@ -69,7 +69,7 @@ public class ConfigWindowVirtual: ConfigElement<ConfigWindowVirtual>
 
     [ConfigInfo("Filter algorithm for virtual screens size.")]
     [OptionMenu(OptionSectionType.Video, "Virtual Filter")]
-    public readonly ConfigValue<BlitFilter> Filter = new(BlitFilter.Auto);
+    public readonly ConfigValue<VirtualDrawFilter> Filter = new(VirtualDrawFilter.Auto);
 }
 
 public class ConfigWindow: ConfigElement<ConfigWindow>

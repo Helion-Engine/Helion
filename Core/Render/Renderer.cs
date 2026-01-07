@@ -65,7 +65,7 @@ public partial class Renderer : IDisposable
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
-    private readonly BasicFramebufferRenderer m_framebufferRenderer;
+    private readonly FramebufferRenderer m_framebufferRenderer;
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly TransitionRenderer m_transitionRenderer;
 
@@ -92,7 +92,7 @@ public partial class Renderer : IDisposable
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
-        m_framebufferRenderer = new BasicFramebufferRenderer(window);
+        m_framebufferRenderer = new FramebufferRenderer(config, window);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
         m_mainFramebuffer = GenerateMainFramebuffer();
@@ -416,7 +416,7 @@ public partial class Renderer : IDisposable
                     break;
                 case RenderCommandType.DrawVirtualFrameBuffer:
                     virtualFrameBufferDraw = true;
-                    BlitVirtualFramebufferToMain();
+                    DrawVirtualFramebufferToMain();
                     break;
                 case RenderCommandType.Transition:
                     var tranCmd = renderCommands.TransitionCommands[cmd.Index];
@@ -434,10 +434,9 @@ public partial class Renderer : IDisposable
         DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
 
         if (!virtualFrameBufferDraw)
-            BlitVirtualFramebufferToMain();
+            DrawVirtualFramebufferToMain();
 
         // draw main framebuffer to default
-        // BlitMainFramebufferToDefault();
         GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
         m_framebufferRenderer.Render(m_mainFramebuffer);
     }
@@ -755,39 +754,10 @@ public partial class Renderer : IDisposable
             ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
     }
 
-    private void BlitVirtualFramebufferToMain()
+    private void DrawVirtualFramebufferToMain()
     {
-        var mainDimension = m_mainFramebuffer.Dimension;
-        var virtualDimension = m_virtualFramebuffer.ColorAttachment0.Dimension;
-        float scaleX = (m_config.Window.Virtual.Stretch)
-            ? 1f
-            : Math.Min(virtualDimension.AspectRatio / mainDimension.AspectRatio, 1.0f);
-        int destWidth = (int)(mainDimension.Width * scaleX);
-        int offsetX = (mainDimension.Width - destWidth) / 2;
-        var filterType = GetFilterType();
-
         m_mainFramebuffer.BindDraw();
-        m_virtualFramebuffer.BindRead();
-        GL.ClearColor(0, 0, 0, 1);
-        GL.Clear(ClearBufferMask.ColorBufferBit);
-        GL.BlitFramebuffer(
-            0, 0, virtualDimension.Width, virtualDimension.Height,
-            offsetX, 0, offsetX + destWidth, mainDimension.Height,
-            ClearBufferMask.ColorBufferBit, filterType);
-    }
-
-    private BlitFramebufferFilter GetFilterType()
-    {
-        if (m_config.Window.Virtual.Filter == BlitFilter.Auto)
-        {
-            return (m_config.Render.Filter.Texture == FilterType.Nearest)
-                            ? BlitFramebufferFilter.Nearest
-                            : BlitFramebufferFilter.Linear;
-        }
-
-        return (m_config.Window.Virtual.Filter == BlitFilter.Nearest)
-                    ? BlitFramebufferFilter.Nearest
-                    : BlitFramebufferFilter.Linear;
+        m_framebufferRenderer.Render(m_virtualFramebuffer);
     }
 
     protected virtual void Dispose(bool disposing)
