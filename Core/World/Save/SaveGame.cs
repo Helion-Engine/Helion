@@ -35,6 +35,11 @@ public class SaveGame
 
     public readonly SaveGameType Type;
 
+    /// <summary>
+    /// Whether the save is compatible with the currently loaded WADs.
+    /// </summary>
+    public bool? IsCompatible;
+
     public SaveGame(string saveDir, string filename, SaveGameModel model)
     {
         SaveDir = saveDir;

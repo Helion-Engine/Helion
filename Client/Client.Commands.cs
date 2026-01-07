@@ -1126,7 +1126,7 @@ public partial class Client
 
     private WorldModel? LoadNewestSave()
     {
-        var save = m_saveGameManager.GetSaveGames().FirstOrDefault();
+        var save = m_saveGameManager.GetSaveGames(compatibleOnly: true).FirstOrDefault();
         if (save != null)
             return save.ReadWorldModel();
         return null;

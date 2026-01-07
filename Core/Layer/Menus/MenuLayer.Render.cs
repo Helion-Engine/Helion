@@ -240,11 +240,11 @@ public partial class MenuLayer
     private void DrawSaveRow(IHudRenderContext hud, SaveMenu saveMenu, MenuSaveRowComponent saveRowComponent, bool isSelected,
         bool wasPreviouslySelected, ref int offsetY, bool detailsEnabled, out Box2I drawArea)
     {
-        const string FontName = Constants.Fonts.Small;
-        int fontSize = hud.GetFontMaxHeight(FontName) - 2;
+        string fontName = saveRowComponent.IsCompatible ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        int fontSize = hud.GetFontMaxHeight(fontName) - 2;
         int menuRowWidth = GetSaveRowWidth(detailsEnabled);
 
-        var textDimension = hud.MeasureText("_", FontName, fontSize);
+        var textDimension = hud.MeasureText("_", fontName, fontSize);
         var textHeight = textDimension.Height; 
 
         string saveText;
@@ -255,11 +255,11 @@ public partial class MenuLayer
             //Account for cursor flashing
             if (!saveRowComponent.Text.EndsWith('_'))
                 typedTextRowWidth -= textDimension.Width;
-            saveText = hud.GetTypedText(saveRowComponent.Text, FontName, fontSize, typedTextRowWidth);
+            saveText = hud.GetTypedText(saveRowComponent.Text, fontName, fontSize, typedTextRowWidth);
         }
         else
         {
-            saveText = hud.GetEllipsesText(saveRowComponent.Text, FontName, fontSize, textRowWidth);
+            saveText = hud.GetEllipsesText(saveRowComponent.Text, fontName, fontSize, textRowWidth);
         }
         
         var rowHeight = textHeight + 3;
@@ -275,7 +275,7 @@ public partial class MenuLayer
             hud.PopAlpha();
         }
 
-        hud.Text(saveText, FontName, fontSize, (1, offsetY + 2));
+        hud.Text(saveText, fontName, fontSize, (1, offsetY + 2));
         offsetY += rowHeight;
 
         if (isSelected && detailsEnabled && !wasPreviouslySelected)
@@ -323,17 +323,17 @@ public partial class MenuLayer
         if (m_saveGameSummary == null)
             return;
 
-        const string Font = Constants.Fonts.Small;
+        string fontName = m_saveGameSummary.IsCompatible ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
         const float ImageAspect = 4 / 3f;
 
         bool wideScreen = SaveMenuWide(hud);
         int textSize = wideScreen ? 6 : 4;
         int boxWidth = wideScreen ? 128 : 80;
         int thumbnailHeight = (int)(boxWidth / ImageAspect * 0.8f);
-        int boxHeight = thumbnailHeight + 5 * textSize + 3;
+        int boxHeight = thumbnailHeight + textSize * (m_saveGameSummary.IsCompatible ? 5 : 7) + 3;
 
         var centerOffset = GetSaveMenuOffset(hud);
-        hud.LineWrap(m_saveGameSummary.MapName, Font, textSize, boxWidth - 4, m_lineWrapLines, 
+        hud.LineWrap(m_saveGameSummary.MapName, fontName, textSize, boxWidth - 4, m_lineWrapLines, 
             out var requiredHeight);
         boxHeight += requiredHeight;
 
@@ -351,8 +351,8 @@ public partial class MenuLayer
         if (m_saveGameTexture == null)
         {
             hud.PushOffset(boxUpperLeft);
-            var size = hud.MeasureText("No Image", Font, textSize);
-            hud.Text("No Image", Font, textSize, (boxWidth / 2 - size.Width / 2, thumbnailHeight / 2 - size.Height / 2), textAlign: TextAlign.Center);
+            var size = hud.MeasureText("No Image", fontName, textSize);
+            hud.Text("No Image", fontName, textSize, (boxWidth / 2 - size.Width / 2, thumbnailHeight / 2 - size.Height / 2), textAlign: TextAlign.Center);
             hud.PopOffset();
         }
         else
@@ -365,17 +365,23 @@ public partial class MenuLayer
 
         for (int i = 0; i < m_lineWrapLines.Count; i++)
         {
-            hud.Text(m_lineWrapLines[i].AsSpan(), Font, textSize, offset, out var drawArea);
+            hud.Text(m_lineWrapLines[i].AsSpan(), fontName, textSize, offset, out var drawArea);
             offset += (0, drawArea.Height);
         }
 
-        hud.Text(m_saveGameSummary.Date, Font, textSize, offset, out var area);
+        hud.Text(m_saveGameSummary.Date, fontName, textSize, offset, out var area);
         offset += (0, area.Height);
         offset += (0, area.Height);
 
-        foreach (string str in m_saveGameSummary?.Stats ?? [])
+        foreach (string str in m_saveGameSummary.Stats ?? [])
         {
-            hud.Text(str, Constants.Fonts.Small, textSize, offset, out area);
+            hud.Text(str, fontName, textSize, offset, out area);
+            offset += (0, area.Height);
+        }
+        if (!m_saveGameSummary.IsCompatible)
+        {
+            offset += (0, area.Height);
+            hud.Text("WADS differ", fontName, textSize, offset, out area);
             offset += (0, area.Height);
         }
     }

@@ -148,7 +148,7 @@ public class SaveMenu : Menu
             // show empty slot on page 1
             if (m_currentPage == 1)
             {
-                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false);
+                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false, true);
                 saveRowComponent.Action = CreateNewSaveGame(() => saveRowComponent.Text);
                 newComponents.Add(saveRowComponent);
             }
@@ -156,7 +156,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string mapName = save.Model?.MapName ?? UnknownSavedGameName;
-                MenuSaveRowComponent saveRow = new(displayName, mapName, save.Type != SaveGameType.Default,
+                MenuSaveRowComponent saveRow = new(displayName, mapName, save.Type != SaveGameType.Default, save.IsCompatible == true,
                     null, CreateDeleteCommand(save), save);
                 saveRow.Action = new Func<Menu?>(UpdateSaveGame(save, new(() => saveRow.Text)));
                 return saveRow;
@@ -185,7 +185,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default,
+                return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default, save.IsCompatible == true,
                     CreateConsoleCommand($"load \"{fileName}\""), CreateDeleteCommand(save), save);
             });
             newComponents.AddRange(saveRowComponents);
@@ -218,7 +218,7 @@ public class SaveMenu : Menu
                 }
                 else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
                 {
-                    if (savedGameRow.IsAutoOrQuickSave)
+                    if (savedGameRow.IsAutoOrQuickSave || !savedGameRow.IsCompatible)
                     {
                         SoundManager.PlayStaticSound(Constants.MenuSounds.Invalid);
                     }
@@ -257,7 +257,12 @@ public class SaveMenu : Menu
             else
             {
                 if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft)) // Load
-                    savedGameRow.Action?.Invoke();
+                {
+                    if (!savedGameRow.IsCompatible)
+                        SoundManager.PlayStaticSound(Constants.MenuSounds.Invalid);
+                    else
+                        savedGameRow.Action?.Invoke();
+                }
                 else
                     ConsumeAndHandlePageChange(input);
             }

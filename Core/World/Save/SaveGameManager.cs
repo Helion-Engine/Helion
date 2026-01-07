@@ -91,9 +91,15 @@ public class SaveGameManager
     {
         if (m_currentSavesLoaded)
             return;
-        
-        m_currentSaves.AddRange(ReadSaveGameFiles());
-        m_matchingSaves.AddRange(GetMatchingSaveGames(m_currentSaves));
+
+        var saves = ReadSaveGameFiles();
+        foreach (var save in saves)
+        {
+            save.IsCompatible = CheckIfSaveModelCompatible(save.Model);
+            m_currentSaves.Add(save);
+            if (save.IsCompatible == true)
+                m_matchingSaves.Add(save);
+        }
         m_currentSavesLoaded = true;
     }
 
@@ -122,6 +128,7 @@ public class SaveGameManager
         m_saveArgs = new(world, worldModel, title, GetSaveDir(), filename, screenshotGenerator, image);
         var saveEvent = await Task.Run(m_saveFunc);
 
+        saveEvent.SaveGame.IsCompatible = true;
         AddOrUpdateSaveGame(saveEvent.SaveGame);
         GameSaved?.Invoke(this, saveEvent);
         m_saving = false;
@@ -134,7 +141,8 @@ public class SaveGameManager
     private void AddOrUpdateSaveGame(SaveGame newSaveGame)
     {
         AddOrUpdateSaveGame(newSaveGame, m_currentSaves);
-        AddOrUpdateSaveGame(newSaveGame, m_matchingSaves);
+        if (newSaveGame.IsCompatible == true)
+            AddOrUpdateSaveGame(newSaveGame, m_matchingSaves);
     }
 
     private static void AddOrUpdateSaveGame(SaveGame newSaveGame, List<SaveGame> saveList)
@@ -154,7 +162,7 @@ public class SaveGameManager
 
     private SaveGame? GetExistingSave(SaveGame? existingSave, SaveGameType type)
     {
-        var saveGames = GetSaveGames(sortByDate: false);
+        var saveGames = GetSaveGames(compatibleOnly: true, sortByDate: false);
 
         if (existingSave == null && type == SaveGameType.Auto && m_config.Game.RotatingAutoSaves > 0)
         {
@@ -173,18 +181,18 @@ public class SaveGameManager
         return existingSave;
     }
 
-    private IEnumerable<SaveGame> GetMatchingSaveGames(List<SaveGame> saveGames)
+    private bool CheckIfSaveModelCompatible(SaveGameModel? model)
     {
-        return saveGames.Where(x => x.Model != null &&
-            ModelVerification.VerifyModelFiles(x.Model.Files, m_archiveCollection, null));
+        return model != null && ModelVerification.VerifyModelFiles(model.Files, m_archiveCollection, null);
     }
 
-    public List<SaveGame> GetSaveGames(bool sortByDate = true)
+    public List<SaveGame> GetSaveGames(bool compatibleOnly = false, bool sortByDate = true)
     {
         LoadCurrentSaveFiles();
+        var saves = compatibleOnly ? m_matchingSaves : m_currentSaves;
         if (sortByDate)
-            m_matchingSaves.Sort(m_saveDateComparison);
-        return m_matchingSaves;
+            saves.Sort(m_saveDateComparison);
+        return saves;
     }
 
     private List<SaveGame> ReadSaveGameFiles()
