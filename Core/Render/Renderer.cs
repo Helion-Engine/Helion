@@ -49,14 +49,10 @@ public partial class Renderer : IDisposable
 
     public readonly IWindow Window;
     public readonly GLSurface Default;
-    /// <summary>
-    /// Final framebuffer used to draw to screen.
-    /// </summary>
     private GLFramebuffer m_mainFramebuffer;
-    /// <summary>
-    /// Framebuffer used to draw the world.
-    /// </summary>
-    private GLFramebuffer m_virtualFramebuffer;
+    private GLFramebuffer? m_virtualFramebuffer;
+    private GLFramebuffer m_worldFramebuffer;
+
     private readonly GLFramebuffer m_screenshotFramebuffer;
     public readonly LegacyGLTextureManager Textures;
     internal readonly IConfig m_config;
@@ -73,6 +69,8 @@ public partial class Renderer : IDisposable
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
+    private bool m_useVirtualBuffer;
+    private DrawWorldCommand m_lastRenderWorldCmd;
     private TextureMinFilter m_virtualMinFilter;
     private TextureMagFilter m_virtualMagFilter;
 
@@ -96,8 +94,10 @@ public partial class Renderer : IDisposable
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
+        m_useVirtualBuffer = ShouldUseVirtualBuffer();
         m_mainFramebuffer = GenerateMainFramebuffer();
         m_virtualFramebuffer = GenerateVirtualFramebuffer();
+        m_worldFramebuffer = m_mainFramebuffer;
         // Temporary frame buffer for smaller save game screenshots. Significantly faster than pulling the full sized pixel buffer and downsizing using image sharp.
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
@@ -131,6 +131,9 @@ public partial class Renderer : IDisposable
 
     private void UpdateVirtualTextureFilter(GLFramebuffer buffer)
     {
+        if (m_virtualFramebuffer == null)
+            return;
+
         CalculateBufferTextureFilter(m_virtualFramebuffer, m_config.Window.Virtual.Filter, out var magFilter, out var minFilter);
         if (magFilter == m_virtualMagFilter && minFilter == m_virtualMinFilter)
             return;
@@ -173,8 +176,35 @@ public partial class Renderer : IDisposable
         }
     }
 
-    private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.ClientDimension, 1);
-    private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
+    private bool UseDirectBackBuffer()
+    {
+        if (!m_config.Render.VanillaRender)
+            return true;
+
+        return m_config.Render.DownScaleVanillaRenderSampleBuffer.Value > 1;
+    }
+
+    private GLFramebuffer GenerateMainFramebuffer()
+    {
+        // Depth attachment only required if not using the virtual buffer
+        // A new buffer must be generated if using vanilla software sprite rendering feature
+        return new("Main", Window.ClientDimension, 1, 
+            ShouldUseVirtualBuffer() ? GLFrameBufferOptions.None : GLFrameBufferOptions.DepthStencilAttachment, 
+            mainBackBuffer: UseDirectBackBuffer());
+    }
+
+    private GLFramebuffer? GenerateVirtualFramebuffer()
+    {
+        if (!ShouldUseVirtualBuffer())
+            return null;
+
+        return new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
+    }
+
+    private bool ShouldUseVirtualBuffer()
+    {
+        return m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension != Window.ClientDimension;
+    }
 
     public unsafe void UploadColorMap()
     {
@@ -405,24 +435,36 @@ public partial class Renderer : IDisposable
 
     private void UpdateFramebufferDimensionsIfNeeded()
     {
-        if (m_mainFramebuffer.Dimension != Window.ClientDimension && Window.ClientDimension.HasPositiveArea)
+        var useVirtualBuffer = ShouldUseVirtualBuffer();
+
+        if (Window.ClientDimension.HasPositiveArea && 
+            (m_mainFramebuffer.Dimension != Window.ClientDimension || m_useVirtualBuffer != useVirtualBuffer || m_mainFramebuffer.IsMainBackBuffer != UseDirectBackBuffer()))
         {
             m_mainFramebuffer.Dispose();
             m_mainFramebuffer = GenerateMainFramebuffer();
         }
-        if (m_virtualFramebuffer.Dimension != RenderDimension && RenderDimension.HasPositiveArea)
+
+        if (RenderDimension.HasPositiveArea && 
+            ((useVirtualBuffer && m_virtualFramebuffer == null) || (m_virtualFramebuffer != null && m_virtualFramebuffer.Dimension != RenderDimension)))
         {
-            m_virtualFramebuffer.Dispose();
+            m_virtualFramebuffer?.Dispose();
             m_virtualFramebuffer = GenerateVirtualFramebuffer();
         }
+
+        if (useVirtualBuffer && m_virtualFramebuffer != null)
+            m_worldFramebuffer = m_virtualFramebuffer;
+        else
+            m_worldFramebuffer = m_mainFramebuffer;
+
         m_transitionRenderer.UpdateFramebufferDimensionsIfNeeded();
+        m_useVirtualBuffer = useVirtualBuffer;
     }
 
     public void Render(RenderCommands renderCommands)
     {
         m_hudRenderer.Clear();
         UpdateFramebufferDimensionsIfNeeded();
-        m_virtualFramebuffer.Bind();
+        m_worldFramebuffer.Bind();
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
         BindLightBuffer();
@@ -479,15 +521,19 @@ public partial class Renderer : IDisposable
             }
         }
 
+        m_mainFramebuffer.Bind();
         DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
 
         if (!virtualFrameBufferDraw)
             DrawVirtualFramebufferToMain();
 
         // draw main framebuffer to default
-        GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-        FramebufferRenderer.ClearWithViewport(Window.ClientDimension);
-        m_framebufferRenderer.Render(m_mainFramebuffer, mat4.Identity);
+        if (!m_mainFramebuffer.IsMainBackBuffer)
+        {
+            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            FramebufferRenderer.ClearWithViewport(Window.ClientDimension);
+            m_framebufferRenderer.Render(m_mainFramebuffer, mat4.Identity);
+        }
     }
 
     private void BindColorMapBuffer()
@@ -598,10 +644,12 @@ public partial class Renderer : IDisposable
 
     public Image GetMainFramebufferData() => GenerateFrameBufferImage(m_mainFramebuffer);
 
-    public Image GetVirtualFrameBufferData() => GenerateFrameBufferImage(m_virtualFramebuffer);
-
     public Image GetScreenshotFrameBufferData()
     {
+        // Need to re-render the world if everything is being draw to the world framebuffer
+        if (m_worldFramebuffer.IsMainBackBuffer && m_lastRenderWorldCmd.World != null)
+            HandleRenderWorldCommand(m_lastRenderWorldCmd, m_viewport);
+
         BlitToScreenshotBuffer();
         return GenerateFrameBufferImage(m_screenshotFramebuffer);
     }
@@ -756,8 +804,9 @@ public partial class Renderer : IDisposable
             GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
+        m_lastRenderWorldCmd = cmd;
         UpdateBuffers();
-        m_worldRenderer.Render(cmd.World, m_renderInfo, m_virtualFramebuffer);
+        m_worldRenderer.Render(cmd.World, m_renderInfo, m_worldFramebuffer);
 
         if (ShaderVars.ReversedZ)
         {
@@ -788,13 +837,13 @@ public partial class Renderer : IDisposable
     private void BlitToScreenshotBuffer()
     {
         var screenshotDimension = m_screenshotFramebuffer.Dimension;
-        var virtualDimension = m_virtualFramebuffer.Dimension;
+        var virtualDimension = m_worldFramebuffer.Dimension;
         float scaleX = Math.Min(screenshotDimension.AspectRatio / virtualDimension.AspectRatio, 1.0f);
         int sourceWidth = (int)(virtualDimension.Width * scaleX);
         int offsetX = (virtualDimension.Width - sourceWidth) / 2;
 
         m_screenshotFramebuffer.BindDraw();
-        m_virtualFramebuffer.BindRead();
+        m_worldFramebuffer.BindRead();
         GL.ClearColor(0, 0, 0, 1);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         GL.BlitFramebuffer(
@@ -805,6 +854,9 @@ public partial class Renderer : IDisposable
 
     private void DrawVirtualFramebufferToMain()
     {
+        if (m_worldFramebuffer == m_mainFramebuffer || m_virtualFramebuffer == null)
+            return;
+
         m_mainFramebuffer.BindDraw();
         UpdateVirtualTextureFilter(m_virtualFramebuffer);
         FramebufferRenderer.ClearWithViewport(Window.ClientDimension);
@@ -819,7 +871,7 @@ public partial class Renderer : IDisposable
         m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
 
         m_mainFramebuffer.Dispose();
-        m_virtualFramebuffer.Dispose();
+        m_virtualFramebuffer?.Dispose();
         Textures.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();

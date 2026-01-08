@@ -561,7 +561,6 @@ public class LegacyWorldRenderer : WorldRenderer
         if (fuzzData)
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
 
-        OitFrameBuffer.UnbindFrameBuffer();
         GL.DepthMask(true);
     }
 
