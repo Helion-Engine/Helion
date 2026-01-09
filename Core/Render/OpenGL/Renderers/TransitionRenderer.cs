@@ -14,7 +14,10 @@ public class TransitionRenderer : IDisposable
     private readonly IWindow m_window;
     private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Transition");
     private readonly VertexArrayObject m_vao = new("Transition");
-    private bool m_inited;
+
+    private readonly FadeTransitionProgram m_fadeProgram = new();
+    private readonly MeltTransitionProgram m_meltProgram = new();
+    private readonly NoTransitionProgram m_noProgram = new();
     private TransitionProgram? m_program;
     /// <summary>
     /// The screen buffer to transition from.
@@ -26,6 +29,12 @@ public class TransitionRenderer : IDisposable
     {
         m_window = window;
         m_startBuffer = GetNewFramebuffer();
+
+        Attributes.BindAndApply(m_vbo, m_vao, m_fadeProgram.Attributes);
+        Attributes.BindAndApply(m_vbo, m_vao, m_meltProgram.Attributes);
+        Attributes.BindAndApply(m_vbo, m_vao, m_noProgram.Attributes);
+
+        UploadVertices();
     }
 
     ~TransitionRenderer()
@@ -46,22 +55,14 @@ public class TransitionRenderer : IDisposable
 
     public void PrepareNewTransition(GLFramebuffer sourceBuffer, TransitionType type)
     {
-        m_program?.Dispose();
         m_program = type switch
         {
-            TransitionType.Fade => new FadeTransitionProgram(),
-            TransitionType.Melt => new MeltTransitionProgram(),
+            TransitionType.Fade => m_fadeProgram,
+            TransitionType.Melt => m_meltProgram,
             // show the last framebuffer for a brief moment
             // so there's no flicker for very short loads
-            _ => new NoTransitionProgram()
+            _ => m_noProgram
         };
-
-        Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
-        if (!m_inited)
-        {
-            UploadVertices();
-            m_inited = true;
-        }
 
         sourceBuffer.BindRead();
         m_startBuffer.BindDraw();
@@ -84,7 +85,6 @@ public class TransitionRenderer : IDisposable
         m_vbo.Upload();
         m_vbo.Unbind();
     }
-
 
     public void Render(GLFramebuffer targetBuffer, float progress)
     {
@@ -124,7 +124,9 @@ public class TransitionRenderer : IDisposable
 
         m_vbo.Dispose();
         m_vao.Dispose();
-        m_program?.Dispose();
+        m_meltProgram.Dispose();
+        m_fadeProgram.Dispose();
+        m_noProgram.Dispose();
         m_startBuffer.Dispose();
 
         m_disposed = true;

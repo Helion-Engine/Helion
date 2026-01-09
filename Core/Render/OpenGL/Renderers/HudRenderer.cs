@@ -17,5 +17,5 @@ public abstract class HudRenderer : IDisposable
     public abstract void DrawImage(string textureName, ResourceNamespace ns, ImageBox2I drawArea, Color multiplyColor, float alpha, bool drawInvul, bool drawFuzz, bool drawColorMap, int colorMapIndex, string? brightmapName = null, ImageBox2I? crop = null);
     public abstract void DrawShape(ImageBox2I area, Color color, float alpha);
     public abstract void DrawText(RenderableString text, ImageBox2I drawArea, float alpha, bool drawColorMap);
-    public abstract void Render(Rectangle viewport, Dimension framebufferDimension, ShaderUniforms uniforms);
+    public abstract void Render(Rectangle viewport, Dimension mainDimension, Dimension virtualDimension, ShaderUniforms uniforms);
 }

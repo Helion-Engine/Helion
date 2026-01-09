@@ -26,8 +26,9 @@ public class GLFramebuffer : IDisposable
 
     public GLTexture2D ColorAttachment0 = null!;
     public GLTexture2D? DepthTexture;
+    public bool IsMainBackBuffer;
 
-    public GLFramebuffer(string label, Dimension dimension, int numColorAttachments, GLFrameBufferOptions options = GLFrameBufferOptions.None)
+    public GLFramebuffer(string label, Dimension dimension, int numColorAttachments, GLFrameBufferOptions options = GLFrameBufferOptions.None, bool mainBackBuffer = false)
     {
         Debug.Assert(numColorAttachments >= 0, $"Cannot have a negative amount of color attachments for framebuffer {label}");
         Debug.Assert(dimension.HasPositiveArea, $"Must have a positive dimension for framebuffer {label}");
@@ -35,14 +36,25 @@ public class GLFramebuffer : IDisposable
 
         Label = label;
         Dimension = dimension;
-        m_name = GL.GenFramebuffer();
+        IsMainBackBuffer = mainBackBuffer;
+
+        if (mainBackBuffer)
+            m_name = 0;
+        else
+            m_name = GL.GenFramebuffer();
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_name, $"Framebuffer: {Label}");
-        CreateColorAttachments(numColorAttachments, dimension, label);
+
+        if (!mainBackBuffer)
+        {
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_name, $"Framebuffer: {Label}");
+            CreateColorAttachments(numColorAttachments, dimension, label);
+            CheckFramebufferOrThrow();
+        }
+
         if ((options & GLFrameBufferOptions.DepthStencilAttachment) != 0)
             CreateDepthStencilAttachment(dimension, label);
-        CheckFramebufferOrThrow();
+
         Unbind();
     }
 
@@ -91,7 +103,11 @@ public class GLFramebuffer : IDisposable
         Dispose(false);
     }
 
-    public void Bind() => GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_name);
+    public void Bind()
+    {
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_name);
+    }
+
     public static void Unbind() => GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     public void BindRead() => GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, m_name);
     public void BindDraw() => GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, m_name);
@@ -105,7 +121,8 @@ public class GLFramebuffer : IDisposable
             texture.Dispose();
         m_textures.Clear();
 
-        GL.DeleteFramebuffer(m_name);
+        if (m_name != 0)
+            GL.DeleteFramebuffer(m_name);
 
         m_disposed = true;
     }

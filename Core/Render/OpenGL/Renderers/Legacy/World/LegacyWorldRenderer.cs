@@ -57,6 +57,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private bool m_lastRenderStatic;
     private bool m_pixelGapCorrection;
     private bool m_downscaleVanillaBuffer;
+    private bool m_postProcessingEffects;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
@@ -280,6 +281,7 @@ public class LegacyWorldRenderer : WorldRenderer
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
         m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
+        m_postProcessingEffects = m_config.Render.PostProcessingEffects;
         Clear(world, renderInfo);
 
         if (framebuffer.DepthTexture == null)
@@ -523,13 +525,16 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (fuzzData)
         {
-            if (GLInfo.MemoryBarrierSupported)
-                GL.MemoryBarrier(MemoryBarrierFlags.FramebufferBarrierBit);
+            if (m_postProcessingEffects)
+            {
+                if (GLInfo.MemoryBarrierSupported)
+                    GL.MemoryBarrier(MemoryBarrierFlags.FramebufferBarrierBit);
 
-            ResetBlendEquations();
-            framebuffer.Bind();
-            // Refract pixels in the opaque framebuffer
-            m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, false);
+                ResetBlendEquations();
+                framebuffer.Bind();
+                // Refract pixels in the opaque framebuffer
+                m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, false);
+            }
 
             OitFrameBuffer.SetBlendEquations();
             m_oitFrameBuffer.BindFrameBuffer();
@@ -561,7 +566,6 @@ public class LegacyWorldRenderer : WorldRenderer
         if (fuzzData)
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
 
-        OitFrameBuffer.UnbindFrameBuffer();
         GL.DepthMask(true);
     }
 

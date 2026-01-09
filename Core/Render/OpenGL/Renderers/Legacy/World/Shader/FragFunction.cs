@@ -254,9 +254,8 @@ public class FragFunction
                 float flipX = mix(1, -1, float(fuzzAlpha > 0.5));
                 float flipY = mix(1, -1, float(fuzzAlpha < 0.35));
                 float clearOffset = mix(1, 0, float(fuzzAlpha < 0.25));
-                ivec2 refractCoords = ivec2(
-                    clamp(coords.x + (offsetX*clearOffset*flipX), 0, screenBounds.x), 
-                    clamp(coords.y + (offsetY*clearOffset*flipY), 0, screenBounds.y));
+
+                ${FuzzRefractCoords}
 
                 ${FuzzRefractTexture}
                 
@@ -303,12 +302,27 @@ public class FragFunction
                     fragColor = vec4(average_color, alphaComponent / countComponent);
                 }"
                 :
-                @"fragColor = vec4(mix(color, ${FuzzBlackColor}, fuzzAlpha * 0.6), 1);")
+                @"
+                fragColor = mix(
+                    vec4(${FuzzBlackColor}, fuzzAlpha), 
+                    vec4(mix(color, ${FuzzBlackColor}, fuzzAlpha * 0.6), 1), 
+                    float(fuzzRefraction)
+                );"
+                )
+            //@"fragColor = vec4(mix(color, ${FuzzBlackColor}, fuzzAlpha * 0.6), 1);")
             .Replace("${FuzzBlackColor}",
                 // Fetch black color from current palette. This takes the pre-blended black color with red/yellow/green palettes.
                 ShaderVars.PaletteColorMode ?
                 "texelFetch(colormapTexture, usePalette * paletteSize).rgb" :
-                "vec3(0, 0, 0)");
+                "vec3(0, 0, 0)")
+            .Replace("${FuzzRefractCoords}", options == FuzzRefractionOptions.World ?
+            @"      ivec2 refractCoords = ivec2(
+                    clamp(coords.x + (offsetX*clearOffset*flipX), 0, screenBounds.x), 
+                    clamp(coords.y + (offsetY*clearOffset*flipY), 0, screenBounds.y));"
+            :
+            @"      ivec2 refractCoords = ivec2(
+                    clamp((coords.x + (offsetX*clearOffset*flipX)) * fuzzSampleFactor.x + fuzzSampleOffset.x, 0, screenBounds.x), 
+                    clamp((coords.y + (offsetY*clearOffset*flipY)) * fuzzSampleFactor.y + fuzzSampleOffset.y, 0, screenBounds.y));");
     }
 
     private static string Oit(OitOptions options, FragColorFunctionOptions fragColorOptions)

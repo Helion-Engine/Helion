@@ -2,6 +2,7 @@ using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Graphics.Geometry;
 using Helion.Graphics.Palettes;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL;
@@ -29,7 +30,6 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using Helion.Graphics.Geometry;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -49,14 +49,10 @@ public partial class Renderer : IDisposable
 
     public readonly IWindow Window;
     public readonly GLSurface Default;
-    /// <summary>
-    /// Final framebuffer used to draw to screen.
-    /// </summary>
     private GLFramebuffer m_mainFramebuffer;
-    /// <summary>
-    /// Framebuffer used to draw the world.
-    /// </summary>
-    private GLFramebuffer m_virtualFramebuffer;
+    private GLFramebuffer? m_virtualFramebuffer;
+    private GLFramebuffer m_worldFramebuffer;
+
     private readonly GLFramebuffer m_screenshotFramebuffer;
     public readonly LegacyGLTextureManager Textures;
     internal readonly IConfig m_config;
@@ -65,14 +61,21 @@ public partial class Renderer : IDisposable
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
-    private readonly BasicFramebufferRenderer m_framebufferRenderer;
+    private readonly FramebufferRenderer m_framebufferRenderer = new();
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly TransitionRenderer m_transitionRenderer;
+    private readonly Image m_framebufferImage = new([], (0, 0), ImageType.Rgba, (0, 0), Resources.ResourceNamespace.Global);
+    private uint[] m_imageRowFlip = [];
 
     private IWorld? m_world;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
+    private bool m_useVirtualBuffer;
+    private bool m_vanillaRender;
+    private DrawWorldCommand m_lastDrawWorldCmd;
+    private TextureMinFilter m_virtualMinFilter;
+    private TextureMagFilter m_virtualMagFilter;
 
     public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.ClientDimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
@@ -92,20 +95,73 @@ public partial class Renderer : IDisposable
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
-        m_framebufferRenderer = new BasicFramebufferRenderer(window);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
+        m_useVirtualBuffer = ShouldUseVirtualBuffer();
         m_mainFramebuffer = GenerateMainFramebuffer();
         m_virtualFramebuffer = GenerateVirtualFramebuffer();
+        m_worldFramebuffer = m_mainFramebuffer;
         // Temporary frame buffer for smaller save game screenshots. Significantly faster than pulling the full sized pixel buffer and downsizing using image sharp.
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
 
+        m_vanillaRender = m_config.Render.VanillaRender;
+
         SetPixelGapCorrection(m_config.Render.PixelGapCorrection.Value);
 
         PrintGLInfo();
         SetGLStates();
+    }
+
+    private mat4 CalculateVirtualMvp(GLFramebuffer buffer, Dimension bufferDimension)
+    {
+        // If stretching or dimensions match then it's always Identity.
+        if (bufferDimension == Window.ClientDimension || m_config.Window.Virtual.Stretch)
+            return mat4.Identity;
+
+        // We already draw to the unit plane, which means instead of doing a bunch
+        // of orthographic stuff, we can instead scale the X axis to add black bars
+        // depending on whether we want stretched or widescreen.
+
+        // How much we stretch depends on the window resolution, and the virtual
+        // dimension's resolution. Also don't let it be larger than the NDC box.
+        // Since our vertices are in NDC coordinates, 1.0 is the max we can go.
+        var windowDim = Window.ClientDimension;
+        var textureDim = buffer.ColorAttachment0.Dimension;
+        var scaleX = Math.Min(textureDim.AspectRatio / windowDim.AspectRatio, 1.0f);
+
+        return mat4.Scale(scaleX, 1.0f, 1.0f);
+    }
+
+    private void UpdateVirtualTextureFilter(GLFramebuffer buffer)
+    {
+        if (m_virtualFramebuffer == null)
+            return;
+
+        CalculateBufferTextureFilter(m_virtualFramebuffer, m_config.Window.Virtual.Filter, out var magFilter, out var minFilter);
+        if (magFilter == m_virtualMagFilter && minFilter == m_virtualMinFilter)
+            return;
+
+        m_virtualMagFilter = magFilter;
+        m_virtualMinFilter = minFilter;
+
+        buffer.ColorAttachment0.Bind();
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
+    }
+
+    private void CalculateBufferTextureFilter(GLFramebuffer buffer, VirtualDrawFilter filter, out TextureMagFilter magFilter, out TextureMinFilter minFilter)
+    {
+        buffer.ColorAttachment0.Bind();
+        var isDimensionMatch = buffer.Dimension == Window.ClientDimension;
+        var filterNearest = (
+            isDimensionMatch
+            || filter == VirtualDrawFilter.Nearest
+            || (filter == VirtualDrawFilter.Auto && m_config.Render.Filter.Texture == FilterType.Nearest)
+        );
+        magFilter = (filterNearest ? TextureMagFilter.Nearest : TextureMagFilter.Linear);
+        minFilter = (filterNearest ? TextureMinFilter.Nearest : TextureMinFilter.Linear);
     }
 
     private void PixelGapCorrection_OnChanged(object? sender, bool e) => SetPixelGapCorrection(e);
@@ -125,8 +181,48 @@ public partial class Renderer : IDisposable
         }
     }
 
-    private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.ClientDimension, 1);
-    private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
+    private GLFramebuffer GenerateMainFramebuffer()
+    {
+        // Depth attachment only required if not using the virtual buffer. This only happens with render.postprocessingeffects = 0.
+        return new("Main", Window.ClientDimension, 1, 
+            ShouldUseVirtualBuffer() ? GLFrameBufferOptions.None : GLFrameBufferOptions.DepthStencilAttachment, 
+            mainBackBuffer: true);
+    }
+
+    private GLFramebuffer? GenerateVirtualFramebuffer()
+    {
+        if (!ShouldUseVirtualBuffer())
+            return null;
+
+        return new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
+    }
+
+    private bool ShouldUseVirtualBuffer()
+    {
+        var useVirtual = m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension != Window.ClientDimension;
+        if (useVirtual)
+            return true;
+
+        // Requires FBO to sample pixels from the color attachment. Direct write to backbuffer can't be used.
+        if (m_config.Render.PostProcessingEffects.Value)
+            return true;
+
+        // This value is cached since it doesn't take affect until a new world is loaded.
+        if (!m_vanillaRender)
+            return false;
+
+        // Software sprite clipping emulate requires an FBO for MRT rendering and cannot use the backbuffer directly.
+        return m_config.Render.DownScaleVanillaRenderSampleBuffer.Value <= 1;
+    }
+
+    private Dimension GetVirtualDimension()
+    {
+        var useVirtual = m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension != Window.ClientDimension;
+        if (useVirtual)
+            return m_config.Window.Virtual.Dimension;
+
+        return Window.ClientDimension;
+    }
 
     public unsafe void UploadColorMap()
     {
@@ -159,7 +255,10 @@ public partial class Renderer : IDisposable
     {
         if (!m_config.Developer.UseReversedZ)
         {
-            ShaderVars.ReversedZ = GLInfo.ClipControlSupported;
+            // Not possible if post processing effects are disabled since it skips the intermediate FBO
+            if (GLInfo.ClipControlSupported && !m_config.Render.PostProcessingEffects)
+                Log.Warn("Post processing effects disabled: Not using reverse Z projection.");
+            ShaderVars.ReversedZ = GLInfo.ClipControlSupported && m_config.Render.PostProcessingEffects;
             return;
         }
 
@@ -357,24 +456,38 @@ public partial class Renderer : IDisposable
 
     private void UpdateFramebufferDimensionsIfNeeded()
     {
-        if (m_mainFramebuffer.Dimension != Window.ClientDimension && Window.ClientDimension.HasPositiveArea)
+        var useVirtualBuffer = ShouldUseVirtualBuffer();
+
+        if (Window.ClientDimension.HasPositiveArea && 
+            (m_mainFramebuffer.Dimension != Window.ClientDimension || m_useVirtualBuffer != useVirtualBuffer))
         {
             m_mainFramebuffer.Dispose();
             m_mainFramebuffer = GenerateMainFramebuffer();
         }
-        if (m_virtualFramebuffer.Dimension != RenderDimension && RenderDimension.HasPositiveArea)
+
+        if (RenderDimension.HasPositiveArea && 
+            ((useVirtualBuffer && m_virtualFramebuffer == null) || 
+            (m_virtualFramebuffer != null && !useVirtualBuffer) || 
+            (m_virtualFramebuffer != null && m_virtualFramebuffer.Dimension != GetVirtualDimension())))
         {
-            m_virtualFramebuffer.Dispose();
+            m_virtualFramebuffer?.Dispose();
             m_virtualFramebuffer = GenerateVirtualFramebuffer();
         }
+
+        if (useVirtualBuffer && m_virtualFramebuffer != null)
+            m_worldFramebuffer = m_virtualFramebuffer;
+        else
+            m_worldFramebuffer = m_mainFramebuffer;
+
         m_transitionRenderer.UpdateFramebufferDimensionsIfNeeded();
+        m_useVirtualBuffer = useVirtualBuffer;
     }
 
     public void Render(RenderCommands renderCommands)
     {
         m_hudRenderer.Clear();
         UpdateFramebufferDimensionsIfNeeded();
-        m_virtualFramebuffer.Bind();
+        m_worldFramebuffer.Bind();
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
         BindLightBuffer();
@@ -416,7 +529,7 @@ public partial class Renderer : IDisposable
                     break;
                 case RenderCommandType.DrawVirtualFrameBuffer:
                     virtualFrameBufferDraw = true;
-                    BlitVirtualFramebufferToMain();
+                    DrawVirtualFramebufferToMain();
                     break;
                 case RenderCommandType.Transition:
                     var tranCmd = renderCommands.TransitionCommands[cmd.Index];
@@ -431,15 +544,11 @@ public partial class Renderer : IDisposable
             }
         }
 
+        m_mainFramebuffer.Bind();
         DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
 
         if (!virtualFrameBufferDraw)
-            BlitVirtualFramebufferToMain();
-
-        // draw main framebuffer to default
-        // BlitMainFramebufferToDefault();
-        GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-        m_framebufferRenderer.Render(m_mainFramebuffer);
+            DrawVirtualFramebufferToMain();
     }
 
     private void BindColorMapBuffer()
@@ -550,16 +659,15 @@ public partial class Renderer : IDisposable
 
     public Image GetMainFramebufferData() => GenerateFrameBufferImage(m_mainFramebuffer);
 
-    public Image GetVirtualFrameBufferData() => GenerateFrameBufferImage(m_virtualFramebuffer);
-
     public Image GetScreenshotFrameBufferData()
     {
+        // Need to re-render the world if everything is being draw to the world framebuffer
+        if (m_worldFramebuffer.IsMainBackBuffer && m_lastDrawWorldCmd.World != null)
+            HandleRenderWorldCommand(m_lastDrawWorldCmd, m_viewport);
+
         BlitToScreenshotBuffer();
         return GenerateFrameBufferImage(m_screenshotFramebuffer);
     }
-
-    private readonly Image m_framebufferImage = new([], (0, 0), ImageType.Rgba, (0, 0), Resources.ResourceNamespace.Global);
-    private uint[] m_imageRowFlip = [];
 
     private Image GenerateFrameBufferImage(GLFramebuffer framebuffer)
     {
@@ -708,8 +816,9 @@ public partial class Renderer : IDisposable
             GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
+        m_lastDrawWorldCmd = cmd;
         UpdateBuffers();
-        m_worldRenderer.Render(cmd.World, m_renderInfo, m_virtualFramebuffer);
+        m_worldRenderer.Render(cmd.World, m_renderInfo, m_worldFramebuffer);
 
         if (ShaderVars.ReversedZ)
         {
@@ -731,22 +840,25 @@ public partial class Renderer : IDisposable
     private void DrawHudImagesIfAnyQueued(Rectangle viewport, ShaderUniforms uniforms)
     {
         // Bind main buffer for fuzz refraction sampling when player has partial invisibility
-        GL.ActiveTexture(BindTextures.OpaqueTexture);
-        GL.BindTexture(TextureTarget.Texture2D, m_mainFramebuffer.ColorAttachment0.Name);
-        m_hudRenderer.Render(viewport, m_mainFramebuffer.Dimension, uniforms);
+        if (m_virtualFramebuffer != null)
+        {
+            GL.ActiveTexture(BindTextures.OpaqueTexture);
+            GL.BindTexture(TextureTarget.Texture2D, m_virtualFramebuffer.ColorAttachment0.Name);
+        }
+        m_hudRenderer.Render(viewport, m_mainFramebuffer.Dimension, m_virtualFramebuffer?.Dimension ?? m_mainFramebuffer.Dimension, uniforms);
         m_hudRenderer.Clear();
     }
 
     private void BlitToScreenshotBuffer()
     {
         var screenshotDimension = m_screenshotFramebuffer.Dimension;
-        var virtualDimension = m_virtualFramebuffer.Dimension;
+        var virtualDimension = m_worldFramebuffer.Dimension;
         float scaleX = Math.Min(screenshotDimension.AspectRatio / virtualDimension.AspectRatio, 1.0f);
         int sourceWidth = (int)(virtualDimension.Width * scaleX);
         int offsetX = (virtualDimension.Width - sourceWidth) / 2;
 
         m_screenshotFramebuffer.BindDraw();
-        m_virtualFramebuffer.BindRead();
+        m_worldFramebuffer.BindRead();
         GL.ClearColor(0, 0, 0, 1);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         GL.BlitFramebuffer(
@@ -755,39 +867,15 @@ public partial class Renderer : IDisposable
             ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
     }
 
-    private void BlitVirtualFramebufferToMain()
+    private void DrawVirtualFramebufferToMain()
     {
-        var mainDimension = m_mainFramebuffer.Dimension;
-        var virtualDimension = m_virtualFramebuffer.ColorAttachment0.Dimension;
-        float scaleX = (m_config.Window.Virtual.Stretch)
-            ? 1f
-            : Math.Min(virtualDimension.AspectRatio / mainDimension.AspectRatio, 1.0f);
-        int destWidth = (int)(mainDimension.Width * scaleX);
-        int offsetX = (mainDimension.Width - destWidth) / 2;
-        var filterType = GetFilterType();
+        if (m_worldFramebuffer == m_mainFramebuffer || m_virtualFramebuffer == null)
+            return;
 
         m_mainFramebuffer.BindDraw();
-        m_virtualFramebuffer.BindRead();
-        GL.ClearColor(0, 0, 0, 1);
-        GL.Clear(ClearBufferMask.ColorBufferBit);
-        GL.BlitFramebuffer(
-            0, 0, virtualDimension.Width, virtualDimension.Height,
-            offsetX, 0, offsetX + destWidth, mainDimension.Height,
-            ClearBufferMask.ColorBufferBit, filterType);
-    }
-
-    private BlitFramebufferFilter GetFilterType()
-    {
-        if (m_config.Window.Virtual.Filter == BlitFilter.Auto)
-        {
-            return (m_config.Render.Filter.Texture == FilterType.Nearest)
-                            ? BlitFramebufferFilter.Nearest
-                            : BlitFramebufferFilter.Linear;
-        }
-
-        return (m_config.Window.Virtual.Filter == BlitFilter.Nearest)
-                    ? BlitFramebufferFilter.Nearest
-                    : BlitFramebufferFilter.Linear;
+        UpdateVirtualTextureFilter(m_virtualFramebuffer);
+        FramebufferRenderer.ClearWithViewport(Window.ClientDimension);
+        m_framebufferRenderer.Render(m_virtualFramebuffer, CalculateVirtualMvp(m_virtualFramebuffer, GetVirtualDimension()));
     }
 
     protected virtual void Dispose(bool disposing)
@@ -798,7 +886,7 @@ public partial class Renderer : IDisposable
         m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
 
         m_mainFramebuffer.Dispose();
-        m_virtualFramebuffer.Dispose();
+        m_virtualFramebuffer?.Dispose();
         Textures.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();

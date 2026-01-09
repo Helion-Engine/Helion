@@ -91,11 +91,6 @@ public class OitFrameBuffer
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_oitFramebuffer);
     }
 
-    public static void UnbindFrameBuffer()
-    {
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-    }
-
     public void BindTextures(TextureUnit accumTexture, TextureUnit accumCountTexture, TextureUnit fuzzTexture, TextureUnit opaqueTexture, GLFramebuffer framebuffer)
     {
         GL.ActiveTexture(accumTexture);
