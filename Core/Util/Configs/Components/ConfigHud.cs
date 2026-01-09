@@ -1,5 +1,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Definitions.StatusBar;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
@@ -10,24 +11,28 @@ namespace Helion.Util.Configs.Components;
 
 public static class HudView
 {
-    public const int FullSizeHudOffsetY = 16;
+    const int FullSizeHudHeight = 32;
 
-    public static int GetWeaponOffset(StatusBarSizeType statusBarSize, int? customHeight = null)
+    public static int GetWeaponOffset(StatusBarSizeType statusBarSize, StatusBarLayoutDef? activeStatusBar)
     {
-        int height = customHeight ?? (statusBarSize == StatusBarSizeType.Full ? 32 : 0);
-        return height / 2;
+        return GetStatusBarHeight(statusBarSize, activeStatusBar) / 2;
     }
 
-    public static Vec2I GetViewPortOffset(StatusBarSizeType statusBarSize, Dimension viewport, int? customHeight = null)
+    public static Vec2I GetViewPortOffset(StatusBarSizeType statusBarSize, Dimension viewport, StatusBarLayoutDef? activeStatusBar)
     {
-        int height = customHeight ?? (statusBarSize == StatusBarSizeType.Full ? 32 : 0);
-        
-        if (height > 0)
-        {
-            return (0, (int)(viewport.Height / 200.0 * (height / 2.0)));
-        }
-        
-        return (0, 0);
+        var statusBarHeight = GetStatusBarHeight(statusBarSize, activeStatusBar);
+        if (statusBarHeight > 0)
+            return (0, (int)(viewport.Height / 200.0 * (statusBarHeight / 2.0)));
+
+        return Vec2I.Zero;
+    }
+
+    private static int GetStatusBarHeight(StatusBarSizeType statusBarSize, StatusBarLayoutDef? activeStatusBar)
+    {
+        if (activeStatusBar == null)
+            return statusBarSize == StatusBarSizeType.Full ? FullSizeHudHeight : 0;
+
+        return activeStatusBar.FullscreenRender ? 0 : activeStatusBar.Height;
     }
 }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Helion.Render.Common.Textures;
 using Helion.Resources.Definitions.StatusBar.Enums;
 
 namespace Helion.Resources.Definitions.StatusBar;
@@ -8,6 +9,9 @@ public class StatusBarElementWrapper
 {
     [JsonPropertyName("canvas")]
     public StatusBarCanvasDef? Canvas { get; set; }
+    
+    [JsonPropertyName("list")]
+    public StatusBarListDef? List { get; set; }
 
     [JsonPropertyName("graphic")]
     public StatusBarGraphicDef? Graphic { get; set; }
@@ -26,12 +30,33 @@ public class StatusBarElementWrapper
 
     [JsonPropertyName("percent")]
     public StatusBarNumberDef? Percent { get; set; }
+    
+    [JsonPropertyName("string")]
+    public StatusBarStringDef? String { get; set; }
 
     [JsonPropertyName("component")]
     public StatusBarComponentDef? Component { get; set; }
 
     [JsonPropertyName("carousel")]
     public StatusBarCarouselDef? Carousel { get; set; }
+}
+
+public class StatusBarCropDef
+{
+    [JsonPropertyName("width")]
+    public int Width { get; set; }
+
+    [JsonPropertyName("height")]
+    public int Height { get; set; }
+
+    [JsonPropertyName("left")]
+    public int Left { get; set; }
+
+    [JsonPropertyName("top")]
+    public int Top { get; set; }
+    
+    [JsonPropertyName("center")]
+    public bool Center { get; set; }
 }
 
 public abstract class StatusBarBaseDef
@@ -56,11 +81,42 @@ public abstract class StatusBarBaseDef
 
     [JsonPropertyName("children")]
     public List<StatusBarElementWrapper>? Children { get; set; }
+    
+    [JsonIgnore]
+    public int ResolvedHeight { get; set; }
 }
 
 public class StatusBarCanvasDef : StatusBarBaseDef { }
+
+public class StatusBarListDef : StatusBarBaseDef 
+{
+    [JsonPropertyName("horizontal")]
+    public bool Horizontal { get; set; }
+    
+    [JsonPropertyName("spacing")]
+    public int Spacing { get; set; }
+}
+
+public class StatusBarStringDef : StatusBarBaseDef
+{
+    [JsonPropertyName("font")]
+    public string Font { get; set; } = string.Empty;
+
+    [JsonPropertyName("type")]
+    public int Type { get; set; }
+    
+    [JsonPropertyName("data")]
+    public string? Data { get; set; }
+    
+    [JsonPropertyName("translucency")]
+    public bool Translucency { get; set; }
+}
+
 public class StatusBarFaceDef : StatusBarBaseDef 
 {
+    [JsonIgnore]
+    public IRenderableTextureHandle? Handle { get; set; }
+    
     // v1.1 Extensions: Image Cropping & Translucency
     [JsonPropertyName("width")]
     public int Width { get; set; }
@@ -79,6 +135,10 @@ public class StatusBarFaceDef : StatusBarBaseDef
 
     [JsonPropertyName("translucency")]
     public bool Translucency { get; set; }
+    
+    // v1.2 Crop Object
+    [JsonPropertyName("crop")]
+    public StatusBarCropDef? Crop { get; set; }
 }
 
 public class StatusBarComponentDef : StatusBarBaseDef 
@@ -149,6 +209,12 @@ public class StatusBarGraphicDef : StatusBarBaseDef
     [JsonPropertyName("patch")]
     public string Patch { get; set; } = string.Empty;
 
+    [JsonIgnore]
+    public string? ResolvedPatchName { get; set; }
+
+    [JsonIgnore]
+    public IRenderableTextureHandle? Handle { get; set; }
+
     // v1.1 Extensions: Image Cropping
     [JsonPropertyName("width")]
     public int Width { get; set; }
@@ -167,6 +233,10 @@ public class StatusBarGraphicDef : StatusBarBaseDef
 
     [JsonPropertyName("translucency")]
     public bool Translucency { get; set; }
+    
+    // v1.2 Crop Object
+    [JsonPropertyName("crop")]
+    public StatusBarCropDef? Crop { get; set; }
 }
 
 public class StatusBarAnimationDef : StatusBarBaseDef
@@ -203,12 +273,21 @@ public struct StatusBarConditionDef
     
     [JsonPropertyName("param2")]
     public int Param2 { get; set; }
+    
+    [JsonPropertyName("param_string")]
+    public string? ParamString { get; set; }
 }
 
 public struct StatusBarFrameDef
 {
     [JsonPropertyName("lump")]
     public string Lump { get; set; }
+
+    [JsonIgnore]
+    public string? ResolvedPatchName { get; set; }
+
+    [JsonIgnore]
+    public IRenderableTextureHandle? Handle { get; set; }
 
     [JsonPropertyName("duration")]
     public double Duration { get; set; }

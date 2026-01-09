@@ -108,8 +108,8 @@
                             ctx.FillPolygon(
                                 backgroundColor,
                                 new PointF(xOffset, yOffset),
-                                new PointF(xOffset + charWidth, yOffset),
-                                new PointF(xOffset + charWidth, yOffset + charHeight),
+                                new PointF(xOffset + charWidth + 1, yOffset),
+                                new PointF(xOffset + charWidth + 1, yOffset + charHeight),
                                 new PointF(xOffset, yOffset + charHeight));
 
                             if (!(characterBlinking && blinkOn))

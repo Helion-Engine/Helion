@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -9,7 +7,6 @@ using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
@@ -56,7 +53,7 @@ public class LegacyHudRenderer : HudRenderer
     }
 
     public override void DrawImage(string textureName, ResourceNamespace ns, ImageBox2I drawArea, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, string? brightmapName = null)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, string? brightmapName = null, ImageBox2I? crop = null)
     {
         m_textureManager.TryGet(textureName, ns, out GLLegacyTexture texture);
 
@@ -64,21 +61,24 @@ public class LegacyHudRenderer : HudRenderer
         if (brightmapName != null && m_textureManager.TryGet(brightmapName, ResourceNamespace.Brightmaps, out GLLegacyTexture val))
             brightmapTexture = val;
 
-        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, brightmapTexture);
+        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, brightmapTexture, crop);
     }
 
     public override void DrawImage(string textureName, ResourceNamespace ns, Vec2I topLeft, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, string? brightmapName = null)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, string? brightmapName = null, ImageBox2I? crop = null)
     {
         m_textureManager.TryGet(textureName, ns, out GLLegacyTexture texture);
-        (int width, int height) = texture.Dimension;
+        
+        int width = crop?.Width ?? texture.Dimension.Width;
+        int height = crop?.Height ?? texture.Dimension.Height;
+        
         ImageBox2I drawArea = new(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
 
         GLLegacyTexture? brightmapTexture = null;
         if (brightmapName != null && m_textureManager.TryGet(brightmapName, ResourceNamespace.Brightmaps, out GLLegacyTexture val))
             brightmapTexture = val;
 
-        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, brightmapTexture);
+        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, brightmapTexture, crop);
     }
 
     public override void DrawShape(ImageBox2I drawArea, Color color, float alpha)
@@ -142,9 +142,11 @@ public class LegacyHudRenderer : HudRenderer
         return new(x, y, DrawDepth, u, v, glyph.Color.R, glyph.Color.G, glyph.Color.B, glyph.Color.A, alpha, false, false, drawPalette, 0);
     }
 
-    public override void Render(Rectangle viewport, Dimension framebufferDimension, ShaderUniforms uniforms)
+    public override void Render(Rectangle viewport, Dimension windowDimension, Dimension virtualDimension, ShaderUniforms uniforms)
     {
         m_program.Bind();
+
+        GetFuzzSampleFactorAndOffset(windowDimension, virtualDimension, out var fuzzSampleFactor, out var fuzzSampleOffset);
 
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_program.BoundTexture(BindTextures.BoundTexture);
@@ -154,11 +156,14 @@ public class LegacyHudRenderer : HudRenderer
         m_program.Mvp(CreateMvp(viewport));
         m_program.FuzzFrac(Renderer.GetTimeFrac());
         m_program.FuzzDiv(Renderer.GetFuzzDiv(m_config.Render, viewport));
+        m_program.FuzzRefraction(m_config.Render.PostProcessingEffects.Value);
+        m_program.FuzzSampleFactor(fuzzSampleFactor);
+        m_program.FuzzSampleOffset(fuzzSampleOffset);
         m_program.PaletteIndex((int)uniforms.PaletteIndex);
         m_program.ColorMapIndex(uniforms.ColorMapUniforms.SectorIndex == 0 ? uniforms.ColorMapUniforms.GlobalIndex : uniforms.ColorMapUniforms.SectorIndex);
         m_program.HasInvulnerability(uniforms.DrawInvulnerability);
         m_program.GammaCorrection(uniforms.GammaCorrection);
-        m_program.ScreenBounds((framebufferDimension.Width, framebufferDimension.Height));
+        m_program.ScreenBounds((viewport.Width, viewport.Height));
         m_program.UseBrightmaps(uniforms.UseBrightmaps);
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
@@ -180,6 +185,32 @@ public class LegacyHudRenderer : HudRenderer
         }
 
         m_program.Unbind();
+    }
+
+    private void GetFuzzSampleFactorAndOffset(Dimension windowDimension, Dimension virtualDimension, out Vec2F factor, out Vec2F offset)
+    {
+        if (m_config.Window.Virtual.Stretch || !m_config.Window.Virtual.Enable)
+        {
+            offset = Vec2F.Zero;
+            factor = (virtualDimension.Width / (float)windowDimension.Width, virtualDimension.Height / (float)windowDimension.Height);
+            return;
+        }
+
+        var mainWidth = windowDimension.Width;
+        var mainHeight = windowDimension.Height;
+        var virtualWidth = virtualDimension.Width;
+        var virtualHeight = virtualDimension.Height;
+
+        var scale = Math.Min(mainWidth / (float)virtualWidth, mainHeight / (float)virtualHeight);
+
+        var displayWidth = virtualWidth * scale;
+        var displayHeight = virtualHeight * scale;
+
+        var offsetX = (mainWidth - displayWidth) * 0.5f;
+        var offsetY = (mainHeight - displayHeight) * 0.5f;
+
+        factor = (virtualWidth / displayWidth,  virtualHeight / displayHeight);
+        offset = (-offsetX * factor.X, -offsetY * factor.Y);
     }
 
     public override void Dispose()
@@ -212,14 +243,49 @@ public class LegacyHudRenderer : HudRenderer
     }
 
     private void AddImage(GLLegacyTexture texture, ImageBox2I drawArea, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, GLLegacyTexture? brightmapTexture = null)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, 
+        GLLegacyTexture? brightmapTexture = null, ImageBox2I? crop = null)
     {
-        // Remember that we are drawing along the Z for visual depth now.
-        var topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
-        var topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
-        var bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
-        var bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        float u0 = 0.0f;
+        float v0 = 0.0f;
+        float u1 = 1.0f;
+        float v1 = 1.0f;
 
+        if (crop.HasValue)
+        {
+            var c = crop.Value;
+            
+            u0 = c.Min.X / (float)texture.Dimension.Width;
+            v0 = c.Min.Y / (float)texture.Dimension.Height;
+            u1 = c.Max.X / (float)texture.Dimension.Width;
+            v1 = c.Max.Y / (float)texture.Dimension.Height;
+        }
+
+        // Remember that we are drawing along the Z for visual depth now.
+        var topLeft = new HudVertex(
+            drawArea.Left, drawArea.Top, DrawDepth, 
+            u0, v0, 
+            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+
+        var topRight = new HudVertex(
+            drawArea.Right, drawArea.Top, DrawDepth, 
+            u1, v0, 
+            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+
+        var bottomLeft = new HudVertex(
+            drawArea.Left, drawArea.Bottom, DrawDepth, 
+            u0, v1, 
+            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+
+        var bottomRight = new HudVertex(
+            drawArea.Right, drawArea.Bottom, DrawDepth, 
+            u1, v1, 
+            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        
         var quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
         m_drawBuffer.Add(texture, quad, brightmapTexture);
 

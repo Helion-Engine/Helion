@@ -83,6 +83,7 @@ public partial class Renderer
 
     public void UpdateToNewWorld(IWorld world)
     {
+        m_lastDrawWorldCmd = default;
         m_updateLightSectors.ClearAndReset();
         m_updateColorMapSectors.ClearAndReset();
         m_updateLineHeights.ClearAndReset();
@@ -106,6 +107,8 @@ public partial class Renderer
         m_world.SectorColorMapChanged += World_SectorColorMapChanged;
         m_world.SectorMove += World_SectorMove;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
+
+        m_vanillaRender = m_config.Render.VanillaRender;
 
         var alloc = !m_world.SameAsPreviousMap;
         SetMapDataBuffer(world, alloc);

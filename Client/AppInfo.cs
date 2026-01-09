@@ -14,12 +14,14 @@ public class AppInfo
         if (assemblyName.Version != null)
             ApplicationVersion = assemblyName.Version.ToString();
 
+        GitSHA = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion[6..] ?? "Unknown";
         ApplicationDirectory = AppContext.BaseDirectory;
         ApplicationExe = AppDomain.CurrentDomain.FriendlyName + ".exe";
     }
 
     public string ApplicationName { get; set; } = "Helion";
     public string ApplicationVersion { get; set; } = "Version Unknown";
+    public string GitSHA { get; set; }
     public string ApplicationDirectory { get; set; }
     public string ApplicationExe { get; set; }
 }

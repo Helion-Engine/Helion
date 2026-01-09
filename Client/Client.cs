@@ -602,7 +602,7 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void LogClientInfo()
     {
-        Log.Info("{0} v{1}", AppInfo.ApplicationName, AppInfo.ApplicationVersion);
+        Log.Info("{0} v{1}, Git SHA {2}", AppInfo.ApplicationName, AppInfo.ApplicationVersion, AppInfo.GitSHA);
         Log.Info("Processor: {0} {1}", Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER"), RuntimeInformation.OSArchitecture);
         Log.Info("Processors: {0}", Environment.ProcessorCount);
         Log.Info("OS: {0} {1} (running {2})", Environment.OSVersion, Environment.Is64BitOperatingSystem ? "x64" : "x86", Environment.Is64BitProcess ? "x64" : "x86");

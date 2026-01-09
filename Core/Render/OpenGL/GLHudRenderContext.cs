@@ -114,25 +114,25 @@ public class GLHudRenderContext : IHudRenderContext
 
     public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
-         Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
-         string? brightmapName = null)
+        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
+        string? brightmapName = null, ImageBox2I? crop = null)
     {
-        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor, brightmapName);
+        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor, brightmapName, crop);
     }
 
     public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
         Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
-        string? brightmapName = null)
+        string? brightmapName = null, ImageBox2I? crop = null)
     {
-        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor, brightmapName);
+        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor, brightmapName, crop);
     }
 
     private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null,
         ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null,
         float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false, int colorMapIndex = 0, int upscalingFactor = 1,
-        string? brightmapName = null)
+        string? brightmapName = null, ImageBox2I? crop = null)
     {
         drawArea = default;
 
@@ -144,10 +144,19 @@ public class GLHudRenderContext : IHudRenderContext
 
         Vec2I location = (origin?.X ?? area?.Left ?? 0, origin?.Y ?? area?.Top ?? 0);
         Dimension drawDim = (0, 0);
+        
         if (area != null)
+        {
             drawDim = area.Value.Dimension;
+        }
+        else if (crop != null)
+        {
+            drawDim = new Dimension(crop.Value.Width, crop.Value.Height);
+        }
         else if (Textures.TryGet(texture, out var handle, resourceNamespace, upscalingFactor))
+        {
             drawDim = handle.Dimension;
+        }
 
         drawDim.Scale(scale / upscalingFactor);
 
@@ -155,7 +164,7 @@ public class GLHudRenderContext : IHudRenderContext
             window, anchor);
 
         m_commands.DrawImage(texture, resourceNamespace, pos.X, pos.Y, drawDim.Width, drawDim.Height,
-            color ?? Color.White, alpha, m_context.DrawColorMap, m_context.DrawFuzz, m_context.DrawPalette, colorMapIndex, brightmapName);
+            color ?? Color.White, alpha, m_context.DrawColorMap, m_context.DrawFuzz, m_context.DrawPalette, colorMapIndex, brightmapName, crop);
 
         drawArea = (location, location + drawDim.Vector);
     }
