@@ -211,4 +211,8 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Traverse the BSP tree in a separate thread to mark lines seen for automap. If disabled, automap always shows all lines.")]
     public readonly ConfigValue<bool> AutomapBspThread = new(true);
+
+    // This option is a hacked test that writes everything directly to the default backbuffer. Relies on undefined behavior since certain rendering functions need the depth texture.
+    [ConfigInfo("Disables post processing effects like spectre fuzz refraction and skips FBO. Can have rendering defects.", restartRequired: true)]
+    public readonly ConfigValue<bool> PostProcessingEffects = new(true);
 }

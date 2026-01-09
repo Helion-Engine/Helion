@@ -21,6 +21,9 @@ public class LegacyHudShader : RenderProgram
     private readonly int m_screenBoundsLocation;
     private readonly int m_brightmapTextureLocation;
     private readonly int m_useBrightmapsLocation;
+    private readonly int m_fuzzRefractionLocation;
+    private readonly int m_fuzzSampleFactorLocation;
+    private readonly int m_fuzzSampleOffsetLocation;
 
     public LegacyHudShader() : base("Hud")
     {
@@ -37,6 +40,9 @@ public class LegacyHudShader : RenderProgram
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
+        m_fuzzRefractionLocation = Uniforms.GetLocation("fuzzRefraction");
+        m_fuzzSampleFactorLocation = Uniforms.GetLocation("fuzzSampleFactor");
+        m_fuzzSampleOffsetLocation = Uniforms.GetLocation("fuzzSampleOffset");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -46,6 +52,9 @@ public class LegacyHudShader : RenderProgram
     public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
     public void FuzzFrac(float frac) => ProgramUniforms.Set(frac, m_fuzzFracLocation);
     public void FuzzDiv(float div) => ProgramUniforms.Set(div, m_fuzzDivLocation);
+    public void FuzzRefraction(bool set) => ProgramUniforms.Set(set, m_fuzzRefractionLocation);
+    public void FuzzSampleFactor(Vec2F factor) => ProgramUniforms.Set(factor, m_fuzzSampleFactorLocation);
+    public void FuzzSampleOffset(Vec2F offset) => ProgramUniforms.Set(offset, m_fuzzSampleOffsetLocation);
     public void PaletteIndex(int index) => ProgramUniforms.Set(index, m_paletteIndexLocation);
     public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
@@ -132,6 +141,9 @@ public class LegacyHudShader : RenderProgram
         uniform int useBrightmaps;
         uniform float gammaCorrection;
         uniform ivec2 screenBounds;
+        uniform vec2 fuzzSampleFactor;
+        uniform vec2 fuzzSampleOffset;
+        uniform int fuzzRefraction;
 
         ${FuzzFunction}
 

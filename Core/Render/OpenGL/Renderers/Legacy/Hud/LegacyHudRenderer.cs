@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -9,14 +7,12 @@ using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -146,9 +142,11 @@ public class LegacyHudRenderer : HudRenderer
         return new(x, y, DrawDepth, u, v, glyph.Color.R, glyph.Color.G, glyph.Color.B, glyph.Color.A, alpha, false, false, drawPalette, 0);
     }
 
-    public override void Render(Rectangle viewport, Dimension framebufferDimension, ShaderUniforms uniforms)
+    public override void Render(Rectangle viewport, Dimension windowDimension, Dimension virtualDimension, ShaderUniforms uniforms)
     {
         m_program.Bind();
+
+        GetFuzzSampleFactorAndOffset(windowDimension, virtualDimension, out var fuzzSampleFactor, out var fuzzSampleOffset);
 
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_program.BoundTexture(BindTextures.BoundTexture);
@@ -158,11 +156,14 @@ public class LegacyHudRenderer : HudRenderer
         m_program.Mvp(CreateMvp(viewport));
         m_program.FuzzFrac(Renderer.GetTimeFrac());
         m_program.FuzzDiv(Renderer.GetFuzzDiv(m_config.Render, viewport));
+        m_program.FuzzRefraction(m_config.Render.PostProcessingEffects.Value);
+        m_program.FuzzSampleFactor(fuzzSampleFactor);
+        m_program.FuzzSampleOffset(fuzzSampleOffset);
         m_program.PaletteIndex((int)uniforms.PaletteIndex);
         m_program.ColorMapIndex(uniforms.ColorMapUniforms.SectorIndex == 0 ? uniforms.ColorMapUniforms.GlobalIndex : uniforms.ColorMapUniforms.SectorIndex);
         m_program.HasInvulnerability(uniforms.DrawInvulnerability);
         m_program.GammaCorrection(uniforms.GammaCorrection);
-        m_program.ScreenBounds((framebufferDimension.Width, framebufferDimension.Height));
+        m_program.ScreenBounds((viewport.Width, viewport.Height));
         m_program.UseBrightmaps(uniforms.UseBrightmaps);
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
@@ -184,6 +185,32 @@ public class LegacyHudRenderer : HudRenderer
         }
 
         m_program.Unbind();
+    }
+
+    private void GetFuzzSampleFactorAndOffset(Dimension windowDimension, Dimension virtualDimension, out Vec2F factor, out Vec2F offset)
+    {
+        if (m_config.Window.Virtual.Stretch || !m_config.Window.Virtual.Enable)
+        {
+            offset = Vec2F.Zero;
+            factor = (virtualDimension.Width / (float)windowDimension.Width, virtualDimension.Height / (float)windowDimension.Height);
+            return;
+        }
+
+        var mainWidth = windowDimension.Width;
+        var mainHeight = windowDimension.Height;
+        var virtualWidth = virtualDimension.Width;
+        var virtualHeight = virtualDimension.Height;
+
+        var scale = Math.Min(mainWidth / (float)virtualWidth, mainHeight / (float)virtualHeight);
+
+        var displayWidth = virtualWidth * scale;
+        var displayHeight = virtualHeight * scale;
+
+        var offsetX = (mainWidth - displayWidth) * 0.5f;
+        var offsetY = (mainHeight - displayHeight) * 0.5f;
+
+        factor = (virtualWidth / displayWidth,  virtualHeight / displayHeight);
+        offset = (-offsetX * factor.X, -offsetY * factor.Y);
     }
 
     public override void Dispose()

@@ -44,11 +44,17 @@ public class GLFramebuffer : IDisposable
             m_name = GL.GenFramebuffer();
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_name, $"Framebuffer: {Label}");
-        CreateColorAttachments(numColorAttachments, dimension, label);
+
+        if (!mainBackBuffer)
+        {
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_name, $"Framebuffer: {Label}");
+            CreateColorAttachments(numColorAttachments, dimension, label);
+            CheckFramebufferOrThrow();
+        }
+
         if ((options & GLFrameBufferOptions.DepthStencilAttachment) != 0)
             CreateDepthStencilAttachment(dimension, label);
-        CheckFramebufferOrThrow();
+
         Unbind();
     }
 
