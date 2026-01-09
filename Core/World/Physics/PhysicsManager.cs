@@ -850,31 +850,30 @@ public sealed class PhysicsManager
         m_lineOpening.DropOffZ = Math.Min(m_testOpening1.DropOffZ, m_testOpening2.DropOffZ);
     }
 
-    private void SetLineOpening3D(LineOpening testOpening, Sector useSector3d, Entity entity, Sector front, Sector back)
+    private void SetLineOpening3D(LineOpening testOpening, Sector useSector3D, Entity entity, Sector front, Sector back)
     {
-        if (useSector3d.Sectors3D.Length > 0)
+        if (useSector3D.Sectors3D.Length > 0)
         {
-            var set = false;
-            for (int i = 0; i < useSector3d.Sectors3D.Length; i++)
+            var anySolid = false;
+            for (int i = 0; i < useSector3D.Sectors3D.Length; i++)
             {
-                var sector3d = useSector3d.Sectors3D[i];
-                if (!sector3d.IsSolid)
+                var sector3D = useSector3D.Sectors3D[i];
+                if (!sector3D.IsSolid)
                     continue;
 
-                SetEntityLineOpening(entity, sector3d.GetSectorEntity3D(), TryMoveData, testOpening);
+                anySolid = true;
+                SetEntityLineOpening(entity, sector3D.GetSectorEntity3D(), TryMoveData, testOpening);
             }
 
-            if (set)
+            if (anySolid)
+            {
                 m_lineOpening.HasDropOff3D = true;
-            else
-                goto SetLineOpeningNormal;
-
-            return;
+                return;
+            }
         }
 
-        SetLineOpeningNormal:
-            testOpening.Set(front, back);
-            testOpening.DropOffZ = testOpening.FloorZ;
+        testOpening.Set(front, back);
+        testOpening.DropOffZ = testOpening.FloorZ;
     }
 
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
