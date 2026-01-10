@@ -43,11 +43,13 @@ public class Sector3D_Walls
 
         // Control sector 2
         SetSlices(new WallSlice(256, 224, 192, (0, 0)));
+        GeometryRenderer.SetSectorForLineRendering3D(sector.Sectors3D[0]);
         GeometryRenderer.RenderSectorLine3D(sector.Sectors3D[0], 0, true, true, RenderSectorWallVertices3D);
         AssertSlices();
 
         // Control sector 3
         SetSlices(new WallSlice(128, 96, 128, (0, 0)));
+        GeometryRenderer.SetSectorForLineRendering3D(sector.Sectors3D[1]);
         GeometryRenderer.RenderSectorLine3D(sector.Sectors3D[1], 0, true, true, RenderSectorWallVertices3D);
         AssertSlices();
     }
@@ -226,11 +228,11 @@ public class Sector3D_Walls
 
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
-        var slice = m_slices[m_sliceIndex++];
         // This might change later where this is called with slices that have no height.
         // Ignore validation on them for now since they wouldn't render anything anyway.
         if (args.WallSector.Ceiling.Z != args.WallSector.Floor.Z)
         {
+            var slice = m_slices[m_sliceIndex++];
             args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
             args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
