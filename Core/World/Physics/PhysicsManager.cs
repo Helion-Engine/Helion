@@ -679,7 +679,7 @@ public sealed class PhysicsManager
         }
     }
 
-    private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData tryMove, bool dropoff)
+    private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData tryMove, bool dropOff)
     {
         if (Line.BlocksEntity(entity, x, y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
             return LineBlock.BlockStopChecking;
@@ -688,17 +688,17 @@ public sealed class PhysicsManager
             return LineBlock.NoBlock;
 
         LineOpening opening;
-        if (dropoff)
+        if (dropOff)
         {
             if (WorldStatic.Sector3D)
             {
                 opening = GetLineOpeningWithDropoff3D(entity, x, y, ref line);
-                tryMove.SetIntersectionData(opening);
+                tryMove.SetIntersectionData3D(opening, entity);
             }
             else
             {
                 opening = GetLineOpeningWithDropoff(x, y, ref line);
-                tryMove.SetIntersectionData(opening);
+                tryMove.SetIntersectionData3D(opening, entity);
             }
         }
         else
@@ -706,7 +706,7 @@ public sealed class PhysicsManager
             if (WorldStatic.Sector3D)
             {
                 opening = GetLineOpeningWithDropoff3D(entity, x, y, ref line);
-                tryMove.SetIntersectionData(opening);
+                tryMove.SetIntersectionData3D(opening, entity);
             }
             else
             {
@@ -1520,7 +1520,9 @@ doneLinkToSectors:
         else
         {
             tryMove.LowestCeilingZ = tryMove.Subsector.Sector.Ceiling.Z;
-        }        
+        }
+
+        tryMove.HighestValidStepFloorZ = tryMove.HighestFloorZ;
 
         entity.BlockingBlockLineIndex = -1;
         entity.BlockingEntity = null;
@@ -1693,7 +1695,7 @@ doneLinkToSectors:
             opening.SetBottom(tryMove, other.Position.Z);
         }
 
-        tryMove.SetIntersectionData(m_lineOpening);
+        tryMove.SetIntersectionData3D(m_lineOpening, entity);
     }
 
     public void MoveTo(Entity entity, double x, double y, TryMoveData tryMove, Action<Entity, TryMoveData>? onMoveTo = null)
@@ -1777,7 +1779,7 @@ doneLinkToSectors:
                     hit = true;
                     hitTime = time;
                     blockLineIndex = i;
-                }                
+                }
             }
         }
 

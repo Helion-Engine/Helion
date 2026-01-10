@@ -1,4 +1,3 @@
-using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -15,6 +14,9 @@ public class TryMoveData
     public bool HasDropOff3D;
     public double LowestCeilingZ;
     public double HighestFloorZ;
+    // The highest valid floor the entity can step up to. Required to correctly validate 3D block checks so blocking lines are correct. (used for impact lines and player wall sliding)
+    // See SetBottom in LineOpening
+    public double HighestValidStepFloorZ;
     public double DropOffZ;
     public double DropOffZ_3D;
 
@@ -50,7 +52,7 @@ public class TryMoveData
         BlockingEntity = null;
     }
 
-    public void SetIntersectionData(LineOpening opening)
+    public void SetIntersectionData3D(LineOpening opening, Entity entity)
     {
         HasDropOff3D = HasDropOff3D || opening.HasDropOff3D;
 
@@ -76,6 +78,12 @@ public class TryMoveData
         {
             LowestCeilingZ = opening.CeilingZ;
             LowestCeiling = opening.CeilingSector;
+        }
+
+        if (opening.FloorZ > HighestValidStepFloorZ && opening.FloorZ > entity.Position.Z &&
+            opening.FloorZ - entity.Position.Z <= entity.GetMaxStepHeight())
+        {
+            HighestValidStepFloorZ = opening.FloorZ;
         }
     }
 }

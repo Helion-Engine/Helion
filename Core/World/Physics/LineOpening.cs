@@ -81,7 +81,7 @@ public class LineOpening
     public void SetBottom(TryMoveData tryMove, double bottomZ)
     {
         CeilingZ = bottomZ;
-        FloorZ = tryMove.HighestFloorZ;
+        FloorZ = tryMove.HighestValidStepFloorZ;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
         CeilingSector = null;
