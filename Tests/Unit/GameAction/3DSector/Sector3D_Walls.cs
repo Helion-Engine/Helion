@@ -43,12 +43,12 @@ public class Sector3D_Walls
 
         // Control sector 2
         SetSlices(new WallSlice(256, 224, 192, (0, 0)));
-        GeometryRenderer.RenderSectorLine3D(sector.Sectors3D[0], 0, true, true, sector.Sectors3D[0].WallHeights, RenderSectorWallVertices3D);
+        GeometryRenderer.RenderSectorLine3D(sector.Sectors3D[0], 0, true, true, RenderSectorWallVertices3D);
         AssertSlices();
 
         // Control sector 3
         SetSlices(new WallSlice(128, 96, 128, (0, 0)));
-        GeometryRenderer.RenderSectorLine3D(sector.Sectors3D[1], 0, true, true, sector.Sectors3D[1].WallHeights, RenderSectorWallVertices3D);
+        GeometryRenderer.RenderSectorLine3D(sector.Sectors3D[1], 0, true, true, RenderSectorWallVertices3D);
         AssertSlices();
     }
 
@@ -193,13 +193,12 @@ public class Sector3D_Walls
         SetSlices(new WallSlice(128, 128, 192, (0, 0)), new WallSlice(192, 64, 192, (0, 0)), new WallSlice(64, 0, 192, (0, 64)));
 
         var sector3D = sector.Sectors3D[0];
-        var heights = sector3D.WallHeights;
 
         var line = GameActions.GetLine(World, 263);
         GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice);
         var lineIndex = sector.Lines.IndexOf(line);
         lineIndex.Should().NotBe(-1);
-        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, heights, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, EmptyRenderSectorWallVertices3D);
         GeometryRenderer.RestoreSectorSliceFunc3D();
         AssertSlices();
     }
@@ -215,13 +214,12 @@ public class Sector3D_Walls
         SetSlices(new WallSlice(192, 128, 128, (0, 0)), new WallSlice(128, 96, 255, (0, 64)), new WallSlice(96, 0, 255, (0, 96)));
 
         var sector3D = sector.Sectors3D[0];
-        var heights = sector3D.WallHeights;
 
         var line = GameActions.GetLine(World, 263);
         GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice);
         var lineIndex = sector.Lines.IndexOf(line);
         lineIndex.Should().NotBe(-1);
-        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, heights, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, EmptyRenderSectorWallVertices3D);
         GeometryRenderer.RestoreSectorSliceFunc3D();
         AssertSlices();
     }

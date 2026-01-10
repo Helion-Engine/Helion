@@ -129,15 +129,15 @@ public class Sector3D_Map
         var sector3D = sector.Sectors3D[0];
         var wallHeights = sector3D.WallHeights;
 
-        sector3D.CalculateWallHeights(GameActions.GetLine(World, 86).Back!, wallHeights, out var newWallHeights).Should().BeTrue();
+        sector3D.CalculateWallHeights(GameActions.GetLine(World, 86).Back!, out var newWallHeights).Should().BeTrue();
         newWallHeights.TopZ.Should().Be(96);
         newWallHeights.BottomZ.Should().Be(32);
 
-        sector3D.CalculateWallHeights(GameActions.GetLine(World, 95).Back!, wallHeights, out newWallHeights).Should().BeTrue();
+        sector3D.CalculateWallHeights(GameActions.GetLine(World, 95).Back!, out newWallHeights).Should().BeTrue();
         newWallHeights.TopZ.Should().Be(512);
         newWallHeights.BottomZ.Should().Be(32);
 
-        sector3D.CalculateWallHeights(GameActions.GetLine(World, 98).Back!, wallHeights, out newWallHeights).Should().BeTrue();
+        sector3D.CalculateWallHeights(GameActions.GetLine(World, 98).Back!, out newWallHeights).Should().BeTrue();
         newWallHeights.TopZ.Should().Be(96);
         newWallHeights.BottomZ.Should().Be(0);
     }
@@ -154,15 +154,13 @@ public class Sector3D_Map
         inner3D.IsSolid.Should().BeFalse();
 
         // Fully occluded by lower
-        var wallHeights = outer3D.WallHeights;
-        outer3D.CalculateWallHeights(GameActions.GetLine(World, 18).Front, wallHeights, out var newWallHeights).Should().BeFalse();
+        outer3D.CalculateWallHeights(GameActions.GetLine(World, 18).Front, out var newWallHeights).Should().BeFalse();
 
         // Fully occluded by inner 3D sector
-        outer3D.CalculateWallHeights(GameActions.GetLine(World, 25).Back!, wallHeights, out newWallHeights).Should().BeFalse();
+        outer3D.CalculateWallHeights(GameActions.GetLine(World, 25).Back!, out newWallHeights).Should().BeFalse();
 
         // Fully occluded by outer 3D sector
-        wallHeights = inner3D.WallHeights;
-        inner3D.CalculateWallHeights(GameActions.GetLine(World, 25).Front, wallHeights, out newWallHeights).Should().BeFalse();
+        inner3D.CalculateWallHeights(GameActions.GetLine(World, 25).Front, out newWallHeights).Should().BeFalse();
     }
 
     [Fact(DisplayName = "Overlapping alpha walls should not render")]
@@ -178,16 +176,16 @@ public class Sector3D_Map
 
         // Fully occluded by left
         var wallHeights = right3D.WallHeights;
-        right3D.CalculateWallHeights(GameActions.GetLine(World, 307).Front, wallHeights, out var newWallHeights).Should().BeFalse();
+        right3D.CalculateWallHeights(GameActions.GetLine(World, 307).Front, out var newWallHeights).Should().BeFalse();
 
         // Alpha not clipped
-        right3D.CalculateWallHeights(GameActions.GetLine(World, 300).Front, wallHeights, out newWallHeights).Should().BeTrue();
+        right3D.CalculateWallHeights(GameActions.GetLine(World, 300).Front, out newWallHeights).Should().BeTrue();
         wallHeights.TopZ.Should().Be(256);
         wallHeights.BottomZ.Should().Be(0);
 
         // Fully occluded by right
         wallHeights = left3D.WallHeights;
-        left3D.CalculateWallHeights(GameActions.GetLine(World, 307).Front, wallHeights, out newWallHeights).Should().BeFalse();
+        left3D.CalculateWallHeights(GameActions.GetLine(World, 307).Front, out newWallHeights).Should().BeFalse();
     }
     
     [Fact(DisplayName = "Partially overlapping non-solid walls")]
@@ -200,25 +198,22 @@ public class Sector3D_Map
         var higher3D = higherSector.Sectors3D[0];
 
         // Not clipped by another 3D sector
-        var wallHeights = lower3D.WallHeights;
-        lower3D.CalculateWallHeights(GameActions.GetLine(World, 105).Front, wallHeights, out var newWallHeights).Should().BeTrue();
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 105).Front, out var newWallHeights).Should().BeTrue();
         newWallHeights.BottomZ.Should().Be(32);
         newWallHeights.TopZ.Should().Be(128);
 
         // Partially clipped
-        lower3D.CalculateWallHeights(GameActions.GetLine(World, 108).Front, wallHeights, out newWallHeights).Should().BeTrue();
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 108).Front, out newWallHeights).Should().BeTrue();
         newWallHeights.BottomZ.Should().Be(32);
         newWallHeights.TopZ.Should().Be(64);
 
         // Not clipped by another 3D sector
-        wallHeights = higher3D.WallHeights;
-        higher3D.CalculateWallHeights(GameActions.GetLine(World, 106).Front, wallHeights, out newWallHeights).Should().BeTrue();
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 106).Front, out newWallHeights).Should().BeTrue();
         newWallHeights.BottomZ.Should().Be(64);
         newWallHeights.TopZ.Should().Be(160);
 
         // Partially clipped
-        wallHeights = higher3D.WallHeights;
-        higher3D.CalculateWallHeights(GameActions.GetLine(World, 108).Back!, wallHeights, out newWallHeights).Should().BeTrue();
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 108).Back!, out newWallHeights).Should().BeTrue();
         newWallHeights.BottomZ.Should().Be(128);
         newWallHeights.TopZ.Should().Be(160);
     }
@@ -233,26 +228,22 @@ public class Sector3D_Map
         var lower3D = lowerSector.Sectors3D[0];
         var higher3D = higherSector.Sectors3D[0];
 
-        var wallHeights = lower3D.WallHeights;
-
         // Fully clipped by one-sided wall
-        lower3D.CalculateWallHeights(GameActions.GetLine(World, 115).Front, wallHeights, out _).Should().BeFalse();
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 115).Front, out _).Should().BeFalse();
 
         // Fully clipped by lower wall
-        lower3D.CalculateWallHeights(GameActions.GetLine(World, 124).Front, wallHeights, out _).Should().BeFalse();
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 124).Front, out _).Should().BeFalse();
 
         // Fully clipped by upper wall
-        lower3D.CalculateWallHeights(GameActions.GetLine(World, 120).Front, wallHeights, out _).Should().BeFalse();
-
-        wallHeights = higher3D.WallHeights;
+        lower3D.CalculateWallHeights(GameActions.GetLine(World, 120).Front, out _).Should().BeFalse();
 
         // Partially clipped by lower and upper
-        higher3D.CalculateWallHeights(GameActions.GetLine(World, 130).Front, wallHeights, out var newWallHeights).Should().BeTrue();
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 130).Front, out var newWallHeights).Should().BeTrue();
         newWallHeights.TopZ.Should().Be(128);
         newWallHeights.BottomZ.Should().Be(96);
 
         // Fully clipped by lower and upper
-        higher3D.CalculateWallHeights(GameActions.GetLine(World, 134).Front, wallHeights, out _).Should().BeFalse();
+        higher3D.CalculateWallHeights(GameActions.GetLine(World, 134).Front, out _).Should().BeFalse();
     }
 
     private static void AssertWallHeights(WallHeights wallHeights, double bottomZ, double topZ)
