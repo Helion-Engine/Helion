@@ -12,6 +12,9 @@ public class StatusBarElementWrapper
     
     [JsonPropertyName("list")]
     public StatusBarListDef? List { get; set; }
+    
+    [JsonPropertyName("native")]
+    public StatusBarNativeDef? Native { get; set; }
 
     [JsonPropertyName("graphic")]
     public StatusBarGraphicDef? Graphic { get; set; }
@@ -87,6 +90,8 @@ public abstract class StatusBarBaseDef
 }
 
 public class StatusBarCanvasDef : StatusBarBaseDef { }
+
+public class StatusBarNativeDef : StatusBarBaseDef { }
 
 public class StatusBarListDef : StatusBarBaseDef 
 {
