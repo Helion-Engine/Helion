@@ -18,20 +18,34 @@ public static class StatusBarConditionResolver
     private static readonly Dictionary<int, EntityDefinition?> Id24AmmoTypeLookup = [];
     private static readonly Dictionary<int, EntityDefinition?> Id24PickupLookup = [];
 
-    public static bool Evaluate(StatusBarContext context, List<StatusBarConditionDef>? conditions)
-    {
-        if (conditions == null || conditions.Count == 0)
-            return true;
+    public static bool ShouldEvaluate = true;
 
-        foreach (var condition in conditions)
+    public static bool Evaluate(StatusBarContext context, StatusBarBaseDef statusBarDef)
+    {
+        if (!ShouldEvaluate)
+            return statusBarDef.LastEvaluatedConditionValue;
+
+        if (statusBarDef.Conditions == null || statusBarDef.Conditions.Length == 0)
         {
-            if (!CheckSingle(context, condition))
-                return false;
+            statusBarDef.LastEvaluatedConditionValue = true;
+            return true;
         }
+
+        for (int i = 0; i <  statusBarDef.Conditions.Length; i++)
+        {
+            ref var condition = ref statusBarDef.Conditions[i];
+            if (!CheckSingle(context, ref condition))
+            {
+                statusBarDef.LastEvaluatedConditionValue = false;
+                return false;
+            }
+        }
+
+        statusBarDef.LastEvaluatedConditionValue = true;
         return true;
     }
 
-    private static bool CheckSingle(StatusBarContext context, StatusBarConditionDef c)
+    private static bool CheckSingle(StatusBarContext context, ref StatusBarConditionDef c)
     {
         var world = context.World;
         var player = context.Player;
