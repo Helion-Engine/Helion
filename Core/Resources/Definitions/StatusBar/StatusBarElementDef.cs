@@ -138,12 +138,6 @@ public abstract class StatusBarBaseDef
 
     [JsonIgnore]
     public ElementBounds LastBounds { get; set; }
-
-    [JsonIgnore]
-    public Align Align { get; set; }
-
-    [JsonIgnore]
-    public bool AlignSet { get; set; }
 }
 
 public class StatusBarCanvasDef : StatusBarBaseDef { }
