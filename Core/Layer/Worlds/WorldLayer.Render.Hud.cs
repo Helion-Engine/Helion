@@ -208,8 +208,6 @@ public partial class WorldLayer
         return null;
     }
     
-    
-
     private void SetHudPadding(IHudRenderContext hud)
     {
         if (m_config.Hud.Width == 0)
@@ -473,7 +471,7 @@ public partial class WorldLayer
             }
 
             var context = new StatusBarContext(World, Player, automapVisible, isWidescreen, fps, consoleMsg, isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName));
-            m_statusBarRenderer.Draw(hud, activeLayout, context, HasTicks);
+            m_statusBarRenderer.Draw(hud, activeLayout, context, HasTicks, m_hudPaddingX);
             return;
         }
 

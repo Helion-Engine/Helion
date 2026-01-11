@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Runtime.CompilerServices;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
@@ -25,6 +21,10 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Stats;
 using Helion.World.StatusBar;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Layer.Worlds.StatusBar;
 
@@ -86,6 +86,7 @@ public class StatusBarRenderer
     private readonly IWorld m_world;
     private float m_currentScale;
     private float m_hOffset;
+    private float m_hudNativeWidthOffset;
     private Vec2F m_scale = Vec2F.One;
 
     private bool m_texturesResolved;
@@ -191,7 +192,7 @@ public class StatusBarRenderer
         return mask;
     }
 
-    public void Draw(IHudRenderContext hud, StatusBarLayoutDef layout, StatusBarContext context, bool hasTicks)
+    public void Draw(IHudRenderContext hud, StatusBarLayoutDef layout, StatusBarContext context, bool hasTicks, int hudNativePaddingX)
     {
         m_hasTicks = hasTicks;
         StatusBarConditionResolver.ShouldEvaluate = hasTicks;
@@ -220,6 +221,8 @@ public class StatusBarRenderer
 
         m_hOffset = (windowWidth / m_currentScale - 320f) / 2f;
         m_vOffset = (windowHeight / m_currentScale - 200f) / 2f;
+
+        m_hudNativeWidthOffset = -hudNativePaddingX / scaleX;
 
         if (!layout.FullscreenRender)
         {
@@ -525,7 +528,7 @@ public class StatusBarRenderer
         int nativeX = (int)Math.Floor((vPos.X + m_hOffset) * m_currentScale);
         int nativeY = (int)Math.Floor((vPos.Y + m_vOffset) * m_currentScale);
 
-        int hShift = (int)Math.Ceiling(m_hOffset * m_currentScale);
+        int hShift = (int)Math.Ceiling((m_hOffset + m_hudNativeWidthOffset) * m_currentScale);
         int vShift = (int)Math.Ceiling(m_vOffset * m_currentScale);
 
         if ((def.Alignment & StatusBarAlignment.HCenter) == 0)
@@ -868,12 +871,15 @@ public class StatusBarRenderer
         string? translation,
         float alpha)
     {
-        if (line.IsEmpty) return;
+        if (line.IsEmpty)
+            return;
 
         int drawnWidth = 0;
-        if (fontDef != null) drawnWidth = DrawHudText(hud, line, fontDef, drawPos, alignment, translation, alpha);
+        if (fontDef != null)
+            drawnWidth = DrawHudText(hud, line, fontDef, drawPos, alignment, translation, alpha);
 
-        if (drawnWidth != 0) return;
+        if (drawnWidth != 0)
+            return;
         Align align = ConvertAlignment(alignment);
         hud.Text(line, Constants.Fonts.Small, 8, drawPos, TextAlign.Left, Align.TopLeft, align, alpha: alpha, scale: m_scale.X);
     }
@@ -975,18 +981,24 @@ public class StatusBarRenderer
             totalWidth += scaledWidth;
         }
 
-        if (m_glyphCache.Count == 0 && text.Length > 0) return 0;
-        if (!draw) return totalWidth;
+        if (m_glyphCache.Count == 0 && text.Length > 0)
+            return 0;
+        if (!draw)
+            return totalWidth;
 
         int drawX = pos.X;
         int drawY = pos.Y;
 
-        if ((alignment & StatusBarAlignment.HCenter) != 0) drawX -= totalWidth / 2;
-        else if ((alignment & StatusBarAlignment.Right) != 0) drawX -= totalWidth;
+        if ((alignment & StatusBarAlignment.HCenter) != 0)
+            drawX -= totalWidth / 2;
+        else if ((alignment & StatusBarAlignment.Right) != 0)
+            drawX -= totalWidth;
 
         int scaledMaxHeight = (int)(maxHeight * m_scale.Y);
-        if ((alignment & StatusBarAlignment.Bottom) != 0) drawY -= scaledMaxHeight;
-        else if ((alignment & StatusBarAlignment.VCenter) != 0) drawY -= scaledMaxHeight / 2;
+        if ((alignment & StatusBarAlignment.Bottom) != 0)
+            drawY -= scaledMaxHeight;
+        else if ((alignment & StatusBarAlignment.VCenter) != 0)
+            drawY -= scaledMaxHeight / 2;
 
         foreach (RenderGlyph g in m_glyphCache)
         {
