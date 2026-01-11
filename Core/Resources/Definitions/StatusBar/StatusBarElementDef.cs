@@ -1,9 +1,26 @@
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Helion.Geometry.Vectors;
+using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
 using Helion.Resources.Definitions.StatusBar.Enums;
+using System;
+using System.Text.Json.Serialization;
 
 namespace Helion.Resources.Definitions.StatusBar;
+
+public record struct ElementBounds(int X1, int Y1, int X2, int Y2)
+{
+    public readonly int Width => X2 - X1;
+    public readonly int Height => Y2 - Y1;
+    public static readonly ElementBounds Empty = new(int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
+
+    public static void Union(ref ElementBounds a, in ElementBounds b)
+    {
+        a.X1 = Math.Min(a.X1, b.X1);
+        a.Y1 = Math.Min(a.Y1, b.Y1);
+        a.X2 = Math.Max(a.X2, b.X2);
+        a.Y2 = Math.Max(a.Y2, b.Y2);
+    }
+}
 
 public class StatusBarElementWrapper
 {
@@ -42,6 +59,34 @@ public class StatusBarElementWrapper
 
     [JsonPropertyName("carousel")]
     public StatusBarCarouselDef? Carousel { get; set; }
+
+    [JsonIgnore]
+    public bool HasConditions { get; set; }
+
+    [JsonIgnore]
+    public bool BoundsSet { get; set; }
+
+    [JsonIgnore]
+    public ElementBounds Bounds { get; set; }
+
+    [JsonIgnore]
+    public Vec2I Size { get; set; }
+
+    public bool CheckHasConditions()
+    {
+        return
+            (Canvas?.Conditions != null && Canvas.Conditions.Length > 0) ||
+            (List?.Conditions != null && List.Conditions.Length > 0) ||
+            (Native?.Conditions != null && Native.Conditions.Length > 0) ||
+            (Graphic?.Conditions != null && Graphic.Conditions.Length > 0) ||
+            (Animation?.Conditions != null && Animation.Conditions.Length > 0) ||
+            (FaceBackground?.Conditions != null && FaceBackground.Conditions.Length > 0) ||
+            (Number?.Conditions != null && Number.Conditions.Length > 0) ||
+            (Percent?.Conditions != null && Percent.Conditions.Length > 0) ||
+            (String?.Conditions != null && String.Conditions.Length > 0) ||
+            (Component?.Conditions != null && Component.Conditions.Length > 0) ||
+            (Carousel?.Conditions != null && Carousel.Conditions.Length > 0);
+    }
 }
 
 public class StatusBarCropDef
@@ -80,13 +125,25 @@ public abstract class StatusBarBaseDef
     public string? Translation { get; set; }
 
     [JsonPropertyName("conditions")]
-    public List<StatusBarConditionDef>? Conditions { get; set; }
+    public StatusBarConditionDef[]? Conditions { get; set; }
 
     [JsonPropertyName("children")]
-    public List<StatusBarElementWrapper>? Children { get; set; }
+    public StatusBarElementWrapper[]? Children { get; set; }
     
     [JsonIgnore]
     public int ResolvedHeight { get; set; }
+
+    [JsonIgnore]
+    public bool LastEvaluatedConditionValue { get; set; }
+
+    [JsonIgnore]
+    public ElementBounds LastBounds { get; set; }
+
+    [JsonIgnore]
+    public Align Align { get; set; }
+
+    [JsonIgnore]
+    public bool AlignSet { get; set; }
 }
 
 public class StatusBarCanvasDef : StatusBarBaseDef { }
@@ -247,7 +304,7 @@ public class StatusBarGraphicDef : StatusBarBaseDef
 public class StatusBarAnimationDef : StatusBarBaseDef
 {
     [JsonPropertyName("frames")]
-    public List<StatusBarFrameDef> Frames { get; set; } = new();
+    public StatusBarFrameDef[] Frames { get; set; } = [];
 }
 
 public class StatusBarNumberDef : StatusBarBaseDef

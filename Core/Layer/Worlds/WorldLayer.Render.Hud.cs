@@ -473,7 +473,7 @@ public partial class WorldLayer
             }
 
             var context = new StatusBarContext(World, Player, automapVisible, isWidescreen, fps, consoleMsg, isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName));
-            m_statusBarRenderer.Draw(hud, activeLayout, context);
+            m_statusBarRenderer.Draw(hud, activeLayout, context, HasTicks);
             return;
         }
 

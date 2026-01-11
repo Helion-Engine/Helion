@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Helion.Layer.Worlds.StatusBar;
 using Helion.Util.Parser;
 
 namespace Helion.Resources.Definitions.StatusBar;
@@ -103,7 +104,13 @@ public class StatusBarLayoutDef
     public string? FillFlat { get; set; }
 
     [JsonPropertyName("children")]
-    public List<StatusBarElementWrapper> Children { get; set; } = new();
+    public StatusBarElementWrapper[] Children { get; set; } = [];
+
+    [JsonIgnore]
+    public bool CoverageSet { get; set; }
+
+    [JsonIgnore]
+    public StatusBarCoverage Coverage { get; set; }
 }
 
 [JsonSourceGenerationOptions(

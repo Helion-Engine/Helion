@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
@@ -88,6 +89,8 @@ public class StatusBarRenderer
     private Vec2F m_scale = Vec2F.One;
 
     private bool m_texturesResolved;
+    private bool m_hasTicks;
+    private bool m_invalidateBounds;
     private float m_userScale;
     private float m_vOffset;
 
@@ -96,6 +99,7 @@ public class StatusBarRenderer
         m_world = world;
         m_archiveCollection = world.ArchiveCollection;
         StatusBarDefinition sbarDef = world.ArchiveCollection.Definitions.StatusBarDefinition;
+        world.Config.Hud.Scale.OnChanged += Scale_OnChanged;
 
         foreach (StatusBarNumberFontDef f in sbarDef.NumberFonts)
             m_fontNumberLookup[f.Name] = f;
@@ -104,25 +108,47 @@ public class StatusBarRenderer
             m_hudFontLookup[f.Name] = f;
     }
 
-    public static StatusBarCoverage GetCoverage(StatusBarLayoutDef layout)
+    private void Scale_OnChanged(object? sender, double e)
     {
-        return layout.Children.Count == 0 ? StatusBarCoverage.None : ScanChildren(layout.Children);
+        m_invalidateBounds = true;
     }
 
-    private static StatusBarCoverage ScanChildren(List<StatusBarElementWrapper> children)
+    public static StatusBarCoverage GetCoverage(StatusBarLayoutDef layout)
+    {
+        if (layout.CoverageSet)
+            return layout.Coverage;
+
+        layout.CoverageSet = true;
+        layout.Coverage = layout.Children.Length == 0 ? StatusBarCoverage.None : ScanChildren(layout.Children);
+        return layout.Coverage;
+    }
+
+    private static StatusBarCoverage ScanChildren(StatusBarElementWrapper[] children)
     {
         StatusBarCoverage mask = StatusBarCoverage.None;
         foreach (StatusBarElementWrapper child in children)
         {
+            child.HasConditions = child.CheckHasConditions();
+
             if (child.Component != null)
             {
                 switch (child.Component.ComponentType)
                 {
-                    case StatusBarComponentType.StatTotals: mask |= StatusBarCoverage.Stats; break;
-                    case StatusBarComponentType.Time: mask |= StatusBarCoverage.Time; break;
-                    case StatusBarComponentType.Message: mask |= StatusBarCoverage.Messages; break;
-                    case StatusBarComponentType.LevelTitle: mask |= StatusBarCoverage.MapTitle; break;
-                    case StatusBarComponentType.FpsCounter: mask |= StatusBarCoverage.FPS; break;
+                    case StatusBarComponentType.StatTotals:
+                        mask |= StatusBarCoverage.Stats;
+                        break;
+                    case StatusBarComponentType.Time:
+                        mask |= StatusBarCoverage.Time;
+                        break;
+                    case StatusBarComponentType.Message:
+                        mask |= StatusBarCoverage.Messages;
+                        break;
+                    case StatusBarComponentType.LevelTitle:
+                        mask |= StatusBarCoverage.MapTitle;
+                        break;
+                    case StatusBarComponentType.FpsCounter:
+                        mask |= StatusBarCoverage.FPS;
+                        break;
                     case StatusBarComponentType.Unknown:
                     case StatusBarComponentType.Coordinates:
                     case StatusBarComponentType.Speedometer:
@@ -130,31 +156,45 @@ public class StatusBarRenderer
                     case StatusBarComponentType.RenderStats:
                     case StatusBarComponentType.CommandHistory:
                     case StatusBarComponentType.Chat:
-                    default: break;
+                    default:
+                        break;
                 }
 
                 if (child.Component.Children != null)
                     mask |= ScanChildren(child.Component.Children);
             }
 
-            if (child.Canvas?.Children != null) mask |= ScanChildren(child.Canvas.Children);
-            if (child.Native?.Children != null) mask |= ScanChildren(child.Native.Children);
-            if (child.List?.Children != null) mask |= ScanChildren(child.List.Children);
-            if (child.Graphic?.Children != null) mask |= ScanChildren(child.Graphic.Children);
-            if (child.Face?.Children != null) mask |= ScanChildren(child.Face.Children);
-            if (child.FaceBackground?.Children != null) mask |= ScanChildren(child.FaceBackground.Children);
-            if (child.Animation?.Children != null) mask |= ScanChildren(child.Animation.Children);
-            if (child.Carousel?.Children != null) mask |= ScanChildren(child.Carousel.Children);
-            if (child.Number?.Children != null) mask |= ScanChildren(child.Number.Children);
-            if (child.Percent?.Children != null) mask |= ScanChildren(child.Percent.Children);
-            if (child.String?.Children != null) mask |= ScanChildren(child.String.Children);
+            if (child.Canvas?.Children != null)
+                mask |= ScanChildren(child.Canvas.Children);
+            if (child.Native?.Children != null)
+                mask |= ScanChildren(child.Native.Children);
+            if (child.List?.Children != null)
+                mask |= ScanChildren(child.List.Children);
+            if (child.Graphic?.Children != null)
+                mask |= ScanChildren(child.Graphic.Children);
+            if (child.Face?.Children != null)
+                mask |= ScanChildren(child.Face.Children);
+            if (child.FaceBackground?.Children != null)
+                mask |= ScanChildren(child.FaceBackground.Children);
+            if (child.Animation?.Children != null)
+                mask |= ScanChildren(child.Animation.Children);
+            if (child.Carousel?.Children != null)
+                mask |= ScanChildren(child.Carousel.Children);
+            if (child.Number?.Children != null)
+                mask |= ScanChildren(child.Number.Children);
+            if (child.Percent?.Children != null)
+                mask |= ScanChildren(child.Percent.Children);
+            if (child.String?.Children != null)
+                mask |= ScanChildren(child.String.Children);
         }
 
         return mask;
     }
 
-    public void Draw(IHudRenderContext hud, StatusBarLayoutDef layout, StatusBarContext context)
+    public void Draw(IHudRenderContext hud, StatusBarLayoutDef layout, StatusBarContext context, bool hasTicks)
     {
+        m_hasTicks = hasTicks;
+        StatusBarConditionResolver.ShouldEvaluate = hasTicks;
         if (!m_texturesResolved)
         {
             EnsureTexturesResolved(hud, layout);
@@ -205,11 +245,13 @@ public class StatusBarRenderer
             DrawElementWrapper(hud, child, rootPos, layout.Height, context, m_hOffset, rootPos);
 
         hud.PopVirtualDimension();
+        m_invalidateBounds = false;
     }
 
     private void EnsureTexturesResolved(IHudRenderContext hud, StatusBarLayoutDef layout)
     {
-        foreach (StatusBarElementWrapper t in layout.Children) ResolveElementTextures(hud, t);
+        foreach (StatusBarElementWrapper t in layout.Children)
+            ResolveElementTextures(hud, t);
     }
 
     private void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper)
@@ -227,17 +269,17 @@ public class StatusBarRenderer
         }
 
         if (wrapper.Animation != null)
-            for (int i = 0; i < wrapper.Animation.Frames.Count; i++)
+        {
+            for (int i = 0; i < wrapper.Animation.Frames.Length; i++)
             {
-                StatusBarFrameDef frame = wrapper.Animation.Frames[i];
+                ref var frame = ref wrapper.Animation.Frames[i];
                 frame.ResolvedPatchName = ResolvePatchName(frame.Lump);
 
                 if (hud.Textures.TryGet(frame.ResolvedPatchName, out IRenderableTextureHandle? handle) ||
                     hud.Textures.TryGet(frame.ResolvedPatchName, out handle, ResourceNamespace.Sprites))
                     frame.Handle = handle;
-
-                wrapper.Animation.Frames[i] = frame;
             }
+        }
 
         if (wrapper.String != null)
         {
@@ -350,7 +392,7 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, def))
             return;
 
         Vec2I currentPos = ResolvePosition(def, parentPos);
@@ -365,11 +407,9 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, def.Conditions) || def.Children == null)
+        if (!StatusBarConditionResolver.Evaluate(context, def) || def.Children == null)
             return;
 
-        int childCount = def.Children.Count;
-        Span<Vec2I> sizes = stackalloc Vec2I[childCount];
         int activeCount = 0;
         int totalWidth = 0;
         int totalHeight = 0;
@@ -378,66 +418,74 @@ public class StatusBarRenderer
 
         foreach (StatusBarElementWrapper child in def.Children)
         {
-            if (!EvaluateWrapperConditions(child, context)) continue;
+            if (!EvaluateWrapperConditions(child, context))
+                continue;
 
-            ElementBounds bounds = MeasureElement(hud, child, context, m_scale.X, m_scale.Y);
-            Vec2I size = new(bounds.Width, bounds.Height);
-            sizes[activeCount] = size;
+  
+            var bounds = MeasureElement(hud, child, context, m_scale.X, m_scale.Y);
+            child.Size = new(bounds.Width, bounds.Height);
 
             if (def.Horizontal)
             {
-                totalWidth += size.X;
-                if (activeCount > 0) totalWidth += spacing;
-                totalHeight = Math.Max(totalHeight, size.Y);
+                totalWidth += child.Size.X;
+                if (activeCount > 0)
+                    totalWidth += spacing;
+                totalHeight = Math.Max(totalHeight, child.Size.Y);
             }
             else
             {
-                totalHeight += size.Y;
-                if (activeCount > 0) totalHeight += spacing;
-                totalWidth = Math.Max(totalWidth, size.X);
+                totalHeight += child.Size.Y;
+                if (activeCount > 0)
+                    totalHeight += spacing;
+                totalWidth = Math.Max(totalWidth, child.Size.X);
             }
 
             activeCount++;
         }
 
-        if (activeCount == 0) return;
+        if (activeCount == 0)
+            return;
 
-        Vec2I listPos = ResolvePosition(def, parentPos);
+        var listPos = ResolvePosition(def, parentPos);
 
-        if ((def.Alignment & StatusBarAlignment.HCenter) != 0) listPos.X -= totalWidth / 2;
-        else if ((def.Alignment & StatusBarAlignment.Right) != 0) listPos.X -= totalWidth;
+        if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
+            listPos.X -= totalWidth / 2;
+        else if ((def.Alignment & StatusBarAlignment.Right) != 0)
+            listPos.X -= totalWidth;
 
-        if ((def.Alignment & StatusBarAlignment.Bottom) != 0) listPos.Y -= totalHeight;
-        else if ((def.Alignment & StatusBarAlignment.VCenter) != 0) listPos.Y -= totalHeight / 2;
+        if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
+            listPos.Y -= totalHeight;
+        else if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
+            listPos.Y -= totalHeight / 2;
 
         int currentIdx = 0;
-        Vec2I cursor = listPos;
+        var cursor = listPos;
         foreach (StatusBarElementWrapper child in def.Children)
         {
-            if (!EvaluateWrapperConditions(child, context)) continue;
+            if (!EvaluateWrapperConditions(child, context))
+                continue;
 
-            Vec2I size = sizes[currentIdx];
-            Vec2I childPos = cursor;
+            var childPos = cursor;
 
             if (def.Horizontal)
             {
                 if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
-                    childPos.Y += totalHeight - size.Y;
+                    childPos.Y += totalHeight - child.Size.Y;
                 else if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
-                    childPos.Y += (totalHeight - size.Y) / 2;
+                    childPos.Y += (totalHeight - child.Size.Y) / 2;
 
                 DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
-                cursor.X += size.X + spacing;
+                cursor.X += child.Size.X + spacing;
             }
             else
             {
                 if ((def.Alignment & StatusBarAlignment.Right) != 0)
-                    childPos.X += totalWidth - size.X;
+                    childPos.X += totalWidth - child.Size.X;
                 else if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
-                    childPos.X += (totalWidth - size.X) / 2;
+                    childPos.X += (totalWidth - child.Size.X) / 2;
 
                 DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
-                cursor.Y += size.Y + spacing;
+                cursor.Y += child.Size.Y + spacing;
             }
 
             currentIdx++;
@@ -446,7 +494,7 @@ public class StatusBarRenderer
 
     private void DrawNative(IHudRenderContext hud, StatusBarNativeDef def, Vec2I parentPos, int containerHeight, StatusBarContext context)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, def))
             return;
 
         Vec2I vPos = parentPos;
@@ -458,13 +506,18 @@ public class StatusBarRenderer
 
         ElementBounds bounds = ElementBounds.Empty;
         if (def.Children != null)
+        {
             foreach (StatusBarElementWrapper child in def.Children)
             {
-                if (!EvaluateWrapperConditions(child, context)) continue;
-                bounds = ElementBounds.Union(bounds, MeasureElement(hud, child, context, nScaleX, nScaleY));
-            }
+                if (!EvaluateWrapperConditions(child, context))
+                    continue;
 
-        if (bounds.X1 == int.MaxValue) bounds = new ElementBounds(0, 0, 0, 0);
+                ElementBounds.Union(ref bounds, MeasureElement(hud, child, context, nScaleX, nScaleY));
+            }
+        }
+
+        if (bounds.X1 == int.MaxValue) 
+            bounds = new ElementBounds(0, 0, 0, 0);
 
         int pivotX = (bounds.X1 + bounds.X2) / 2;
         int pivotY = (bounds.Y1 + bounds.Y2) / 2;
@@ -477,23 +530,33 @@ public class StatusBarRenderer
 
         if ((def.Alignment & StatusBarAlignment.HCenter) == 0)
         {
-            if ((def.Alignment & StatusBarAlignment.Right) != 0) nativeX += hShift;
-            else nativeX -= hShift;
+            if ((def.Alignment & StatusBarAlignment.Right) != 0)
+                nativeX += hShift;
+            else
+                nativeX -= hShift;
         }
 
         if ((def.Alignment & StatusBarAlignment.VCenter) == 0)
         {
-            if ((def.Alignment & StatusBarAlignment.Bottom) != 0) nativeY += vShift;
-            else nativeY -= vShift;
+            if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
+                nativeY += vShift;
+            else
+                nativeY -= vShift;
         }
 
-        if ((def.Alignment & StatusBarAlignment.HCenter) != 0) nativeX -= pivotX;
-        else if ((def.Alignment & StatusBarAlignment.Right) != 0) nativeX -= bounds.X2;
-        else nativeX -= bounds.X1;
+        if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
+            nativeX -= pivotX;
+        else if ((def.Alignment & StatusBarAlignment.Right) != 0)
+            nativeX -= bounds.X2;
+        else
+            nativeX -= bounds.X1;
 
-        if ((def.Alignment & StatusBarAlignment.VCenter) != 0) nativeY -= pivotY;
-        else if ((def.Alignment & StatusBarAlignment.Bottom) != 0) nativeY -= bounds.Y2;
-        else nativeY -= bounds.Y1;
+        if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
+            nativeY -= pivotY;
+        else if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
+            nativeY -= bounds.Y2;
+        else
+            nativeY -= bounds.Y1;
 
         Vec2I nativeRoot = (nativeX, nativeY);
 
@@ -516,7 +579,7 @@ public class StatusBarRenderer
         StatusBarContext context,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, graphic.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, graphic))
             return;
 
         Vec2I currentPos = ResolvePosition(graphic, parentPos);
@@ -549,7 +612,7 @@ public class StatusBarRenderer
         StatusBarContext context,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, face.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, face))
             return;
 
         Vec2I currentPos = ResolvePosition(face, parentPos);
@@ -573,7 +636,7 @@ public class StatusBarRenderer
         StatusBarContext context,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, faceBg.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, faceBg))
             return;
 
         Vec2I currentPos = ResolvePosition(faceBg, parentPos);
@@ -596,16 +659,16 @@ public class StatusBarRenderer
         StatusBarContext context,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, anim.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, anim))
             return;
 
         Vec2I currentPos = ResolvePosition(anim, parentPos);
 
-        if (anim.Frames.Count > 0)
+        if (anim.Frames.Length > 0)
         {
             double totalDuration = 0;
-            foreach (StatusBarFrameDef frame1 in anim.Frames)
-                totalDuration += frame1.Duration;
+            for (int i = 0; i < anim.Frames.Length; i++)
+                totalDuration += anim.Frames[i].Duration;
 
             if (totalDuration > 0)
             {
@@ -613,14 +676,16 @@ public class StatusBarRenderer
                 long currentTick = m_world.LevelTime;
                 double animTime = currentTick % timePerLoop;
 
-                StatusBarFrameDef frame = anim.Frames[0];
+                ref var frame = ref anim.Frames[0];
                 double timeAccumulator = 0;
 
-                foreach (StatusBarFrameDef f in anim.Frames)
+                for (int i = 0; i < anim.Frames.Length; i++)
                 {
+                    ref var f = ref anim.Frames[i];
                     timeAccumulator += f.Duration * Constants.TicksPerSecond;
-                    if (!(animTime < timeAccumulator)) continue;
-                    frame = f;
+                    if (!(animTime < timeAccumulator))
+                        continue;
+                    frame = ref f;
                     break;
                 }
 
@@ -645,7 +710,7 @@ public class StatusBarRenderer
         StatusBarContext context,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, def))
             return;
 
         Vec2I pos = ResolvePosition(def, parentPos);
@@ -669,7 +734,7 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, comp.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, comp))
             return;
 
         Vec2I pos = ResolvePosition(comp, parentPos);
@@ -941,7 +1006,7 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, carousel.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, carousel))
             return;
 
         Vec2I pos = ResolvePosition(carousel, parentPos);
@@ -960,7 +1025,6 @@ public class StatusBarRenderer
 
         DrawChildren(hud, carousel, pos, containerHeight, context, widescreenOffset, rootPos);
     }
-
 
     private void DrawSBarTexture(IHudRenderContext hud,
         string patch,
@@ -1019,7 +1083,7 @@ public class StatusBarRenderer
         bool isPercent,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(context, number.Conditions))
+        if (!StatusBarConditionResolver.Evaluate(context, number))
             return;
 
         int value = ResolveNumberValue(context.Player, number.Type, number.Param);
@@ -1282,20 +1346,31 @@ public class StatusBarRenderer
         float sX = 1.0f,
         float sY = 1.0f)
     {
-        if (wrapper.Graphic != null) return MeasureGraphic(wrapper.Graphic, sX, sY);
-        if (wrapper.Number != null) return MeasureNumber(hud, wrapper.Number, context, false, sX, sY);
-        if (wrapper.Percent != null) return MeasureNumber(hud, wrapper.Percent, context, true, sX, sY);
-        if (wrapper.Face != null) return MeasureFace(hud, wrapper.Face, context, sX, sY);
-        if (wrapper.String != null) return MeasureString(hud, wrapper.String, sX, sY);
-        if (wrapper.Canvas != null) return MeasureBase(hud, wrapper.Canvas, context, sX, sY);
-        if (wrapper.List != null) return MeasureList(hud, wrapper.List, context, sX, sY);
-        if (wrapper.Component != null) return MeasureComponent(hud, wrapper.Component, sX, sY);
-        if (wrapper.Carousel != null) return MeasureCarousel(hud, wrapper.Carousel, context, sX, sY);
+        if (wrapper.Graphic != null)
+            return MeasureGraphic(wrapper.Graphic, sX, sY);
+        if (wrapper.Number != null)
+            return MeasureNumber(hud, wrapper.Number, context, false, sX, sY);
+        if (wrapper.Percent != null)
+            return MeasureNumber(hud, wrapper.Percent, context, true, sX, sY);
+        if (wrapper.Face != null)
+            return MeasureFace(hud, wrapper.Face, context, sX, sY);
+        if (wrapper.String != null)
+            return MeasureString(hud, wrapper.String, sX, sY);
+        if (wrapper.Canvas != null)
+            return MeasureBase(hud, wrapper.Canvas, context, sX, sY);
+        if (wrapper.List != null)
+            return MeasureList(hud, wrapper.List, context, sX, sY);
+        if (wrapper.Component != null)
+            return MeasureComponent(hud, wrapper.Component, sX, sY);
+        if (wrapper.Carousel != null)
+            return MeasureCarousel(hud, wrapper.Carousel, context, sX, sY);
 
-        if (wrapper.Native == null) return ElementBounds.Empty;
+        if (wrapper.Native == null)
+            return ElementBounds.Empty;
 
         float nX = m_userScale;
         float nY = m_userScale * 1.2f;
+
         ElementBounds bounds = MeasureBase(hud, wrapper.Native, context, nX, nY);
 
         return m_currentScale > 0
@@ -1308,31 +1383,51 @@ public class StatusBarRenderer
 
     private ElementBounds MeasureBase(IHudRenderContext hud, StatusBarBaseDef def, StatusBarContext context, float sX, float sY)
     {
-        if (def.Children == null || def.Children.Count == 0) return ElementBounds.Empty;
+        if (def.Children == null || def.Children.Length == 0)
+            return ElementBounds.Empty;
 
-        ElementBounds contentBounds = ElementBounds.Empty;
+        if (!m_hasTicks)
+            return def.LastBounds;
+
+        var contentBounds = ElementBounds.Empty;
         foreach (StatusBarElementWrapper t in def.Children)
         {
-            if (!EvaluateWrapperConditions(t, context)) continue;
-            contentBounds = ElementBounds.Union(contentBounds, MeasureElement(hud, t, context, sX, sY));
+            if (!m_invalidateBounds)
+            {
+                if (t.HasConditions && !EvaluateWrapperConditions(t, context))
+                    continue;
+
+                if (t.HasConditions && t.BoundsSet)
+                {
+                    ElementBounds.Union(ref contentBounds, t.Bounds);
+                    continue;
+                }
+            }
+
+            t.BoundsSet = true;
+            t.Bounds = MeasureElement(hud, t, context, sX, sY);
+            ElementBounds.Union(ref contentBounds, t.Bounds);
         }
 
-        if (contentBounds.X1 == int.MaxValue) return ElementBounds.Empty;
+        if (contentBounds.X1 == int.MaxValue)
+            return ElementBounds.Empty;
 
         int posX = (int)(def.X * sX);
         int posY = (int)(def.Y * sY);
-        ElementBounds containerPos = ApplyAlignment(new Vec2I(contentBounds.Width, contentBounds.Height), posX, posY, def.Alignment);
+        var containerPos = ApplyAlignment(new Vec2I(contentBounds.Width, contentBounds.Height), posX, posY, def.Alignment);
 
-        return new ElementBounds(containerPos.X1 + contentBounds.X1,
+        def.LastBounds = new ElementBounds(containerPos.X1 + contentBounds.X1,
             containerPos.Y1 + contentBounds.Y1,
             containerPos.X1 + contentBounds.X2,
             containerPos.Y1 + contentBounds.Y2);
+        return def.LastBounds;
     }
 
     private static ElementBounds MeasureGraphic(StatusBarGraphicDef def, float scaleX, float scaleY)
     {
         IRenderableTextureHandle? handle = def.Handle;
-        if (handle == null) return ElementBounds.Empty;
+        if (handle == null)
+            return ElementBounds.Empty;
 
         Vec2I size = new((int)(handle.Dimension.Width * scaleX), (int)(handle.Dimension.Height * scaleY));
         int posX = (int)(def.X * scaleX);
@@ -1596,28 +1691,24 @@ public class StatusBarRenderer
     {
         return wrapper switch
         {
-            { Canvas: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Canvas.Conditions),
-            { Graphic: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Graphic.Conditions),
-            { Number: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Number.Conditions),
-            { Percent: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Percent.Conditions),
-            { Face: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Face.Conditions),
-            { Animation: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Animation.Conditions),
-            { Component: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Component.Conditions),
-            { Carousel: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Carousel.Conditions),
-            { List: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.List.Conditions),
-            { String: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.String.Conditions),
+            { Canvas: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Canvas),
+            { Graphic: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Graphic),
+            { Number: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Number),
+            { Percent: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Percent),
+            { Face: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Face),
+            { Animation: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Animation),
+            { Component: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Component),
+            { Carousel: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.Carousel),
+            { List: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.List),
+            { String: not null } => StatusBarConditionResolver.Evaluate(context, wrapper.String),
             _ => true
         };
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Vec2I ResolvePosition(StatusBarBaseDef def, Vec2I parentPos)
     {
-        Vec2I pos = parentPos;
-
-        pos.X += (int)(def.X * m_scale.X);
-        pos.Y += (int)(def.Y * m_scale.Y);
-
-        return pos;
+        return (parentPos.X + (int)(def.X * m_scale.X), parentPos.Y + (int)(def.Y * m_scale.Y));
     }
 
     private static bool ResolveGlyph(IHudRenderContext hud, string patch, out int width, out int height)
@@ -1800,16 +1891,4 @@ public class StatusBarRenderer
     private readonly record struct RenderGlyph(string Patch, int Width, int Offset, IRenderableTextureHandle? Handle = null);
 
     private readonly record struct CoordData(string Label, int Value, int LabelWidth, int ValWidth);
-
-    private readonly record struct ElementBounds(int X1, int Y1, int X2, int Y2)
-    {
-        public int Width => X2 - X1;
-        public int Height => Y2 - Y1;
-        public static ElementBounds Empty => new(int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
-
-        public static ElementBounds Union(ElementBounds a, ElementBounds b)
-        {
-            return new ElementBounds(Math.Min(a.X1, b.X1), Math.Min(a.Y1, b.Y1), Math.Max(a.X2, b.X2), Math.Max(a.Y2, b.Y2));
-        }
-    }
 }
