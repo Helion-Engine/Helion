@@ -1422,16 +1422,21 @@ public class StatusBarRenderer
         }
 
         if (contentBounds.X1 == int.MaxValue)
-            return ElementBounds.Empty;
+        {
+            def.LastBounds = ElementBounds.Empty;
+        }
+        else
+        {
+            int posX = (int)(def.X * sX);
+            int posY = (int)(def.Y * sY);
+            var containerPos = ApplyAlignment(new Vec2I(contentBounds.Width, contentBounds.Height), posX, posY, def.Alignment);
 
-        int posX = (int)(def.X * sX);
-        int posY = (int)(def.Y * sY);
-        var containerPos = ApplyAlignment(new Vec2I(contentBounds.Width, contentBounds.Height), posX, posY, def.Alignment);
+            def.LastBounds = new ElementBounds(containerPos.X1 + contentBounds.X1,
+                containerPos.Y1 + contentBounds.Y1,
+                containerPos.X1 + contentBounds.X2,
+                containerPos.Y1 + contentBounds.Y2);
+        }
 
-        def.LastBounds = new ElementBounds(containerPos.X1 + contentBounds.X1,
-            containerPos.Y1 + contentBounds.Y1,
-            containerPos.X1 + contentBounds.X2,
-            containerPos.Y1 + contentBounds.Y2);
         return def.LastBounds;
     }
 
