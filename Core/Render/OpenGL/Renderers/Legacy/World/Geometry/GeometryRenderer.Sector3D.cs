@@ -3,7 +3,6 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
@@ -144,7 +143,7 @@ public partial class GeometryRenderer
         };
 
         SectorPlane3D? lastPlane3D = null;
-        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, anchorSector3D?.FakeTop ?? side.Sector.Ceiling, anchorZ);
+        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, anchorSector3D), anchorZ);
 
         for (int i = 0; i < traverseSide.Sector.SectorPlanes3D.Length - 1; i++)
         {
@@ -205,17 +204,17 @@ public partial class GeometryRenderer
         wallSector.FloorSkyTextureHandle = side.Sector.FloorSkyTextureHandle;
     }
 
-    private static WallHeights CalculateWallHeights(Side side, Wall wall, Sector otherSector, WallHeights? wallHeights3D)
+    private static SectorPlane GetStartAnchorZ(Side side, Wall wall, Sector otherSector, Sector3D? anchorSector3D)
     {
-        Assert.Precondition(wall.Location != WallLocation.Middle3D || wallHeights3D.HasValue, "Rendering 3D middle requires WallHeights3D to be set.");
+        //Assert.Precondition(wall.Location != WallLocation.Middle3D || wallHeights3D.HasValue, "Rendering 3D middle requires WallHeights3D to be set.");
         // Drawing 3D middle needs to be anchored to the parent's control top. Use 3D sector's calculated wall heights to adjust to upper textures.
-        if (wall.Location == WallLocation.Middle3D && wallHeights3D.HasValue)
-            return new WallHeights(wallHeights3D.Value.TopZ, wallHeights3D.Value.TopZ, wallHeights3D.Value.PrevTopZ, wallHeights3D.Value.PrevTopZ);
+        if (wall.Location == WallLocation.Middle3D && anchorSector3D != null)
+            return anchorSector3D.FakeTop;
         // Lower walls anchored to floor
         else if (wall.Location == WallLocation.Lower)
-            return new WallHeights(otherSector.Floor.Z, otherSector.Floor.Z, otherSector.Floor.PrevZ, otherSector.Floor.PrevZ);
+            return otherSector.Floor;
         // Everything else is anchored to ceiling
-        return new WallHeights(side.Sector.Ceiling.Z, side.Sector.Ceiling.Z, side.Sector.Ceiling.PrevZ, side.Sector.Ceiling.PrevZ);
+        return side.Sector.Ceiling;
     }
 
     private static double CalculateAnchorZ(Side side, Wall wall, Sector otherSector, Sector3D? anchorSector3D)
@@ -261,8 +260,13 @@ public partial class GeometryRenderer
         vertices.Add(add);
     }
 
-    public RenderWallSliceResult RenderSectorSlice3D(RenderWallSliceArgs args)
+    public bool SetSectorsForSlice3D(in RenderWallSliceArgs args, out Sector facing)
     {
+        facing = m_fakeFacing;
+
+        if (args.WallSector.Ceiling.Z <= args.WallSector.Floor.Z)
+            return false;
+
         var renderTopZ = args.WallSector.Ceiling.Z;
         var renderBottomZ = args.WallSector.Floor.Z;
         var renderTopPrevZ = args.WallSector.Ceiling.PrevZ;
@@ -274,10 +278,10 @@ public partial class GeometryRenderer
         var bottomPrevZ = args.FacingSector.Floor.PrevZ;
 
         if (renderBottomZ >= topZ)
-            return RenderWallSliceResult.Empty3D;
+            return false;
 
         if (renderTopZ < bottomZ)
-            return RenderWallSliceResult.Empty3D;
+            return false;
 
         if (renderTopZ > topZ)
         {
@@ -301,11 +305,16 @@ public partial class GeometryRenderer
             m_fakeFacing.Floor.PrevZ = bottomPrevZ;
         }
 
-        if (m_fakeFacing.Ceiling.Z <= m_fakeFacing.Floor.Z && m_fakeFacing.Ceiling.PrevZ <= m_fakeFacing.Floor.PrevZ)
+        return m_fakeFacing.Ceiling.Z > m_fakeFacing.Floor.Z || m_fakeFacing.Ceiling.PrevZ > m_fakeFacing.Floor.PrevZ;
+    }
+
+    public RenderWallSliceResult RenderSectorSlice3D(RenderWallSliceArgs args)
+    {
+        if (!SetSectorsForSlice3D(args, out var facing))
             return RenderWallSliceResult.Empty3D;
 
         RenderOneSided(args.Side, args.IsFrontSide, out var sideVertices, out var skyVertices, out var texture,
-            renderSector: m_fakeFacing, lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide, 
+            renderSector: facing, lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide, 
             allowAlpha: args.AllowAlpha, style: args.Style, baseType: GeometryType.Middle3D);
         return new(sideVertices, skyVertices, texture);
     }
@@ -317,8 +326,14 @@ public partial class GeometryRenderer
         return new(sideVertices, skyVertices, texture);
     }
 
-    public RenderWallSliceResult RenderTwoSidedLowerSlice(RenderWallSliceArgs args)
+    public bool SetSectorsForTwoSidedLowerSlice(in RenderWallSliceArgs args, out Sector facing, out Sector other)
     {
+        facing = m_fakeFacing;
+        other = m_fakeOther;
+
+        if (args.WallSector.Ceiling.Z <= args.WallSector.Floor.Z)
+            return false;
+
         var renderTopZ = args.WallSector.Ceiling.Z;
         var renderBottomZ = args.WallSector.Floor.Z;
         var renderTopPrevZ = args.WallSector.Ceiling.PrevZ;
@@ -364,15 +379,26 @@ public partial class GeometryRenderer
             m_fakeOther.Ceiling.PrevZ = lowerTopPrevZ;
         }
 
-        if (m_fakeFacing.Ceiling.Z > lowerTopZ && m_fakeOther.Ceiling.Z > lowerBottomZ)
-            return new(null, null, null);
+        return m_fakeFacing.Ceiling.Z <= lowerTopZ || m_fakeOther.Ceiling.Z <= lowerBottomZ;
+    }
 
-        RenderTwoSidedLower(args.Side, args.OtherSide, m_fakeFacing, m_fakeOther, args.IsFrontSide, out var sideVertices, out var skyVertices, lightLevelSector: args.LightSector);
+    public RenderWallSliceResult RenderTwoSidedLowerSlice(RenderWallSliceArgs args)
+    {
+        if (!SetSectorsForTwoSidedLowerSlice(args, out var facing, out var other))
+            return RenderWallSliceResult.Empty3D;
+
+        RenderTwoSidedLower(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, out var skyVertices, lightLevelSector: args.LightSector);
         return new(sideVertices, skyVertices, null);
     }
 
-    public RenderWallSliceResult RenderTwoSidedUpperSlice(RenderWallSliceArgs args)
+    public bool SetSectorsForTwoSidedUpperSlice(in RenderWallSliceArgs args, out Sector facing, out Sector other)
     {
+        facing = m_fakeFacing;
+        other = m_fakeOther;
+
+        if (args.WallSector.Ceiling.Z <= args.WallSector.Floor.Z)
+            return false;
+
         var renderTopZ = args.WallSector.Ceiling.Z;
         var renderBottomZ = args.WallSector.Floor.Z;
         var renderTopPrevZ = args.WallSector.Ceiling.PrevZ;
@@ -418,24 +444,34 @@ public partial class GeometryRenderer
             m_fakeOther.Ceiling.PrevZ = upperBottomPrevZ;
         }
 
-        if (m_fakeFacing.Ceiling.Z < upperTopZ && m_fakeOther.Ceiling.Z < upperBottomZ)
-            return new(null, null, null);
+        return m_fakeFacing.Ceiling.Z >= upperTopZ || m_fakeOther.Ceiling.Z >= upperBottomZ;
+    }
 
-        RenderTwoSidedUpper(args.Side, args.OtherSide, m_fakeFacing, m_fakeOther, args.IsFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2, 
+    public RenderWallSliceResult RenderTwoSidedUpperSlice(RenderWallSliceArgs args)
+    {
+        if (!SetSectorsForTwoSidedUpperSlice(args, out var facing, out var other))
+            return RenderWallSliceResult.Empty3D;
+
+        RenderTwoSidedUpper(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2, 
             lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide);
         return new(sideVertices, skyVertices, null, skyVertices2);
     }
 
-    public RenderWallSliceResult RenderTwoSidedMiddleSlice(RenderWallSliceArgs args)
+    public bool SetSectorsForTwoMiddleSlice(in RenderWallSliceArgs args, out Sector facing, out Sector other, out double bottomZ)
     {
+        facing = m_fakeFacing;
+        other = m_fakeOther;
+        bottomZ = 0;
+
         if (args.Side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
-            return RenderWallSliceResult.EmptyMiddle;
+            return false;
 
         var texture = TextureManager.GetTexture(args.Side.Middle.TextureHandle);
         if (texture == null || texture.Image == null || args.OtherSide == null)
-            return RenderWallSliceResult.EmptyMiddle;
+            return false;
 
         var span = GetMidTexSpan(TextureManager, texture.Image.Dimension, args.Side, args.OtherSide, args.FacingSector, args.OtherSector);
+        bottomZ = span.BottomZ;
 
         var renderTopZ = args.WallSector.Ceiling.Z;
         var renderTopPrevZ = args.WallSector.Ceiling.PrevZ;
@@ -443,9 +479,9 @@ public partial class GeometryRenderer
         var renderBottomPrevZ = args.WallSector.Floor.PrevZ;
 
         if (renderTopZ > span.TopZ && renderBottomZ > span.TopZ)
-            return RenderWallSliceResult.EmptyMiddle;
+            return false;
         if (renderBottomZ < span.TopZ && renderTopZ < span.BottomZ)
-            return RenderWallSliceResult.EmptyMiddle;
+            return false;
 
         if (renderTopZ < span.TopZ)
         {
@@ -477,11 +513,19 @@ public partial class GeometryRenderer
             m_fakeOther.Floor.PrevZ = span.PrevBottomZ;
         }
 
-        var saveOffset = args.Side.Middle.Offset.Y;
-        args.Side.Middle.Offset.Y = (float)(span.BottomZ - m_fakeFacing.Floor.Z);
+        return true;
+    }
 
-        RenderTwoSidedMiddle(args.Side, args.OtherSide, m_fakeFacing, m_fakeOther, args.IsFrontSide, out var sideVertices, 
-            lightLevelSector: args.LightSector, restrictSpan: new(m_fakeFacing.Floor.Z, m_fakeFacing.Ceiling.Z, m_fakeFacing.Floor.PrevZ, m_fakeFacing.Ceiling.PrevZ));
+    public RenderWallSliceResult RenderTwoSidedMiddleSlice(RenderWallSliceArgs args)
+    {
+        if (!SetSectorsForTwoMiddleSlice(args, out var facing, out var other, out var bottomZ))
+            return RenderWallSliceResult.EmptyMiddle;
+
+        var saveOffset = args.Side.Middle.Offset.Y;
+        args.Side.Middle.Offset.Y = (float)(bottomZ - facing.Floor.Z);
+
+        RenderTwoSidedMiddle(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, 
+            lightLevelSector: args.LightSector, restrictSpan: new(facing.Floor.Z, facing.Ceiling.Z, facing.Floor.PrevZ, facing.Ceiling.PrevZ));
         args.Side.Middle.Offset.Y = saveOffset;
         return new(sideVertices, null, null, addOffset: false);
     }
