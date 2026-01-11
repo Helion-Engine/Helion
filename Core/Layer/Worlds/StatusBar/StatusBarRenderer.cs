@@ -40,11 +40,12 @@ public enum StatusBarCoverage
 
 public class StatusBarRenderer
 {
-    // Caches
+// Caches
     private static readonly Dictionary<string, int> Type1WidthCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, int> HudType1WidthCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> FontPatchCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> HudFontPatchCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> PatchNameCache = new(StringComparer.OrdinalIgnoreCase);
 
     // Mapping SBARDEF stems to Helion Internal Fonts to enable grayscale tinting and better rendering
     private static readonly Dictionary<string, string> StemToHelionFontMap = new(StringComparer.OrdinalIgnoreCase)
@@ -74,16 +75,17 @@ public class StatusBarRenderer
     };
 
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly List<CoordData> m_coordPartsCache = [];
+    private readonly List<CoordData> m_coordPartsCache = new(16);
     private readonly SpanString m_fmtSpan = new();
     private readonly Dictionary<string, StatusBarNumberFontDef> m_fontNumberLookup = [];
-    private readonly List<RenderGlyph> m_glyphCache = [];
+    private readonly List<RenderGlyph> m_glyphCache = new(256);
     private readonly Dictionary<string, StatusBarHudFontDef> m_hudFontLookup = [];
     private readonly SpanString m_lookupKeySpan = new(128);
 
     private readonly IWorld m_world;
     private float m_currentScale;
     private float m_hOffset;
+    private Vec2F m_scale = Vec2F.One;
 
     private bool m_texturesResolved;
     private float m_userScale;
@@ -94,9 +96,6 @@ public class StatusBarRenderer
         m_world = world;
         m_archiveCollection = world.ArchiveCollection;
         StatusBarDefinition sbarDef = world.ArchiveCollection.Definitions.StatusBarDefinition;
-
-        m_glyphCache.Capacity = 256;
-        m_coordPartsCache.Capacity = 16;
 
         foreach (StatusBarNumberFontDef f in sbarDef.NumberFonts)
             m_fontNumberLookup[f.Name] = f;
@@ -177,6 +176,7 @@ public class StatusBarRenderer
         float scaleY = windowHeight / 200f;
         m_currentScale = Math.Min(scaleX, scaleY);
         m_userScale = (float)m_world.Config.Hud.Scale.Value;
+        m_scale = Vec2F.One;
 
         m_hOffset = (windowWidth / m_currentScale - 320f) / 2f;
         m_vOffset = (windowHeight / m_currentScale - 200f) / 2f;
@@ -202,7 +202,7 @@ public class StatusBarRenderer
         }
 
         foreach (StatusBarElementWrapper child in layout.Children)
-            DrawElementWrapper(hud, child, rootPos, layout.Height, context, m_hOffset, rootPos, false);
+            DrawElementWrapper(hud, child, rootPos, layout.Height, context, m_hOffset, rootPos);
 
         hud.PopVirtualDimension();
     }
@@ -307,38 +307,39 @@ public class StatusBarRenderer
         int containerHeight,
         StatusBarContext context,
         float widescreenOffset,
-        Vec2I rootPos,
-        bool isNative)
+        Vec2I rootPos)
     {
         Vec2I effectiveParentPos = parentPos;
         bool isHudWidget = wrapper.Component != null || wrapper.Carousel != null;
+        bool isStandardMode = m_scale.IsApprox(Vec2F.One);
 
-        if (isHudWidget && parentPos == rootPos && !isNative) effectiveParentPos = (0, 0);
+        if (isHudWidget && parentPos == rootPos && isStandardMode)
+            effectiveParentPos = (0, 0);
 
         if (wrapper.Canvas != null)
-            DrawBase(hud, wrapper.Canvas, parentPos, containerHeight, context, widescreenOffset, rootPos, isNative);
+            DrawBase(hud, wrapper.Canvas, parentPos, containerHeight, context, widescreenOffset, rootPos);
         else if (wrapper.Native != null)
             DrawNative(hud, wrapper.Native, parentPos, containerHeight, context);
         else if (wrapper.List != null)
-            DrawList(hud, wrapper.List, parentPos, containerHeight, context, widescreenOffset, rootPos, isNative);
+            DrawList(hud, wrapper.List, parentPos, containerHeight, context, widescreenOffset, rootPos);
         else if (wrapper.Graphic != null)
-            DrawGraphic(hud, wrapper.Graphic, parentPos, containerHeight, context, widescreenOffset, isNative);
+            DrawGraphic(hud, wrapper.Graphic, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.Number != null)
-            DrawNumber(hud, wrapper.Number, parentPos, containerHeight, context, false, widescreenOffset, isNative);
+            DrawNumber(hud, wrapper.Number, parentPos, containerHeight, context, false, widescreenOffset);
         else if (wrapper.Percent != null)
-            DrawNumber(hud, wrapper.Percent, parentPos, containerHeight, context, true, widescreenOffset, isNative);
+            DrawNumber(hud, wrapper.Percent, parentPos, containerHeight, context, true, widescreenOffset);
         else if (wrapper.String != null)
-            DrawString(hud, wrapper.String, parentPos, containerHeight, context, widescreenOffset, isNative);
+            DrawString(hud, wrapper.String, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.Face != null)
-            DrawFace(hud, wrapper.Face, parentPos, containerHeight, context, widescreenOffset, isNative);
+            DrawFace(hud, wrapper.Face, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.FaceBackground != null)
-            DrawFaceBackground(hud, wrapper.FaceBackground, parentPos, containerHeight, context, widescreenOffset, isNative);
+            DrawFaceBackground(hud, wrapper.FaceBackground, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.Animation != null)
-            DrawAnimation(hud, wrapper.Animation, parentPos, containerHeight, context, widescreenOffset, isNative);
+            DrawAnimation(hud, wrapper.Animation, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.Component != null)
-            DrawComponent(hud, wrapper.Component, effectiveParentPos, containerHeight, context, widescreenOffset, rootPos, isNative);
+            DrawComponent(hud, wrapper.Component, effectiveParentPos, containerHeight, context, widescreenOffset, rootPos);
         else if (wrapper.Carousel != null)
-            DrawCarousel(hud, wrapper.Carousel, effectiveParentPos, containerHeight, context, widescreenOffset, rootPos, isNative);
+            DrawCarousel(hud, wrapper.Carousel, effectiveParentPos, containerHeight, context, widescreenOffset, rootPos);
     }
 
     private void DrawBase(IHudRenderContext hud,
@@ -347,14 +348,13 @@ public class StatusBarRenderer
         int containerHeight,
         StatusBarContext context,
         float widescreenOffset,
-        Vec2I rootPos,
-        bool isNative)
+        Vec2I rootPos)
     {
         if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
             return;
 
-        Vec2I currentPos = ResolvePosition(def, parentPos, isNative, isNative ? m_userScale : 1.0f);
-        DrawChildren(hud, def, currentPos, containerHeight, context, widescreenOffset, rootPos, isNative);
+        Vec2I currentPos = ResolvePosition(def, parentPos);
+        DrawChildren(hud, def, currentPos, containerHeight, context, widescreenOffset, rootPos);
     }
 
     private void DrawList(IHudRenderContext hud,
@@ -363,14 +363,10 @@ public class StatusBarRenderer
         int containerHeight,
         StatusBarContext context,
         float widescreenOffset,
-        Vec2I rootPos,
-        bool isNative)
+        Vec2I rootPos)
     {
         if (!StatusBarConditionResolver.Evaluate(context, def.Conditions) || def.Children == null)
             return;
-
-        float scaleX = isNative ? m_userScale : 1.0f;
-        float scaleY = isNative ? m_userScale * 1.2f : 1.0f;
 
         int childCount = def.Children.Count;
         Span<Vec2I> sizes = stackalloc Vec2I[childCount];
@@ -378,13 +374,13 @@ public class StatusBarRenderer
         int totalWidth = 0;
         int totalHeight = 0;
 
-        int spacing = isNative ? (int)(def.Spacing * m_userScale) : def.Spacing;
+        int spacing = (int)(def.Spacing * m_scale.X);
 
         foreach (StatusBarElementWrapper child in def.Children)
         {
             if (!EvaluateWrapperConditions(child, context)) continue;
 
-            ElementBounds bounds = MeasureElement(hud, child, context, isNative, scaleX, scaleY);
+            ElementBounds bounds = MeasureElement(hud, child, context, m_scale.X, m_scale.Y);
             Vec2I size = new(bounds.Width, bounds.Height);
             sizes[activeCount] = size;
 
@@ -406,7 +402,7 @@ public class StatusBarRenderer
 
         if (activeCount == 0) return;
 
-        Vec2I listPos = ResolvePosition(def, parentPos, isNative, scaleX);
+        Vec2I listPos = ResolvePosition(def, parentPos);
 
         if ((def.Alignment & StatusBarAlignment.HCenter) != 0) listPos.X -= totalWidth / 2;
         else if ((def.Alignment & StatusBarAlignment.Right) != 0) listPos.X -= totalWidth;
@@ -430,7 +426,7 @@ public class StatusBarRenderer
                 else if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
                     childPos.Y += (totalHeight - size.Y) / 2;
 
-                DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos, isNative);
+                DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
                 cursor.X += size.X + spacing;
             }
             else
@@ -440,7 +436,7 @@ public class StatusBarRenderer
                 else if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
                     childPos.X += (totalWidth - size.X) / 2;
 
-                DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos, isNative);
+                DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
                 cursor.Y += size.Y + spacing;
             }
 
@@ -453,20 +449,22 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
             return;
 
-        Vec2I vPos = ResolvePosition(def, parentPos, false, 1.0f);
+        Vec2I vPos = parentPos;
+        vPos.X += def.X;
+        vPos.Y += def.Y;
 
-        float scaleX = m_userScale;
-        float scaleY = m_userScale * 1.2f;
+        float nScaleX = m_userScale;
+        float nScaleY = m_userScale * 1.2f;
 
         ElementBounds bounds = ElementBounds.Empty;
         if (def.Children != null)
             foreach (StatusBarElementWrapper child in def.Children)
             {
                 if (!EvaluateWrapperConditions(child, context)) continue;
-                bounds = ElementBounds.Union(bounds, MeasureElement(hud, child, context, true, scaleX, scaleY));
+                bounds = ElementBounds.Union(bounds, MeasureElement(hud, child, context, nScaleX, nScaleY));
             }
 
-        if (bounds.X1 == int.MaxValue) return;
+        if (bounds.X1 == int.MaxValue) bounds = new ElementBounds(0, 0, 0, 0);
 
         int pivotX = (bounds.X1 + bounds.X2) / 2;
         int pivotY = (bounds.Y1 + bounds.Y2) / 2;
@@ -474,40 +472,40 @@ public class StatusBarRenderer
         int nativeX = (int)Math.Floor((vPos.X + m_hOffset) * m_currentScale);
         int nativeY = (int)Math.Floor((vPos.Y + m_vOffset) * m_currentScale);
 
-        bool isHCenter = (def.Alignment & StatusBarAlignment.HCenter) != 0;
-        bool isVCenter = (def.Alignment & StatusBarAlignment.VCenter) != 0;
-
         int hShift = (int)Math.Ceiling(m_hOffset * m_currentScale);
         int vShift = (int)Math.Ceiling(m_vOffset * m_currentScale);
 
-        if (!isHCenter)
+        if ((def.Alignment & StatusBarAlignment.HCenter) == 0)
         {
-            if ((def.Alignment & StatusBarAlignment.Right) != 0)
-                nativeX += hShift;
-            else
-                nativeX -= hShift;
+            if ((def.Alignment & StatusBarAlignment.Right) != 0) nativeX += hShift;
+            else nativeX -= hShift;
         }
 
-        if (!isVCenter)
+        if ((def.Alignment & StatusBarAlignment.VCenter) == 0)
         {
-            if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
-                nativeY += vShift;
-            else
-                nativeY -= vShift;
+            if ((def.Alignment & StatusBarAlignment.Bottom) != 0) nativeY += vShift;
+            else nativeY -= vShift;
         }
 
-        if (isHCenter) nativeX -= pivotX;
+        if ((def.Alignment & StatusBarAlignment.HCenter) != 0) nativeX -= pivotX;
         else if ((def.Alignment & StatusBarAlignment.Right) != 0) nativeX -= bounds.X2;
         else nativeX -= bounds.X1;
 
-        if (isVCenter) nativeY -= pivotY;
+        if ((def.Alignment & StatusBarAlignment.VCenter) != 0) nativeY -= pivotY;
         else if ((def.Alignment & StatusBarAlignment.Bottom) != 0) nativeY -= bounds.Y2;
         else nativeY -= bounds.Y1;
 
         Vec2I nativeRoot = (nativeX, nativeY);
 
         hud.PopVirtualDimension();
-        DrawChildren(hud, def, nativeRoot, containerHeight, context, 0, nativeRoot, true);
+
+        Vec2F prevScale = m_scale;
+        m_scale = (nScaleX, nScaleY);
+
+        DrawChildren(hud, def, nativeRoot, containerHeight, context, 0, nativeRoot);
+
+        m_scale = prevScale;
+
         hud.PushVirtualDimension((320, 200), ResolutionScale.Center, Constants.DoomVirtualAspectRatio);
     }
 
@@ -516,18 +514,17 @@ public class StatusBarRenderer
         Vec2I parentPos,
         int containerHeight,
         StatusBarContext context,
-        float widescreenOffset,
-        bool isNative)
+        float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, graphic.Conditions))
             return;
 
-        Vec2I currentPos = ResolvePosition(graphic, parentPos, isNative, isNative ? m_userScale : 1.0f);
+        Vec2I currentPos = ResolvePosition(graphic, parentPos);
 
         if (graphic.Handle != null || !string.IsNullOrEmpty(graphic.Patch))
         {
             Align align = ConvertAlignment(graphic.Alignment);
-            if (graphic.MidOffset != 0) currentPos.X += (int)(graphic.MidOffset * (isNative ? m_userScale : 1.0f));
+            if (graphic.MidOffset != 0) currentPos.X += (int)(graphic.MidOffset * m_scale.X);
 
             float alpha = graphic.Translucency ? 0.5f : 1.0f;
 
@@ -539,11 +536,10 @@ public class StatusBarRenderer
                 graphic.Alignment,
                 graphic.Translation,
                 alpha,
-                graphic.Crop,
-                isNative);
+                graphic.Crop);
         }
 
-        DrawChildren(hud, graphic, currentPos, containerHeight, context, widescreenOffset, (0, 0), isNative);
+        DrawChildren(hud, graphic, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
     private void DrawFace(IHudRenderContext hud,
@@ -551,13 +547,12 @@ public class StatusBarRenderer
         Vec2I parentPos,
         int containerHeight,
         StatusBarContext context,
-        float widescreenOffset,
-        bool isNative)
+        float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, face.Conditions))
             return;
 
-        Vec2I currentPos = ResolvePosition(face, parentPos, isNative, isNative ? m_userScale : 1.0f);
+        Vec2I currentPos = ResolvePosition(face, parentPos);
         string patch = context.Player.StatusBar.GetFacePatch();
 
         if (!string.IsNullOrEmpty(patch))
@@ -565,10 +560,10 @@ public class StatusBarRenderer
             Align align = ConvertAlignment(face.Alignment);
             float alpha = face.Translucency ? 0.5f : 1.0f;
 
-            DrawSBarTexture(hud, patch, null, currentPos, align, face.Alignment, face.Translation, alpha, face.Crop, isNative);
+            DrawSBarTexture(hud, patch, null, currentPos, align, face.Alignment, face.Translation, alpha, face.Crop);
         }
 
-        DrawChildren(hud, face, currentPos, containerHeight, context, widescreenOffset, (0, 0), isNative);
+        DrawChildren(hud, face, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
     private void DrawFaceBackground(IHudRenderContext hud,
@@ -576,31 +571,22 @@ public class StatusBarRenderer
         Vec2I parentPos,
         int containerHeight,
         StatusBarContext context,
-        float widescreenOffset,
-        bool isNative)
+        float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, faceBg.Conditions))
             return;
 
-        Vec2I currentPos = ResolvePosition(faceBg, parentPos, isNative, isNative ? m_userScale : 1.0f);
+        Vec2I currentPos = ResolvePosition(faceBg, parentPos);
 
         if (faceBg.Handle != null)
         {
             Align align = ConvertAlignment(faceBg.Alignment);
             float alpha = faceBg.Translucency ? 0.5f : 1.0f;
 
-            DrawSBarTexture(hud,
-                "STFB0",
-                faceBg.Handle,
-                currentPos,
-                align,
-                faceBg.Alignment,
-                faceBg.Translation,
-                alpha,
-                isNative: isNative);
+            DrawSBarTexture(hud, "STFB0", faceBg.Handle, currentPos, align, faceBg.Alignment, faceBg.Translation, alpha);
         }
 
-        DrawChildren(hud, faceBg, currentPos, containerHeight, context, widescreenOffset, (0, 0), isNative);
+        DrawChildren(hud, faceBg, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
     private void DrawAnimation(IHudRenderContext hud,
@@ -608,13 +594,12 @@ public class StatusBarRenderer
         Vec2I parentPos,
         int containerHeight,
         StatusBarContext context,
-        float widescreenOffset,
-        bool isNative)
+        float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, anim.Conditions))
             return;
 
-        Vec2I currentPos = ResolvePosition(anim, parentPos, isNative, isNative ? m_userScale : 1.0f);
+        Vec2I currentPos = ResolvePosition(anim, parentPos);
 
         if (anim.Frames.Count > 0)
         {
@@ -646,12 +631,11 @@ public class StatusBarRenderer
                     currentPos,
                     align,
                     anim.Alignment,
-                    anim.Translation,
-                    isNative: isNative);
+                    anim.Translation);
             }
         }
 
-        DrawChildren(hud, anim, currentPos, containerHeight, context, widescreenOffset, (0, 0), isNative);
+        DrawChildren(hud, anim, currentPos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
     private void DrawString(IHudRenderContext hud,
@@ -659,13 +643,12 @@ public class StatusBarRenderer
         Vec2I parentPos,
         int containerHeight,
         StatusBarContext context,
-        float widescreenOffset,
-        bool isNative)
+        float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, def.Conditions))
             return;
 
-        Vec2I pos = ResolvePosition(def, parentPos, isNative, isNative ? m_userScale : 1.0f);
+        Vec2I pos = ResolvePosition(def, parentPos);
         ReadOnlySpan<char> text = GetStringValue(def);
         if (text.IsEmpty) return;
 
@@ -674,8 +657,8 @@ public class StatusBarRenderer
         if (fontHeight <= 0) fontHeight = 8;
         float alpha = def.Translucency ? 0.5f : 1.0f;
 
-        RenderLines(hud, text, pos, fontDef, fontHeight, def.Alignment, def.Translation, alpha, isNative);
-        DrawChildren(hud, def, pos, containerHeight, context, widescreenOffset, (0, 0), isNative);
+        RenderLines(hud, text, pos, fontDef, fontHeight, def.Alignment, def.Translation, alpha);
+        DrawChildren(hud, def, pos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
     private void DrawComponent(IHudRenderContext hud,
@@ -684,13 +667,12 @@ public class StatusBarRenderer
         int containerHeight,
         StatusBarContext context,
         float widescreenOffset,
-        Vec2I rootPos,
-        bool isNative)
+        Vec2I rootPos)
     {
         if (!StatusBarConditionResolver.Evaluate(context, comp.Conditions))
             return;
 
-        Vec2I pos = ResolvePosition(comp, parentPos, isNative, isNative ? m_userScale : 1.0f);
+        Vec2I pos = ResolvePosition(comp, parentPos);
         ConfigHud config = m_world.Config.Hud;
         float alpha = comp.Translucency ? 0.5f : 1.0f;
         StatusBarAlignment alignment = comp.Alignment;
@@ -707,7 +689,7 @@ public class StatusBarRenderer
         {
             case StatusBarComponentType.StatTotals:
                 if (!config.ShowStats.Value) return;
-                DrawStatTotals(hud, comp, pos, fontDef, fontHeight, alpha, isNative);
+                DrawStatTotals(hud, comp, pos, fontDef, fontHeight, alpha);
                 break;
 
             case StatusBarComponentType.Time:
@@ -718,24 +700,24 @@ public class StatusBarRenderer
                 m_fmtSpan.Append(t.Minutes, 2);
                 m_fmtSpan.Append(':');
                 m_fmtSpan.Append(t.Seconds, 2);
-                RenderLines(hud, m_fmtSpan.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha, isNative);
+                RenderLines(hud, m_fmtSpan.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.Coordinates:
-                DrawCoordinates(hud, comp, pos, fontDef, fontHeight, alpha, context, isNative);
+                DrawCoordinates(hud, comp, pos, fontDef, fontHeight, alpha, context);
                 break;
             case StatusBarComponentType.Speedometer:
                 string speedText = GetSpeedometerText(context.Player);
-                RenderLines(hud, speedText.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha, isNative);
+                RenderLines(hud, speedText.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.LevelTitle:
                 string levelTitle = m_world.MapInfo.GetDisplayNameWithPrefix(m_archiveCollection.Language);
-                RenderLines(hud, levelTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha, isNative);
+                RenderLines(hud, levelTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.FpsCounter:
                 if (!config.ShowFPS.Value) return;
                 m_fmtSpan.Clear();
                 m_fmtSpan.Append(context.Fps);
-                RenderLines(hud, m_fmtSpan.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha, isNative);
+                RenderLines(hud, m_fmtSpan.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.Message:
                 string msg = context.ConsoleMessage ?? string.Empty;
@@ -745,7 +727,7 @@ public class StatusBarRenderer
                     alignment = StatusBarAlignment.HCenter;
                 }
 
-                RenderLines(hud, msg.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha, isNative);
+                RenderLines(hud, msg.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.AnnounceLevelTitle:
                 double duration = comp.Duration > 0 ? comp.Duration : 2.5;
@@ -767,17 +749,20 @@ public class StatusBarRenderer
                 }
 
                 string annTitle = m_world.MapInfo.GetDisplayNameWithPrefix(m_archiveCollection.Language);
-                RenderLines(hud, annTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha, isNative);
+                RenderLines(hud, annTitle.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
+
             case StatusBarComponentType.Unknown:
             case StatusBarComponentType.RenderStats:
             case StatusBarComponentType.CommandHistory:
             case StatusBarComponentType.Chat:
-            default:
                 break;
+
+            default:
+                return;
         }
 
-        DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset, rootPos, isNative);
+        DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset, rootPos);
     }
 
     private void RenderLines(IHudRenderContext hud,
@@ -787,28 +772,26 @@ public class StatusBarRenderer
         int fontHeight,
         StatusBarAlignment alignment,
         string? translation,
-        float alpha,
-        bool isNative)
+        float alpha)
     {
         if (text.IsEmpty) return;
 
         Vec2I drawPos = pos;
         int lineStart = 0;
-        float scaleY = isNative ? m_userScale * 1.2f : 1.0f;
 
         for (int i = 0; i < text.Length; i++)
         {
             if (text[i] != '\n') continue;
             ReadOnlySpan<char> line = text[lineStart..i];
-            DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha, isNative);
-            drawPos.Y += (int)(fontHeight * scaleY);
+            DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
+            drawPos.Y += (int)(fontHeight * m_scale.Y);
             lineStart = i + 1;
         }
 
         if (lineStart >= text.Length) return;
         {
             ReadOnlySpan<char> line = text[lineStart..];
-            DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha, isNative);
+            DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
         }
     }
 
@@ -818,18 +801,16 @@ public class StatusBarRenderer
         StatusBarHudFontDef? fontDef,
         StatusBarAlignment alignment,
         string? translation,
-        float alpha,
-        bool isNative)
+        float alpha)
     {
         if (line.IsEmpty) return;
 
         int drawnWidth = 0;
-        if (fontDef != null) drawnWidth = DrawHudText(hud, line, fontDef, drawPos, alignment, translation, alpha, isNative);
+        if (fontDef != null) drawnWidth = DrawHudText(hud, line, fontDef, drawPos, alignment, translation, alpha);
 
         if (drawnWidth != 0) return;
         Align align = ConvertAlignment(alignment);
-        float textScale = isNative ? m_userScale : 1.0f;
-        hud.Text(line, Constants.Fonts.Small, 8, drawPos, both: align, alpha: alpha, scale: textScale);
+        hud.Text(line, Constants.Fonts.Small, 8, drawPos, TextAlign.Left, Align.TopLeft, align, alpha: alpha, scale: m_scale.X);
     }
 
     private int DrawHudText(IHudRenderContext hud,
@@ -839,23 +820,20 @@ public class StatusBarRenderer
         StatusBarAlignment alignment,
         string? translation,
         float alpha,
-        bool isNative,
         bool draw = true)
     {
         Color? drawColor = null;
         if (!string.IsNullOrEmpty(translation) && StandardTextColors.TryGetValue(translation, out Color colorValue))
             drawColor = colorValue;
 
-        float scaleX = isNative ? m_userScale : 1.0f;
-        float scaleY = isNative ? m_userScale * 1.2f : 1.0f;
-
         if (StemToHelionFontMap.TryGetValue(fontDef.Stem, out string? helionFont))
         {
-            if (!draw) return (int)(hud.MeasureText(text, helionFont, 8).Width * scaleX);
-            Align anchor = ConvertAlignment(alignment);
-            hud.Text(text, helionFont, 8, pos, TextAlign.Left, Align.TopLeft, anchor, color: drawColor, alpha: alpha, scale: scaleX);
+            if (!draw) return (int)(hud.MeasureText(text, helionFont, 8).Width * m_scale.X);
 
-            return (int)(hud.MeasureText(text, helionFont, 8).Width * scaleX);
+            Align anchor = ConvertAlignment(alignment);
+            hud.Text(text, helionFont, 8, pos, TextAlign.Left, Align.TopLeft, anchor, color: drawColor, alpha: alpha, scale: m_scale.X);
+
+            return (int)(hud.MeasureText(text, helionFont, 8).Width * m_scale.X);
         }
 
         int totalWidth = 0;
@@ -927,7 +905,7 @@ public class StatusBarRenderer
 
             if (monoWidth > 0) width = monoWidth;
 
-            int scaledWidth = (int)(width * scaleX);
+            int scaledWidth = (int)(width * m_scale.X);
             m_glyphCache.Add(new RenderGlyph(patch, scaledWidth, 0));
             totalWidth += scaledWidth;
         }
@@ -941,14 +919,14 @@ public class StatusBarRenderer
         if ((alignment & StatusBarAlignment.HCenter) != 0) drawX -= totalWidth / 2;
         else if ((alignment & StatusBarAlignment.Right) != 0) drawX -= totalWidth;
 
-        int scaledMaxHeight = (int)(maxHeight * scaleY);
+        int scaledMaxHeight = (int)(maxHeight * m_scale.Y);
         if ((alignment & StatusBarAlignment.Bottom) != 0) drawY -= scaledMaxHeight;
         else if ((alignment & StatusBarAlignment.VCenter) != 0) drawY -= scaledMaxHeight / 2;
 
         foreach (RenderGlyph g in m_glyphCache)
         {
             if (!string.IsNullOrEmpty(g.Patch))
-                DrawSBarTexture(hud, g.Patch, null, (drawX, drawY), Align.TopLeft, alignment, translation, alpha, isNative: isNative);
+                DrawSBarTexture(hud, g.Patch, null, (drawX, drawY), Align.TopLeft, alignment, translation, alpha);
             drawX += g.Width;
         }
 
@@ -961,13 +939,12 @@ public class StatusBarRenderer
         int containerHeight,
         StatusBarContext context,
         float widescreenOffset,
-        Vec2I rootPos,
-        bool isNative)
+        Vec2I rootPos)
     {
         if (!StatusBarConditionResolver.Evaluate(context, carousel.Conditions))
             return;
 
-        Vec2I pos = ResolvePosition(carousel, parentPos, isNative, isNative ? m_userScale : 1.0f);
+        Vec2I pos = ResolvePosition(carousel, parentPos);
         pos.X = 160;
 
         if (context.Player.Weapon != null)
@@ -977,11 +954,11 @@ public class StatusBarRenderer
             {
                 Align align = ConvertAlignment(carousel.Alignment);
                 float alpha = carousel.Translucency ? 0.5f : 1.0f;
-                DrawSBarTexture(hud, icon, null, pos, align, carousel.Alignment, carousel.Translation, alpha, isNative: isNative);
+                DrawSBarTexture(hud, icon, null, pos, align, carousel.Alignment, carousel.Translation, alpha);
             }
         }
 
-        DrawChildren(hud, carousel, pos, containerHeight, context, widescreenOffset, rootPos, isNative);
+        DrawChildren(hud, carousel, pos, containerHeight, context, widescreenOffset, rootPos);
     }
 
 
@@ -993,67 +970,33 @@ public class StatusBarRenderer
         StatusBarAlignment sbarAlign,
         string? translation = null,
         float alpha = 1.0f,
-        StatusBarCropDef? cropDef = null,
-        bool isNative = false)
+        StatusBarCropDef? cropDef = null)
     {
         string pName = handle == null ? ResolvePatchName(patch) : patch;
         if (handle == null && !hud.Textures.TryGet(pName, out handle) &&
             !hud.Textures.TryGet(pName, out handle, ResourceNamespace.Sprites)) return;
 
         ImageBox2I? cropArea = GetCropArea(handle, cropDef);
-        float scaleX = isNative ? m_userScale : 1.0f;
-        float scaleY = isNative ? m_userScale * 1.2f : 1.0f;
 
-        Vec2I drawPos = pos;
+        int w = (int)(handle.Dimension.Width * m_scale.X);
+        int h = (int)(handle.Dimension.Height * m_scale.Y);
+
         Vec2I translatedOffset = RenderDimensions.TranslateDoomOffset(handle.Offset);
+        int offsetX = (sbarAlign & StatusBarAlignment.IgnoreLeftOffset) == 0 ? (int)(translatedOffset.X * m_scale.X) : 0;
+        int offsetY = (sbarAlign & StatusBarAlignment.IgnoreTopOffset) == 0 ? (int)(translatedOffset.Y * m_scale.Y) : 0;
 
-        if ((sbarAlign & StatusBarAlignment.IgnoreLeftOffset) == 0)
-            drawPos.X += (int)(translatedOffset.X * scaleX);
+        Vec2I pivotOffset = align.AnchorDelta((w, h));
 
-        if ((sbarAlign & StatusBarAlignment.IgnoreTopOffset) == 0)
-            drawPos.Y += (int)(translatedOffset.Y * scaleY);
+        int finalX = pos.X + offsetX + pivotOffset.X;
+        int finalY = pos.Y + offsetY + pivotOffset.Y;
+        HudBox destBox = new(new Vec2I(finalX, finalY), new Vec2I(finalX + w, finalY + h));
 
         Color? drawColor = null;
         if (!string.IsNullOrEmpty(translation) && StandardTextColors.TryGetValue(translation, out Color colorValue))
             drawColor = colorValue;
 
-        int w = (int)(handle.Dimension.Width * scaleX);
-        int h = (int)(handle.Dimension.Height * scaleY);
-        int x = drawPos.X;
-        int y = drawPos.Y;
-
-        switch (align)
-        {
-            case Align.TopMiddle:
-            case Align.Center:
-            case Align.BottomMiddle: x -= w / 2; break;
-            case Align.TopRight:
-            case Align.MiddleRight:
-            case Align.BottomRight: x -= w; break;
-            case Align.TopLeft:
-            case Align.MiddleLeft:
-            case Align.BottomLeft:
-            default:
-                break;
-        }
-
-        switch (align)
-        {
-            case Align.MiddleLeft:
-            case Align.Center:
-            case Align.MiddleRight: y -= h / 2; break;
-            case Align.BottomLeft:
-            case Align.BottomMiddle:
-            case Align.BottomRight: y -= h; break;
-            case Align.TopLeft:
-            case Align.TopMiddle:
-            case Align.TopRight:
-            default:
-                break;
-        }
-
         hud.Image(pName,
-            new HudBox((x, y), (x + w, y + h)),
+            destBox,
             out _,
             Align.TopLeft,
             Align.TopLeft,
@@ -1074,8 +1017,7 @@ public class StatusBarRenderer
         int containerHeight,
         StatusBarContext context,
         bool isPercent,
-        float widescreenOffset,
-        bool isNative)
+        float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, number.Conditions))
             return;
@@ -1098,9 +1040,8 @@ public class StatusBarRenderer
         if (isPercent) m_fmtSpan.Append('%');
 
         ReadOnlySpan<char> text = m_fmtSpan.AsSpan();
-        float scaleX = isNative ? m_userScale : 1.0f;
 
-        Vec2I pos = ResolvePosition(number, parentPos, isNative, scaleX);
+        Vec2I pos = ResolvePosition(number, parentPos);
 
         float alpha = number.Translucency ? 0.5f : 1.0f;
         int totalWidth = 0;
@@ -1154,8 +1095,8 @@ public class StatusBarRenderer
                     width = monoWidth;
                 }
 
-            int scaledWidth = (int)(width * scaleX);
-            m_glyphCache.Add(new RenderGlyph(patch, scaledWidth, (int)(xOffset * scaleX), handle));
+            int scaledWidth = (int)(width * m_scale.X);
+            m_glyphCache.Add(new RenderGlyph(patch, scaledWidth, (int)(xOffset * m_scale.X), handle));
             totalWidth += scaledWidth;
         }
 
@@ -1170,11 +1111,11 @@ public class StatusBarRenderer
         foreach (RenderGlyph g in m_glyphCache)
         {
             Vec2I drawPos = (drawX + g.Offset, drawY);
-            DrawSBarTexture(hud, g.Patch, g.Handle, drawPos, yAnchor, number.Alignment, number.Translation, alpha, isNative: isNative);
+            DrawSBarTexture(hud, g.Patch, g.Handle, drawPos, yAnchor, number.Alignment, number.Translation, alpha);
             drawX += g.Width;
         }
 
-        DrawChildren(hud, number, pos, containerHeight, context, widescreenOffset, (0, 0), isNative);
+        DrawChildren(hud, number, pos, containerHeight, context, widescreenOffset, (0, 0));
     }
 
     private void DrawStatTotals(IHudRenderContext hud,
@@ -1182,14 +1123,13 @@ public class StatusBarRenderer
         Vec2I pos,
         StatusBarHudFontDef? fontDef,
         int fontHeight,
-        float alpha,
-        bool isNative)
+        float alpha)
     {
         LevelStats stats = m_world.LevelStats;
         Vec2I cur = pos;
-        DrawStatPart(hud, "K: ", stats.KillCount, stats.TotalMonsters, ref cur, comp, fontDef, fontHeight, alpha, isNative);
-        DrawStatPart(hud, "I: ", stats.ItemCount, stats.TotalItems, ref cur, comp, fontDef, fontHeight, alpha, isNative);
-        DrawStatPart(hud, "S: ", stats.SecretCount, stats.TotalSecrets, ref cur, comp, fontDef, fontHeight, alpha, isNative);
+        DrawStatPart(hud, "K: ", stats.KillCount, stats.TotalMonsters, ref cur, comp, fontDef, fontHeight, alpha);
+        DrawStatPart(hud, "I: ", stats.ItemCount, stats.TotalItems, ref cur, comp, fontDef, fontHeight, alpha);
+        DrawStatPart(hud, "S: ", stats.SecretCount, stats.TotalSecrets, ref cur, comp, fontDef, fontHeight, alpha);
     }
 
     private void DrawStatPart(IHudRenderContext hud,
@@ -1200,15 +1140,14 @@ public class StatusBarRenderer
         StatusBarComponentDef comp,
         StatusBarHudFontDef? fontDef,
         int fontHeight,
-        float alpha,
-        bool isNative)
+        float alpha)
     {
         string? defaultColor = comp.Translation;
         string? valueColor = defaultColor;
 
         if (total != int.MinValue && total > 0 && count >= total) valueColor = "CRGREEN";
 
-        int labelWidth = DrawTextPart(hud, label.AsSpan(), cursor, defaultColor, comp.Alignment, fontDef, alpha, isNative);
+        int labelWidth = DrawTextPart(hud, label.AsSpan(), cursor, defaultColor, comp.Alignment, fontDef, alpha);
         Vec2I valuePos = cursor;
         valuePos.X += labelWidth;
 
@@ -1217,11 +1156,10 @@ public class StatusBarRenderer
         m_fmtSpan.Append('/');
         m_fmtSpan.Append(total);
 
-        int valueWidth = DrawTextPart(hud, m_fmtSpan.AsSpan(), valuePos, valueColor, comp.Alignment, fontDef, alpha, isNative);
+        int valueWidth = DrawTextPart(hud, m_fmtSpan.AsSpan(), valuePos, valueColor, comp.Alignment, fontDef, alpha);
 
-        float scale = isNative ? m_userScale : 1.0f;
-        if (comp.Vertical) cursor.Y += (int)(fontHeight * (isNative ? m_userScale * 1.2f : 1.0f));
-        else cursor.X += labelWidth + valueWidth + (int)(8 * scale);
+        if (comp.Vertical) cursor.Y += (int)(fontHeight * m_scale.Y);
+        else cursor.X += labelWidth + valueWidth + (int)(8 * m_scale.X);
     }
 
     private void DrawCoordinates(IHudRenderContext hud,
@@ -1230,8 +1168,7 @@ public class StatusBarRenderer
         StatusBarHudFontDef? fontDef,
         int fontHeight,
         float alpha,
-        StatusBarContext context,
-        bool isNative)
+        StatusBarContext context)
     {
         Vec3D playerPos = context.Player.Position;
         m_coordPartsCache.Clear();
@@ -1239,18 +1176,17 @@ public class StatusBarRenderer
         m_coordPartsCache.Add(new CoordData("Y: ", (int)playerPos.Y, 0, 0));
         m_coordPartsCache.Add(new CoordData("Z: ", (int)playerPos.Z, 0, 0));
 
-        float scale = isNative ? m_userScale : 1.0f;
         int totalHorizontalWidth = 0;
         for (int i = 0; i < m_coordPartsCache.Count; i++)
         {
             CoordData data = m_coordPartsCache[i];
-            int lw = MeasureSpan(hud, data.Label.AsSpan(), "CRGREEN", fontDef, alpha, isNative);
+            int lw = MeasureSpan(hud, data.Label.AsSpan(), "CRGREEN", fontDef, alpha);
             m_fmtSpan.Clear();
             m_fmtSpan.Append(data.Value);
-            int vw = MeasureSpan(hud, m_fmtSpan.AsSpan(), comp.Translation, fontDef, alpha, isNative);
+            int vw = MeasureSpan(hud, m_fmtSpan.AsSpan(), comp.Translation, fontDef, alpha);
             m_coordPartsCache[i] = data with { LabelWidth = lw, ValWidth = vw };
             totalHorizontalWidth += lw + vw;
-            if (i < m_coordPartsCache.Count - 1) totalHorizontalWidth += (int)(8 * scale);
+            if (i < m_coordPartsCache.Count - 1) totalHorizontalWidth += (int)(8 * m_scale.X);
         }
 
         Vec2I cursor = pos;
@@ -1268,7 +1204,7 @@ public class StatusBarRenderer
                 if ((comp.Alignment & StatusBarAlignment.Right) != 0) lineX -= lineWidth;
                 else if ((comp.Alignment & StatusBarAlignment.HCenter) != 0) lineX -= lineWidth / 2;
 
-                _ = DrawTextPart(hud, data.Label.AsSpan(), (lineX, cursor.Y), "CRGREEN", StatusBarAlignment.Left, fontDef, alpha, isNative);
+                _ = DrawTextPart(hud, data.Label.AsSpan(), (lineX, cursor.Y), "CRGREEN", StatusBarAlignment.Left, fontDef, alpha);
 
                 m_fmtSpan.Clear();
                 m_fmtSpan.Append(data.Value);
@@ -1279,43 +1215,28 @@ public class StatusBarRenderer
                     comp.Translation,
                     StatusBarAlignment.Left,
                     fontDef,
-                    alpha,
-                    isNative);
+                    alpha);
 
-                cursor.Y += (int)(fontHeight * (isNative ? m_userScale * 1.2f : 1.0f));
+                cursor.Y += (int)(fontHeight * m_scale.Y);
             }
             else
             {
-                cursor.X += DrawTextPart(hud, data.Label.AsSpan(), cursor, "CRGREEN", StatusBarAlignment.Left, fontDef, alpha, isNative);
+                cursor.X += DrawTextPart(hud, data.Label.AsSpan(), cursor, "CRGREEN", StatusBarAlignment.Left, fontDef, alpha);
 
                 m_fmtSpan.Clear();
                 m_fmtSpan.Append(data.Value);
 
-                cursor.X += DrawTextPart(hud,
-                    m_fmtSpan.AsSpan(),
-                    cursor,
-                    comp.Translation,
-                    StatusBarAlignment.Left,
-                    fontDef,
-                    alpha,
-                    isNative);
+                cursor.X += DrawTextPart(hud, m_fmtSpan.AsSpan(), cursor, comp.Translation, StatusBarAlignment.Left, fontDef, alpha);
 
-                cursor.X += (int)(8 * scale);
+                cursor.X += (int)(8 * m_scale.X);
             }
     }
 
-    private int MeasureSpan(IHudRenderContext hud,
-        ReadOnlySpan<char> t,
-        string? trans,
-        StatusBarHudFontDef? fontDef,
-        float alpha,
-        bool isNative)
+    private int MeasureSpan(IHudRenderContext hud, ReadOnlySpan<char> t, string? trans, StatusBarHudFontDef? fontDef, float alpha)
     {
-        if (fontDef != null)
-            return DrawHudText(hud, t, fontDef, (0, 0), StatusBarAlignment.Left, trans, alpha, isNative, false);
-
-        float textScale = isNative ? m_userScale : 1.0f;
-        return (int)(hud.MeasureText(t, Constants.Fonts.Small, 8).Width * textScale);
+        return fontDef != null
+            ? DrawHudText(hud, t, fontDef, (0, 0), StatusBarAlignment.Left, trans, alpha, false)
+            : (int)(hud.MeasureText(t, Constants.Fonts.Small, 8).Width * m_scale.X);
     }
 
     private int DrawTextPart(IHudRenderContext hud,
@@ -1324,18 +1245,16 @@ public class StatusBarRenderer
         string? translation,
         StatusBarAlignment alignment,
         StatusBarHudFontDef? fontDef,
-        float alpha,
-        bool isNative)
+        float alpha)
     {
         if (fontDef != null)
-            return DrawHudText(hud, text, fontDef, position, alignment, translation, alpha, isNative);
+            return DrawHudText(hud, text, fontDef, position, alignment, translation, alpha);
 
         Align align = ConvertAlignment(alignment);
         Color? color = !string.IsNullOrEmpty(translation) && StandardTextColors.TryGetValue(translation, out Color c) ? c : null;
-        float textScale = isNative ? m_userScale : 1.0f;
 
-        hud.Text(text, Constants.Fonts.Small, 8, position, both: align, alpha: alpha, color: color, scale: textScale);
-        return (int)(hud.MeasureText(text, Constants.Fonts.Small, 8).Width * textScale);
+        hud.Text(text, Constants.Fonts.Small, 8, position, both: align, alpha: alpha, color: color, scale: m_scale.X);
+        return (int)(hud.MeasureText(text, Constants.Fonts.Small, 8).Width * m_scale.X);
     }
 
     private void DrawChildren(IHudRenderContext hud,
@@ -1344,8 +1263,7 @@ public class StatusBarRenderer
         int containerHeight,
         StatusBarContext context,
         float widescreenOffset,
-        Vec2I rootPos,
-        bool isNative)
+        Vec2I rootPos)
     {
         if (def.Children == null) return;
 
@@ -1354,33 +1272,33 @@ public class StatusBarRenderer
             if (!EvaluateWrapperConditions(child, context))
                 continue;
 
-            DrawElementWrapper(hud, child, pos, containerHeight, context, widescreenOffset, rootPos, isNative);
+            DrawElementWrapper(hud, child, pos, containerHeight, context, widescreenOffset, rootPos);
         }
     }
 
     private ElementBounds MeasureElement(IHudRenderContext hud,
         StatusBarElementWrapper wrapper,
         StatusBarContext context,
-        bool isNative,
         float sX = 1.0f,
         float sY = 1.0f)
     {
-        float scaleX = isNative ? sX : 1.0f;
-        float scaleY = isNative ? sY : 1.0f;
-
-        if (wrapper.Graphic != null) return MeasureGraphic(wrapper.Graphic, scaleX, scaleY);
-        if (wrapper.Number != null) return MeasureNumber(hud, wrapper.Number, context, false, isNative, scaleX, scaleY);
-        if (wrapper.Percent != null) return MeasureNumber(hud, wrapper.Percent, context, true, isNative, scaleX, scaleY);
-        if (wrapper.Face != null) return MeasureFace(hud, wrapper.Face, context, scaleX, scaleY);
-        if (wrapper.String != null) return MeasureString(hud, wrapper.String, isNative, scaleX, scaleY);
-        if (wrapper.Canvas != null) return MeasureBase(hud, wrapper.Canvas, context, isNative, scaleX, scaleY);
-        if (wrapper.List != null) return MeasureList(hud, wrapper.List, context, isNative, scaleX, scaleY);
-        if (wrapper.Component != null) return MeasureComponent(hud, wrapper.Component, isNative, scaleX, scaleY);
-        if (wrapper.Carousel != null) return MeasureCarousel(hud, wrapper.Carousel, context, scaleX, scaleY);
+        if (wrapper.Graphic != null) return MeasureGraphic(wrapper.Graphic, sX, sY);
+        if (wrapper.Number != null) return MeasureNumber(hud, wrapper.Number, context, false, sX, sY);
+        if (wrapper.Percent != null) return MeasureNumber(hud, wrapper.Percent, context, true, sX, sY);
+        if (wrapper.Face != null) return MeasureFace(hud, wrapper.Face, context, sX, sY);
+        if (wrapper.String != null) return MeasureString(hud, wrapper.String, sX, sY);
+        if (wrapper.Canvas != null) return MeasureBase(hud, wrapper.Canvas, context, sX, sY);
+        if (wrapper.List != null) return MeasureList(hud, wrapper.List, context, sX, sY);
+        if (wrapper.Component != null) return MeasureComponent(hud, wrapper.Component, sX, sY);
+        if (wrapper.Carousel != null) return MeasureCarousel(hud, wrapper.Carousel, context, sX, sY);
 
         if (wrapper.Native == null) return ElementBounds.Empty;
-        ElementBounds bounds = MeasureBase(hud, wrapper.Native, context, true, m_userScale, m_userScale * 1.2f);
-        return !isNative && m_currentScale > 0
+
+        float nX = m_userScale;
+        float nY = m_userScale * 1.2f;
+        ElementBounds bounds = MeasureBase(hud, wrapper.Native, context, nX, nY);
+
+        return m_currentScale > 0
             ? new ElementBounds((int)(bounds.X1 / m_currentScale),
                 (int)(bounds.Y1 / m_currentScale),
                 (int)(bounds.X2 / m_currentScale),
@@ -1388,12 +1306,7 @@ public class StatusBarRenderer
             : bounds;
     }
 
-    private ElementBounds MeasureBase(IHudRenderContext hud,
-        StatusBarBaseDef def,
-        StatusBarContext context,
-        bool isNative,
-        float sX,
-        float sY)
+    private ElementBounds MeasureBase(IHudRenderContext hud, StatusBarBaseDef def, StatusBarContext context, float sX, float sY)
     {
         if (def.Children == null || def.Children.Count == 0) return ElementBounds.Empty;
 
@@ -1401,7 +1314,7 @@ public class StatusBarRenderer
         foreach (StatusBarElementWrapper t in def.Children)
         {
             if (!EvaluateWrapperConditions(t, context)) continue;
-            contentBounds = ElementBounds.Union(contentBounds, MeasureElement(hud, t, context, isNative, sX, sY));
+            contentBounds = ElementBounds.Union(contentBounds, MeasureElement(hud, t, context, sX, sY));
         }
 
         if (contentBounds.X1 == int.MaxValue) return ElementBounds.Empty;
@@ -1440,19 +1353,22 @@ public class StatusBarRenderer
         StatusBarNumberDef def,
         StatusBarContext context,
         bool isPercent,
-        bool isNative,
-        float scaleX,
-        float scaleY)
+        float sX,
+        float sY)
     {
         m_fmtSpan.Clear();
         m_fmtSpan.Append(ResolveNumberValue(context.Player, def.Type, def.Param));
         if (isPercent) m_fmtSpan.Append('%');
 
-        int width = MeasureSpan(hud, m_fmtSpan.AsSpan(), null, null, 1.0f, isNative);
-        int height = (int)((def.ResolvedHeight > 0 ? def.ResolvedHeight : 8) * scaleY);
+        Vec2F oldScale = m_scale;
+        m_scale = (sX, sY);
+        int width = MeasureSpan(hud, m_fmtSpan.AsSpan(), null, null, 1.0f);
+        m_scale = oldScale;
 
-        int posX = (int)(def.X * scaleX);
-        int posY = (int)(def.Y * scaleY);
+        int height = (int)((def.ResolvedHeight > 0 ? def.ResolvedHeight : 8) * sY);
+
+        int posX = (int)(def.X * sX);
+        int posY = (int)(def.Y * sY);
         return ApplyAlignment(new Vec2I(width, height), posX, posY, def.Alignment);
     }
 
@@ -1480,26 +1396,24 @@ public class StatusBarRenderer
         return ApplyAlignment(size, posX, posY, def.Alignment);
     }
 
-    private ElementBounds MeasureString(IHudRenderContext hud, StatusBarStringDef def, bool isNative, float scaleX, float scaleY)
+    private ElementBounds MeasureString(IHudRenderContext hud, StatusBarStringDef def, float sX, float sY)
     {
         ReadOnlySpan<char> text = GetStringValue(def);
-
         _ = m_hudFontLookup.TryGetValue(def.Font, out StatusBarHudFontDef? f);
 
-        int width = MeasureSpan(hud, text, null, f, 1.0f, isNative);
-        int height = (int)((def.ResolvedHeight > 0 ? def.ResolvedHeight : 8) * scaleY);
+        Vec2F oldScale = m_scale;
+        m_scale = (sX, sY);
+        int width = MeasureSpan(hud, text, null, f, 1.0f);
+        m_scale = oldScale;
 
-        int posX = (int)(def.X * scaleX);
-        int posY = (int)(def.Y * scaleY);
+        int height = (int)((def.ResolvedHeight > 0 ? def.ResolvedHeight : 8) * sY);
+
+        int posX = (int)(def.X * sX);
+        int posY = (int)(def.Y * sY);
         return ApplyAlignment(new Vec2I(width, height), posX, posY, def.Alignment);
     }
 
-    private ElementBounds MeasureList(IHudRenderContext hud,
-        StatusBarListDef def,
-        StatusBarContext context,
-        bool isNative,
-        float scaleX,
-        float scaleY)
+    private ElementBounds MeasureList(IHudRenderContext hud, StatusBarListDef def, StatusBarContext context, float sX, float sY)
     {
         if (def.Children == null) return ElementBounds.Empty;
 
@@ -1507,13 +1421,13 @@ public class StatusBarRenderer
         int totalH = 0;
         int count = 0;
 
-        int spacing = (int)(def.Spacing * (isNative ? m_userScale : 1.0f));
+        int spacing = (int)(def.Spacing * sX);
 
         foreach (StatusBarElementWrapper child in def.Children)
         {
             if (!EvaluateWrapperConditions(child, context)) continue;
 
-            ElementBounds size = MeasureElement(hud, child, context, isNative, scaleX, scaleY);
+            ElementBounds size = MeasureElement(hud, child, context, sX, sY);
             if (def.Horizontal)
             {
                 totalW += size.Width;
@@ -1530,13 +1444,13 @@ public class StatusBarRenderer
             count++;
         }
 
-        int posX = (int)(def.X * scaleX);
-        int posY = (int)(def.Y * scaleY);
+        int posX = (int)(def.X * sX);
+        int posY = (int)(def.Y * sY);
 
         return ApplyAlignment(new Vec2I(totalW, totalH), posX, posY, def.Alignment);
     }
 
-    private ElementBounds MeasureComponent(IHudRenderContext hud, StatusBarComponentDef comp, bool isNative, float scaleX, float scaleY)
+    private ElementBounds MeasureComponent(IHudRenderContext hud, StatusBarComponentDef comp, float sX, float sY)
     {
         int fontHeight = 8;
         if (m_hudFontLookup.TryGetValue(comp.Font, out StatusBarHudFontDef? fontDef) &&
@@ -1547,6 +1461,8 @@ public class StatusBarRenderer
         }
 
         Vec2I size = Vec2I.Zero;
+        Vec2F oldScale = m_scale;
+        m_scale = (sX, sY);
 
         switch (comp.ComponentType)
         {
@@ -1554,43 +1470,51 @@ public class StatusBarRenderer
                 if (m_world.Config.Hud.ShowStats.Value)
                 {
                     const string Dummy = "K: 000/000 I: 000/000 S: 000/000";
-                    int w = MeasureSpan(hud, Dummy.AsSpan(), null, fontDef, 1.0f, isNative);
-                    size = comp.Vertical ? (w / 3, (int)(fontHeight * 3 * scaleY)) : (w, (int)(fontHeight * scaleY));
+                    int w = MeasureSpan(hud, Dummy.AsSpan(), null, fontDef, 1.0f);
+                    size = comp.Vertical ? (w / 3, (int)(fontHeight * 3 * sY)) : (w, (int)(fontHeight * sY));
                 }
 
                 break;
 
             case StatusBarComponentType.Time:
-                size = (MeasureSpan(hud, "00:00:00".AsSpan(), null, fontDef, 1.0f, isNative), (int)(fontHeight * scaleY));
+                size = (MeasureSpan(hud, "00:00:00".AsSpan(), null, fontDef, 1.0f), (int)(fontHeight * sY));
+                break;
+
+            case StatusBarComponentType.Coordinates:
+                int cw = MeasureSpan(hud, "X: -00000 Y: -00000 Z: -00000".AsSpan(), null, fontDef, 1.0f);
+                size = comp.Vertical ? (cw / 3, (int)(fontHeight * 3 * sY)) : (cw, (int)(fontHeight * sY));
+                break;
+
+            case StatusBarComponentType.Speedometer:
+                size = (MeasureSpan(hud, "000.00".AsSpan(), null, fontDef, 1.0f), (int)(fontHeight * sY));
                 break;
 
             case StatusBarComponentType.LevelTitle:
             case StatusBarComponentType.AnnounceLevelTitle:
                 string title = m_world.MapInfo.GetDisplayNameWithPrefix(m_archiveCollection.Language);
-                size = (MeasureSpan(hud, title.AsSpan(), null, fontDef, 1.0f, isNative), (int)(fontHeight * scaleY));
+                size = (MeasureSpan(hud, title.AsSpan(), null, fontDef, 1.0f), (int)(fontHeight * sY));
                 break;
 
             case StatusBarComponentType.FpsCounter:
                 if (m_world.Config.Hud.ShowFPS.Value)
-                    size = (MeasureSpan(hud, "000".AsSpan(), null, fontDef, 1.0f, isNative), (int)(fontHeight * scaleY));
-                break;
-
-            case StatusBarComponentType.Message:
-                size = Vec2I.Zero;
+                    size = (MeasureSpan(hud, "000".AsSpan(), null, fontDef, 1.0f), (int)(fontHeight * sY));
                 break;
 
             case StatusBarComponentType.Unknown:
-            case StatusBarComponentType.Coordinates:
-            case StatusBarComponentType.Speedometer:
+            case StatusBarComponentType.Message:
             case StatusBarComponentType.RenderStats:
             case StatusBarComponentType.CommandHistory:
             case StatusBarComponentType.Chat:
+                break;
+
             default:
+                size = Vec2I.Zero;
                 break;
         }
 
-        int posX = (int)(comp.X * scaleX);
-        int posY = (int)(comp.Y * scaleY);
+        m_scale = oldScale;
+        int posX = (int)(comp.X * sX);
+        int posY = (int)(comp.Y * sY);
 
         return ApplyAlignment(size, posX, posY, comp.Alignment);
     }
@@ -1631,8 +1555,13 @@ public class StatusBarRenderer
 
     private static string ResolvePatchName(string patch)
     {
-        if (string.IsNullOrEmpty(patch) || (!patch.Contains('/') && !patch.Contains('.')))
-            return patch;
+        if (string.IsNullOrEmpty(patch)) return string.Empty;
+
+        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> lookup = PatchNameCache.GetAlternateLookup<ReadOnlySpan<char>>();
+        ReadOnlySpan<char> patchSpan = patch.AsSpan();
+
+        if (lookup.TryGetValue(patchSpan, out string? cached))
+            return cached;
 
         int lastSlash = patch.LastIndexOf('/') + 1;
         int lastDot = patch.LastIndexOf('.');
@@ -1640,7 +1569,15 @@ public class StatusBarRenderer
         if (lastDot < lastSlash)
             lastDot = patch.Length;
 
-        return patch[lastSlash..lastDot];
+        if (lastSlash == 0 && lastDot == patch.Length)
+        {
+            PatchNameCache[patch] = patch;
+            return patch;
+        }
+
+        string result = patch[lastSlash..lastDot];
+        PatchNameCache[patch] = result;
+        return result;
     }
 
     private ReadOnlySpan<char> GetStringValue(StatusBarStringDef def)
@@ -1673,15 +1610,12 @@ public class StatusBarRenderer
         };
     }
 
-    private static Vec2I ResolvePosition(StatusBarBaseDef def, Vec2I parentPos, bool isNative, float scale)
+    private Vec2I ResolvePosition(StatusBarBaseDef def, Vec2I parentPos)
     {
         Vec2I pos = parentPos;
 
-        int x = (int)(def.X * scale);
-        int y = (int)(def.Y * (isNative ? scale * 1.2f : scale));
-
-        pos.X += x;
-        pos.Y += y;
+        pos.X += (int)(def.X * m_scale.X);
+        pos.Y += (int)(def.Y * m_scale.Y);
 
         return pos;
     }
