@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
@@ -21,6 +22,7 @@ public partial class GeometryRenderer
     private readonly Side m_fakeSide;
     private readonly Side m_emptyTraverseSide;
     private readonly SideScrollData m_fakeSideScrollData;
+    private readonly SectorPlane m_fakeAnchorTopPlane = new(SectorPlaneFace.Ceiling, 0, 0, 0);
     private readonly Sector m_wallSector = Sector.CreateDefault();
     private readonly Sector m_fakeFacing = Sector.CreateDefault();
     private readonly Sector m_fakeOther = Sector.CreateDefault();
@@ -79,8 +81,8 @@ public partial class GeometryRenderer
             traverseSide = m_emptyTraverseSide;
 
         var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
-            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3D, 
-            style: sector3D.RenderDataStyle);
+            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3D,
+            wallHeights3D: newWallHeights, style: sector3D.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
             renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
@@ -90,8 +92,10 @@ public partial class GeometryRenderer
         Side otherSide, Sector facingSector, Sector otherSector,
         Func<RenderWallSliceArgs, RenderWallSliceResult> renderFunc,
         Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false,
-        Side? traverseSide = null, Sector3D? anchorSector3D = null, RenderDataStyle style = RenderDataStyle.Normal)
+        Side? traverseSide = null, Sector3D? anchorSector3D = null, WallHeights? wallHeights3D = null, RenderDataStyle style = RenderDataStyle.Normal)
     {
+        Assert.Precondition(wall.Location != WallLocation.Middle3D || wallHeights3D.HasValue, "Rendering 3D middle requires WallHeights3D to be set.");
+
         RenderWallSliceResult finalResult = default;
         if (side.Sector.Sectors3D.Length == 0)
             return finalResult;
@@ -143,7 +147,7 @@ public partial class GeometryRenderer
         };
 
         SectorPlane3D? lastPlane3D = null;
-        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, anchorSector3D), anchorZ);
+        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, wallHeights3D), anchorZ);
 
         for (int i = 0; i < traverseSide.Sector.SectorPlanes3D.Length - 1; i++)
         {
@@ -153,7 +157,7 @@ public partial class GeometryRenderer
             m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
             m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;
 
-            SetSectorToSlice(m_sliceSector, plane3D.Plane, nextPlane3D.Plane);
+            SetSectorToSlice(m_sliceSector, plane3D.Plane, nextPlane3D.Plane, wallHeights3D);
             args.LightSector = nextPlane3D.LightSector;
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
@@ -180,7 +184,7 @@ public partial class GeometryRenderer
         WorldStatic.LineVertexGapTopZ = saveGapZ;
         WorldStatic.LineVertexGapBottomZ = saveGapZ;
 
-        SetSectorToSlice(m_sliceSector, lastPlane3D?.Plane ?? side.Sector.Ceiling, side.Sector.Floor);
+        SetSectorToSlice(m_sliceSector, lastPlane3D?.Plane ?? side.Sector.Ceiling, side.Sector.Floor, wallHeights3D);
 
         args.LightSector = lightSector;
         args.Side.LastRenderGametick = -1;
@@ -204,15 +208,20 @@ public partial class GeometryRenderer
         wallSector.FloorSkyTextureHandle = side.Sector.FloorSkyTextureHandle;
     }
 
-    private static SectorPlane GetStartAnchorZ(Side side, Wall wall, Sector otherSector, Sector3D? anchorSector3D)
+    private SectorPlane GetStartAnchorZ(Side side, Wall wall, Sector otherSector, in WallHeights? wallHeights3D)
     {
-        //Assert.Precondition(wall.Location != WallLocation.Middle3D || wallHeights3D.HasValue, "Rendering 3D middle requires WallHeights3D to be set.");
-        // Drawing 3D middle needs to be anchored to the parent's control top. Use 3D sector's calculated wall heights to adjust to upper textures.
-        if (wall.Location == WallLocation.Middle3D && anchorSector3D != null)
-            return anchorSector3D.FakeTop;
+        if (wall.Location == WallLocation.Middle3D && wallHeights3D.HasValue)
+        {
+            m_fakeAnchorTopPlane.Z = wallHeights3D.Value.TopZ;
+            m_fakeAnchorTopPlane.PrevZ = wallHeights3D.Value.PrevTopZ;
+            return m_fakeAnchorTopPlane;
+        }
         // Lower walls anchored to floor
         else if (wall.Location == WallLocation.Lower)
+        {
             return otherSector.Floor;
+        }
+
         // Everything else is anchored to ceiling
         return side.Sector.Ceiling;
     }
@@ -530,7 +539,7 @@ public partial class GeometryRenderer
         return new(sideVertices, null, null, addOffset: false);
     }
 
-    private void SetSectorToSlice(Sector wallSector, SectorPlane top, SectorPlane bottom)
+    private void SetSectorToSlice(Sector wallSector, SectorPlane top, SectorPlane bottom, WallHeights? wallHeights3D)
     {
         wallSector.Floor.LastRenderChangeGametick = m_world.Gametick;
         wallSector.Ceiling.LastRenderChangeGametick = m_world.Gametick;
@@ -538,6 +547,15 @@ public partial class GeometryRenderer
         wallSector.Ceiling.PrevZ = top.PrevZ;
         wallSector.Floor.Z = bottom.Z;
         wallSector.Floor.PrevZ = bottom.PrevZ;
+
+        // Clip to calculated min/max heights of 3D sectors
+        if (wallHeights3D.HasValue)
+        {
+            wallSector.Ceiling.Z = Math.Min(wallSector.Ceiling.Z, wallHeights3D.Value.TopZ);
+            wallSector.Ceiling.PrevZ = Math.Min(wallSector.Ceiling.Z, wallHeights3D.Value.PrevTopZ);
+            wallSector.Floor.Z = Math.Max(wallSector.Floor.Z, wallHeights3D.Value.BottomZ);
+            wallSector.Floor.PrevZ = Math.Max(wallSector.Floor.Z, wallHeights3D.Value.PrevBottomZ);
+        }
 
         if (wallSector.Floor.Z > wallSector.Ceiling.Z)
             wallSector.Floor.Z = wallSector.Ceiling.Z;
