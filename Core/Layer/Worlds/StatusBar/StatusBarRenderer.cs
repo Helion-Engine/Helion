@@ -86,7 +86,6 @@ public class StatusBarRenderer
     private readonly IWorld m_world;
     private float m_currentScale;
     private float m_hOffset;
-    private float m_hudNativeWidthOffset;
     private Vec2F m_scale = Vec2F.One;
 
     private bool m_texturesResolved;
@@ -214,15 +213,14 @@ public class StatusBarRenderer
         float windowHeight = hud.WindowDimension.Height;
 
         float scaleX = windowWidth / 320f;
-        float scaleY = windowHeight / 200f;
+        float scaleY = windowHeight / (200f * 1.2f);
         m_currentScale = Math.Min(scaleX, scaleY);
         m_userScale = (float)m_world.Config.Hud.Scale.Value;
         m_scale = Vec2F.One;
 
         m_hOffset = (windowWidth / m_currentScale - 320f) / 2f;
-        m_vOffset = (windowHeight / m_currentScale - 200f) / 2f;
-
-        m_hudNativeWidthOffset = -hudNativePaddingX / scaleX;
+        m_vOffset = (windowHeight / m_currentScale - 200f * 1.2f) / 2f;
+        float widescreenOffset = m_hOffset - hudNativePaddingX / m_currentScale;
 
         if (!layout.FullscreenRender)
         {
@@ -245,7 +243,7 @@ public class StatusBarRenderer
         }
 
         foreach (StatusBarElementWrapper child in layout.Children)
-            DrawElementWrapper(hud, child, rootPos, layout.Height, context, m_hOffset, rootPos);
+            DrawElementWrapper(hud, child, rootPos, layout.Height, context, widescreenOffset, rootPos);
 
         hud.PopVirtualDimension();
         m_invalidateBounds = false;
@@ -364,7 +362,7 @@ public class StatusBarRenderer
         if (wrapper.Canvas != null)
             DrawBase(hud, wrapper.Canvas, parentPos, containerHeight, context, widescreenOffset, rootPos);
         else if (wrapper.Native != null)
-            DrawNative(hud, wrapper.Native, parentPos, containerHeight, context);
+            DrawNative(hud, wrapper.Native, parentPos, containerHeight, context, widescreenOffset);
         else if (wrapper.List != null)
             DrawList(hud, wrapper.List, parentPos, containerHeight, context, widescreenOffset, rootPos);
         else if (wrapper.Graphic != null)
@@ -399,6 +397,42 @@ public class StatusBarRenderer
             return;
 
         Vec2I currentPos = ResolvePosition(def, parentPos);
+
+        bool hAlign = (def.Alignment & (StatusBarAlignment.Right | StatusBarAlignment.HCenter)) != 0;
+        bool vAlign = (def.Alignment & (StatusBarAlignment.Bottom | StatusBarAlignment.VCenter)) != 0;
+
+        if (hAlign || vAlign)
+        {
+            var bounds = ElementBounds.Empty;
+            if (def.Children != null)
+            {
+                foreach (StatusBarElementWrapper child in def.Children)
+                {
+                    if (child.HasConditions && !EvaluateWrapperConditions(child, context))
+                        continue;
+                    ElementBounds.Union(ref bounds, MeasureElement(hud, child, context, m_scale.X, m_scale.Y));
+                }
+            }
+
+            if (bounds.X1 != int.MaxValue)
+            {
+                if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
+                    currentPos.X -= (bounds.X1 + bounds.X2) / 2;
+                else if ((def.Alignment & StatusBarAlignment.Right) != 0)
+                    currentPos.X -= bounds.X2;
+
+                if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
+                    currentPos.Y -= (bounds.Y1 + bounds.Y2) / 2;
+                else if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
+                    currentPos.Y -= bounds.Y2;
+            }
+        }
+
+        if ((def.Alignment & StatusBarAlignment.WidescreenLeft) != 0)
+            currentPos.X -= (int)widescreenOffset;
+        if ((def.Alignment & StatusBarAlignment.WidescreenRight) != 0)
+            currentPos.X += (int)widescreenOffset;
+
         DrawChildren(hud, def, currentPos, containerHeight, context, widescreenOffset, rootPos);
     }
 
@@ -495,14 +529,17 @@ public class StatusBarRenderer
         }
     }
 
-    private void DrawNative(IHudRenderContext hud, StatusBarNativeDef def, Vec2I parentPos, int containerHeight, StatusBarContext context)
+    private void DrawNative(IHudRenderContext hud,
+        StatusBarNativeDef def,
+        Vec2I parentPos,
+        int containerHeight,
+        StatusBarContext context,
+        float widescreenOffset)
     {
         if (!StatusBarConditionResolver.Evaluate(context, def))
             return;
 
-        Vec2I vPos = parentPos;
-        vPos.X += def.X;
-        vPos.Y += def.Y;
+        Vec2I vPos = ResolvePosition(def, parentPos);
 
         float nScaleX = m_userScale;
         float nScaleY = m_userScale * 1.2f;
@@ -526,26 +563,7 @@ public class StatusBarRenderer
         int pivotY = (bounds.Y1 + bounds.Y2) / 2;
 
         int nativeX = (int)Math.Floor((vPos.X + m_hOffset) * m_currentScale);
-        int nativeY = (int)Math.Floor((vPos.Y + m_vOffset) * m_currentScale);
-
-        int hShift = (int)Math.Ceiling((m_hOffset + m_hudNativeWidthOffset) * m_currentScale);
-        int vShift = (int)Math.Ceiling(m_vOffset * m_currentScale);
-
-        if ((def.Alignment & StatusBarAlignment.HCenter) == 0)
-        {
-            if ((def.Alignment & StatusBarAlignment.Right) != 0)
-                nativeX += hShift;
-            else
-                nativeX -= hShift;
-        }
-
-        if ((def.Alignment & StatusBarAlignment.VCenter) == 0)
-        {
-            if ((def.Alignment & StatusBarAlignment.Bottom) != 0)
-                nativeY += vShift;
-            else
-                nativeY -= vShift;
-        }
+        int nativeY = (int)Math.Floor((vPos.Y + m_vOffset) * m_currentScale * 1.2f);
 
         if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
             nativeX -= pivotX;
@@ -560,6 +578,12 @@ public class StatusBarRenderer
             nativeY -= bounds.Y2;
         else
             nativeY -= bounds.Y1;
+
+        int hWidescreenShift = (int)(widescreenOffset * m_currentScale);
+        if ((def.Alignment & StatusBarAlignment.WidescreenLeft) != 0)
+            nativeX -= hWidescreenShift;
+        if ((def.Alignment & StatusBarAlignment.WidescreenRight) != 0)
+            nativeX += hWidescreenShift;
 
         Vec2I nativeRoot = (nativeX, nativeY);
 
