@@ -216,7 +216,7 @@ public class SaveMenu : Menu
                     // We're already in "name edit mode"
                     EditRow(savedGameRow, input);
                 }
-                else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+                else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft) || input.ConsumeKeyPressed(Key.ButtonA))
                 {
                     if (savedGameRow.IsAutoOrQuickSave)
                     {
@@ -298,7 +298,7 @@ public class SaveMenu : Menu
             m_tickStopwatch.Stop();
             SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
-        else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+        else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft) || input.ConsumeKeyPressed(Key.ButtonA))
         {
             // If there's any text in the field, use that as the name, else force the defualt.
             savedGameRow.Text = m_customNameBuilder.Length > 0
