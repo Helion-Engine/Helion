@@ -55,6 +55,8 @@ public partial class StaticCacheGeometryRenderer
         if (!sector3D.ShouldRenderFlats)
             return;
 
+        planes &= sector3D.RenderPlanes;
+
         var saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
         sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
 

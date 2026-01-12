@@ -25,7 +25,7 @@ using Vector2D = Helion.Models.Vector2D;
 namespace Helion.World.Geometry.Sectors;
 
 public record struct SectorPlane3D(SectorPlane ControlPlane, SectorPlane Plane, Sector3D? Sector3D, PlaneFace3D Face, Sector LightSector);
-public enum PlaneFace3D { Top, Bottom }
+public enum PlaneFace3D { Bottom, Top }
 
 public sealed class Sector : IFloorCeilingAnchor
 {

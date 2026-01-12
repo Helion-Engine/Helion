@@ -94,6 +94,7 @@ public sealed class Sector3D
     public double ClipBottomZ;
     public double ClipPrevBottomZ;
     public WallHeights WallHeights;
+    public SectorPlanes RenderPlanes;
 
     private readonly Entity Entity;
 
@@ -192,12 +193,17 @@ public sealed class Sector3D
         sector.Sectors3D.Sort(SortSectors3D);
 
         for (int i = 0; i < sector.Sectors3D.Length; i++)
-            sector.Sectors3D[i].CalculateHeights();
+        {
+            var sector3D = sector.Sectors3D[i];
+            sector3D.CalculateHeights();
+            sector3D.RenderPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
+        }
 
         sector.SectorPlanes3D.Sort(SortPlanes3D);
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
+        ref var lastPlane3D = ref sector.SectorPlanes3D[0];
 
         for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
         {
@@ -215,6 +221,14 @@ public sealed class Sector3D
                 continue;
             }
 
+            // If this plane faces match and they overlap then disable rendering the previous plane.
+            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.Face == plane3D.Face && lastPlane3D.ControlPlane.Z == plane3D.Plane.Z)
+            {
+                var disablePlane = (SectorPlanes)(lastPlane3D.Face + 1);
+                lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
+            }
+
+            lastPlane3D = ref plane3D;
             var restrictLight = (sector3D.Flags & SectorFlags3D.RestrictLighting) != 0;
             SetLight(sector3D, ref plane3D, currentLightSector, restrictLight);
 
@@ -292,7 +306,13 @@ public sealed class Sector3D
             xZ = x.Sector3D.ClipBottomZ;
 
         if (yZ == xZ && y.Sector3D != null && x.Sector3D != null)
-            return y.Sector3D.ControlTop.Z.CompareTo(x.Sector3D.ControlTop.Z);
+        {
+            // If they are the same plane face then lower control sector takes precedence.
+            if (x.Face == y.Face)
+                return x.Sector3D.ControlSector.Id.CompareTo(y.Sector3D.ControlSector.Id);
+
+            return (y.Face == PlaneFace3D.Top) ? 1 : -1;
+        }
 
         return yZ.CompareTo(xZ);
     }
