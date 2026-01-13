@@ -72,7 +72,8 @@ findkeylines                    | Highlights key lines on the automap
 findinactivekeylines            | Highlights key lines that were never activated on the automap
 marksecrets                     | Toggles secret highlighting on the automap
 markspecials                    | Toggles ingame and automap highlighting of specials (shown when crossing a line special or pressing use on a sector triggered by one)
-map [mapname]                   | Changes the map (health/inventory are reset)
+map [mapname]                   | Changes the map (health/inventory are reset).
+map *                           | Restarts the map (health/inventory are reset).
 exitlevel                       | Exits to the next level (health/inventory are preserved)
 exitlevelsecret                 | Exits to the next level, using the secret exit if one exists
 endgame                         | Exits to the end game for the episode
