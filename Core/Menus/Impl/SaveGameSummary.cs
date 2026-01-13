@@ -21,6 +21,7 @@ public class SaveGameSummary(SaveGame saveGame)
                 $"Secrets: {saveGame.Model.SaveGameStats.SecretCount} / {saveGame.Model.SaveGameStats.TotalSecrets}",
                 $"Elapsed: {TimeSpan.FromSeconds(saveGame.Model.SaveGameStats.LevelTime / 35)}"
             ];
+    public readonly bool IsCompatible = saveGame.IsCompatible == true;
     private readonly Image? m_saveGameImage = saveGame.GetSaveGameImage();
 
     public IRenderableTextureHandle? UpdateSaveGameTexture(IHudRenderContext hud)
