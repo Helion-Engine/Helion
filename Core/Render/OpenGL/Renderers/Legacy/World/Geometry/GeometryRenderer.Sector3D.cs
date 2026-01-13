@@ -154,6 +154,9 @@ public partial class GeometryRenderer
             ref var plane3D = ref traverseSide.Sector.SectorPlanes3D[i];
             ref var nextPlane3D = ref traverseSide.Sector.SectorPlanes3D[i + 1];
 
+            if (plane3D.Ignore || nextPlane3D.Ignore)
+                continue;
+
             m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
             m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;
 

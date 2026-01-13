@@ -208,6 +208,7 @@ public sealed class Sector3D
         for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
         {
             ref var plane3D = ref sector.SectorPlanes3D[i];
+            plane3D.Ignore = false;
             var sector3D = plane3D.Sector3D;
             if (sector3D == null)
             {
@@ -226,6 +227,7 @@ public sealed class Sector3D
             {
                 var disablePlane = (SectorPlanes)(lastPlane3D.Face + 1);
                 lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
+                lastPlane3D.Ignore = true;                
             }
 
             lastPlane3D = ref plane3D;
