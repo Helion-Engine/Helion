@@ -204,6 +204,7 @@ public sealed class Sector3D
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
+        ref var overlapLightPlane3D = ref sector.SectorPlanes3D[0];
 
         for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
         {
@@ -222,29 +223,41 @@ public sealed class Sector3D
                 continue;
             }
 
-            // If this plane faces match and they overlap then disable rendering the previous plane.
-            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.Face == plane3D.Face && lastPlane3D.ControlPlane.Z == plane3D.Plane.Z)
+            var overlapLight = false;
+            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.ControlPlane.Z == plane3D.Plane.Z)
             {
-                var disablePlane = (SectorPlanes)(lastPlane3D.Face + 1);
-                lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
-                lastPlane3D.Ignore = true;                
+                if (lastPlane3D.Face == plane3D.Face)
+                {
+                    // Flag previous plane not to render since this one takes precedence
+                    var disablePlane = (SectorPlanes)(lastPlane3D.Face + 1);
+                    lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
+                    lastPlane3D.Ignore = true;
+                }
+                else if ((lastPlane3D.Sector3D.Flags & SectorFlags3D.NoRender) == 0)
+                {
+                    // Flag to update lighting for the previous 3D sector
+                    overlapLight = true;
+                    overlapLightPlane3D = ref lastPlane3D;
+                }
             }
 
             lastPlane3D = ref plane3D;
-            var restrictLight = (sector3D.Flags & SectorFlags3D.RestrictLighting) != 0;
-            SetLight(sector3D, ref plane3D, currentLightSector, restrictLight);
+            SetLight(sector3D, ref plane3D, currentLightSector);
 
             if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D.Plane))
                 continue;
 
             currentLightSector = sector3D.ControlSector;
             currentLightSector3D = sector3D;
+
+            if (overlapLight && overlapLightPlane3D.Sector3D != null)
+                SetLight(overlapLightPlane3D.Sector3D, ref overlapLightPlane3D, currentLightSector);
         }
     }
 
-    private static void SetLight(Sector3D sector3D, ref SectorPlane3D plane3D, Sector lightSector, bool restrictLight)
+    private static void SetLight(Sector3D sector3D, ref SectorPlane3D plane3D, Sector lightSector)
     {
-        if (restrictLight)
+        if ((sector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
         {
             if (plane3D.Face == PlaneFace3D.Top)
                 plane3D.LightSector = lightSector;
@@ -313,7 +326,7 @@ public sealed class Sector3D
             if (x.Face == y.Face)
                 return x.Sector3D.ControlSector.Id.CompareTo(y.Sector3D.ControlSector.Id);
 
-            return (y.Face == PlaneFace3D.Top) ? 1 : -1;
+            return (y.Face == PlaneFace3D.Bottom) ? 1 : -1;
         }
 
         return yZ.CompareTo(xZ);
