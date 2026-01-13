@@ -407,9 +407,21 @@ public partial class Client
         }
     }
 
+    [ConsoleCommand("forceload", "Loads a save game file into a new world with no compatibility hash checking")]
+    [ConsoleCommandArg("fileName", "The name of the file")]
+    private void CommandLoadGameUnchecked(ConsoleCommandEventArgs args)
+    {
+        DoLoadGame(args, false);
+    }
+
     [ConsoleCommand("load", "Loads a save game file into a new world")]
     [ConsoleCommandArg("fileName", "The name of the file")]
     private void CommandLoadGame(ConsoleCommandEventArgs args)
+    {
+        DoLoadGame(args, true);
+    }
+
+    private void DoLoadGame(ConsoleCommandEventArgs args, bool verifyFiles)
     {
         string fileName = args.Args[0];
         HelionLog.Info($"Loading save file {fileName}");
@@ -433,7 +445,7 @@ public partial class Client
             return;
         }
 
-        if (!ModelVerification.VerifyModelFiles(worldModel.Files, m_archiveCollection, Log))
+        if (verifyFiles && !ModelVerification.VerifyModelFiles(worldModel.Files, m_archiveCollection, Log))
         {
             ShowConsole();
             return;
@@ -1126,7 +1138,7 @@ public partial class Client
 
     private WorldModel? LoadNewestSave()
     {
-        var save = m_saveGameManager.GetSaveGames().FirstOrDefault();
+        var save = m_saveGameManager.GetSaveGames(compatibleOnly: true).FirstOrDefault();
         if (save != null)
             return save.ReadWorldModel();
         return null;

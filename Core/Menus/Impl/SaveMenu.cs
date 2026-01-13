@@ -32,6 +32,7 @@ public class SaveMenu : Menu
     private const string EmptySlotText = "Empty slot";
     private const string NoSavedGamesText = "There are no saved games.";
     private static readonly string[] DeleteConfirmationText = ["Are you sure you want to delete this save?", "Press Y to confirm."];
+    private static readonly string[] IncompatibleLoadText = ["Are you sure you want to load" , "this potentially incompatible save?", "Press Y to confirm."];
 
     public bool IsTypingName => RowLocked;
 
@@ -52,6 +53,7 @@ public class SaveMenu : Menu
     private readonly MenuPaddingComponent SmallPadding = new(4);
     private readonly MenuSmallTextComponent NoSavedGamesComponent = new(NoSavedGamesText);
 
+    private MenuSaveRowComponent? m_confirmIncompatibleSave;
     private SaveGame? m_deleteSave;
 
     public SaveMenu(MenuLayer parent, IWindow window, IConfig config, HelionConsole console, SoundManager soundManager,
@@ -63,7 +65,7 @@ public class SaveMenu : Menu
         m_canSave = canSave;
         IsSaveMenu = isSave;
         m_screenshotGenerator = screenshotGenerator;
-        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");        
+        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");
 
         m_saveGames = saveManager.GetSaveGames();
         UpdateMenuComponents(setTop: true);
@@ -148,7 +150,7 @@ public class SaveMenu : Menu
             // show empty slot on page 1
             if (m_currentPage == 1)
             {
-                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false);
+                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false, true);
                 saveRowComponent.Action = CreateNewSaveGame(() => saveRowComponent.Text);
                 newComponents.Add(saveRowComponent);
             }
@@ -156,7 +158,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string mapName = save.Model?.MapName ?? UnknownSavedGameName;
-                MenuSaveRowComponent saveRow = new(displayName, mapName, save.Type != SaveGameType.Default,
+                MenuSaveRowComponent saveRow = new(displayName, mapName, save.Type != SaveGameType.Default, save.IsCompatible == true,
                     null, CreateDeleteCommand(save), save);
                 saveRow.Action = new Func<Menu?>(UpdateSaveGame(save, new(() => saveRow.Text)));
                 return saveRow;
@@ -185,8 +187,8 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default,
-                    CreateConsoleCommand($"load \"{fileName}\""), CreateDeleteCommand(save), save);
+                return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default, save.IsCompatible == true,
+                    LoadFile(fileName), CreateDeleteCommand(save), save);
             });
             newComponents.AddRange(saveRowComponents);
             if (GetPageCount() > 1)
@@ -196,6 +198,18 @@ public class SaveMenu : Menu
         return newComponents;
     }
 
+    private Func<Menu?> LoadFile(string fileName)
+    {
+        return () =>
+        {
+            if (m_confirmIncompatibleSave == null)
+                Console.SubmitInputText($"load \"{fileName}\"");
+            else
+                Console.SubmitInputText($"forceload \"{fileName}\"");
+
+            return null;
+        };
+    }
 
     public override void HandleInput(IConsumableInput input)
     {
@@ -216,7 +230,7 @@ public class SaveMenu : Menu
                     // We're already in "name edit mode"
                     EditRow(savedGameRow, input);
                 }
-                else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+                else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft) || input.ConsumeKeyPressed(Key.ButtonA))
                 {
                     if (savedGameRow.IsAutoOrQuickSave)
                     {
@@ -257,11 +271,33 @@ public class SaveMenu : Menu
             else
             {
                 if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft)) // Load
-                    savedGameRow.Action?.Invoke();
+                {
+                    if (!savedGameRow.IsCompatible)
+                    {
+                        m_confirmIncompatibleSave = savedGameRow;
+                        var confirm = new MessageMenu(Window, Config, Console, SoundManager, ArchiveCollection,
+                            IncompatibleLoadText, isYesNoConfirm: true, clearMenus: false);
+                        confirm.Cleared += IncompatibleSaveCleared;
+                        m_parent.PushMenu(confirm);
+                        return;
+                    }
+                    else
+                    {
+                        savedGameRow.Action?.Invoke();
+                    }
+                }
                 else
                     ConsumeAndHandlePageChange(input);
             }
         }
+    }
+
+    private void IncompatibleSaveCleared(object? sender, bool confirmed)
+    {
+        if (confirmed && m_confirmIncompatibleSave != null)
+            m_confirmIncompatibleSave.Action?.Invoke();
+
+        m_confirmIncompatibleSave = null;
     }
 
     private void ConsumeAndHandlePageChange(IConsumableInput input)
@@ -298,7 +334,7 @@ public class SaveMenu : Menu
             m_tickStopwatch.Stop();
             SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
-        else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+        else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft) || input.ConsumeKeyPressed(Key.ButtonA))
         {
             // If there's any text in the field, use that as the name, else force the defualt.
             savedGameRow.Text = m_customNameBuilder.Length > 0
