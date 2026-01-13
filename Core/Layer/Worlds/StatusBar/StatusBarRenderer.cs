@@ -41,7 +41,7 @@ public enum StatusBarCoverage
 
 public class StatusBarRenderer
 {
-// Caches
+    // Caches
     private static readonly Dictionary<string, int> Type1WidthCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, int> HudType1WidthCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> FontPatchCache = new(StringComparer.OrdinalIgnoreCase);
@@ -314,8 +314,8 @@ public class StatusBarRenderer
         {
             StatusBarBaseDef? face = (StatusBarBaseDef?)wrapper.Face ?? wrapper.FaceBackground;
 
-            face!.ResolvedHeight = hud.Textures.TryGet("STFST00", out IRenderableTextureHandle? h) ||
-                                   hud.Textures.TryGet("STFST00", out h, ResourceNamespace.Sprites)
+            face!.ResolvedHeight = hud.Textures.TryGet("STFST01", out IRenderableTextureHandle? h) ||
+                                   hud.Textures.TryGet("STFST01", out h, ResourceNamespace.Sprites)
                 ? h.Dimension.Height
                 : 32;
         }
@@ -408,8 +408,6 @@ public class StatusBarRenderer
             {
                 foreach (StatusBarElementWrapper child in def.Children)
                 {
-                    if (child.HasConditions && !EvaluateWrapperConditions(child, context))
-                        continue;
                     ElementBounds.Union(ref bounds, MeasureElement(hud, child, context, m_scale.X, m_scale.Y));
                 }
             }
@@ -447,41 +445,29 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, def) || def.Children == null)
             return;
 
-        int activeCount = 0;
         int totalWidth = 0;
         int totalHeight = 0;
-
         int spacing = (int)(def.Spacing * m_scale.X);
 
-        foreach (StatusBarElementWrapper child in def.Children)
+        for (int i = 0; i < def.Children.Length; i++)
         {
-            if (!EvaluateWrapperConditions(child, context))
-                continue;
-
-  
+            StatusBarElementWrapper child = def.Children[i];
             var bounds = MeasureElement(hud, child, context, m_scale.X, m_scale.Y);
-            child.Size = new(bounds.Width, bounds.Height);
+            child.Size = new Vec2I(bounds.Width, bounds.Height);
 
             if (def.Horizontal)
             {
                 totalWidth += child.Size.X;
-                if (activeCount > 0)
-                    totalWidth += spacing;
+                if (i > 0) totalWidth += spacing;
                 totalHeight = Math.Max(totalHeight, child.Size.Y);
             }
             else
             {
                 totalHeight += child.Size.Y;
-                if (activeCount > 0)
-                    totalHeight += spacing;
+                if (i > 0) totalHeight += spacing;
                 totalWidth = Math.Max(totalWidth, child.Size.X);
             }
-
-            activeCount++;
         }
-
-        if (activeCount == 0)
-            return;
 
         var listPos = ResolvePosition(def, parentPos);
 
@@ -495,7 +481,6 @@ public class StatusBarRenderer
         else if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
             listPos.Y -= totalHeight / 2;
 
-        int currentIdx = 0;
         var cursor = listPos;
         foreach (StatusBarElementWrapper child in def.Children)
         {
@@ -524,8 +509,6 @@ public class StatusBarRenderer
                 DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
                 cursor.Y += child.Size.Y + spacing;
             }
-
-            currentIdx++;
         }
     }
 
@@ -694,8 +677,8 @@ public class StatusBarRenderer
         if (anim.Frames.Length > 0)
         {
             double totalDuration = 0;
-            for (int i = 0; i < anim.Frames.Length; i++)
-                totalDuration += anim.Frames[i].Duration;
+            foreach (StatusBarFrameDef frameDef in anim.Frames)
+                totalDuration += frameDef.Duration;
 
             if (totalDuration > 0)
             {
@@ -1430,10 +1413,7 @@ public class StatusBarRenderer
         {
             if (!m_invalidateBounds)
             {
-                if (t.HasConditions && !EvaluateWrapperConditions(t, context))
-                    continue;
-
-                if (t.HasConditions && t.BoundsSet)
+                if (t.BoundsSet)
                 {
                     ElementBounds.Union(ref contentBounds, t.Bounds);
                     continue;
@@ -1514,8 +1494,14 @@ public class StatusBarRenderer
         float scaleX,
         float scaleY)
     {
-        string p = context.Player.StatusBar.GetFacePatch();
-        if (!hud.Textures.TryGet(p, out IRenderableTextureHandle? h)) return ElementBounds.Empty;
+        const string StabilizerPatch = "STFST01";
+        if (!hud.Textures.TryGet(StabilizerPatch, out IRenderableTextureHandle? h) &&
+            !hud.Textures.TryGet(StabilizerPatch, out h, ResourceNamespace.Sprites))
+        {
+            string p = context.Player.StatusBar.GetFacePatch();
+            if (!hud.Textures.TryGet(p, out h) && !hud.Textures.TryGet(p, out h, ResourceNamespace.Sprites)) 
+                return ElementBounds.Empty;
+        }
 
         Vec2I size = new((int)(h.Dimension.Width * scaleX), (int)(h.Dimension.Height * scaleY));
         int posX = (int)(def.X * scaleX);
@@ -1561,8 +1547,6 @@ public class StatusBarRenderer
 
         foreach (StatusBarElementWrapper child in def.Children)
         {
-            if (!EvaluateWrapperConditions(child, context)) continue;
-
             ElementBounds size = MeasureElement(hud, child, context, sX, sY);
             if (def.Horizontal)
             {
