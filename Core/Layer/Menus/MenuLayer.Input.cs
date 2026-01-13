@@ -11,6 +11,8 @@ namespace Helion.Layer.Menus;
 
 public partial class MenuLayer
 {
+    private Vec2I m_lastCursorPos;
+
     private bool MenuNotChanged(Menu menu) => !m_menus.Empty() && ReferenceEquals(menu, m_menus.Peek());
 
     private void ClearMenu(bool playSound)
@@ -44,17 +46,18 @@ public partial class MenuLayer
         input.ConsumeAll();
     }
 
-    private Vec2I m_lastCursorPos;
-
     private void InvokeAndPushMenu(Func<Menu?> action)
     {
         var subMenu = action();
         if (subMenu != null)
-        {
-            m_resetMouse = true;
-            UpdateMouseMenu();
-            m_menus.Push(subMenu);
-        }
+            PushMenu(subMenu);
+    }
+
+    public void PushMenu(Menu menu)
+    {
+        m_resetMouse = true;
+        UpdateMouseMenu();
+        m_menus.Push(menu);
     }
 
     private void HandleInputForMenu(Menu menu, IConsumableInput input)

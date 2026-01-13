@@ -32,6 +32,7 @@ public class SaveMenu : Menu
     private const string EmptySlotText = "Empty slot";
     private const string NoSavedGamesText = "There are no saved games.";
     private static readonly string[] DeleteConfirmationText = ["Are you sure you want to delete this save?", "Press Y to confirm."];
+    private static readonly string[] IncompatibleLoadText = ["Are you sure you want to load" , "this potentially incompatible save?", "Press Y to confirm."];
 
     public bool IsTypingName => RowLocked;
 
@@ -52,6 +53,7 @@ public class SaveMenu : Menu
     private readonly MenuPaddingComponent SmallPadding = new(4);
     private readonly MenuSmallTextComponent NoSavedGamesComponent = new(NoSavedGamesText);
 
+    private MenuSaveRowComponent? m_confirmIncompatibleSave;
     private SaveGame? m_deleteSave;
 
     public SaveMenu(MenuLayer parent, IWindow window, IConfig config, HelionConsole console, SoundManager soundManager,
@@ -186,7 +188,7 @@ public class SaveMenu : Menu
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
                 return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default, save.IsCompatible == true,
-                    CreateConsoleCommand($"load \"{fileName}\""), CreateDeleteCommand(save), save);
+                    LoadFile(fileName), CreateDeleteCommand(save), save);
             });
             newComponents.AddRange(saveRowComponents);
             if (GetPageCount() > 1)
@@ -196,6 +198,18 @@ public class SaveMenu : Menu
         return newComponents;
     }
 
+    private Func<Menu?> LoadFile(string fileName)
+    {
+        return () =>
+        {
+            if (m_confirmIncompatibleSave == null)
+                Console.SubmitInputText($"load \"{fileName}\"");
+            else
+                Console.SubmitInputText($"forceload \"{fileName}\"");
+
+            return null;
+        };
+    }
 
     public override void HandleInput(IConsumableInput input)
     {
@@ -259,14 +273,31 @@ public class SaveMenu : Menu
                 if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft)) // Load
                 {
                     if (!savedGameRow.IsCompatible)
-                        SoundManager.PlayStaticSound(Constants.MenuSounds.Invalid);
+                    {
+                        m_confirmIncompatibleSave = savedGameRow;
+                        var confirm = new MessageMenu(Window, Config, Console, SoundManager, ArchiveCollection,
+                            IncompatibleLoadText, isYesNoConfirm: true, clearMenus: false);
+                        confirm.Cleared += IncompatibleSaveCleared;
+                        m_parent.PushMenu(confirm);
+                        return;
+                    }
                     else
+                    {
                         savedGameRow.Action?.Invoke();
+                    }
                 }
                 else
                     ConsumeAndHandlePageChange(input);
             }
         }
+    }
+
+    private void IncompatibleSaveCleared(object? sender, bool confirmed)
+    {
+        if (confirmed && m_confirmIncompatibleSave != null)
+            m_confirmIncompatibleSave.Action?.Invoke();
+
+        m_confirmIncompatibleSave = null;
     }
 
     private void ConsumeAndHandlePageChange(IConsumableInput input)
