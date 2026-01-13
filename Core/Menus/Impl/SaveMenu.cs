@@ -63,7 +63,7 @@ public class SaveMenu : Menu
         m_canSave = canSave;
         IsSaveMenu = isSave;
         m_screenshotGenerator = screenshotGenerator;
-        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");        
+        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");
 
         m_saveGames = saveManager.GetSaveGames();
         UpdateMenuComponents(setTop: true);

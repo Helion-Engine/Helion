@@ -44,7 +44,7 @@ public class SaveGameManager
     private readonly string? m_saveDirCommandLineArg;
     private readonly List<SaveGame> m_currentSaves = [];
     private readonly List<SaveGame> m_matchingSaves = [];
-    private readonly Comparison<SaveGame> m_saveDateComparison = new(CompareSaveDates);
+    private readonly Comparison<SaveGame> m_saveComparison = new(CompareSaveCompatibilityAndDates);
     private readonly Func<SaveGameEvent> m_saveFunc;
     private bool m_currentSavesLoaded;
     private bool m_saving;
@@ -162,20 +162,20 @@ public class SaveGameManager
 
     private SaveGame? GetExistingSave(SaveGame? existingSave, SaveGameType type)
     {
-        var saveGames = GetSaveGames(compatibleOnly: true, sortByDate: false);
+        var saveGames = GetSaveGames(compatibleOnly: true);
 
         if (existingSave == null && type == SaveGameType.Auto && m_config.Game.RotatingAutoSaves > 0)
         {
-            var autoSaves = saveGames.Where(x => x.Type == SaveGameType.Auto).OrderBy(x => x.Model?.Date);
+            var autoSaves = saveGames.Where(x => x.Type == SaveGameType.Auto);
             if (autoSaves.Any() && autoSaves.Count() >= m_config.Game.RotatingAutoSaves)
-                existingSave = autoSaves.First();
+                existingSave = autoSaves.Last();
         }
 
         if (existingSave == null && type == SaveGameType.Quick && m_config.Game.RotatingQuickSaves > 0)
         {
-            var quickSaves = saveGames.Where(x => x.Type == SaveGameType.Quick).OrderBy(x => x.Model?.Date);
+            var quickSaves = saveGames.Where(x => x.Type == SaveGameType.Quick);
             if (quickSaves.Any() && quickSaves.Count() >= m_config.Game.RotatingQuickSaves)
-                existingSave = quickSaves.First();
+                existingSave = quickSaves.Last();
         }
 
         return existingSave;
@@ -186,12 +186,14 @@ public class SaveGameManager
         return model != null && ModelVerification.VerifyModelFiles(model.Files, m_archiveCollection, null);
     }
 
-    public List<SaveGame> GetSaveGames(bool compatibleOnly = false, bool sortByDate = true)
+    /// <summary>
+    /// Gets save games, ordered by compatible first, then newest first.
+    /// </summary>
+    public List<SaveGame> GetSaveGames(bool compatibleOnly = false)
     {
         LoadCurrentSaveFiles();
         var saves = compatibleOnly ? m_matchingSaves : m_currentSaves;
-        if (sortByDate)
-            saves.Sort(m_saveDateComparison);
+        saves.Sort(m_saveComparison);
         return saves;
     }
 
@@ -243,7 +245,7 @@ public class SaveGameManager
         };
     }
 
-    private static int CompareSaveDates(SaveGame x, SaveGame y)
+    private static int CompareSaveCompatibilityAndDates(SaveGame x, SaveGame y)
     {
         if (x.Model == null)
             return 1;
@@ -251,6 +253,12 @@ public class SaveGameManager
         if (y.Model == null)
             return -1;
 
+        // sort compatible saves first
+        if (x.IsCompatible != y.IsCompatible)
+            return x.IsCompatible == true ? -1 : 1;
+
+        // then by most recent first
         return y.Model.Date.CompareTo(x.Model.Date);
+
     }
 }
