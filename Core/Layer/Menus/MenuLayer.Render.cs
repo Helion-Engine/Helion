@@ -240,16 +240,18 @@ public partial class MenuLayer
     private void DrawSaveRow(IHudRenderContext hud, SaveMenu saveMenu, MenuSaveRowComponent saveRowComponent, bool isSelected,
         bool wasPreviouslySelected, ref int offsetY, bool detailsEnabled, out Box2I drawArea)
     {
-        string fontName = saveRowComponent.IsCompatible ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        bool isTypingTarget = isSelected && saveMenu.IsTypingName;
+
+        string fontName = (saveRowComponent.IsCompatible || isTypingTarget) ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
         int fontSize = hud.GetFontMaxHeight(fontName) - 2;
         int menuRowWidth = GetSaveRowWidth(detailsEnabled);
 
         var textDimension = hud.MeasureText("_", fontName, fontSize);
-        var textHeight = textDimension.Height; 
+        var textHeight = textDimension.Height;
 
         string saveText;
         var textRowWidth = menuRowWidth - 8;
-        if (isSelected && saveMenu.IsTypingName)
+        if (isTypingTarget)
         {
             var typedTextRowWidth = textRowWidth;
             //Account for cursor flashing
@@ -382,7 +384,6 @@ public partial class MenuLayer
         {
             offset += (0, area.Height);
             hud.Text("WADS differ", fontName, textSize, offset, out area);
-            offset += (0, area.Height);
         }
     }
 }

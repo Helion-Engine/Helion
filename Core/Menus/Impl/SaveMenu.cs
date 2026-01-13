@@ -218,7 +218,7 @@ public class SaveMenu : Menu
                 }
                 else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
                 {
-                    if (savedGameRow.IsAutoOrQuickSave || !savedGameRow.IsCompatible)
+                    if (savedGameRow.IsAutoOrQuickSave)
                     {
                         SoundManager.PlayStaticSound(Constants.MenuSounds.Invalid);
                     }
