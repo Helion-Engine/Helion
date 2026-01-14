@@ -103,12 +103,13 @@ public sealed class Sector3D
     public bool ShouldRenderWalls => ControlTop.Z - ControlBottom.Z > 0 && (Flags & SectorFlags3D.NoRender) == 0;
     public bool ShouldRenderFlats => ControlTop.Z - ControlBottom.Z >= 0 && (Flags & SectorFlags3D.NoRender) == 0;
     public bool ShouldRenderInsideWalls => (Flags & SectorFlags3D.RenderInside) != 0;
+    public bool IsOpaque => RenderDataStyle == RenderDataStyle.Normal;
     public RenderDataStyle RenderDataStyle;
     public ClipStyle ClipStyle;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
     private static readonly Comparison<Sector3D> SortSectors3D = new(HeightCompare);
-    private static readonly Comparison<SectorPlane3D> SortPlanes3D = new(PlaneHeightCompare);
+    private static readonly Comparison<SectorPlane3D> SortPlanesByKey3D = new(PlaneHeightKeyCompare);
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
     {
@@ -199,7 +200,10 @@ public sealed class Sector3D
             sector3D.RenderPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
         }
 
-        sector.SectorPlanes3D.Sort(SortPlanes3D);
+        for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
+            sector.SectorPlanes3D[i].UpdateSortKey();
+
+        sector.SectorPlanes3D.Sort(SortPlanesByKey3D);
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
@@ -233,7 +237,7 @@ public sealed class Sector3D
                     lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
                     lastPlane3D.Ignore = true;
                 }
-                else if ((lastPlane3D.Sector3D.Flags & SectorFlags3D.NoRender) == 0)
+                else if ((lastPlane3D.Sector3D.Flags & SectorFlags3D.NoRender) == 0 && lastPlane3D.Sector3D != plane3D.Sector3D)
                 {
                     // Flag to update lighting for the previous 3D sector
                     overlapLight = true;
@@ -253,6 +257,11 @@ public sealed class Sector3D
             if (overlapLight && overlapLightPlane3D.Sector3D != null)
                 SetLight(overlapLightPlane3D.Sector3D, ref overlapLightPlane3D, currentLightSector);
         }
+    }
+
+    private static int PlaneHeightKeyCompare(SectorPlane3D x, SectorPlane3D y)
+    {
+        return x.SortKey.CompareTo(y.SortKey);
     }
 
     private static void SetLight(Sector3D sector3D, ref SectorPlane3D plane3D, Sector lightSector)
@@ -307,29 +316,6 @@ public sealed class Sector3D
     private static int HeightCompare(Sector3D x, Sector3D y)
     {
         return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
-    }
-
-    private static int PlaneHeightCompare(SectorPlane3D x, SectorPlane3D y)
-    {
-        var yZ = y.Plane.Z;
-        var xZ = x.Plane.Z;
-
-        if (y.Sector3D != null && y.Face == PlaneFace3D.Bottom)
-            yZ = y.Sector3D.ClipBottomZ;
-
-        if (x.Sector3D != null && x.Face == PlaneFace3D.Bottom)
-            xZ = x.Sector3D.ClipBottomZ;
-
-        if (yZ == xZ && y.Sector3D != null && x.Sector3D != null)
-        {
-            // If they are the same plane face then lower control sector takes precedence.
-            if (x.Face == y.Face)
-                return x.Sector3D.ControlSector.Id.CompareTo(y.Sector3D.ControlSector.Id);
-
-            return (y.Face == PlaneFace3D.Bottom) ? 1 : -1;
-        }
-
-        return yZ.CompareTo(xZ);
     }
 
     public void Reset()
@@ -635,5 +621,5 @@ public sealed class Sector3D
         return controlSectorSide.Middle.TextureHandle;
     }
 
-    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";
+    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} Style={RenderDataStyle} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";
 }
