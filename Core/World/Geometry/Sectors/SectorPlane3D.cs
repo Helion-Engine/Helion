@@ -15,12 +15,16 @@ public struct SectorPlane3D(SectorPlane controlPlane, SectorPlane plane, Sector3
     public bool Ignore;
     public PlaneSortKey SortKey;
 
+    public readonly double GetZ() => (Sector3D != null && Face == PlaneFace3D.Bottom)
+            ? Sector3D.ClipBottomZ
+            : Plane.Z;
+
     public void UpdateSortKey()
     {
         SortKey = new(this);
     }
 
-    public override readonly string ToString() => $"ControlPlane={{{ControlPlane}}} Sector3D={{{Sector3D}}}";
+    public override readonly string ToString() => $"Z={{{GetZ()}}} Face={{{Face}}} ControlPlane={{{ControlPlane}}} Sector3D={{{Sector3D}}}";
 }
 
 public readonly struct PlaneSortKey : IComparable<PlaneSortKey>
@@ -34,9 +38,7 @@ public readonly struct PlaneSortKey : IComparable<PlaneSortKey>
 
     public PlaneSortKey(SectorPlane3D p)
     {
-        Z = (p.Sector3D != null && p.Face == PlaneFace3D.Bottom)
-            ? p.Sector3D.ClipBottomZ
-            : p.Plane.Z;
+        Z = p.GetZ();
 
         ControlTopZ = p.Sector3D?.ControlTop.Z ?? p.Plane.Z;
 
