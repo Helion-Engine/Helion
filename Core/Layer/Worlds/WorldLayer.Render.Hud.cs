@@ -830,14 +830,14 @@ public partial class WorldLayer
 
     private void DrawMinimalTotalAmmo(IHudRenderContext hud)
     {	
-	// m_cell controls the y distance from the main ammo count. All other multipliers should be the same spacing
-	// from m_cell and each other for alignment (e.g. m_rckt 9.5 | m_shel 12.5 | m_bull 15.5 are all 3 apart).
-	// A spacing of 2 mimics the vanilla HUD spacing fairly well.
-	float m_adj = (float)m_padding;
-	var m_cell = m_adj * 7.2;
-	var m_rckt = m_adj * 9.2;
-	var m_shel = m_adj * 11.2;
-	var m_bull = m_adj * 13.2;
+        // m_cell controls the y distance from the main ammo count. All other multipliers should be the same spacing
+        // from m_cell and each other for alignment (e.g. m_rckt 9.5 | m_shel 12.5 | m_bull 15.5 are all 3 apart).
+        // A spacing of 2 mimics the vanilla HUD spacing fairly well.
+        float m_adj = (float)m_padding;
+        var m_cell = m_adj * 7.2;
+        var m_rckt = m_adj * 9.2;
+        var m_shel = m_adj * 11.2;
+        var m_bull = m_adj * 13.2;
 	
         DrawMinimalTotalAmmoText(hud, "Clip", m_padding - (int)m_bull);
         DrawMinimalTotalAmmoText(hud, "Shell", m_padding - (int)m_shel);
@@ -850,10 +850,10 @@ public partial class WorldLayer
         m_fontHeight = (int)(6 * m_scale);
         int x = -m_padding - m_hudPaddingX;
 
-	// the divisor below tunes how far inboard the counts go;
-	// offsetting slightly behind the main ammo edge looks better
-	// than actually aligning them.
-	x = x - (int)(m_padding / 1.3);
+        // the divisor below tunes how far inboard the counts go;
+        // offsetting slightly behind the main ammo edge looks better
+        // than actually aligning them.
+        x = x - (int)(m_padding / 1.3);
         const string YellowFontName = "HudYellowNumbers";
         int ammo = Player.Inventory.Amount(ammoName);
 
