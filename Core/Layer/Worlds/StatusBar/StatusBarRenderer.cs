@@ -1061,8 +1061,11 @@ public class StatusBarRenderer
 
         ImageBox2I? cropArea = GetCropArea(handle, cropDef);
 
-        int w = (int)(handle.Dimension.Width * m_scale.X);
-        int h = (int)(handle.Dimension.Height * m_scale.Y);
+        int baseWidth = cropArea?.Width ?? handle.Dimension.Width;
+        int baseHeight = cropArea?.Height ?? handle.Dimension.Height;
+
+        int w = (int)(baseWidth * m_scale.X);
+        int h = (int)(baseHeight * m_scale.Y);
 
         Vec2I translatedOffset = RenderDimensions.TranslateDoomOffset(handle.Offset);
         int offsetX = (sbarAlign & StatusBarAlignment.IgnoreLeftOffset) == 0 ? (int)(translatedOffset.X * m_scale.X) : 0;
@@ -1447,10 +1450,13 @@ public class StatusBarRenderer
     private static ElementBounds MeasureGraphic(StatusBarGraphicDef def, float scaleX, float scaleY)
     {
         IRenderableTextureHandle? handle = def.Handle;
-        if (handle == null)
-            return ElementBounds.Empty;
+        if (handle == null) return ElementBounds.Empty;
 
-        Vec2I size = new((int)(handle.Dimension.Width * scaleX), (int)(handle.Dimension.Height * scaleY));
+        ImageBox2I? cropArea = GetCropArea(handle, def.Crop);
+        int baseWidth = cropArea?.Width ?? handle.Dimension.Width;
+        int baseHeight = cropArea?.Height ?? handle.Dimension.Height;
+
+        Vec2I size = new((int)(baseWidth * scaleX), (int)(baseHeight * scaleY));
         int posX = (int)(def.X * scaleX);
         int posY = (int)(def.Y * scaleY);
 
@@ -1503,7 +1509,11 @@ public class StatusBarRenderer
                 return ElementBounds.Empty;
         }
 
-        Vec2I size = new((int)(h.Dimension.Width * scaleX), (int)(h.Dimension.Height * scaleY));
+        ImageBox2I? cropArea = GetCropArea(h, def.Crop);
+        int baseWidth = cropArea?.Width ?? h.Dimension.Width;
+        int baseHeight = cropArea?.Height ?? h.Dimension.Height;
+
+        Vec2I size = new((int)(baseWidth * scaleX), (int)(baseHeight * scaleY));
         int posX = (int)(def.X * scaleX);
         int posY = (int)(def.Y * scaleY);
 
