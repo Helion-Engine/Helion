@@ -113,21 +113,6 @@ public class GeometryRenderer : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    private static void PushSeg(Line line, Side facingSide)
-    {
-        if (WorldStatic.LineVertexGap == 0)
-            return;
-
-        // Push it out to prevent potential z-fighting. Default pushes out from the sector.
-        var angle = facingSide == line.Front ? line.GetAngle() : line.GetAngle() + MathHelper.Pi;
-        angle += MathHelper.Pi;
-
-        // ReversedZ allows for a much smaller push amount. Always set to LineVertexGap to close the middle texture with extended inside wall.
-        var pushUnit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * WorldStatic.LineVertexGap;
-        line.RenderSegStart += pushUnit;
-        line.RenderSegEnd += pushUnit;
-    }
-
     public void UpdateTo(IWorld world)
     {
         m_world = world;
@@ -1209,20 +1194,12 @@ public class GeometryRenderer : IDisposable
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
-            // Push forward to cover flood fill side and prevent z-fighting (ex Doom2 MAP25 bloodfall)
             var saveStart = line.RenderSegStart;
             var saveEnd = line.RenderSegEnd;
 
-            // Restore the original position for alpha walls. Touching walls look bad with the overlap and it's not necessary.
-            if (m_pixelGapCorrection && alpha < 1)
-            {
-                line.RenderSegStart = line.Segment.Start;
-                line.RenderSegEnd = line.Segment.End;
-            }
-
-            // Don't push with flood plane. This is different from flood fill side and are already pushed.
-            if (!facingSector.Flood)
-                PushSeg(line, facingSide);
+            // Restore original position for two-sided middle walls. Touching walls look bad with the overlap and it's not necessary.
+            line.RenderSegStart = line.Segment.Start;
+            line.RenderSegEnd = line.Segment.End;
 
             var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, false);
             var prevOpening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, true);
