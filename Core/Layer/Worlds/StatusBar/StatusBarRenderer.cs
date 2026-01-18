@@ -396,7 +396,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, def))
             return;
 
-        Vec2I currentPos = ResolvePosition(def, parentPos);
+        Vec2I currentPos = ResolvePosition(def, parentPos, widescreenOffset);
 
         bool hAlign = (def.Alignment & (StatusBarAlignment.Right | StatusBarAlignment.HCenter)) != 0;
         bool vAlign = (def.Alignment & (StatusBarAlignment.Bottom | StatusBarAlignment.VCenter)) != 0;
@@ -425,12 +425,7 @@ public class StatusBarRenderer
                     currentPos.Y -= bounds.Y2;
             }
         }
-
-        if ((def.Alignment & StatusBarAlignment.WidescreenLeft) != 0)
-            currentPos.X -= (int)widescreenOffset;
-        if ((def.Alignment & StatusBarAlignment.WidescreenRight) != 0)
-            currentPos.X += (int)widescreenOffset;
-
+        
         DrawChildren(hud, def, currentPos, containerHeight, context, widescreenOffset, rootPos);
     }
 
@@ -469,7 +464,7 @@ public class StatusBarRenderer
             }
         }
 
-        var listPos = ResolvePosition(def, parentPos);
+        var listPos = ResolvePosition(def, parentPos, widescreenOffset);
 
         if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
             listPos.X -= totalWidth / 2;
@@ -496,7 +491,7 @@ public class StatusBarRenderer
                 else if ((def.Alignment & StatusBarAlignment.VCenter) != 0)
                     childPos.Y += (totalHeight - child.Size.Y) / 2;
 
-                DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
+                DrawElementWrapper(hud, child, childPos, containerHeight, context, 0, rootPos);
                 cursor.X += child.Size.X + spacing;
             }
             else
@@ -506,7 +501,7 @@ public class StatusBarRenderer
                 else if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
                     childPos.X += (totalWidth - child.Size.X) / 2;
 
-                DrawElementWrapper(hud, child, childPos, containerHeight, context, widescreenOffset, rootPos);
+                DrawElementWrapper(hud, child, childPos, containerHeight, context, 0, rootPos);
                 cursor.Y += child.Size.Y + spacing;
             }
         }
@@ -522,7 +517,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, def))
             return;
 
-        Vec2I vPos = ResolvePosition(def, parentPos);
+        Vec2I vPos = ResolvePosition(def, parentPos, widescreenOffset);
 
         float nScaleX = m_userScale;
         float nScaleY = m_userScale * 1.2f;
@@ -546,7 +541,7 @@ public class StatusBarRenderer
         int pivotY = (bounds.Y1 + bounds.Y2) / 2;
 
         int nativeX = (int)Math.Floor((vPos.X + m_hOffset) * m_currentScale);
-        int nativeY = (int)Math.Floor((vPos.Y + m_vOffset) * m_currentScale * 1.2f);
+        int nativeY = (int)Math.Floor((vPos.Y * 1.2f + m_vOffset) * m_currentScale);
 
         if ((def.Alignment & StatusBarAlignment.HCenter) != 0)
             nativeX -= pivotX;
@@ -561,12 +556,6 @@ public class StatusBarRenderer
             nativeY -= bounds.Y2;
         else
             nativeY -= bounds.Y1;
-
-        int hWidescreenShift = (int)(widescreenOffset * m_currentScale);
-        if ((def.Alignment & StatusBarAlignment.WidescreenLeft) != 0)
-            nativeX -= hWidescreenShift;
-        if ((def.Alignment & StatusBarAlignment.WidescreenRight) != 0)
-            nativeX += hWidescreenShift;
 
         Vec2I nativeRoot = (nativeX, nativeY);
 
@@ -592,7 +581,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, graphic))
             return;
 
-        Vec2I currentPos = ResolvePosition(graphic, parentPos);
+        Vec2I currentPos = ResolvePosition(graphic, parentPos, widescreenOffset);
 
         if (graphic.Handle != null || !string.IsNullOrEmpty(graphic.Patch))
         {
@@ -612,7 +601,7 @@ public class StatusBarRenderer
                 graphic.Crop);
         }
 
-        DrawChildren(hud, graphic, currentPos, containerHeight, context, widescreenOffset, (0, 0));
+        DrawChildren(hud, graphic, currentPos, containerHeight, context, 0, (0, 0));
     }
 
     private void DrawFace(IHudRenderContext hud,
@@ -625,7 +614,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, face))
             return;
 
-        Vec2I currentPos = ResolvePosition(face, parentPos);
+        Vec2I currentPos = ResolvePosition(face, parentPos, widescreenOffset);
         string patch = context.Player.StatusBar.GetFacePatch();
 
         if (!string.IsNullOrEmpty(patch))
@@ -636,7 +625,7 @@ public class StatusBarRenderer
             DrawSBarTexture(hud, patch, null, currentPos, align, face.Alignment, face.Translation, alpha, face.Crop);
         }
 
-        DrawChildren(hud, face, currentPos, containerHeight, context, widescreenOffset, (0, 0));
+        DrawChildren(hud, face, currentPos, containerHeight, context, 0, (0, 0));
     }
 
     private void DrawFaceBackground(IHudRenderContext hud,
@@ -649,7 +638,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, faceBg))
             return;
 
-        Vec2I currentPos = ResolvePosition(faceBg, parentPos);
+        Vec2I currentPos = ResolvePosition(faceBg, parentPos, widescreenOffset);
 
         if (faceBg.Handle != null)
         {
@@ -659,7 +648,7 @@ public class StatusBarRenderer
             DrawSBarTexture(hud, "STFB0", faceBg.Handle, currentPos, align, faceBg.Alignment, faceBg.Translation, alpha);
         }
 
-        DrawChildren(hud, faceBg, currentPos, containerHeight, context, widescreenOffset, (0, 0));
+        DrawChildren(hud, faceBg, currentPos, containerHeight, context, 0, (0, 0));
     }
 
     private void DrawAnimation(IHudRenderContext hud,
@@ -672,7 +661,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, anim))
             return;
 
-        Vec2I currentPos = ResolvePosition(anim, parentPos);
+        Vec2I currentPos = ResolvePosition(anim, parentPos, widescreenOffset);
 
         if (anim.Frames.Length > 0)
         {
@@ -710,7 +699,7 @@ public class StatusBarRenderer
             }
         }
 
-        DrawChildren(hud, anim, currentPos, containerHeight, context, widescreenOffset, (0, 0));
+        DrawChildren(hud, anim, currentPos, containerHeight, context, 0, (0, 0));
     }
 
     private void DrawString(IHudRenderContext hud,
@@ -723,7 +712,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, def))
             return;
 
-        Vec2I pos = ResolvePosition(def, parentPos);
+        Vec2I pos = ResolvePosition(def, parentPos, widescreenOffset);
         ReadOnlySpan<char> text = GetStringValue(def);
         if (text.IsEmpty) return;
 
@@ -733,10 +722,10 @@ public class StatusBarRenderer
         float alpha = def.Translucency ? 0.5f : 1.0f;
 
         RenderLines(hud, text, pos, fontDef, fontHeight, def.Alignment, def.Translation, alpha);
-        DrawChildren(hud, def, pos, containerHeight, context, widescreenOffset, (0, 0));
+        DrawChildren(hud, def, pos, containerHeight, context, 0, (0, 0));
     }
 
-    private void DrawComponent(IHudRenderContext hud,
+        private void DrawComponent(IHudRenderContext hud,
         StatusBarComponentDef comp,
         Vec2I parentPos,
         int containerHeight,
@@ -747,7 +736,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, comp))
             return;
 
-        Vec2I pos = ResolvePosition(comp, parentPos);
+        Vec2I pos = ResolvePosition(comp, parentPos, widescreenOffset);
         ConfigHud config = m_world.Config.Hud;
         float alpha = comp.Translucency ? 0.5f : 1.0f;
         StatusBarAlignment alignment = comp.Alignment;
@@ -837,7 +826,7 @@ public class StatusBarRenderer
                 return;
         }
 
-        DrawChildren(hud, comp, pos, containerHeight, context, widescreenOffset, rootPos);
+        DrawChildren(hud, comp, pos, containerHeight, context, 0, rootPos);
     }
 
     private void RenderLines(IHudRenderContext hud,
@@ -1028,7 +1017,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(context, carousel))
             return;
 
-        Vec2I pos = ResolvePosition(carousel, parentPos);
+        Vec2I pos = ResolvePosition(carousel, parentPos, widescreenOffset);
         pos.X = 160;
 
         if (context.Player.Weapon != null)
@@ -1042,7 +1031,7 @@ public class StatusBarRenderer
             }
         }
 
-        DrawChildren(hud, carousel, pos, containerHeight, context, widescreenOffset, rootPos);
+        DrawChildren(hud, carousel, pos, containerHeight, context, 0, rootPos);
     }
 
     private void DrawSBarTexture(IHudRenderContext hud,
@@ -1061,8 +1050,11 @@ public class StatusBarRenderer
 
         ImageBox2I? cropArea = GetCropArea(handle, cropDef);
 
-        int w = (int)(handle.Dimension.Width * m_scale.X);
-        int h = (int)(handle.Dimension.Height * m_scale.Y);
+        int baseWidth = cropArea?.Width ?? handle.Dimension.Width;
+        int baseHeight = cropArea?.Height ?? handle.Dimension.Height;
+
+        int w = (int)(baseWidth * m_scale.X);
+        int h = (int)(baseHeight * m_scale.Y);
 
         Vec2I translatedOffset = RenderDimensions.TranslateDoomOffset(handle.Offset);
         int offsetX = (sbarAlign & StatusBarAlignment.IgnoreLeftOffset) == 0 ? (int)(translatedOffset.X * m_scale.X) : 0;
@@ -1124,7 +1116,7 @@ public class StatusBarRenderer
 
         ReadOnlySpan<char> text = m_fmtSpan.AsSpan();
 
-        Vec2I pos = ResolvePosition(number, parentPos);
+        Vec2I pos = ResolvePosition(number, parentPos, widescreenOffset);
 
         float alpha = number.Translucency ? 0.5f : 1.0f;
         int totalWidth = 0;
@@ -1189,7 +1181,11 @@ public class StatusBarRenderer
         if ((number.Alignment & StatusBarAlignment.HCenter) != 0) drawX -= totalWidth / 2;
         else if ((number.Alignment & StatusBarAlignment.Right) != 0) drawX -= totalWidth;
 
-        Align yAnchor = (number.Alignment & StatusBarAlignment.Bottom) != 0 ? Align.BottomLeft : Align.TopLeft;
+        Align yAnchor = Align.TopLeft;
+        if ((number.Alignment & StatusBarAlignment.Bottom) != 0) 
+            yAnchor = Align.BottomLeft;
+        else if ((number.Alignment & StatusBarAlignment.VCenter) != 0) 
+            yAnchor = Align.MiddleLeft; 
 
         foreach (RenderGlyph g in m_glyphCache)
         {
@@ -1198,7 +1194,7 @@ public class StatusBarRenderer
             drawX += g.Width;
         }
 
-        DrawChildren(hud, number, pos, containerHeight, context, widescreenOffset, (0, 0));
+        DrawChildren(hud, number, pos, containerHeight, context, 0, (0, 0));
     }
 
     private void DrawStatTotals(IHudRenderContext hud,
@@ -1447,10 +1443,13 @@ public class StatusBarRenderer
     private static ElementBounds MeasureGraphic(StatusBarGraphicDef def, float scaleX, float scaleY)
     {
         IRenderableTextureHandle? handle = def.Handle;
-        if (handle == null)
-            return ElementBounds.Empty;
+        if (handle == null) return ElementBounds.Empty;
 
-        Vec2I size = new((int)(handle.Dimension.Width * scaleX), (int)(handle.Dimension.Height * scaleY));
+        ImageBox2I? cropArea = GetCropArea(handle, def.Crop);
+        int baseWidth = cropArea?.Width ?? handle.Dimension.Width;
+        int baseHeight = cropArea?.Height ?? handle.Dimension.Height;
+
+        Vec2I size = new((int)(baseWidth * scaleX), (int)(baseHeight * scaleY));
         int posX = (int)(def.X * scaleX);
         int posY = (int)(def.Y * scaleY);
 
@@ -1503,7 +1502,11 @@ public class StatusBarRenderer
                 return ElementBounds.Empty;
         }
 
-        Vec2I size = new((int)(h.Dimension.Width * scaleX), (int)(h.Dimension.Height * scaleY));
+        ImageBox2I? cropArea = GetCropArea(h, def.Crop);
+        int baseWidth = cropArea?.Width ?? h.Dimension.Width;
+        int baseHeight = cropArea?.Height ?? h.Dimension.Height;
+
+        Vec2I size = new((int)(baseWidth * scaleX), (int)(baseHeight * scaleY));
         int posX = (int)(def.X * scaleX);
         int posY = (int)(def.Y * scaleY);
 
@@ -1731,9 +1734,18 @@ public class StatusBarRenderer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Vec2I ResolvePosition(StatusBarBaseDef def, Vec2I parentPos)
+    private Vec2I ResolvePosition(StatusBarBaseDef def, Vec2I parentPos, float widescreenOffset)
     {
-        return (parentPos.X + (int)(def.X * m_scale.X), parentPos.Y + (int)(def.Y * m_scale.Y));
+        Vec2I pos = parentPos;
+        pos.X += (int)(def.X * m_scale.X);
+        pos.Y += (int)(def.Y * m_scale.Y);
+
+        if ((def.Alignment & StatusBarAlignment.WidescreenLeft) != 0)
+            pos.X -= (int)widescreenOffset;
+        else if ((def.Alignment & StatusBarAlignment.WidescreenRight) != 0)
+            pos.X += (int)widescreenOffset;
+
+        return pos;
     }
 
     private static bool ResolveGlyph(IHudRenderContext hud, string patch, out int width, out int height)

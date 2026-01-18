@@ -381,6 +381,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         // Doom would draw middle textures over flood fill.
         // Setting the factor using PolygonOffset will push them further away in depth so middle textures are closer and render over.
+        // Very tiny for reversed z. Flood fill is pushed in world coordinates in the shader.
         GL.Enable(EnableCap.PolygonOffsetFill);
         SetPolygonOffsetFloodFill();
         m_geometryRenderer.RenderPortals(renderInfo);
@@ -390,7 +391,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private static void SetPolygonOffsetFloodFill()
     {
         if (ShaderVars.ReversedZ)
-            GL.PolygonOffset(-0.005f, -0.1f);
+            GL.PolygonOffset(-0.005f, -0.002f);
         else
             GL.PolygonOffset(0.05f, 1f);
     }

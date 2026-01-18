@@ -27,6 +27,7 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_useBrightmapsLocation;
+    private readonly int m_cameraDirection;
 
     public FloodFillProgram(string name) : base($"FloodFill - {name}")
     {
@@ -48,6 +49,7 @@ public class FloodFillProgram : RenderProgram
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
+        m_cameraDirection = Uniforms.GetLocation("cameraDirection");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -55,6 +57,7 @@ public class FloodFillProgram : RenderProgram
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
 
+    public void CameraDirection(Vec3F dir) => ProgramUniforms.Set(dir, m_cameraDirection);
     public void Camera(Vec3F camera) => ProgramUniforms.Set(camera, m_cameraLocation);
     public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
     public void TimeFrac(float frac) => ProgramUniforms.Set(frac, m_timeFracLocation);
@@ -101,6 +104,7 @@ public class FloodFillProgram : RenderProgram
 
         uniform mat4 mvp;
         uniform vec3 camera;
+        uniform vec3 cameraDirection;
         uniform float timeFrac;
 
         void main()
@@ -119,11 +123,12 @@ public class FloodFillProgram : RenderProgram
             ${VertexLightBuffer}
             ${SectorColorMapVertexFunction}
 
-            if (camera.z <= minViewZ || camera.z >= maxViewZ)
-                gl_Position = vec4(0, 0, 0, 1);
-            else
-                gl_Position = mvp * vec4(vertexPosFrag, 1.0);
-            
+            // Match doom behavior to not render flood view when camera is above/below ceiling/floor
+            vec3 worldPos = mix(vertexPosFrag + cameraDirection * 0.001,
+                vec3(0.0, 0.0, 0.0), 
+                float(camera.z <= minViewZ || camera.z >= maxViewZ));
+
+            gl_Position = mvp * vec4(worldPos, 1.0);
             depthFrag = gl_Position.${Depth};
         }
     "
