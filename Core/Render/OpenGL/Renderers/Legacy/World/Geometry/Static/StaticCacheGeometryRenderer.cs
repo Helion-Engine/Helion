@@ -302,16 +302,17 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (side.PartnerSide != null && side.Sector == side.PartnerSide.Sector)
             return;
 
+        var textureManager = m_world.ArchiveCollection.TextureManager;
         bool floodFloor = (flood && !sector.Floor.MidTextureHack) || side.MidTextureFlood != SectorPlanes.None;
         bool floodCeiling = (flood && !sector.Ceiling.MidTextureHack) || side.MidTextureFlood != SectorPlanes.None;
 
         bool skyHack = false;
         if (side.PartnerSide != null)
-            GeometryRenderer.UpperOrSkySideIsVisible(m_world.ArchiveCollection.TextureManager, side, side.Sector, side.PartnerSide.Sector, out skyHack);
+            GeometryRenderer.UpperOrSkySideIsVisible(textureManager, side, side.Sector, side.PartnerSide.Sector, out skyHack);
 
         if (floodFloor && side.FloorFloodKey == 0)
         {
-            if (!m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Floor.TextureHandle))
+            if (!textureManager.IsSkyTexture(sector.Floor.TextureHandle))
             {
                 m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlanes.Floor, SectorPlaneFace.Floor, isFrontSide, m_floodFillRenderer);
             }
@@ -324,8 +325,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         // Sky ceilings are handled differently
-        if (floodCeiling && !skyHack && side.CeilingFloodKey == 0 && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
+        if (floodCeiling && !skyHack && side.CeilingFloodKey == 0 && !textureManager.IsSkyTexture(sector.Ceiling.TextureHandle) &&
+            (side.PartnerSide == null || !textureManager.IsSkyTexture(side.PartnerSide.Sector.Ceiling.TextureHandle)))
+        {
             m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide, m_floodFillRenderer);
+        }
     }
 
     private void AddTwoSided(Side side, bool isFrontSide, bool update)

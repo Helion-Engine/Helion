@@ -342,6 +342,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
         program.Camera(renderInfo.Camera.PositionInterpolated);
+        program.CameraDirection(renderInfo.Camera.Direction);
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.TimeFrac(renderInfo.TickFraction);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
