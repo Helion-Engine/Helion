@@ -1,13 +1,13 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
-using Helion.Geometry.Vectors;
-using Helion.Resources.Definitions.MapInfo;
-using Helion.World.Entities.Definition;
 using System;
 
 namespace Helion.World.Special.Specials;
@@ -202,35 +202,49 @@ public struct TeleportSpecial
 
         if (m_lineId != Line.NoLineId)
         {
-            Line sourceLine = m_args.ActivateLineSpecial;
+            var sourceLine = m_args.ActivateLineSpecial;
             foreach (Line line in m_world.FindByLineId(m_lineId))
             {
                 if (line.Id == sourceLine.Id || line.Back == null)
                     continue;
 
-                double lineAngle = line.Segment.Start.Angle(line.Segment.End) - sourceLine.Segment.Start.Angle(sourceLine.Segment.End);
+                var lineAngle = line.GetAngle() - sourceLine.GetAngle();
                 if (!m_teleportLineReverse)
                     lineAngle += MathHelper.Pi;
 
                 angle = lineAngle + teleportEntity.AngleRadians;
 
+                var teleportEntityPos = teleportEntity.Position.XY;
                 // Exit position is proportional to the position on the source teleport line
-                double time = sourceLine.Segment.ToTime(teleportEntity.Position.XY);
-                double destTime = m_teleportLineReverse ? time : 1.0 - time;
-                Vec2D destLinePos = line.Segment.FromTime(destTime);
+                var time = sourceLine.Segment.ToTime(teleportEntityPos);
+                var destTime = m_teleportLineReverse ? time : 1.0 - time;
+                var destLinePos = line.Segment.FromTime(destTime);
+                var destZ = GetTeleportLineZ(teleportEntity, line, destLinePos, out _);
 
-                Vec2D sourcePos = sourceLine.Segment.FromTime(time);
-                double distance = teleportEntity.Position.XY.Distance(sourcePos);
-                double distanceAngle = sourcePos.Angle(teleportEntity.Position.XY);
+                // This makes the teleport lines not feel jittery for players. Only do for real players and validate the final position.
+                // Closets can rely on this exact behavior (Remanence MAP01)
+                if (teleportEntity.PlayerObj != null && !teleportEntity.PlayerObj.IsVooDooDoll)
+                {
+                    var sourcePos = sourceLine.Segment.FromTime(time);
+                    var distance = teleportEntityPos.Distance(sourcePos);
+                    var distanceAngle = sourcePos.Angle(teleportEntityPos);
+                    var unit = Vec2D.UnitCircle(lineAngle + distanceAngle);
+                    var testDestPos =  destLinePos + unit * distance;
 
-                // The entity crossed the line, translate the distance from the source line to the exit line
-                Vec2D unit = Vec2D.UnitCircle(lineAngle + distanceAngle);
-                destLinePos += unit * distance;
-                pos = destLinePos.To3D(GetTeleportLineZ(teleportEntity, line, destLinePos, out _));
-                GetTeleportLineZ(teleportEntity, sourceLine, teleportEntity.Position.XY, out offsetZ);
+                    var saveZ = teleportEntity.Position.Z;
+                    teleportEntity.Position.Z = destZ;
+                    m_world.PhysicsManager.IsPositionValid(teleportEntity, testDestPos.X, testDestPos.Y);
+                    if (teleportEntity.BlockingBlockLineIndex == -1 && teleportEntity.BlockingEntity == null)
+                        destLinePos = testDestPos;
+                    teleportEntity.Position.Z = saveZ;
+                }
+
+                GetTeleportLineZ(teleportEntity, sourceLine, teleportEntityPos, out offsetZ);
+                pos = destLinePos.To3D(destZ);
                 return true;
             }
         }
+
         if (m_tid == EntityManager.NoTid)
         {
             var teleportNode = m_world.EntityManager.TeleportSpots.First;

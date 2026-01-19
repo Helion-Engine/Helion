@@ -10,6 +10,7 @@
 ## Bug Fixes:
 - Fix not cooperative flag check for solo-net.
 - Fix crash that can happen with hud string rendering.
+- Fix boom teleport line specials to match boom behavior for non-players. Fixes Remanence MAP01 cyber platforms not lowering.
 
 ## Misc:
 - Add compatibility for Eviternity II Annihilate Me skill level to swap incorrect usage of SpawnMulti to SpawnMultiCoopOnly.
