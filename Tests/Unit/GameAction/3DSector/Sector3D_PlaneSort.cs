@@ -4,7 +4,6 @@ using Helion.Resources.IWad;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
-using System.Linq;
 
 namespace Helion.Tests.Unit.GameAction._3DSector;
 
@@ -23,17 +22,16 @@ public class Sector3D_PlaneSort
     public void LightTransferWithNonSolidSort()
     {
         var sector = GameActions.GetSector(World, 90);
-
         // Sector 83 w/light transfer is 32 -> 64 and overlaps the other sectors (32 -> 48, 24 -> 32, 0 -> 16)
         AssertPlanes3D(sector, 
             new PlaneData(128, PlaneFace3D.Top, sector),
             new PlaneData(64, PlaneFace3D.Top, sector),
             new PlaneData(48, PlaneFace3D.Bottom, GameActions.GetSector(World, 83)),
-            new PlaneData(48, PlaneFace3D.Top, GameActions.GetSector(World, 81)),
+            new PlaneData(48, PlaneFace3D.Top, GameActions.GetSector(World, 83)),
             new PlaneData(32, PlaneFace3D.Bottom, GameActions.GetSector(World, 81)),
-            new PlaneData(32, PlaneFace3D.Top, GameActions.GetSector(World, 82)),
+            new PlaneData(32, PlaneFace3D.Top, GameActions.GetSector(World, 81)),
             new PlaneData(24, PlaneFace3D.Bottom, GameActions.GetSector(World, 82)),
-            new PlaneData(16, PlaneFace3D.Top, GameActions.GetSector(World, 80)),
+            new PlaneData(16, PlaneFace3D.Top, GameActions.GetSector(World, 82)),
             new PlaneData(0, PlaneFace3D.Bottom, GameActions.GetSector(World, 80)),
             new PlaneData(0, PlaneFace3D.Bottom, GameActions.GetSector(World, 80))
             );
@@ -43,29 +41,82 @@ public class Sector3D_PlaneSort
     public void LightTransferWithSolidSort()
     {
         var sector = GameActions.GetSector(World, 89);
-        sector.Sectors3D.Length.Should().Be(6);
-        sector.SectorPlanes3D.Length.Should().Be(14);
+        AssertPlanes3D(sector,
+            new PlaneData(128, PlaneFace3D.Top, sector),
+            new PlaneData(80, PlaneFace3D.Top, GameActions.GetSector(World, 89)),
+            new PlaneData(64, PlaneFace3D.Bottom, GameActions.GetSector(World, 83)),
+            new PlaneData(64, PlaneFace3D.Top, GameActions.GetSector(World, 86)),
+            new PlaneData(48, PlaneFace3D.Bottom, GameActions.GetSector(World, 83)),
+            new PlaneData(48, PlaneFace3D.Top, GameActions.GetSector(World, 83)),
+            new PlaneData(32, PlaneFace3D.Bottom, GameActions.GetSector(World, 81)),
+            new PlaneData(32, PlaneFace3D.Top, GameActions.GetSector(World, 81)),
+            new PlaneData(24, PlaneFace3D.Bottom, GameActions.GetSector(World, 82)),
+            new PlaneData(16, PlaneFace3D.Top, GameActions.GetSector(World, 82)),
+            new PlaneData(0, PlaneFace3D.Bottom, GameActions.GetSector(World, 80)),
+            new PlaneData(0, PlaneFace3D.Bottom, GameActions.GetSector(World, 80))
+            );
     }
 
     [Fact(DisplayName = "3D sector completely inside sort")]
     public void SectorCompletelyInsideSort()
     {
-        var sector = GameActions.GetSector(World, 89);
-        sector.Sectors3D.Length.Should().Be(6);
-        sector.SectorPlanes3D.Length.Should().Be(14);
+        var sector = GameActions.GetSector(World, 94);
+        AssertPlanes3D(sector,
+            new PlaneData(128, PlaneFace3D.Top, sector),
+            new PlaneData(112, PlaneFace3D.Top, GameActions.GetSector(World, 94)),
+            new PlaneData(108, PlaneFace3D.Top, GameActions.GetSector(World, 92)),
+            new PlaneData(88, PlaneFace3D.Bottom, GameActions.GetSector(World, 91)),
+            new PlaneData(80, PlaneFace3D.Bottom, GameActions.GetSector(World, 91)),
+            new PlaneData(0, PlaneFace3D.Bottom, GameActions.GetSector(World, 91))
+            );
     }
 
-    [Fact(DisplayName = "Complex 3D sectors sort")]
+    [Fact(DisplayName = "Complex 3D sectors sort with overlapping render styles")]
     public void ComplexSort()
     {
-
+        var sector = GameActions.GetSector(World, 139);
+        AssertPlanes3D(sector,
+            new PlaneData(1152, PlaneFace3D.Top, sector),                          //0
+            new PlaneData(1016, PlaneFace3D.Top, GameActions.GetSector(World, 139), Ignore: true), //1
+            new PlaneData(1016, PlaneFace3D.Top, GameActions.GetSector(World, 163)), //2
+            new PlaneData(1015, PlaneFace3D.Bottom, GameActions.GetSector(World, 137)), //3
+            new PlaneData(992, PlaneFace3D.Bottom, GameActions.GetSector(World, 136)), //4
+            new PlaneData(992, PlaneFace3D.Top, GameActions.GetSector(World, 137)), //5
+            new PlaneData(992, PlaneFace3D.Bottom, GameActions.GetSector(World, 136)), //6
+            new PlaneData(880, PlaneFace3D.Top, GameActions.GetSector(World, 136)), //7
+            new PlaneData(880, PlaneFace3D.Bottom, GameActions.GetSector(World, 129)), //8
+            new PlaneData(760, PlaneFace3D.Top, GameActions.GetSector(World, 129), Ignore: true), //9
+            new PlaneData(760, PlaneFace3D.Top, GameActions.GetSector(World, 154)), //10
+            new PlaneData(759, PlaneFace3D.Bottom, GameActions.GetSector(World, 157)), //11
+            new PlaneData(736, PlaneFace3D.Bottom, GameActions.GetSector(World, 156)), //12
+            new PlaneData(736, PlaneFace3D.Top, GameActions.GetSector(World, 157)), //13
+            new PlaneData(736, PlaneFace3D.Bottom, GameActions.GetSector(World, 156)), //14
+            new PlaneData(624, PlaneFace3D.Top, GameActions.GetSector(World, 156)), //15
+            new PlaneData(624, PlaneFace3D.Bottom, GameActions.GetSector(World, 159)), //16
+            new PlaneData(504, PlaneFace3D.Top, GameActions.GetSector(World, 159), Ignore: true), //17
+            new PlaneData(504, PlaneFace3D.Top, GameActions.GetSector(World, 145)), //18
+            new PlaneData(503, PlaneFace3D.Bottom, GameActions.GetSector(World, 148)), //19
+            new PlaneData(480, PlaneFace3D.Bottom, GameActions.GetSector(World, 147)), //20
+            new PlaneData(480, PlaneFace3D.Top, GameActions.GetSector(World, 148)), //21
+            new PlaneData(480, PlaneFace3D.Bottom, GameActions.GetSector(World, 147)), //22
+            new PlaneData(368, PlaneFace3D.Top, GameActions.GetSector(World, 147)), //23
+            new PlaneData(368, PlaneFace3D.Bottom, GameActions.GetSector(World, 150)), //24
+            new PlaneData(256, PlaneFace3D.Top, GameActions.GetSector(World, 150)), //25
+            new PlaneData(129, PlaneFace3D.Bottom, GameActions.GetSector(World, 150)), //26
+            new PlaneData(128, PlaneFace3D.Top, GameActions.GetSector(World, 150), Ignore: true), //27
+            new PlaneData(128, PlaneFace3D.Top, GameActions.GetSector(World, 98)), //28
+            new PlaneData(127, PlaneFace3D.Bottom, GameActions.GetSector(World, 103)), //29
+            new PlaneData(104, PlaneFace3D.Bottom, GameActions.GetSector(World, 102)), //30
+            new PlaneData(104, PlaneFace3D.Top, GameActions.GetSector(World, 103)), //31
+            new PlaneData(104, PlaneFace3D.Bottom, GameActions.GetSector(World, 102)), //32
+            new PlaneData(-8, PlaneFace3D.Top, GameActions.GetSector(World, 102)), //33
+            new PlaneData(-8, PlaneFace3D.Bottom, GameActions.GetSector(World, 105)), //34
+            new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 105))  //35
+            );
     }
 
     private static void AssertPlanes3D(Sector sector, params PlaneData[] planes)
     {
-        //sector.SectorPlanes3D.Length.Should().Be(planes.Length);
-        //sector.Sectors3D.Length.Should().Be((planes.Length - 2) / 2);
-
         for (int i = 0; i < planes.Length; i++)
         {
             var plane = planes[i];
