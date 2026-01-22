@@ -210,10 +210,15 @@ public sealed class Sector3D
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
         ref var overlapLightPlane3D = ref sector.SectorPlanes3D[0];
 
+        if (sector.Id == 173)
+        {
+            int lol = 1;
+        }
+
         for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
         {
             ref var plane3D = ref sector.SectorPlanes3D[i];
-            plane3D.Ignore = false;
+            plane3D.NoRenderWall = false;
             var sector3D = plane3D.Sector3D;
             if (sector3D == null)
             {
@@ -224,7 +229,14 @@ public sealed class Sector3D
                 else
                     plane3D.Plane.Sector.TransferCeilingLightSector = currentLightSector;
 
-                continue;
+                if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.ControlPlane.Z == plane3D.Plane.Z && lastPlane3D.Face == plane3D.Face)
+                {
+                    var disablePlane = (SectorPlanes)lastPlane3D.Face;
+                    lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
+                }
+
+                if (sector3D == null)
+                    continue;
             }
 
             var overlapLight = false;
@@ -235,7 +247,7 @@ public sealed class Sector3D
                     // Flag previous plane not to render since this one takes precedence
                     var disablePlane = (SectorPlanes)(lastPlane3D.Face + 1);
                     lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
-                    lastPlane3D.Ignore = true;
+                    lastPlane3D.NoRenderWall = true;
                 }
                 else if ((lastPlane3D.Sector3D.Flags & SectorFlags3D.NoRender) == 0 && lastPlane3D.Sector3D != plane3D.Sector3D)
                 {
@@ -244,6 +256,10 @@ public sealed class Sector3D
                     overlapLightPlane3D = ref lastPlane3D;
                 }
             }
+
+            // If bottom plane was clipped then it's not visible
+            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.Face == PlaneFace3D.Bottom && lastPlane3D.Sector3D.ClipBottomZ != lastPlane3D.ControlPlane.Z)
+                lastPlane3D.Sector3D.RenderPlanes &= ~SectorPlanes.Floor;
 
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
