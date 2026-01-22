@@ -118,6 +118,7 @@ public sealed class Sector
         {
             DamageAmount = sectorData.BasicDamageAmount;
             DamageLeakiness = sectorData.BasicDamageAmount == 20 ? 5 : 0;
+            DamageInterval = SectorDamageSpecial.DefaultDamageInterval;
         }
 
         floor.Sector = this;
