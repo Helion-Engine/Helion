@@ -128,6 +128,7 @@ public sealed class Sector : IFloorCeilingAnchor
         {
             DamageAmount = sectorData.BasicDamageAmount;
             DamageLeakiness = sectorData.BasicDamageAmount == 20 ? 5 : 0;
+            DamageInterval = SectorDamageSpecial.DefaultDamageInterval;
         }
 
         floor.Sector = this;
