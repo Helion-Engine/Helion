@@ -115,7 +115,7 @@ public class Sector3D_PlaneSort
             );
     }
 
-    [Fact(DisplayName = "3D sector light transfer pool")]
+    [Fact(DisplayName = "3D sector light transfer pool with floating solid sector")]
     private void LightTransferLavaPool()
     {
         var lavaSector = GameActions.GetSector(World, 167);
@@ -153,10 +153,37 @@ public class Sector3D_PlaneSort
             );
     }
 
-    [Fact(DisplayName = "3D sector light water pool")]
+    [Fact(DisplayName = "3D sector light water pool with floating solid sector")]
     private void LightTransferWaterPool()
     {
+        var waterSector = GameActions.GetSector(World, 173);
+        AssertPlanes3D(waterSector,
+            new PlaneData(512, PlaneFace3D.Top, waterSector),
+            new PlaneData(-16, PlaneFace3D.Top, waterSector, RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 174), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-64, PlaneFace3D.Top, GameActions.GetSector(World, 174), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 175), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 175))
+            );
 
+        var floatingSector = GameActions.GetSector(World, 178);
+        AssertPlanes3D(floatingSector,
+            new PlaneData(512, PlaneFace3D.Top, floatingSector),
+            new PlaneData(69, PlaneFace3D.Top, floatingSector),
+            new PlaneData(-16, PlaneFace3D.Top, GameActions.GetSector(World, 177), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 174), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-64, PlaneFace3D.Top, GameActions.GetSector(World, 174), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-80, PlaneFace3D.Bottom, GameActions.GetSector(World, 175)),
+            new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 177), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 175))
+            );
+    }
+
+    [Fact(DisplayName = "3D sector light water pool with empty sector")]
+    public void LightTransferWaterPoolEmptySector()
+    {
+        // TODO
+        var waterSector = GameActions.GetSector(World, 187);
     }
 
     private static void AssertPlanes3D(Sector sector, params PlaneData[] planes)
