@@ -26,7 +26,6 @@ namespace Helion.World.Geometry.Sectors;
 
 public sealed class Sector : IFloorCeilingAnchor
 {
-    public SectorPlane3D[] SectorPlanes3D = [];
     public static readonly Sector Default = CreateDefault();
 
     public const int NoTag = 0;
@@ -40,6 +39,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public Line[] MidTex3DLines = [];
     public Sector3D[] Sectors3D = [];
     public Sector3D[] TaggedSectors3D = [];
+    public SectorPlane3D[] SectorPlanes3D = [];
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<DynamicIsland>> BlockmapNodes = new();
     public int[] LineIds = [];

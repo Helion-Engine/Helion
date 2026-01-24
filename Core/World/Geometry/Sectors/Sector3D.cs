@@ -9,6 +9,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -90,10 +91,10 @@ public sealed class Sector3D
     public SectorFlags3D Flags;
     public SectorLightFlags3D LightFlags;
     public float Alpha;
-    public bool Clipped;
     public double ClipBottomZ;
     public double ClipPrevBottomZ;
     public WallHeights WallHeights;
+    public WallHeights WallHeightsUnclipped;
     public SectorPlanes RenderPlanes;
 
     private readonly Entity Entity;
@@ -210,11 +211,6 @@ public sealed class Sector3D
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
         ref var overlapLightPlane3D = ref sector.SectorPlanes3D[0];
 
-        if (sector.Id == 173)
-        {
-            int lol = 1;
-        }
-
         for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
         {
             ref var plane3D = ref sector.SectorPlanes3D[i];
@@ -235,8 +231,7 @@ public sealed class Sector3D
                     lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
                 }
 
-                if (sector3D == null)
-                    continue;
+                continue;
             }
 
             var overlapLight = false;
@@ -452,6 +447,7 @@ public sealed class Sector3D
     public void CalculateHeights()
     {
         WallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
+        WallHeightsUnclipped = WallHeights;
         ClipBottomZ = ControlBottom.Z;
 
         if (ParentSector.Sectors3D.Length == 0)
@@ -507,9 +503,17 @@ public sealed class Sector3D
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref WallHeights GetWallHeights()
+    {
+        if (RenderDataStyle == RenderDataStyle.Normal)
+            return ref WallHeights;
+        return ref WallHeightsUnclipped;
+    }
+
     public bool CalculateWallHeights(Side side, out WallHeights newWallHeights)
     {
-        newWallHeights = WallHeights;
+        newWallHeights = GetWallHeights();
         WallVertices wall = default;
 
         if (side.PartnerSide == null)

@@ -35,10 +35,11 @@ public partial class GeometryRenderer
 
     public void SetSectorForLineRendering3D(Sector3D sector3D)
     {
-        m_wallSector.Ceiling.Z = sector3D.WallHeights.TopZ;
-        m_wallSector.Ceiling.PrevZ = sector3D.WallHeights.PrevTopZ;
-        m_wallSector.Floor.Z = sector3D.WallHeights.BottomZ;
-        m_wallSector.Floor.PrevZ = sector3D.WallHeights.PrevBottomZ;
+        ref var heights = ref sector3D.GetWallHeights();
+        m_wallSector.Ceiling.Z = heights.TopZ;
+        m_wallSector.Ceiling.PrevZ = heights.PrevTopZ;
+        m_wallSector.Floor.Z = heights.BottomZ;
+        m_wallSector.Floor.PrevZ = heights.PrevBottomZ;
         m_wallSector.Floor.LastRenderChangeGametick = sector3D.ControlSector.Floor.LastRenderChangeGametick;
         m_wallSector.Ceiling.LastRenderChangeGametick = sector3D.ControlSector.Ceiling.LastRenderChangeGametick;
     }
@@ -74,14 +75,8 @@ public partial class GeometryRenderer
             useSide.Middle.Offset = parentSide.Middle.Offset;
         }
 
-        // Don't traverse when rendering inside of 3d sector with alpha. These are forced to render through top to bottom without being cut.
-        // Rendering is pushed on the GL side with PolygonOffset to not z-fight.
-        var traverseSide = parentSide;
-        if (isRenderInside && sector3D.RenderDataStyle != RenderDataStyle.Normal)
-            traverseSide = m_emptyTraverseSide;
-
         var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
-            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: traverseSide, anchorSector3D: sector3D,
+            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: parentSide, anchorSector3D: sector3D,
             wallHeights3D: newWallHeights, style: sector3D.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
