@@ -230,6 +230,31 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+    [Fact(DisplayName = "Render translucent middle 3D sector that is clipped")]
+    public void RenderClippedTranslucent()
+    {
+        var sector = GameActions.GetSector(World, 187);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        SetSlices(new WallSlice(-16, -128, 192, (0, 0)),
+            new WallSlice(-16, -64, 192, (0, 0)),
+            new WallSlice(-64, -128, 128, (0, 48)));
+
+        var sector3D = sector.Sectors3D[0];
+        sector3D.WallHeights.Clipped.Should().BeTrue();
+        sector3D.WallHeights.BottomZ.Should().Be(-64);
+        sector3D.WallHeightsUnclipped.BottomZ.Should().Be(-128);
+
+        var line = GameActions.GetLine(World, 697);
+        GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice3D);
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+        GeometryRenderer.SetSectorForLineRendering3D(sector3D);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RestoreSectorSliceFunc3D();
+        AssertSlices();
+    }
+
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
         // This might change later where this is called with slices that have no height.
@@ -273,7 +298,7 @@ public class Sector3D_Walls
 
     private RenderWallSliceResult RenderSlice3D(RenderWallSliceArgs args)
     {
-        if ( GeometryRenderer.SetSectorsForSlice3D(args, out var facing))
+        if (GeometryRenderer.SetSectorsForSlice3D(args, out var facing))
         {
             var slice = m_slices[m_sliceIndex++];
             facing.Ceiling.Z.Should().Be(slice.TopZ);

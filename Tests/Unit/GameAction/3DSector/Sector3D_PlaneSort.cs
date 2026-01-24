@@ -179,11 +179,16 @@ public class Sector3D_PlaneSort
             );
     }
 
-    [Fact(DisplayName = "3D sector light water pool with empty sector")]
-    public void LightTransferWaterPoolEmptySector()
+    [Fact(DisplayName = "3D sector simple water")]
+    public void WaterSector()
     {
-        // TODO
-        var waterSector = GameActions.GetSector(World, 187);
+        var sector = GameActions.GetSector(World, 189);
+        AssertPlanes3D(sector,
+            new PlaneData(512, PlaneFace3D.Top, sector),
+            new PlaneData(-16, PlaneFace3D.Top, sector, RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 190), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 190), RenderPlanes: SectorPlanes.Ceiling)
+            );
     }
 
     private static void AssertPlanes3D(Sector sector, params PlaneData[] planes)
