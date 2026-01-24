@@ -227,8 +227,8 @@ public sealed class Sector3D
 
                 if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.ControlPlane.Z == plane3D.Plane.Z && lastPlane3D.Face == plane3D.Face)
                 {
-                    var disablePlane = (SectorPlanes)lastPlane3D.Face;
-                    lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
+                    var keepPlane = (SectorPlanes)(lastPlane3D.Face + 1);
+                    lastPlane3D.Sector3D.RenderPlanes &= keepPlane;
                 }
 
                 continue;
@@ -240,8 +240,8 @@ public sealed class Sector3D
                 if (lastPlane3D.Face == plane3D.Face)
                 {
                     // Flag previous plane not to render since this one takes precedence
-                    var disablePlane = (SectorPlanes)(lastPlane3D.Face + 1);
-                    lastPlane3D.Sector3D.RenderPlanes &= ~disablePlane;
+                    var keepPlane = (SectorPlanes)(lastPlane3D.Face + 1);
+                    lastPlane3D.Sector3D.RenderPlanes &= keepPlane;
                     lastPlane3D.NoRenderWall = true;
                 }
                 else if ((lastPlane3D.Sector3D.Flags & SectorFlags3D.NoRender) == 0 && lastPlane3D.Sector3D != plane3D.Sector3D)

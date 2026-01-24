@@ -60,7 +60,7 @@ public partial class StaticCacheGeometryRenderer
         var saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
         sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
 
-        if ((planes & SectorPlanes.Floor) != 0)
+        if ((planes & SectorPlanes.Ceiling) != 0)
         {
             AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
                 lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottom, allowAlpha: true);
@@ -72,7 +72,7 @@ public partial class StaticCacheGeometryRenderer
             }
         }
 
-        if ((planes & SectorPlanes.Ceiling) != 0)
+        if ((planes & SectorPlanes.Floor) != 0)
         {
             AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
                 lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTop, allowAlpha: true);

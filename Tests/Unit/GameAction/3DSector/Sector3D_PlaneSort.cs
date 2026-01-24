@@ -77,25 +77,25 @@ public class Sector3D_PlaneSort
         var sector = GameActions.GetSector(World, 139);
         AssertPlanes3D(sector,
             new PlaneData(1152, PlaneFace3D.Top, sector),                          //0
-            new PlaneData(1016, PlaneFace3D.Top, GameActions.GetSector(World, 139), NoRenderWall: true, RenderPlanes: SectorPlanes.Ceiling), //1
+            new PlaneData(1016, PlaneFace3D.Top, GameActions.GetSector(World, 139), NoRenderWall: true, RenderPlanes: SectorPlanes.Floor), //1
             new PlaneData(1016, PlaneFace3D.Top, GameActions.GetSector(World, 163)), //2
-            new PlaneData(1015, PlaneFace3D.Bottom, GameActions.GetSector(World, 137), RenderPlanes: SectorPlanes.Ceiling), //3
+            new PlaneData(1015, PlaneFace3D.Bottom, GameActions.GetSector(World, 137), RenderPlanes: SectorPlanes.Floor), //3
             new PlaneData(992, PlaneFace3D.Bottom, GameActions.GetSector(World, 136)), //4
             new PlaneData(992, PlaneFace3D.Top, GameActions.GetSector(World, 137)), //5
             new PlaneData(992, PlaneFace3D.Bottom, GameActions.GetSector(World, 136)), //6
             new PlaneData(880, PlaneFace3D.Top, GameActions.GetSector(World, 136)), //7
             new PlaneData(880, PlaneFace3D.Bottom, GameActions.GetSector(World, 129)), //8
-            new PlaneData(760, PlaneFace3D.Top, GameActions.GetSector(World, 129), NoRenderWall: true, RenderPlanes: SectorPlanes.Ceiling), //9
+            new PlaneData(760, PlaneFace3D.Top, GameActions.GetSector(World, 129), NoRenderWall: true, RenderPlanes: SectorPlanes.Floor), //9
             new PlaneData(760, PlaneFace3D.Top, GameActions.GetSector(World, 154)), //10
-            new PlaneData(759, PlaneFace3D.Bottom, GameActions.GetSector(World, 157), RenderPlanes: SectorPlanes.Ceiling), //11
+            new PlaneData(759, PlaneFace3D.Bottom, GameActions.GetSector(World, 157), RenderPlanes: SectorPlanes.Floor), //11
             new PlaneData(736, PlaneFace3D.Bottom, GameActions.GetSector(World, 156)), //12
             new PlaneData(736, PlaneFace3D.Top, GameActions.GetSector(World, 157)), //13
             new PlaneData(736, PlaneFace3D.Bottom, GameActions.GetSector(World, 156)), //14
             new PlaneData(624, PlaneFace3D.Top, GameActions.GetSector(World, 156)), //15
             new PlaneData(624, PlaneFace3D.Bottom, GameActions.GetSector(World, 159)), //16
-            new PlaneData(504, PlaneFace3D.Top, GameActions.GetSector(World, 159), NoRenderWall: true, RenderPlanes: SectorPlanes.Ceiling), //17
+            new PlaneData(504, PlaneFace3D.Top, GameActions.GetSector(World, 159), NoRenderWall: true, RenderPlanes: SectorPlanes.Floor), //17
             new PlaneData(504, PlaneFace3D.Top, GameActions.GetSector(World, 145)), //18
-            new PlaneData(503, PlaneFace3D.Bottom, GameActions.GetSector(World, 148), RenderPlanes: SectorPlanes.Ceiling), //19
+            new PlaneData(503, PlaneFace3D.Bottom, GameActions.GetSector(World, 148), RenderPlanes: SectorPlanes.Floor), //19
             new PlaneData(480, PlaneFace3D.Bottom, GameActions.GetSector(World, 147)), //20
             new PlaneData(480, PlaneFace3D.Top, GameActions.GetSector(World, 148)), //21
             new PlaneData(480, PlaneFace3D.Bottom, GameActions.GetSector(World, 147)), //22
@@ -103,9 +103,9 @@ public class Sector3D_PlaneSort
             new PlaneData(368, PlaneFace3D.Bottom, GameActions.GetSector(World, 150)), //24
             new PlaneData(256, PlaneFace3D.Top, GameActions.GetSector(World, 150)), //25
             new PlaneData(129, PlaneFace3D.Bottom, GameActions.GetSector(World, 150)), //26
-            new PlaneData(128, PlaneFace3D.Top, GameActions.GetSector(World, 150), NoRenderWall: true, RenderPlanes: SectorPlanes.Ceiling), //27
+            new PlaneData(128, PlaneFace3D.Top, GameActions.GetSector(World, 150), NoRenderWall: true, RenderPlanes: SectorPlanes.Floor), //27
             new PlaneData(128, PlaneFace3D.Top, GameActions.GetSector(World, 98)), //28
-            new PlaneData(127, PlaneFace3D.Bottom, GameActions.GetSector(World, 103), RenderPlanes: SectorPlanes.Ceiling), //29
+            new PlaneData(127, PlaneFace3D.Bottom, GameActions.GetSector(World, 103), RenderPlanes: SectorPlanes.Floor), //29
             new PlaneData(104, PlaneFace3D.Bottom, GameActions.GetSector(World, 102)), //30
             new PlaneData(104, PlaneFace3D.Top, GameActions.GetSector(World, 103)), //31
             new PlaneData(104, PlaneFace3D.Bottom, GameActions.GetSector(World, 102)), //32
