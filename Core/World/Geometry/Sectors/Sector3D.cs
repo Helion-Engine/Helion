@@ -252,8 +252,10 @@ public sealed class Sector3D
                 }
             }
 
-            // If bottom plane was clipped then it's not visible
-            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.Face == PlaneFace3D.Bottom && lastPlane3D.Sector3D.ClipBottomZ != lastPlane3D.ControlPlane.Z)
+            // If solid bottom plane was clipped then it's not visible
+            // TODO should be able to determine for solid top plane
+            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.Face == PlaneFace3D.Bottom && 
+                lastPlane3D.Sector3D.IsSolid && lastPlane3D.Sector3D.ClipBottomZ != lastPlane3D.ControlPlane.Z)
                 lastPlane3D.Sector3D.RenderPlanes &= ~SectorPlanes.Floor;
 
             lastPlane3D = ref plane3D;
