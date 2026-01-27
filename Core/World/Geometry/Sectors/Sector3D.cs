@@ -110,7 +110,7 @@ public sealed class Sector3D
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
     private static readonly Comparison<Sector3D> SortSectors3D = new(HeightCompare);
-    private static readonly Comparison<SectorPlane3D> SortPlanesByKey3D = new(PlaneHeightKeyCompare);
+    public static readonly Comparison<SectorPlane3D> SortPlanesByKey3D = new(PlaneHeightKeyCompare);
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
     {
@@ -548,13 +548,13 @@ public sealed class Sector3D
         // Only clip if this side has 3D sectors. Otherwise overlapping non-solid sectors won't render.
         if (side.PartnerSide == null || side.PartnerSide.Sector.Sectors3D.Length > 0)
         {
-            if (!AdjustWallHeights3D(side.Sector, ref newWallHeights))
+            if (!AdjustWallHeights3D(side.Sector, ref newWallHeights, false))
                 return false;
         }
 
         if (side.PartnerSide != null && side.Sector.Sectors3D.Length > 0)
         {
-            if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights))
+            if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights, true))
                 return false;
         }
 
@@ -567,12 +567,12 @@ public sealed class Sector3D
         return newWallHeights.Invalid;
     }
 
-    private bool AdjustWallHeights3D(Sector sector, ref WallHeights newWallHeights)
+    private bool AdjustWallHeights3D(Sector sector, ref WallHeights newWallHeights, bool clipOtherSolid)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3D = sector.Sectors3D[i];
-            if (!ShouldClipSector3D(sector3D, true))
+            if (!ShouldClipSector3D(sector3D, true, clipOtherSolid))
                 continue;
 
             if (!AdjustWallHeights(ref newWallHeights, sector3D.ControlTop.Z, sector3D.ControlBottom.PrevZ, sector3D.ControlTop.Z, sector3D.ControlBottom.PrevZ))
@@ -582,7 +582,7 @@ public sealed class Sector3D
         return true;
     }
 
-    private bool ShouldClipSector3D(Sector3D other, bool clipSolid = false)
+    private bool ShouldClipSector3D(Sector3D other, bool clipSolid = false, bool clipOtherSolid = true)
     {
         if (other == this)
             return false;
@@ -590,8 +590,8 @@ public sealed class Sector3D
         if (RenderDataStyle != RenderDataStyle.Normal && other.RenderDataStyle != RenderDataStyle.Normal)
             return true;
 
-        if (ClipStyle != other.ClipStyle)
-            return false;
+        if (clipOtherSolid && ClipStyle == ClipStyle.NotSolid && other.ClipStyle == ClipStyle.Solid)
+            return true;
 
         var currentSolid = Flags & SectorFlags3D.Solid;
         var otherSolid = other.Flags & SectorFlags3D.Solid;

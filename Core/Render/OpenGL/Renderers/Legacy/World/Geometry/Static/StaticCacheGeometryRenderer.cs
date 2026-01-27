@@ -305,7 +305,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         if (WorldStatic.Sector3D && side.Sector.Sectors3D.Length > 0)
         {
             m_geometryRenderer.SetRenderOneSided(side);
-            var result = m_geometryRenderer.RenderWallSlices3D(side, side.Middle, isFrontSide, side, sector, sector, m_renderOneSidedSliceFunc);
+            var result = m_geometryRenderer.RenderWallSlices3D(side, side.Middle, isFrontSide, side, sector, sector, side.Sector.SectorPlanes3D, m_renderOneSidedSliceFunc);
             AddSkyGeometry(side, WallLocation.Middle, null, result.SkyVertices, side.Sector, update);
 
             if (result.Vertices.Length > 0)
@@ -394,7 +394,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             RenderWallSliceResult result;
             if (side.Sector.Sectors3D.Length > 0)
             {
-                result = m_geometryRenderer.RenderWallSlices3D(side, side.Upper, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedUpperSliceFunc);
+                result = m_geometryRenderer.RenderWallSlices3D(side, side.Upper, isFrontSide, otherSide, facingSector, otherSector, side.Sector.SectorPlanes3D, m_renderTwoSidedUpperSliceFunc);
             }
             else
             {
@@ -434,7 +434,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             RenderWallSliceResult result;
             if (side.Sector.Sectors3D.Length > 0)
             {
-                result = m_geometryRenderer.RenderWallSlices3D(side, side.Lower, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedLowerSliceFunc);
+                result = m_geometryRenderer.RenderWallSlices3D(side, side.Lower, isFrontSide, otherSide, facingSector, otherSector, side.Sector.SectorPlanes3D, m_renderTwoSidedLowerSliceFunc);
             }
             else
             {
@@ -463,7 +463,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             RenderWallSliceResult result;
             if (side.Sector.Sectors3D.Length > 0)
             {
-                result = m_geometryRenderer.RenderWallSlices3D(side, side.Middle, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedMiddleSliceFunc);
+                result = m_geometryRenderer.RenderWallSlices3D(side, side.Middle, isFrontSide, otherSide, facingSector, otherSector, side.Sector.SectorPlanes3D, m_renderTwoSidedMiddleSliceFunc);
             }
             else
             {

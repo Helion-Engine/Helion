@@ -28,6 +28,7 @@ public partial class GeometryRenderer
     private readonly Sector m_fakeOther = Sector.CreateDefault();
     private readonly Sector m_sliceSector = Sector.CreateDefault();
     private readonly Sector m_emptyTraverseSector = Sector.CreateDefault();
+    private readonly DynamicArray<SectorPlane3D> m_mergePlanes = new(64);
 
     // Intended for tests only
     public void SetTestRenderSectorSliceFunc3D(Func<RenderWallSliceArgs, RenderWallSliceResult> func) => m_renderSectorSliceFunc3D = func;
@@ -75,27 +76,71 @@ public partial class GeometryRenderer
             useSide.Middle.Offset = parentSide.Middle.Offset;
         }
 
-        var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, m_renderSectorSliceFunc3D,
-            offsetSide: parentSide, renderSkySide: false, allowAlpha: true, traverseSide: parentSide, anchorSector3D: sector3D,
+        var traversePlanes3D = parentSide == null ? [] : parentSide.Sector.SectorPlanes3D.AsSpan();
+
+        if (oppositeParentSide != null && sector3D.RenderDataStyle != RenderDataStyle.Normal)        {
+            // Use the other side to split the translucent 3D wall. If both sides have 3D sectors then merge and sort.
+            if (traversePlanes3D.Length == 0 || parentSide == null)
+                traversePlanes3D = oppositeParentSide.Sector.SectorPlanes3D;
+            else
+                traversePlanes3D = MergePlanes(parentSide.Sector.SectorPlanes3D, oppositeParentSide.Sector.SectorPlanes3D, sector3D);
+        }
+
+        var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, traversePlanes3D,
+            m_renderSectorSliceFunc3D,offsetSide: parentSide, renderSkySide: false, allowAlpha: true, anchorSector3D: sector3D,
             wallHeights3D: newWallHeights, style: sector3D.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
             renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
     }
 
+
+    private Span<SectorPlane3D> MergePlanes(SectorPlane3D[] a, SectorPlane3D[] b, Sector3D ignorePlane)
+    {
+        m_mergePlanes.Length = 0;
+        m_mergePlanes.EnsureCapacity(a.Length + b.Length);
+
+        var indexA = 0;
+        var indexB = 0;
+
+        // Merge sort
+        while (indexA < a.Length && indexB < b.Length)
+        {
+            ref readonly var planeA = ref a[indexA];
+            ref readonly var planeB = ref b[indexB];
+
+            if (Sector3D.SortPlanesByKey3D(planeA, planeB) <= 0)
+            {
+                m_mergePlanes.AddUnsafe(planeA);
+                indexA++;
+            }
+            else
+            {
+                m_mergePlanes.AddUnsafe(planeB);
+                indexB++;
+            }
+        }
+
+        while (indexA < a.Length)
+            m_mergePlanes.AddUnsafe(a[indexA++]);
+
+        while (indexB < b.Length)
+            m_mergePlanes.AddUnsafe(b[indexB++]);
+
+        return m_mergePlanes.Data.AsSpan(0, m_mergePlanes.Length);
+    }
+
     public RenderWallSliceResult RenderWallSlices3D(Side side, Wall wall, bool isFrontSide,
-        Side otherSide, Sector facingSector, Sector otherSector,
+        Side otherSide, Sector facingSector, Sector otherSector, Span<SectorPlane3D> traversePlanes3D,
         Func<RenderWallSliceArgs, RenderWallSliceResult> renderFunc,
         Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false,
-        Side? traverseSide = null, Sector3D? anchorSector3D = null, WallHeights? wallHeights3D = null, RenderDataStyle style = RenderDataStyle.Normal)
+        Sector3D? anchorSector3D = null, WallHeights? wallHeights3D = null, RenderDataStyle style = RenderDataStyle.Normal)
     {
         Assert.Precondition(wall.Location != WallLocation.Middle3D || wallHeights3D.HasValue, "Rendering 3D middle requires WallHeights3D to be set.");
 
         RenderWallSliceResult finalResult = default;
         if (side.Sector.Sectors3D.Length == 0)
             return finalResult;
-
-        traverseSide ??= side;
 
         m_vertices.Clear();
 
@@ -141,16 +186,26 @@ public partial class GeometryRenderer
             Style = style,
         };
 
+        var renderThrough = style != RenderDataStyle.Normal;
         SectorPlane3D? lastPlane3D = null;
         SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, wallHeights3D), anchorZ);
 
-        for (int i = 0; i < traverseSide.Sector.SectorPlanes3D.Length - 1; i++)
+        for (int i = 0; i < traversePlanes3D.Length - 1; i++)
         {
-            ref var plane3D = ref traverseSide.Sector.SectorPlanes3D[i];
-            ref var nextPlane3D = ref traverseSide.Sector.SectorPlanes3D[i + 1];
+            ref var plane3D = ref traversePlanes3D[i];
+            ref var nextPlane3D = ref traversePlanes3D[i + 1];
 
             if (plane3D.NoRenderWall || nextPlane3D.NoRenderWall)
                 continue;
+
+            if (renderThrough && plane3D.Sector3D != anchorSector3D && plane3D.Sector3D?.IsSolid == true &&
+                plane3D.Face == PlaneFace3D.Top && nextPlane3D.Face == PlaneFace3D.Bottom)
+            {
+                if (anchorSector3D?.ParentSectorId == plane3D.Sector3D?.ParentSectorId)
+                    anchorZ = nextPlane3D.GetZ();
+                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ);
+                continue;
+            }
 
             m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
             m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;

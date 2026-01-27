@@ -396,14 +396,6 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.PolygonOffset(0.05f, 1f);
     }
 
-    private static void SetPolygonOffsetAlpha()
-    {
-        if (ShaderVars.ReversedZ)
-            GL.PolygonOffset(-0.05f, -0.1f);
-        else
-            GL.PolygonOffset(0.05f, 1f);
-    }
-
     private void WriteSpriteClipBuffers(RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
         var useRenderInfo = renderInfo;
@@ -585,12 +577,7 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ActiveTexture(BindTextures.BoundTexture);
 
         if (hasAlphaGeometry)
-        {
-            GL.Enable(EnableCap.PolygonOffsetFill);
-            SetPolygonOffsetAlpha();
             m_worldDataManager.RenderAllAlpha();
-            GL.Disable(EnableCap.PolygonOffsetFill);
-        }
 
         ResetBlendEquations();
         framebuffer.Bind();
@@ -599,7 +586,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (hasAlphaGeometry)
         {
-            GL.Enable(EnableCap.PolygonOffsetFill);
             m_interpolationCompositeProgram.Bind();
             m_interpolationCompositeProgram.VertexGapClampUV(false);
             SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo, m_vanillaRender);
@@ -620,7 +606,6 @@ public class LegacyWorldRenderer : WorldRenderer
             }
 
             SetBlendEquation(RenderDataStyle.Normal);
-            GL.Disable(EnableCap.PolygonOffsetFill);
         }
 
         if (fuzzData)

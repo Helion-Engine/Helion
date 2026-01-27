@@ -701,7 +701,7 @@ public partial class GeometryRenderer : IDisposable
         else if (m_renderMode == GeometryRenderMode.All || side.IsDynamic)
         {
             if (WorldStatic.Sector3D && side.Sector.Sectors3D.Length > 0)
-                RenderWallSlices3D(side, side.Middle, isFrontSide, side, side.Sector, side.Sector, m_renderOneSidedSliceFunc);
+                RenderWallSlices3D(side, side.Middle, isFrontSide, side, side.Sector, side.Sector, side.Sector.SectorPlanes3D, m_renderOneSidedSliceFunc);
             else
                 RenderOneSided(side, isFrontSide, out _, out _, out _);
         }
@@ -855,7 +855,7 @@ public partial class GeometryRenderer : IDisposable
         if ((visibility & SideTexture.Lower) != 0)
         {
             if (renderSlices3D)
-                RenderWallSlices3D(facingSide, facingSide.Lower, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedLowerSliceFunc);
+                RenderWallSlices3D(facingSide, facingSide.Lower, isFrontSide, otherSide, facingSector, otherSector, facingSide.Sector.SectorPlanes3D, m_renderTwoSidedLowerSliceFunc);
             else
                 RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         }
@@ -863,7 +863,7 @@ public partial class GeometryRenderer : IDisposable
         if ((visibility & SideTexture.Upper) != 0)
         {
             if (renderSlices3D)
-                RenderWallSlices3D(facingSide, facingSide.Upper, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedUpperSliceFunc);
+                RenderWallSlices3D(facingSide, facingSide.Upper, isFrontSide, otherSide, facingSector, otherSector, facingSide.Sector.SectorPlanes3D, m_renderTwoSidedUpperSliceFunc);
             else
                 RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
         }
@@ -873,7 +873,7 @@ public partial class GeometryRenderer : IDisposable
             Span<DynamicVertex> vertices;
             if (renderSlices3D)
             {
-                var result = RenderWallSlices3D(facingSide, facingSide.Middle, isFrontSide, otherSide, facingSector, otherSector, m_renderTwoSidedMiddleSliceFunc);
+                var result = RenderWallSlices3D(facingSide, facingSide.Middle, isFrontSide, otherSide, facingSector, otherSector, facingSide.Sector.SectorPlanes3D, m_renderTwoSidedMiddleSliceFunc);
                 vertices = result.Vertices;
             }
             else
