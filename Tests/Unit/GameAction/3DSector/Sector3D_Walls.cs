@@ -64,7 +64,7 @@ public class Sector3D_Walls
         // Y-Offsets: 500-500=0, 500-288=212, 500-160=340
         SetSlices(new WallSlice(500, 288, 192, (64, 0)), new WallSlice(288, 160, 128, (64, 212)), new WallSlice(160, 0, 128, (64, 340)));
         var side = GameActions.GetLine(World, 149).Front;
-        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
+        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, side.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
 
@@ -80,7 +80,7 @@ public class Sector3D_Walls
 
         var side = GameActions.GetLine(World, 152).Front;
         side.Line.Flags.Unpegged.Lower.Should().BeTrue();
-        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
+        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, side.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
 
@@ -96,7 +96,7 @@ public class Sector3D_Walls
 
         var line = GameActions.GetLine(World, 279);
         line.Flags.Unpegged.Lower.Should().BeTrue();
-        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderSlice);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
 
@@ -112,7 +112,7 @@ public class Sector3D_Walls
 
         var line = GameActions.GetLine(World, 161);
         line.Flags.Unpegged.Lower.Should().BeFalse();
-        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Lower, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderLowerSlice);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Lower, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderLowerSlice);
         AssertSlices();
     }
 
@@ -128,7 +128,7 @@ public class Sector3D_Walls
 
         var line = GameActions.GetLine(World, 154);
         line.Flags.Unpegged.Lower.Should().BeTrue();
-        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Lower, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderLowerSlice);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Lower, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderLowerSlice);
         AssertSlices();
     }
 
@@ -144,7 +144,7 @@ public class Sector3D_Walls
 
         var line = GameActions.GetLine(World, 170);
         line.Flags.Unpegged.Upper.Should().BeFalse();
-        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderUpperSlice);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderUpperSlice);
         AssertSlices();
     }
 
@@ -160,7 +160,7 @@ public class Sector3D_Walls
 
         var line = GameActions.GetLine(World, 153);
         line.Flags.Unpegged.Upper.Should().BeTrue();
-        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Back!, line.Front.Sector, line.Back!.Sector, RenderUpperSlice);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderUpperSlice);
         AssertSlices();
     }
 
@@ -178,7 +178,7 @@ public class Sector3D_Walls
             new WallSlice(192, 160, 255, (0, 308)),
             new WallSlice(160, 0, 255, (0, 340)));
         var side = GameActions.GetLine(World, 247).Front;
-        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, RenderSlice);
+        GeometryRenderer.RenderWallSlices3D(side, side.Middle, true, side, sector, sector, side.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
 
@@ -236,7 +236,9 @@ public class Sector3D_Walls
         var sector = GameActions.GetSector(World, 187);
         sector.Sectors3D.Length.Should().Be(2);
 
-        SetSlices(new WallSlice(-16, -128, 192, (0, 0)),
+        // Called to render both inside and outside
+        SetSlices(new WallSlice(-16, -64, 192, (0, 0)),
+            new WallSlice(-64, -128, 128, (0, 48)),
             new WallSlice(-16, -64, 192, (0, 0)),
             new WallSlice(-64, -128, 128, (0, 48)));
 

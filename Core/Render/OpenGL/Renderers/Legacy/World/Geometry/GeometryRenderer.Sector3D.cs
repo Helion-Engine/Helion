@@ -56,15 +56,14 @@ public partial class GeometryRenderer
         var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
         if (renderFront && parentBack != null)
-            RenderSide3D(sector3D, sectorLine.Front, parentBack, parentFront, m_wallSector, true, false, renderVertices);
+            RenderSide3D(sector3D, sectorLine.Front, parentBack, parentFront, m_wallSector, true, renderVertices);
 
         if (renderBack && sector3D.ShouldRenderInsideWalls && sectorLine.Back != null)
-            RenderSide3D(sector3D, sectorLine.Back, parentFront, parentBack, m_wallSector, false, true, renderVertices);
+            RenderSide3D(sector3D, sectorLine.Back, parentFront, parentBack, m_wallSector, false, renderVertices);
     }
 
     private void RenderSide3D(Sector3D sector3D, Side useSide, Side? parentSide, Side? oppositeParentSide,
-        Sector wallSector, bool isFront, bool isRenderInside,
-        Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
+        Sector wallSector, bool isFront, Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
     {
         if (parentSide == null || !sector3D.CalculateWallHeights(parentSide, out var newWallHeights))
             return;

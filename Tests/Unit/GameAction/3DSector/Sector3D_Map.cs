@@ -181,7 +181,7 @@ public class Sector3D_Map
         // Alpha not clipped
         right3D.CalculateWallHeights(GameActions.GetLine(World, 300).Front, out newWallHeights).Should().BeTrue();
         wallHeights.TopZ.Should().Be(256);
-        wallHeights.BottomZ.Should().Be(0);
+        wallHeights.BottomZ.Should().Be(128);
 
         // Fully occluded by right
         wallHeights = left3D.WallHeights;
