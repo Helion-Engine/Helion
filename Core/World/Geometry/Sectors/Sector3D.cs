@@ -592,6 +592,9 @@ public sealed class Sector3D
         if (RenderDataStyle != RenderDataStyle.Normal && other.RenderDataStyle != RenderDataStyle.Normal)
             return true;
 
+        if (ClipStyle != other.ClipStyle && ((Flags & SectorFlags3D.LightTransfer) != 0 || (other.Flags & SectorFlags3D.LightTransfer) != 0))
+            return false;
+
         if (clipOtherSolid && ClipStyle == ClipStyle.NotSolid && other.ClipStyle == ClipStyle.Solid)
             return true;
 
