@@ -194,7 +194,7 @@ public partial class GeometryRenderer
             ref var plane3D = ref traversePlanes3D[i];
             ref var nextPlane3D = ref traversePlanes3D[i + 1];
 
-            if (plane3D.NoRenderWall || nextPlane3D.NoRenderWall)
+            if (plane3D.NoRenderWall || nextPlane3D.NoRenderWall || plane3D.GetZ() == nextPlane3D.GetZ())
                 continue;
 
             if (renderThrough && plane3D.Sector3D != anchorSector3D && plane3D.Sector3D?.IsSolid == true &&
