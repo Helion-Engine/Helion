@@ -146,9 +146,9 @@ public class Sector3D_PlaneSort
             new PlaneData(-48, PlaneFace3D.Bottom, GameActions.GetSector(World, 169)),
             new PlaneData(-48, PlaneFace3D.Top, GameActions.GetSector(World, 169), RenderPlanes: SectorPlanes.Ceiling),
             new PlaneData(-56, PlaneFace3D.Bottom, GameActions.GetSector(World, 168), RenderPlanes: SectorPlanes.Ceiling),
-            new PlaneData(-56, PlaneFace3D.Top, GameActions.GetSector(World, 168), RenderPlanes: SectorPlanes.Ceiling),
             new PlaneData(-80, PlaneFace3D.Bottom, GameActions.GetSector(World, 172)),
-            new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 177), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-80, PlaneFace3D.Top, GameActions.GetSector(World, 177), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 172), RenderPlanes: SectorPlanes.Ceiling),
             new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 172))
             );
     }
@@ -159,8 +159,8 @@ public class Sector3D_PlaneSort
         var waterSector = GameActions.GetSector(World, 173);
         AssertPlanes3D(waterSector,
             new PlaneData(512, PlaneFace3D.Top, waterSector),
-            new PlaneData(-16, PlaneFace3D.Top, waterSector, RenderPlanes: SectorPlanes.Ceiling),
-            new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 174), RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(-16, PlaneFace3D.Top, waterSector),
+            new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 174)),
             new PlaneData(-64, PlaneFace3D.Top, GameActions.GetSector(World, 174), RenderPlanes: SectorPlanes.Ceiling),
             new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 175), RenderPlanes: SectorPlanes.Ceiling),
             new PlaneData(-128, PlaneFace3D.Bottom, GameActions.GetSector(World, 175))
