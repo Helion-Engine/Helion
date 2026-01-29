@@ -767,7 +767,9 @@ public class GameLayerManager : IGameLayerManager
         m_hudContext.Dimension = m_renderer.RenderDimension;
         m_hudContext.DrawPalette = true;
         ctx.Viewport(m_renderer.RenderDimension.Box);
-        ctx.Clear(GetClearColor(), true, true);
+
+        if (m_config.Window.ClearScreen)
+            ctx.Clear(GetClearColor(), true, true);
 
         if (WorldLayer != null && WorldLayer.ShouldRender && (m_config.Hud.AutoMap.Overlay || !WorldLayer.DrawAutomap))
         {
