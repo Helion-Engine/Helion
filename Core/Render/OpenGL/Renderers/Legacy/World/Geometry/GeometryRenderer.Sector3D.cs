@@ -77,7 +77,8 @@ public partial class GeometryRenderer
 
         var traversePlanes3D = parentSide == null ? [] : parentSide.Sector.SectorPlanes3D.AsSpan();
 
-        if (oppositeParentSide != null && sector3D.RenderDataStyle != RenderDataStyle.Normal)        {
+        if (oppositeParentSide != null && sector3D.RenderDataStyle != RenderDataStyle.Normal)
+        {
             // Use the other side to split the translucent 3D wall. If both sides have 3D sectors then merge and sort.
             if (traversePlanes3D.Length == 0 || parentSide == null)
                 traversePlanes3D = oppositeParentSide.Sector.SectorPlanes3D;
@@ -194,7 +195,7 @@ public partial class GeometryRenderer
             ref var plane3D = ref traversePlanes3D[i];
             ref var nextPlane3D = ref traversePlanes3D[i + 1];
 
-            if (plane3D.NoRenderWall || nextPlane3D.NoRenderWall || plane3D.GetZ() == nextPlane3D.GetZ())
+            if (plane3D.NoRenderWall || nextPlane3D.NoRenderWall)
                 continue;
 
             if (renderThrough && plane3D.Sector3D != anchorSector3D && plane3D.Sector3D?.IsSolid == true &&

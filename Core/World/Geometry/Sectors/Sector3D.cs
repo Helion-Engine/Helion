@@ -589,7 +589,7 @@ public sealed class Sector3D
 
         if (side.PartnerSide != null && side.Sector.Sectors3D.Length > 0)
         {
-            if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights, true))
+            if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights, false))
                 return false;
         }
 
