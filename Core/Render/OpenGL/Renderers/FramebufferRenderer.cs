@@ -100,14 +100,6 @@ public class FramebufferRenderer : IDisposable
         m_vbo.Unbind();
     }
 
-    public static void ClearWithViewport(Dimension dimension)
-    {
-        (float a, float r, float g, float b) = Color.Black.Normalized;
-        GL.Viewport(0, 0, dimension.Width, dimension.Height);
-        GL.ClearColor(r, g, b, a);
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-    }
-
     public void Render(GLFramebuffer buffer, mat4 mvp)
     {
         m_program.Bind();

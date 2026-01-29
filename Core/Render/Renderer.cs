@@ -811,9 +811,7 @@ public partial class Renderer : IDisposable
             GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.DepthFunc(DepthFunction.Greater);
             GL.Enable(EnableCap.DepthTest);
-
             GL.ClearDepth(0.0);
-            GL.Clear(ClearBufferMask.DepthBufferBit);
         }
 
         m_lastDrawWorldCmd = cmd;
@@ -874,7 +872,7 @@ public partial class Renderer : IDisposable
 
         m_mainFramebuffer.BindDraw();
         UpdateVirtualTextureFilter(m_virtualFramebuffer);
-        FramebufferRenderer.ClearWithViewport(Window.ClientDimension);
+        GL.Clear(ClearBufferMask.DepthBufferBit);
         m_framebufferRenderer.Render(m_virtualFramebuffer, CalculateVirtualMvp(m_virtualFramebuffer, GetVirtualDimension()));
     }
 
