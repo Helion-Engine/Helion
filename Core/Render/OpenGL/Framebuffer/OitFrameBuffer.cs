@@ -8,6 +8,7 @@ namespace Helion.Render.OpenGL.Framebuffer;
 
 public class OitFrameBuffer
 {
+    private readonly DrawBuffersEnum[] DrawBuffers = [DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2];
     private uint m_oitFramebuffer;
     private uint m_accumTexture;
     private uint m_accumCountTexture;
@@ -62,7 +63,7 @@ public class OitFrameBuffer
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment2, TextureTarget.Texture2D, m_fuzzTexture, 0);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, opaqueDepthTexture.Name, 0);
 
-        GL.DrawBuffers(3, [DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2]);
+        GL.DrawBuffers(DrawBuffers.Length, DrawBuffers);
 
         if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             throw new Exception("Failed to complete oit framebuffer");
@@ -70,13 +71,10 @@ public class OitFrameBuffer
 
     public unsafe void StartRender()
     {
-        var zero = stackalloc float[4] { 0f, 0f, 0f, 0f };
         BindFrameBuffer();
-
-        GL.ClearBuffer(ClearBuffer.Color, 0, zero);
-        GL.ClearBuffer(ClearBuffer.Color, 1, zero);
-        GL.ClearBuffer(ClearBuffer.Color, 2, zero);
-
+        GL.DrawBuffers(DrawBuffers.Length, DrawBuffers);
+        GL.ClearColor(0f, 0f, 0f, 0f);
+        GL.Clear(ClearBufferMask.ColorBufferBit);
         SetBlendEquations();
     }
 

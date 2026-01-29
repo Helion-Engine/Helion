@@ -110,6 +110,9 @@ public partial class Client : IDisposable, IInputManagement
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
         m_config.Hud.Scale.OnChanged += Scale_OnChanged;
 
+        GLFWProvider.EnsureInitialized();
+        GLFWProvider.SetErrorCallback(GLFWErrorCallback);
+
         if (commandLineArgs.GlVersion.HasValue)
         {
             GlVersion.Major = commandLineArgs.GlVersion.Value / 10;
@@ -120,8 +123,6 @@ public partial class Client : IDisposable, IInputManagement
             SetOpenGLVersion(config);
         }
 
-        GLFWProvider.EnsureInitialized();
-        GLFWProvider.SetErrorCallback(GLFWErrorCallback);
         GLFW.WindowHint(WindowHintString.WaylandAppID, "Helion");
         m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, CheckOpenGLSupport);
         m_screenshotGenerator = new(m_window.Renderer);
@@ -212,7 +213,9 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void GLFWErrorCallback(ErrorCode error, string description)
     {
-        Log.Error($"GLFW error: {error}: {description}");
+        // Don't log version error since higher versions are tested for lower version support
+        if (error != ErrorCode.VersionUnavailable)
+            Log.Error($"GLFW error: {error}: {description}");
     }
 
     private void PixelGapCorrection_OnChanged(object? sender, bool e)
@@ -223,7 +226,7 @@ public partial class Client : IDisposable, IInputManagement
 
     private void Rng_OnChanged(object? sender, RngMethod e) =>  m_invalidateRng = true;
 
-    private static void SetOpenGLVersion(IConfig config)
+    private void SetOpenGLVersion(IConfig config)
     {
         // MacOS is opposite from Windows/Linux. Request 3.3 with ForwardCompatible and MacOS will return the highest available (The M series appears to return 4.1).
         // Running the tests below appears to generate a hard crash so just force it here.

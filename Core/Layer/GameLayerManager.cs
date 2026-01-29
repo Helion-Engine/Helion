@@ -767,7 +767,9 @@ public class GameLayerManager : IGameLayerManager
         m_hudContext.Dimension = m_renderer.RenderDimension;
         m_hudContext.DrawPalette = true;
         ctx.Viewport(m_renderer.RenderDimension.Box);
-        ctx.Clear(GetClearColor(), true, true);
+
+        if (m_config.Window.ClearScreen)
+            ctx.Clear(GetClearColor(), true, true);
 
         if (WorldLayer != null && WorldLayer.ShouldRender && (m_config.Hud.AutoMap.Overlay || !WorldLayer.DrawAutomap))
         {
@@ -834,8 +836,13 @@ public class GameLayerManager : IGameLayerManager
         m_hudRenderCtx.DrawHud();
         if (LoadingLayer?.HasImage == true)
             TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
-        TransitionLayer?.Render(m_ctx);
         m_ctx.ClearDepth();
+        if (TransitionLayer != null)
+        {
+            TransitionLayer.Render(m_ctx);
+            // Clear depth doesn't appear to be required on all GPUs. Required on old AMD 3.3 GPU.
+            m_ctx.ClearDepth();
+        }
 
         if (MenuLayer != null)
             RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);

@@ -108,6 +108,10 @@ public class ConfigWindow: ConfigElement<ConfigWindow>
     [OptionMenu(OptionSectionType.Video, "True Color Overlay")]
     public readonly ConfigValue<bool> PaletteTrueColorOverlay = new(true);
 
+    [ConfigInfo("Clear screen buffer before drawing. Off emulates Doom's hall of mirrors effect.")]
+    [OptionMenu(OptionSectionType.Video, "Clear Screen")]
+    public readonly ConfigValue<bool> ClearScreen = new(false);
+
     [ConfigInfo("Changes which laptop GPU is used. Computer restart required.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Video, "Laptop GPU", spacer: true, allowReset: false, windowsPlatform: true)]
     public readonly ConfigValue<LaptopGpuMode> LaptopGpu = new(LaptopGpuMode.HighPerformance);

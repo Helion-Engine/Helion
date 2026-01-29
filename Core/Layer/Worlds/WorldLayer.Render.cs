@@ -75,6 +75,8 @@ public partial class WorldLayer
             ctx.Clear(color, true, true);
         }
 
+        // Clear depth doesn't appear to be required on all GPUs. Required on old AMD 3.3 GPU.
+        ctx.ClearDepth();
         ctx.Automap(m_worldContext, m_renderAutomapAction);
     }
 
