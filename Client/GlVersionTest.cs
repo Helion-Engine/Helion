@@ -27,7 +27,7 @@ public class GlVersionTest
                     GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(settings));
             }
 
             bool forwardCompatible = (GlVersion.Flags & GLContextFlags.ForwardCompatible) != 0;
@@ -39,6 +39,9 @@ public class GlVersionTest
             GLFW.WindowHint(WindowHintBool.Visible, false);
 
             OpenTK.Windowing.GraphicsLibraryFramework.Window* windowPtr = GLFW.CreateWindow(640, 480, "", null, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)(void*)IntPtr.Zero);
+            if (windowPtr == null)
+                return false;
+
             GLFW.MakeContextCurrent(windowPtr);
 
             LoadBindingsES11();
