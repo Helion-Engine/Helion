@@ -208,6 +208,7 @@ public sealed class Sector3D
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
+        var resetLight = false;
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
         ref var overlapLightPlane3D = ref sector.SectorPlanes3D[0];
 
@@ -216,6 +217,14 @@ public sealed class Sector3D
             ref var plane3D = ref sector.SectorPlanes3D[i];
             plane3D.NoRenderWall = false;
             var sector3D = plane3D.Sector3D;
+
+            if (resetLight)
+            {
+                resetLight = false;
+                currentLightSector3D = sector3D;
+                currentLightSector = sector3D == null ? plane3D.ControlPlane.Sector : sector3D.ControlSector;
+            }
+
             if (sector3D == null)
             {
                 plane3D.LightSector = currentLightSector;
@@ -261,7 +270,7 @@ public sealed class Sector3D
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
-            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D.Plane))
+            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, out resetLight))
                 continue;
 
             currentLightSector = sector3D.ControlSector;
@@ -297,8 +306,10 @@ public sealed class Sector3D
             sector3D.LightTop = lightSector;
     }
 
-    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, SectorPlane nextPlane3D)
+    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, in SectorPlane3D nextPlane3D, out bool resetLight)
     {
+        resetLight = false;
+
         if ((nextSector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
             return true;
 
@@ -307,6 +318,28 @@ public sealed class Sector3D
 
         if (currentLightSector3D == null)
             return false;
+
+        if (currentLightSector3D.LightFlags != SectorLightFlags3D.None)
+        {
+            switch(currentLightSector3D.LightFlags)
+            {
+                case SectorLightFlags3D.ToNextTypeZero:
+                    if (nextSector3D != currentLightSector3D && nextSector3D.LightFlags == SectorLightFlags3D.ToNextTypeZero)
+                        resetLight = true;
+                    break;
+                case SectorLightFlags3D.ToNextAny:
+                    if (nextSector3D != currentLightSector3D && nextSector3D.LightFlags != SectorLightFlags3D.None)
+                        resetLight = true;
+                    break;
+                case SectorLightFlags3D.ToControlFloor:
+                    if (nextSector3D == currentLightSector3D && nextPlane3D.Face == PlaneFace3D.Bottom)
+                        resetLight = true;
+                    break;
+            }
+
+            if (resetLight)
+                return false;
+        }
 
         var nextFlags = nextSector3D.Flags;
         var currentFlags = currentLightSector3D.Flags;
