@@ -19,3 +19,4 @@
 - Implemented custom frame limiter. Reduces CPU/power usage and yields better results since the OpenTK 4.9.4 upgrade in Helion 0.9.8.0 that was causing FPS drops on certain machines.
 - Removed intermediate buffer copy per frame. Increases performance with integrated GPUs at higher resolutions caused by bandwidth bottleneck.
 - Removed unnecessary OpenGL clear calls. Small performance improvement with integrated GPUs.
+- Added better OpenGL version testing that would previously cause hard crashes on some Linux setups.
