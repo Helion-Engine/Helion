@@ -836,8 +836,13 @@ public class GameLayerManager : IGameLayerManager
         m_hudRenderCtx.DrawHud();
         if (LoadingLayer?.HasImage == true)
             TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
-        TransitionLayer?.Render(m_ctx);
         m_ctx.ClearDepth();
+        if (TransitionLayer != null)
+        {
+            TransitionLayer.Render(m_ctx);
+            // Clear depth doesn't appear to be required on all GPUs. Required on old AMD 3.3 GPU.
+            m_ctx.ClearDepth();
+        }
 
         if (MenuLayer != null)
             RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);

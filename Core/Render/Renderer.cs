@@ -872,6 +872,7 @@ public partial class Renderer : IDisposable
 
         m_mainFramebuffer.BindDraw();
         UpdateVirtualTextureFilter(m_virtualFramebuffer);
+        GL.Clear(ClearBufferMask.DepthBufferBit);
         m_framebufferRenderer.Render(m_virtualFramebuffer, CalculateVirtualMvp(m_virtualFramebuffer, GetVirtualDimension()));
     }
 
