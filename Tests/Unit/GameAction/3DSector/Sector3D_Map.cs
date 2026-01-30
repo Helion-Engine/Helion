@@ -112,12 +112,12 @@ public class Sector3D_Map
         // Fully clipped with previous sector so 256 -> 512 is clipped to 0 -> 0
         sector.Sectors3D[1].ControlTop.Z.Should().Be(512);
         sector.Sectors3D[1].ControlBottom.Z.Should().Be(256);
-        AssertWallHeights(sector.Sectors3D[1].WallHeights, 0, 0);
+        AssertWallHeights(sector.Sectors3D[1].WallHeights, Sector3D.InvalidZ, Sector3D.InvalidZ);
 
         // Fully clipped with previous sector so 0 -> 32 is clipped to 0 -> 0
         sector.Sectors3D[2].ControlTop.Z.Should().Be(32);
         sector.Sectors3D[2].ControlBottom.Z.Should().Be(0);
-        AssertWallHeights(sector.Sectors3D[2].WallHeights, 0, 0);
+        AssertWallHeights(sector.Sectors3D[2].WallHeights, Sector3D.InvalidZ, Sector3D.InvalidZ);
     }
 
     [Fact(DisplayName = "3D sector is clipped to normal geometry")]

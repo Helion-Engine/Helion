@@ -73,6 +73,8 @@ public enum SolidContext
 
 public sealed class Sector3D
 {
+    public const double InvalidZ = short.MinValue;
+
     public int ParentSectorId;
     public int SectorId;
     public int CheckCount;
@@ -114,12 +116,22 @@ public sealed class Sector3D
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
     {
+        ParentSector = parentSector;
+        ControlSector = controlSector;
+        ControlTop = controlSector.Ceiling;
+        ControlBottom = controlSector.Floor;
+        LightTop = ParentSector;
+        LightBottom = ParentSector;
+        Flags = flags;
+        LightFlags = lightFlags;
+        Alpha = alpha;
+
         SectorId = world.Geometry.CreateNewSectorId();
         ParentSectorId = parentSectorId;
-        FakeBottom = new(SectorPlaneFace.Floor, 0, 0, 0);
-        FakeTop = new(SectorPlaneFace.Ceiling, 0, 0, 0);
-        FakeBottom.RenderOffsets = controlSector.Ceiling.RenderOffsets;
+        FakeTop = new(SectorPlaneFace.Ceiling, ControlTop.Z, 0, 0);
+        FakeBottom = new(SectorPlaneFace.Floor, ControlBottom.Z, 0, 0);
         FakeTop.RenderOffsets = controlSector.Floor.RenderOffsets;
+        FakeBottom.RenderOffsets = controlSector.Ceiling.RenderOffsets;
 
         if ((flags & (SectorFlags3D.Swim | SectorFlags3D.RenderInside)) != 0)
         {
@@ -136,16 +148,6 @@ public sealed class Sector3D
             Sector3D = this,
             Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle, (flags & SectorFlags3D.RenderInside) != 0)
         };
-
-        ParentSector = parentSector;
-        ControlSector = controlSector;
-        ControlTop = controlSector.Ceiling;
-        ControlBottom = controlSector.Floor;
-        LightTop = ParentSector;
-        LightBottom = ParentSector;
-        Flags = flags;
-        LightFlags = lightFlags;
-        Alpha = alpha;
 
         if ((Flags & SectorFlags3D.AdditiveTransparency) != 0)
             RenderDataStyle = RenderDataStyle.Add;
@@ -505,6 +507,7 @@ public sealed class Sector3D
                             WallHeights.BottomZ = checkSector3D.ControlTop.Z;
                             WallHeights.PrevBottomZ = checkSector3D.ControlTop.Z;
                             ClipBottomZ = checkSector3D.ControlTop.Z;
+                            ClipPrevBottomZ = checkSector3D.ControlTop.PrevZ;
                         }
                     }
                 }
@@ -657,10 +660,10 @@ public sealed class Sector3D
         if (checkTopZ >= wallHeights.TopZ && checkBottomZ <= wallHeights.BottomZ)
         {
             wallHeights.Invalid = true;
-            wallHeights.BottomZ = 0;
-            wallHeights.TopZ = 0;
-            wallHeights.PrevTopZ = 0;
-            wallHeights.PrevBottomZ = 0;
+            wallHeights.BottomZ = InvalidZ;
+            wallHeights.TopZ = InvalidZ;
+            wallHeights.PrevTopZ = InvalidZ;
+            wallHeights.PrevBottomZ = InvalidZ;
             return false;
         }
 
