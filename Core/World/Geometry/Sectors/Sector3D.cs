@@ -210,6 +210,7 @@ public sealed class Sector3D
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
+        Sector3D? resetLightSector3D = null;
         var resetLight = false;
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
         ref var overlapLightPlane3D = ref sector.SectorPlanes3D[0];
@@ -223,8 +224,8 @@ public sealed class Sector3D
             if (resetLight)
             {
                 resetLight = false;
-                currentLightSector3D = sector3D;
-                currentLightSector = sector3D == null ? plane3D.ControlPlane.Sector : sector3D.ControlSector;
+                currentLightSector3D = resetLightSector3D;
+                currentLightSector = resetLightSector3D == null ? plane3D.ControlPlane.Sector : resetLightSector3D.ControlSector;
             }
 
             if (sector3D == null)
@@ -255,7 +256,7 @@ public sealed class Sector3D
                     lastPlane3D.Sector3D.RenderPlanes &= keepPlane;
                     lastPlane3D.NoRenderWall = true;
                 }
-                else if ((lastPlane3D.Sector3D.Flags & SectorFlags3D.NoRender) == 0 && lastPlane3D.Sector3D != plane3D.Sector3D)
+                else if ((lastPlane3D.Sector3D.Flags & SectorFlags3D.NoRender) == 0 && lastPlane3D.Sector3D != plane3D.Sector3D && lastPlane3D.Sector3D.RenderDataStyle == RenderDataStyle.Normal)
                 {
                     // Flag to update lighting for the previous 3D sector
                     overlapLight = true;
@@ -272,7 +273,10 @@ public sealed class Sector3D
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
-            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, out resetLight))
+            if ((sector3D.Flags & SectorFlags3D.LightTransfer) == 0 && !ShouldCarryLight(resetLightSector3D, sector3D, plane3D, false, out _))
+                resetLightSector3D = sector3D;
+
+            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, true, out resetLight))
                 continue;
 
             currentLightSector = sector3D.ControlSector;
@@ -308,7 +312,7 @@ public sealed class Sector3D
             sector3D.LightTop = lightSector;
     }
 
-    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, in SectorPlane3D nextPlane3D, out bool resetLight)
+    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, in SectorPlane3D nextPlane3D, bool checkLightTransfer, out bool resetLight)
     {
         resetLight = false;
 
@@ -321,7 +325,7 @@ public sealed class Sector3D
         if (currentLightSector3D == null)
             return false;
 
-        if (currentLightSector3D.LightFlags != SectorLightFlags3D.None)
+        if (checkLightTransfer && currentLightSector3D.LightFlags != SectorLightFlags3D.None)
         {
             switch(currentLightSector3D.LightFlags)
             {
@@ -339,8 +343,7 @@ public sealed class Sector3D
                     break;
             }
 
-            if (resetLight)
-                return false;
+            return true;
         }
 
         var nextFlags = nextSector3D.Flags;
