@@ -14,6 +14,7 @@ public struct SectorPlane3D(SectorPlane controlPlane, SectorPlane plane, Sector3
     public Sector LightSector = lightSector;
     public bool NoRenderWall;
     public PlaneSortKey SortKey;
+    public int CheckCount;
 
     public readonly double GetZ() => (Sector3D != null && Face == PlaneFace3D.Bottom)
             ? Sector3D.ClipBottomZ

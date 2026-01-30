@@ -97,6 +97,7 @@ public partial class GeometryRenderer
 
     private Span<SectorPlane3D> MergePlanes(SectorPlane3D[] a, SectorPlane3D[] b, Sector3D ignorePlane)
     {
+        var checkCount = WorldStatic.CheckCounter++;
         m_mergePlanes.Length = 0;
         m_mergePlanes.EnsureCapacity(a.Length + b.Length);
 
@@ -106,8 +107,31 @@ public partial class GeometryRenderer
         // Merge sort
         while (indexA < a.Length && indexB < b.Length)
         {
-            ref readonly var planeA = ref a[indexA];
-            ref readonly var planeB = ref b[indexB];
+            ref var planeA = ref a[indexA];
+            ref var planeB = ref b[indexB];
+
+            var validA = planeA.CheckCount != checkCount || planeA.Sector3D == ignorePlane;
+            var validB = planeB.CheckCount != checkCount || planeB.Sector3D == ignorePlane;
+            planeA.CheckCount = checkCount;
+            planeB.CheckCount = checkCount;
+
+            if (!validA)
+            {
+                if (validB)
+                    m_mergePlanes.AddUnsafe(planeB);
+                indexA++;
+                indexB++;
+                continue;
+            }
+
+            if (!validB)
+            {
+                if (validA)
+                    m_mergePlanes.AddUnsafe(planeA);
+                indexA++;
+                indexB++;
+                continue;
+            }
 
             if (Sector3D.SortPlanesByKey3D(planeA, planeB) <= 0)
             {
