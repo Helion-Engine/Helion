@@ -78,7 +78,7 @@ public class ConfigWindow: ConfigElement<ConfigWindow>
     [OptionMenu(OptionSectionType.Video, "Render Mode")]
     public readonly ConfigValue<ConfigRenderMode> RenderMode = new(ConfigRenderMode.TrueColorFast);
 
-    [ConfigInfo("Display fullscreen or windowed.")]
+    [ConfigInfo("Display fullscreen or windowed.  Borderless Fullscreen is treated as Fullscreen on Linux.")]
     [OptionMenu(OptionSectionType.Video, "Fullscreen/Window", allowReset: false, spacer: true)]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
 
