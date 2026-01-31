@@ -268,14 +268,14 @@ public sealed class Sector3D
 
             // If solid bottom plane was clipped then it's not visible
             // TODO should be able to determine for solid top plane
-            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.Face == PlaneFace3D.Bottom && 
+            if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.Face == PlaneFace3D.Bottom &&
                 lastPlane3D.Sector3D.IsSolid && lastPlane3D.Sector3D.ClipBottomZ != lastPlane3D.ControlPlane.Z)
                 lastPlane3D.Sector3D.RenderPlanes &= ~SectorPlanes.Floor;
 
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
-            if (!sector3D.IsLightTransfer && !ShouldCarryLight(resetLightSector3D, sector3D, plane3D, false, out _))
+            if (ShouldResetLightSector(plane3D, sector3D))
             {
                 resetLightSector = sector3D.ControlSector;
                 resetLightSector3D = sector3D;
@@ -290,6 +290,15 @@ public sealed class Sector3D
             if (overlapLight && overlapLightPlane3D.Sector3D != null)
                 SetLight(overlapLightPlane3D.Sector3D, ref overlapLightPlane3D, currentLightSector);
         }
+    }
+
+    private static bool ShouldResetLightSector(in SectorPlane3D plane3D, Sector3D sector3D)
+    {
+        if (!sector3D.IsLightTransfer)
+            return true;
+
+        var planeZ = plane3D.GetZ();
+        return planeZ < sector3D.ControlTop.Z && planeZ > sector3D.ControlBottom.Z;
     }
 
     private static int PlaneHeightKeyCompare(SectorPlane3D x, SectorPlane3D y)
