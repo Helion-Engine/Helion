@@ -211,6 +211,7 @@ public sealed class Sector3D
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
+        Sector resetLightSector = sector;
         Sector3D? resetLightSector3D = null;
         var resetLight = false;
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
@@ -226,8 +227,7 @@ public sealed class Sector3D
             {
                 resetLight = false;
                 currentLightSector3D = resetLightSector3D;
-                currentLightSector = resetLightSector3D == null ? plane3D.ControlPlane.Sector : resetLightSector3D.ControlSector;
-                resetLightSector3D = null;
+                currentLightSector = resetLightSector;
             }
 
             if (sector3D == null)
@@ -275,8 +275,11 @@ public sealed class Sector3D
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
-            if (currentLightSector3D?.IsLightTransfer == true && !sector3D.IsLightTransfer && !ShouldCarryLight(resetLightSector3D, sector3D, plane3D, false, out _))
+            if (!sector3D.IsLightTransfer && !ShouldCarryLight(resetLightSector3D, sector3D, plane3D, false, out _))
+            {
+                resetLightSector = sector3D.ControlSector;
                 resetLightSector3D = sector3D;
+            }
 
             if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, true, out resetLight))
                 continue;
