@@ -464,12 +464,12 @@ public partial class GeometryRenderer : IDisposable
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Ceiling) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
-                    if (sector3D.FakeBottomFlipped != null)
+                    if (sector3D.FakeTopFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
@@ -488,12 +488,12 @@ public partial class GeometryRenderer : IDisposable
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Floor) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
-                    if (sector3D.FakeTopFlipped != null)
+                    if (sector3D.FakeBottomFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
