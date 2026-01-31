@@ -103,6 +103,7 @@ public sealed class Sector3D
 
     public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
     public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
+    public bool IsLightTransfer => (Flags & SectorFlags3D.LightTransfer) != 0;
     public bool ShouldRenderWalls => ControlTop.Z - ControlBottom.Z > 0 && (Flags & SectorFlags3D.NoRender) == 0;
     public bool ShouldRenderFlats => ControlTop.Z - ControlBottom.Z >= 0 && (Flags & SectorFlags3D.NoRender) == 0;
     public bool ShouldRenderInsideWalls => (Flags & SectorFlags3D.RenderInside) != 0;
@@ -226,6 +227,7 @@ public sealed class Sector3D
                 resetLight = false;
                 currentLightSector3D = resetLightSector3D;
                 currentLightSector = resetLightSector3D == null ? plane3D.ControlPlane.Sector : resetLightSector3D.ControlSector;
+                resetLightSector3D = null;
             }
 
             if (sector3D == null)
@@ -273,7 +275,7 @@ public sealed class Sector3D
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
-            if ((sector3D.Flags & SectorFlags3D.LightTransfer) == 0 && !ShouldCarryLight(resetLightSector3D, sector3D, plane3D, false, out _))
+            if (currentLightSector3D?.IsLightTransfer == true && !sector3D.IsLightTransfer && !ShouldCarryLight(resetLightSector3D, sector3D, plane3D, false, out _))
                 resetLightSector3D = sector3D;
 
             if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, true, out resetLight))
@@ -349,13 +351,16 @@ public sealed class Sector3D
         var nextFlags = nextSector3D.Flags;
         var currentFlags = currentLightSector3D.Flags;
 
+        if ((currentFlags & SectorFlags3D.Swim) != 0)
+            return (nextFlags & SectorFlags3D.Swim) == 0;
+
         if ((currentFlags & SectorFlags3D.Swim) != (nextFlags & SectorFlags3D.Swim))
             return false;
 
         if ((currentFlags & SectorFlags3D.LightTransfer) != 0 || (nextFlags & SectorFlags3D.LightTransfer) != 0)
             return false;
 
-        if (!currentLightSector3D.IsSolid && (currentLightSector3D.Flags & (SectorFlags3D.LightTransfer)) != 0 && nextSector3D.IsSolid)
+        if (!currentLightSector3D.IsSolid && currentLightSector3D.IsLightTransfer && nextSector3D.IsSolid)
             return true;
 
         if (currentLightSector3D.IsSolid && !nextSector3D.IsSolid)
@@ -631,7 +636,7 @@ public sealed class Sector3D
         if (RenderDataStyle != RenderDataStyle.Normal && other.RenderDataStyle != RenderDataStyle.Normal)
             return true;
 
-        if (ClipStyle != other.ClipStyle && ((Flags & SectorFlags3D.LightTransfer) != 0 || (other.Flags & SectorFlags3D.LightTransfer) != 0))
+        if (ClipStyle != other.ClipStyle && (IsLightTransfer || other.IsLightTransfer))
             return false;
 
         if (clipOtherSolid && ClipStyle == ClipStyle.NotSolid && other.ClipStyle == ClipStyle.Solid)
