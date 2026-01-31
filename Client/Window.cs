@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Helion.Client.Input;
 using Helion.Client.Input.Controller;
 using Helion.Geometry;
@@ -284,6 +285,13 @@ public class Window : GameWindow, IWindow
                     GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                     break;
                 case RenderWindowState.BorderlessFullscreenWindow:
+                    if (OperatingSystem.IsLinux())
+                    {
+                        // Borderless fullscreen mode changes on linux are _really_ inconsistent, so let's just not do that for now.
+                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                        break;
+                    }
+
                     // Hide border before going fullscreen, otherwise taskbar gets stuck on Windows
                     WindowBorder = WindowBorder.Hidden;
                     WindowState = WindowState.Normal;
@@ -309,16 +317,6 @@ public class Window : GameWindow, IWindow
                         windowY = m_knownGoodWindowPos.Value.Y;
 
                         GLFW.RestoreWindow(WindowPtr);
-                    }
-
-                    if (m_isLinuxX11 && oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
-                    {
-                        // Note:  There seems to be a weird bug here where if the application is started in borderless, 
-                        // and then the user goes to Windowed _without ever moving their mouse_, the mouse cursor gets "stuck"
-                        // in a narrow range and cannot be moved.
-
-                        // Need to quickly bounce through full-screen for...reasons?
-                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                     }
 
                     // Note: Wayland (at least on Gnome, Ubuntu 24.04) seems to ignore window decor settings.
