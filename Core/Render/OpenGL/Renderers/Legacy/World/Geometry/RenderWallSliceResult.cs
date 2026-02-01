@@ -21,7 +21,7 @@ public ref struct RenderWallSliceResult
         AddOffset = addOffset;
     }
 
-    public static RenderWallSliceResult EmptyMiddle => new(null, null, null, addOffset: false);
+    public static RenderWallSliceResult EmptyNoAddOffset => new(null, null, null, addOffset: false);
 
     public static RenderWallSliceResult Empty3D => new(null, null, null);
 }

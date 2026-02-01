@@ -471,7 +471,7 @@ public partial class GeometryRenderer
     public RenderWallSliceResult RenderTwoSidedLowerSlice(RenderWallSliceArgs args)
     {
         if (!SetSectorsForTwoSidedLowerSlice(args, out var facing, out var other))
-            return RenderWallSliceResult.Empty3D;
+            return RenderWallSliceResult.EmptyNoAddOffset;
 
         RenderTwoSidedLower(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, out var skyVertices, lightLevelSector: args.LightSector);
         return new(sideVertices, skyVertices, null);
@@ -536,7 +536,7 @@ public partial class GeometryRenderer
     public RenderWallSliceResult RenderTwoSidedUpperSlice(RenderWallSliceArgs args)
     {
         if (!SetSectorsForTwoSidedUpperSlice(args, out var facing, out var other))
-            return RenderWallSliceResult.Empty3D;
+            return RenderWallSliceResult.EmptyNoAddOffset;
 
         RenderTwoSidedUpper(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2, 
             lightLevelSector: args.LightSector, renderSkySide: args.RenderSkySide);
@@ -605,7 +605,7 @@ public partial class GeometryRenderer
     public RenderWallSliceResult RenderTwoSidedMiddleSlice(RenderWallSliceArgs args)
     {
         if (!SetSectorsForTwoMiddleSlice(args, out var facing, out var other, out var bottomZ))
-            return RenderWallSliceResult.EmptyMiddle;
+            return RenderWallSliceResult.EmptyNoAddOffset;
 
         var saveOffset = args.Side.Middle.Offset.Y;
         args.Side.Middle.Offset.Y = (float)(bottomZ - facing.Floor.Z);
