@@ -3367,7 +3367,7 @@ public static class EntityActionFunctions
 
         if (flags != 0 && !DehackedApplier.CheckEntityFlags(entity, flags))
             return;
-        if (flags2 != 0 && !DehackedApplier.CheckEntityFlagsMbf21(entity, flags))
+        if (flags2 != 0 && !DehackedApplier.CheckEntityFlagsMbf21(entity, flags2))
             return;
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
