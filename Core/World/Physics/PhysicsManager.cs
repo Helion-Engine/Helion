@@ -217,7 +217,7 @@ public sealed class PhysicsManager
 
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the entity will fall and hit the floor repeatedly creating a weird bouncing effect
-                if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || moveType == SectorPlaneFace.Floor))
+                if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || entity.Sector3D != null || moveType == SectorPlaneFace.Floor))
                 {
                     var floorZ = moveType == SectorPlaneFace.Floor ? destZ : entity.Position.Z;
                     var onEntity = entity.OnEntity();
@@ -225,6 +225,8 @@ public sealed class PhysicsManager
                     {
                         if (onEntity.MidTexLine != null)
                             onEntity = onEntity.MidTexLine.GetMidTexEntity(m_world);
+                        else if (onEntity.Sector3D != null)
+                            onEntity = onEntity.Sector3D.GetSectorEntity3D();
                         floorZ = onEntity.Position.Z + onEntity.Height;
                     }
                     entity.Position.Z = floorZ;
