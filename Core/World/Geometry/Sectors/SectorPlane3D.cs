@@ -20,6 +20,10 @@ public struct SectorPlane3D(SectorPlane controlPlane, SectorPlane plane, Sector3
             ? Sector3D.ClipBottomZ
             : ControlPlane.Z;
 
+    public readonly double GetPrevZ() => (Sector3D != null && Face == PlaneFace3D.Bottom)
+            ? Sector3D.ClipPrevBottomZ
+            : ControlPlane.PrevZ;
+
     public void UpdateSortKey()
     {
         SortKey = new(this);

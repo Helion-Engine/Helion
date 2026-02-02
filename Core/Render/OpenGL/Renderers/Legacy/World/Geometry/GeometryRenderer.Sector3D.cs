@@ -1,4 +1,5 @@
-﻿using Helion.Maps.Specials;
+﻿using Helion.Geometry.Planes;
+using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
@@ -169,7 +170,9 @@ public partial class GeometryRenderer
         m_vertices.Clear();
 
         // Because of how the WorldTriangulator handles mapping UV coordinates based on flags they are fudged here to fix alignment.
-        var anchorZ = CalculateAnchorZ(side, wall, otherSector, anchorSector3D);
+        var anchorPlane = CalculateAnchorPlane(side, wall, otherSector, anchorSector3D);
+        var anchorZ = anchorPlane.Z;
+        var prevAnchorZ = anchorPlane.PrevZ;
         var saveUnpeg = side.Line.Flags.Unpegged;
         side.Line.Flags.Unpegged.Lower = wall.Location == WallLocation.Middle && side.PartnerSide != null && side.Line.Flags.Unpegged.Lower;
         side.Line.Flags.Unpegged.Upper = wall.Location == WallLocation.Upper;
@@ -212,7 +215,7 @@ public partial class GeometryRenderer
 
         var renderThrough = style != RenderDataStyle.Normal;
         SectorPlane3D? lastPlane3D = null;
-        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, wallHeights3D), anchorZ);
+        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, wallHeights3D), anchorZ, prevAnchorZ);
 
         for (int i = 0; i < traversePlanes3D.Length - 1; i++)
         {
@@ -226,8 +229,11 @@ public partial class GeometryRenderer
                 plane3D.Face == PlaneFace3D.Top && nextPlane3D.Face == PlaneFace3D.Bottom)
             {
                 if (anchorSector3D?.ParentSectorId == plane3D.Sector3D?.ParentSectorId)
+                {
                     anchorZ = nextPlane3D.GetZ();
-                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ);
+                    prevAnchorZ = nextPlane3D.GetPrevZ();
+                }
+                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
                 continue;
             }
 
@@ -253,7 +259,7 @@ public partial class GeometryRenderer
             }
 
             if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z && (anchorSector3D == null || result.Vertices.Length > 0))
-                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ);
+                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
 
             lastPlane3D = nextPlane3D;
         }
@@ -303,40 +309,39 @@ public partial class GeometryRenderer
         return side.Sector.Ceiling;
     }
 
-    private static double CalculateAnchorZ(Side side, Wall wall, Sector otherSector, Sector3D? anchorSector3D)
+    private static SectorPlane CalculateAnchorPlane(Side side, Wall wall, Sector otherSector, Sector3D? anchorSector3D)
     {
         // Rules for what z to anchor drawing to based on location (lower, middle, upper, middle 3D) and unpeg flags
         if (wall.Location == WallLocation.Lower)
         {
             if (side.Line.Flags.Unpegged.Lower)
-                return otherSector.Ceiling.Z;
-            return otherSector.Floor.Z;
+                return otherSector.Ceiling;
+            return otherSector.Floor;
         }
         else if (wall.Location == WallLocation.Upper)
         {
             if (side.Line.Flags.Unpegged.Upper)
-                return side.Sector.Ceiling.Z;
-            return otherSector.Ceiling.Z;
+                return side.Sector.Ceiling;
+            return otherSector.Ceiling;
         }
         else if (wall.Location == WallLocation.Middle3D && anchorSector3D != null)
         {
-            return anchorSector3D.ControlTop.Z;
+            return anchorSector3D.ControlTop;
         }
         else if (wall.Location == WallLocation.Middle && side.PartnerSide != null)
         {
-            return side.Sector.Ceiling.Z;
+            return side.Sector.Ceiling;
         }
 
-        return side.Line.Flags.Unpegged.Lower ? side.Sector.Floor.Z : side.Sector.Ceiling.Z;
+        return side.Line.Flags.Unpegged.Lower ? side.Sector.Floor : side.Sector.Ceiling;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe void SetWallOffset(Side side, Wall wall, float saveOffsetY, SectorPlane top, double anchorZ)
+    private static unsafe void SetWallOffset(Side side, Wall wall, float saveOffsetY, SectorPlane top, double anchorZ, double prevAnchorZ)
     {
-        wall.Offset.Y = saveOffsetY + (float)(anchorZ - top.Z);
-        var prevOffsetY = saveOffsetY + (float)(anchorZ - top.PrevZ);
-        var offsetDiffY = prevOffsetY - wall.Offset.Y;
-        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = offsetDiffY;
+        // Use scrolling data for offset since normal wall offsets can't interpolate
+        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Current).Y = saveOffsetY + (float)(anchorZ - top.Z);
+        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = saveOffsetY + (float)(prevAnchorZ - top.PrevZ);
     }
 
     private static void AddVertices(DynamicArray<DynamicVertex> vertices, Span<DynamicVertex> add)
@@ -629,13 +634,15 @@ public partial class GeometryRenderer
         if (wallHeights3D.HasValue)
         {
             wallSector.Ceiling.Z = Math.Min(wallSector.Ceiling.Z, wallHeights3D.Value.TopZ);
-            wallSector.Ceiling.PrevZ = Math.Min(wallSector.Ceiling.Z, wallHeights3D.Value.PrevTopZ);
             wallSector.Floor.Z = Math.Max(wallSector.Floor.Z, wallHeights3D.Value.BottomZ);
-            wallSector.Floor.PrevZ = Math.Max(wallSector.Floor.Z, wallHeights3D.Value.PrevBottomZ);
+            wallSector.Ceiling.PrevZ = Math.Min(wallSector.Ceiling.PrevZ, wallHeights3D.Value.PrevTopZ);
+            wallSector.Floor.PrevZ = Math.Max(wallSector.Floor.PrevZ, wallHeights3D.Value.PrevBottomZ);
         }
 
         if (wallSector.Floor.Z > wallSector.Ceiling.Z)
             wallSector.Floor.Z = wallSector.Ceiling.Z;
+        if (wallSector.Floor.PrevZ > wallSector.Ceiling.PrevZ)
+            wallSector.Floor.PrevZ = wallSector.Ceiling.PrevZ;
     }
 
     private void SetSectorToSlice(Sector wallSector, WallHeights heights)
