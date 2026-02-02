@@ -223,7 +223,10 @@ public partial class GeometryRenderer
             ref var nextPlane3D = ref traversePlanes3D[i + 1];
 
             if (plane3D.NoRenderWall || nextPlane3D.NoRenderWall)
+            {
+                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
                 continue;
+            }
 
             if (renderThrough && plane3D.Sector3D != anchorSector3D && plane3D.Sector3D?.IsSolid == true &&
                 plane3D.Face == PlaneFace3D.Top && nextPlane3D.Face == PlaneFace3D.Bottom)
