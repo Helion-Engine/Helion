@@ -15,6 +15,7 @@ public class LineOpening
     public double FloorZ;
     public double OpeningHeight;
     public double DropOffZ;
+    public double DropOffZ_3D;
     public Sector? FloorSector;
     public Sector? CeilingSector;
     public bool HasDropOff3D;

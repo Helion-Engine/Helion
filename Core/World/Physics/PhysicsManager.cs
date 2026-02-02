@@ -61,8 +61,8 @@ public sealed class PhysicsManager
     private bool m_alwaysStickEntitiesToFloor;
     private readonly LineOpening m_lineOpening = new();
     private readonly LineOpening m_entityOpening = new();
-    private readonly LineOpening m_testOpening1 = new();
-    private readonly LineOpening m_testOpening2 = new();
+    private readonly LineOpening m_testOpeningFront = new();
+    private readonly LineOpening m_testOpeningBack = new();
     private readonly DynamicArray<Entity> m_crushEntities = new();
     private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
     private readonly DynamicArray<SectorMoveEntityData> m_sectorMoveEntitiesData = new();
@@ -824,7 +824,14 @@ public sealed class PhysicsManager
             return GetLineOpeningWithDropoff(x, y, ref line);
 
         GetLineOpening(front, back);
+        m_lineOpening.DropOffZ = front.Floor.Z;
         SetOpeningPlanes3D(entity, front, back);
+
+        var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
+        if (dot <= 0)
+            m_lineOpening.DropOffZ = Math.Max(m_testOpeningBack.DropOffZ_3D, m_lineOpening.DropOffZ);
+        else
+            m_lineOpening.DropOffZ = Math.Max(m_testOpeningFront.DropOffZ_3D, m_lineOpening.DropOffZ);
 
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
         return m_lineOpening;
@@ -832,36 +839,28 @@ public sealed class PhysicsManager
 
     private void SetOpeningPlanes3D(Entity entity, Sector front, Sector back)
     {
-        SetLineOpening3D(m_testOpening1, front, entity, front, back);
-        SetLineOpening3D(m_testOpening2, back, entity, front, back);
+        SetLineOpening3D(m_testOpeningFront, front, entity, front, back);
+        SetLineOpening3D(m_testOpeningBack, back, entity, front, back);
 
-        if (m_testOpening2.FloorZ > m_testOpening1.FloorZ)
+        var highestFloorOpening = m_testOpeningBack.FloorZ > m_testOpeningFront.FloorZ ? m_testOpeningBack : m_testOpeningFront;
+        if (highestFloorOpening.FloorZ > m_lineOpening.FloorZ)
         {
-            m_lineOpening.FloorZ = m_testOpening2.FloorZ;
-            m_lineOpening.FloorSector = m_testOpening2.FloorSector;
-        }
-        else
-        {
-            m_lineOpening.FloorZ = m_testOpening1.FloorZ;
-            m_lineOpening.FloorSector = m_testOpening1.FloorSector;
+            m_lineOpening.FloorZ = highestFloorOpening.FloorZ;
+            m_lineOpening.FloorSector = highestFloorOpening.FloorSector;
         }
 
-        if (m_testOpening2.CeilingZ < m_testOpening1.CeilingZ)
+        var lowestCeilOpening = m_testOpeningBack.CeilingZ < m_testOpeningFront.CeilingZ ? m_testOpeningBack : m_testOpeningFront;
+        if (lowestCeilOpening.CeilingZ < m_lineOpening.CeilingZ)
         {
-            m_lineOpening.CeilingZ = m_testOpening2.CeilingZ;
-            m_lineOpening.CeilingSector = m_testOpening2.CeilingSector;
+            m_lineOpening.CeilingZ = lowestCeilOpening.CeilingZ;
+            m_lineOpening.CeilingSector = lowestCeilOpening.CeilingSector;
         }
-        else
-        {
-            m_lineOpening.CeilingZ = m_testOpening1.CeilingZ;
-            m_lineOpening.CeilingSector = m_testOpening1.CeilingSector;
-        }
-
-        m_lineOpening.DropOffZ = Math.Min(m_testOpening1.DropOffZ, m_testOpening2.DropOffZ);
     }
 
     private void SetLineOpening3D(LineOpening testOpening, Sector useSector3D, Entity entity, Sector front, Sector back)
     {
+        testOpening.DropOffZ_3D = m_lineOpening.DropOffZ;
+
         if (useSector3D.Sectors3D.Length > 0)
         {
             var anySolid = false;
@@ -872,7 +871,12 @@ public sealed class PhysicsManager
                     continue;
 
                 anySolid = true;
-                SetEntityLineOpening(entity, sector3D.GetSectorEntity3D(), TryMoveData, testOpening);
+                var entity3D = sector3D.GetSectorEntity3D();
+                SetEntityLineOpening(entity, entity3D, TryMoveData, testOpening, false);
+
+                var top = entity3D.Position.Z + entity3D.Height;
+                if (top - entity.GetMaxStepHeight() <= entity.Position.Z && top > testOpening.DropOffZ_3D)
+                    testOpening.DropOffZ_3D = top;
             }
 
             if (anySolid)
@@ -1506,17 +1510,19 @@ doneLinkToSectors:
         tryMove.Subsector = m_world.ToSubsector(x, y);
 
         var highFloorEntity = entity.HighestFloorEntity();
+        var sector = tryMove.Subsector.Sector;
         if (highFloorEntity != null && highFloorEntity.Flags.Solid() && highFloorEntity.Flags.ActLikeBridge())
         {
             if (highFloorEntity.MidTexLine != null)
                 highFloorEntity = GetMidTexEntity(highFloorEntity.MidTexLine.Id);
 
             tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
-            tryMove.DropOffZ = entity.Sector.Floor.Z;
+            tryMove.DropOffZ = WorldStatic.Sector3D ? GetStartDropOffZ(entity, sector, entity.Sector.Floor.Z) : entity.Sector.Floor.Z;
         }
         else
         {
-            tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.Floor.Z;
+            tryMove.HighestFloorZ = tryMove.Subsector.Sector.Floor.Z;
+            tryMove.DropOffZ = WorldStatic.Sector3D ? GetStartDropOffZ(entity, sector, sector.Floor.Z) : sector.Floor.Z;
         }
 
         var lowCeilEntity = entity.LowestCeilingEntity();
@@ -1673,6 +1679,21 @@ doneLinkToSectors:
         return tryMove.Success;
     }
 
+    private static double GetStartDropOffZ(Entity entity, Sector sector, double startZ)
+    {
+        if (sector.Sectors3D.Length == 0)
+            return startZ;
+
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+        {
+            var sector3D = sector.Sectors3D[i];
+            if (sector3D.ControlTop.Z > startZ && sector3D.ControlTop.Z <= entity.Position.Z)
+                startZ = sector3D.ControlTop.Z;
+        }
+
+        return startZ;
+    }
+
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, LineOpening lineOpening)
     {
         if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null && other.Sector3D == null)
@@ -1691,7 +1712,7 @@ doneLinkToSectors:
         return !lineOpening.CanPassOrStepThrough(entity);
     }
 
-    private void SetEntityLineOpening(Entity entity, Entity other, TryMoveData tryMove, LineOpening opening)
+    private void SetEntityLineOpening(Entity entity, Entity other, TryMoveData tryMove, LineOpening opening, bool setDropOff = true)
     {
         if (entity.Position.Z + entity.Height > other.Position.Z)
         {
@@ -1705,7 +1726,7 @@ doneLinkToSectors:
             opening.SetBottom(tryMove, other.Position.Z);
         }
 
-        tryMove.SetIntersectionData3D(m_lineOpening, entity);
+        tryMove.SetIntersectionData3D(m_lineOpening, entity, setDropOff);
     }
 
     public void MoveTo(Entity entity, double x, double y, TryMoveData tryMove, Action<Entity, TryMoveData>? onMoveTo = null)

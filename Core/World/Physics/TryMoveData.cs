@@ -52,11 +52,11 @@ public class TryMoveData
         BlockingEntity = null;
     }
 
-    public void SetIntersectionData3D(LineOpening opening, Entity entity)
+    public void SetIntersectionData3D(LineOpening opening, Entity entity, bool setDropOff = true)
     {
         HasDropOff3D = HasDropOff3D || opening.HasDropOff3D;
 
-        if (opening.DropOffZ < DropOffZ)
+        if (setDropOff && opening.DropOffZ < DropOffZ)
         {
             DropOffZ = opening.DropOffZ;
             DropOffEntity = null;
