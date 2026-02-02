@@ -19,6 +19,7 @@ public struct SectorMoveData
     public SectorMoveFlags Flags;
     public SectorEffect? SectorEffect;
     public InstantKillEffect? KillEffect;
+    public Sector3D? Sector3D;
     public int LightTag;
 
     public const int InstantToggleSpeed = int.MaxValue;

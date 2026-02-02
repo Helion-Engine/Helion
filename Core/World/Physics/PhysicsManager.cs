@@ -217,7 +217,7 @@ public sealed class PhysicsManager
 
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the entity will fall and hit the floor repeatedly creating a weird bouncing effect
-                if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || entity.Sector3D != null || moveType == SectorPlaneFace.Floor))
+                if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || moveType == SectorPlaneFace.Floor))
                 {
                     var floorZ = moveType == SectorPlaneFace.Floor ? destZ : entity.Position.Z;
                     var onEntity = entity.OnEntity();
@@ -227,12 +227,18 @@ public sealed class PhysicsManager
                             onEntity = onEntity.MidTexLine.GetMidTexEntity(m_world);
                         else if (onEntity.Sector3D != null)
                             onEntity = onEntity.Sector3D.GetSectorEntity3D();
+
                         floorZ = onEntity.Position.Z + onEntity.Height;
                     }
-                    entity.Position.Z = floorZ;
-                    // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
-                    // Otherwise this is a problem with the instant lift hack
-                    entity.PrevPosition.Z = entity.Position.Z;
+
+                    // Only set for 3D sector if the on entity matches the moving floor.
+                    if (moveSpecial.MoveData.Sector3D == null || onEntity?.Sector3D?.ControlSector == moveSpecial.MoveData.Sector3D.ControlSector)
+                    {
+                        entity.Position.Z = floorZ;
+                        // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
+                        // Otherwise this is a problem with the instant lift hack
+                        entity.PrevPosition.Z = entity.Position.Z;
+                    }
                 }
 
                 // If the move distance is higher than entity height (usually instant floors) then check entities this entity is clipped with.
@@ -402,12 +408,14 @@ public sealed class PhysicsManager
             moveSpecial.Sector = m_testMoveSector3D;
             moveSpecial.SectorPlane = testMovePlane;
             moveSpecial.MoveData.SectorMoveType = testFace;
+            moveSpecial.MoveData.Sector3D = sector3D;
 
             var status = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, resetPlane: sectorPlane, solid: sector3D.IsSolid);
 
             moveSpecial.Sector = sector;
             moveSpecial.SectorPlane = sectorPlane;
             moveSpecial.MoveData.SectorMoveType = face;
+            moveSpecial.MoveData.Sector3D = null;
 
             if (status != SectorMoveStatus.Success)
                 return status;
