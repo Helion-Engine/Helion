@@ -2564,12 +2564,11 @@ public abstract partial class WorldBase : IWorld
 
     private static bool InFieldOfViewOrInMeleeDistance(Entity from, Entity to)
     {
-        double distance = from.Position.ApproximateDistance2D(to.Position);
         Vec2D entityLookingVector = Vec2D.UnitCircle(from.AngleRadians);
         Vec2D entityToTarget = new(to.Position.X - from.Position.X, to.Position.Y - from.Position.Y);
 
         // Not in front 180 FOV
-        if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
+        if (entityToTarget.Dot(entityLookingVector) < 0 && from.Position.ApproximateDistance2D(to.Position) > Constants.EntityMeleeDistance)
             return false;
 
         return true;
@@ -3106,7 +3105,6 @@ public abstract partial class WorldBase : IWorld
         pitch = 0.0;
         entity = null;
 
-        var noCrossCheck = true;
         var data = intersections.Data;
         int length = intersections.Length;
 
@@ -3116,7 +3114,6 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.GetIndex(out int index) == IntersectType.Line)
             {
-                noCrossCheck = false;
                 ref var line = ref Blockmap.BlockLines[index];
                 if (line.BackSector == null || line.BlockFlags.Everything)
                     return TraversalPitchStatus.Blocked;
@@ -3192,7 +3189,7 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        if (WorldStatic.Sector3D && noCrossCheck)
+        if (WorldStatic.Sector3D)
         {
             Vec3D intersect = default;
             double test = double.MaxValue;
@@ -3277,18 +3274,6 @@ public abstract partial class WorldBase : IWorld
         }
 
         return true;
-    }
-
-    private static void GetSolidLineOfSightSectors3D(DynamicArray<Sector3D> sectors3D, Sector sector, in Vec3D start)
-    {
-        for (int i = 0; i < sector.Sectors3D.Length; i++)
-        {
-            var sector3d = sector.Sectors3D[i];
-            if (!sector3d.IsSolidByContext(SolidContext.LineOfSight))
-                continue;
-
-            sectors3D.Add(sector3d);
-        }
     }
 
     private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)

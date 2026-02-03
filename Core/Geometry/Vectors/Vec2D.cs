@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
@@ -66,6 +67,7 @@ namespace Helion.Geometry.Vectors
         public readonly double Distance(Vector2D other) => (this - other).Length();
         public readonly Vec2D Interpolate(Vec2D end, double t) => this + (t * (end - this));
         public readonly Vec2D Interpolate(Vector2D end, double t) => this + (t * (end - this));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly double Dot(Vec2D other) => (X * other.X) + (Y * other.Y);
         public readonly double Dot(Vector2D other) => (X * other.X) + (Y * other.Y);
         public readonly double Component(Vec2D onto) => Dot(onto) / onto.Length();
