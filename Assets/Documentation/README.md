@@ -37,7 +37,8 @@ Option                        | Description
 -playdemo [demofile]          | Plays a demo file
 -pistolstart                  | Weapons are not kept between levels
 +cheats [cheat1] [cheat2] ... | Enables specific cheats (e.g. IDKFA)
-+sv_fastmonsters              | Monsters are faster, like in Nightmare
+-fast                         | Monsters are faster, like in Nightmare
++sv_fastmonsters [boolean]    | Monsters are faster, like in Nightmare
 -nomonsters                   | No monsters will be spawned
 -levelstat                    | Writes gameplay stats to file
 -nomusic                      | Disables music
