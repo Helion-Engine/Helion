@@ -79,7 +79,13 @@ namespace Helion.Geometry.Segments
         public readonly Seg2D WithStart(Vector2D start) => (start.Struct, End);
         public readonly Seg2D WithEnd(Vec2D end) => (Start, end);
         public readonly Seg2D WithEnd(Vector2D end) => (Start, end.Struct);
-        public readonly Vec2D FromTime(double t) => Start + (Delta * t);
+        // Start + (Delta * t);
+        public readonly Vec2D FromTime(double t) 
+        {
+            var dx = Delta.X * t;
+            var dy = Delta.Y * t;
+            return new Vec2D(Start.X + dx, Start.Y + dy);
+        }
         public bool SameDirection(Seg2D seg) => SameDirection(seg.Delta);
         public bool SameDirection(Segment2D seg) => SameDirection(seg.Delta);
         public bool SameDirection<T>(SegmentT2D<T> seg) where T : Vector2D => SameDirection(seg.Delta);
