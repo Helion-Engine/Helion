@@ -98,6 +98,8 @@ public sealed class Sector3D
     public WallHeights WallHeights;
     public WallHeights WallHeightsUnclipped;
     public SectorPlanes RenderPlanes;
+    public double LastSlopeTop;
+    public double LastSlopeBottom;
 
     private readonly Entity Entity;
 

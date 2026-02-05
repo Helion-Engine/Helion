@@ -286,6 +286,8 @@ public class SinglePlayerWorld : WorldBase
 
     private bool GetCrosshairTarget(out Entity? entity)
     {
+        entity = null;
+        return false;
         var cameraPlayer = GetCameraPlayer();
         if (Config.Game.AutoAim)
             GetAutoAimEntity(cameraPlayer, cameraPlayer.HitscanAttackPos, cameraPlayer.AngleRadians, Constants.EntityShootDistance, out _, out entity);

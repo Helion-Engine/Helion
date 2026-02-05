@@ -59,10 +59,12 @@ using Helion.World.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using static Helion.Dehacked.DehackedDefinition;
 using static Helion.Util.Assertion.Assert;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Helion.World;
 
@@ -184,11 +186,13 @@ public abstract partial class WorldBase : IWorld
     private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
     private readonly IMap m_map;
     private readonly SpawnMulti m_spawnMulti;
+    private readonly DynamicArray<SlopeSpan> m_visibleSpans = new(16);
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
     private string m_activeMusic = string.Empty;
     private bool m_explosionTraverseLines;
+    private Sector? m_lastSector3D;
 
     const int HighlightSize = 112;
     private readonly List<object> m_findObjects = [];
@@ -2485,20 +2489,20 @@ public abstract partial class WorldBase : IWorld
             if (hitOneSidedLine)
                 return false;
 
-            var status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _);
+            var status = GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _);
             if (!WorldStatic.Sector3D || status == TraversalPitchStatus.Blocked)
                 return status != TraversalPitchStatus.Blocked;
 
-            var test = double.MaxValue;
-            Vec3D ignoreRange = new(0, 0, double.MinValue);
-            Vec3D ignoreSet = default;
-            // Validate sight segments against the sector that the entities are in.
-            // This fixes cases where entities are exactly only lines and nothing is crossed etc.
-            // Early exit is set as since order doesn't matter, just if it's blocked.
-            if (SegBlockedByHitScanSector3D(from.Sector, null, sightPos, endSightPos, ignoreRange, ref ignoreSet, from.Sector, ref normalSolid, ref test, out _, earlyExit: true))
-                return false;
-            if (SegBlockedByHitScanSector3D(to.Sector, null, sightPos, endSightPos, ignoreRange, ref ignoreSet, to.Sector, ref normalSolid, ref test, out _, earlyExit: true))
-                return false;
+            //var test = double.MaxValue;
+            //Vec3D ignoreRange = new(0, 0, double.MinValue);
+            //Vec3D ignoreSet = default;
+            //// Validate sight segments against the sector that the entities are in.
+            //// This fixes cases where entities are exactly only lines and nothing is crossed etc.
+            //// Early exit is set as since order doesn't matter, just if it's blocked.
+            //if (SegBlockedByHitScanSector3D(from.Sector, null, sightPos, endSightPos, ignoreRange, ref ignoreSet, from.Sector, ref normalSolid, ref test, out _, earlyExit: true))
+            //    return false;
+            //if (SegBlockedByHitScanSector3D(to.Sector, null, sightPos, endSightPos, ignoreRange, ref ignoreSet, to.Sector, ref normalSolid, ref test, out _, earlyExit: true))
+            //    return false;
 
             return true;
         }
@@ -2511,7 +2515,7 @@ public abstract partial class WorldBase : IWorld
         if (hitOneSidedLine)
             return false;
 
-        if (GetBlockmapTraversalPitch(intersections, sightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
+        if (GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
             return false;
 
         seg = new Seg2D(seg.End, end);
@@ -2522,7 +2526,7 @@ public abstract partial class WorldBase : IWorld
 
         var slice = new Vec3D(sightPos.X + ((endSightPos.X - sightPos.X) * segTime), sightPos.Y + ((endSightPos.Y - sightPos.Y) * segTime),
             sightPos.Z + ((endSightPos.Z - sightPos.Z) * segTime));
-        return GetBlockmapTraversalPitch(intersections, slice, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
+        return GetBlockmapTraversalPitch(intersections, slice, endSightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
     }
 
     private static bool TransferHeightsLineOfSightBlocked(Entity from, Entity to, TransferHeights heights)
@@ -3110,7 +3114,7 @@ public abstract partial class WorldBase : IWorld
 
             double max = MaxPitch;
             double min = MinPitch;
-            var status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, shootNormal, SolidContext.HitScan, ref max, ref min, out pitch, out entity);
+            var status = GetBlockmapTraversalPitch(intersections, start, end, shooter, distance, shootNormal, SolidContext.HitScan, ref max, ref min, out pitch, out entity);
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
 
@@ -3122,14 +3126,49 @@ public abstract partial class WorldBase : IWorld
         return false;
     }
 
-    private enum TraversalPitchStatus
+    private void AddSlopeSpan(double topSlope, double bottomSlope)
     {
-        Blocked,
-        PitchSet,
-        PitchNotSet,
+        for (int i = 0; i < m_visibleSpans.Length; i++)
+        {
+            ref var span = ref m_visibleSpans.Data[i];
+
+            // No overlap
+            if (topSlope <= span.Bottom || bottomSlope >= span.Top)
+                continue;
+
+            // Fully blocked
+            if (bottomSlope <= span.Bottom && topSlope >= span.Top)
+            {
+                m_visibleSpans.RemoveAt(i);
+                i--;
+                continue;
+            }
+
+            // Split span into two
+            if (bottomSlope > span.Bottom && topSlope < span.Top)
+            {
+                if (m_visibleSpans.Length < m_visibleSpans.Capacity)
+                {
+                    ref var addSpan = ref m_visibleSpans.Data[m_visibleSpans.Length++];
+                    addSpan.Bottom = topSlope;
+                    addSpan.Top = span.Top;
+                }
+
+                span.Top = bottomSlope;
+                continue;
+            }
+
+            // Cut top
+            if (bottomSlope <= span.Top && bottomSlope > span.Bottom)
+                span.Top = bottomSlope;
+
+            // Cut bottom
+            if (topSlope >= span.Bottom && topSlope < span.Top)
+                span.Bottom = topSlope;
+        }
     }
 
-    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double segLength,
+    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, in Vec3D end, Entity startEntity, double segLength,
         bool normalSolid, SolidContext context,
         ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity)
     {
@@ -3138,6 +3177,12 @@ public abstract partial class WorldBase : IWorld
 
         var data = intersections.Data;
         int length = intersections.Length;
+
+        m_visibleSpans.Length = 1;
+        m_lastSector3D = startEntity.Sector;
+        ref var startSpan = ref m_visibleSpans.Data[0];
+        startSpan.Top = topSlope;
+        startSpan.Bottom = bottomSlope;
 
         for (int i = 0; i < length; i++)
         {
@@ -3158,11 +3203,17 @@ public abstract partial class WorldBase : IWorld
 
                 if (WorldStatic.Sector3D)
                 {
-                    if (!CheckSlope3D(line.FrontSector, line.BackSector, start, segTimeLength, normalSolid, context, ref topSlope, ref bottomSlope))
+                    GetOrderedSectors(line, start, out var front, out var back);
+
+                    if (!CheckSlope3D(front, start, segTimeLength, normalSolid, context))
                         return TraversalPitchStatus.Blocked;
 
-                    if (!CheckSlope3D(line.BackSector, line.FrontSector, start, segTimeLength, normalSolid, context, ref topSlope, ref bottomSlope))
+                    m_lastSector3D = front;
+
+                    if (!CheckSlope3D(back, start, segTimeLength, normalSolid, context))
                         return TraversalPitchStatus.Blocked;
+
+                    m_lastSector3D = back;
                 }
 
                 if (line.BackSector != null &&
@@ -3195,6 +3246,13 @@ public abstract partial class WorldBase : IWorld
                 if (segTimeLength == 0)
                     continue;
 
+                if (WorldStatic.Sector3D && m_lastSector3D != null && m_lastSector3D.Sectors3D.Length > 0)
+                {
+                    // If we didn't complete the last range then make one at the end point
+                    if (!CheckSlope3D(m_lastSector3D, start, segTimeLength, normalSolid, context))
+                        return TraversalPitchStatus.Blocked;
+                }
+
                 var currentEntity = DataCache.Entities[index];
                 var thingTopSlope = (currentEntity.Position.Z + currentEntity.Height - start.Z) / segTimeLength;
                 if (thingTopSlope < bottomSlope)
@@ -3214,17 +3272,50 @@ public abstract partial class WorldBase : IWorld
                 if (thingBottomSlope > bottomSlope)
                     bottomSlope = thingBottomSlope;
 
+                if (WorldStatic.Sector3D && !SetValidClipSpan(ref topSlope, ref bottomSlope))
+                    return TraversalPitchStatus.Blocked;
+
                 pitch = Math.Atan((bottomSlope + topSlope) / 2.0);
                 entity = currentEntity;
                 return TraversalPitchStatus.PitchSet;
             }
         }
 
+        if (WorldStatic.Sector3D && m_lastSector3D != null && m_lastSector3D.Sectors3D.Length > 0)
+        {
+            // If we didn't complete the last range then make one at the end point
+            if (!CheckSlope3D(m_lastSector3D, start, segLength, normalSolid, context))
+                return TraversalPitchStatus.Blocked;
+        }
+
         return TraversalPitchStatus.PitchNotSet;
     }
 
-    private static bool CheckSlope3D(Sector sector, Sector otherSector, in Vec3D start, double segTimeLength, bool normalSolid, SolidContext context,
-        ref double topSlope, ref double bottomSlope)
+    private bool SetValidClipSpan(ref double thingTopSlope, ref double thingBottomSlope)
+    {
+        for (int i = 0; i < m_visibleSpans.Count; i++)
+        {
+            ref var span = ref m_visibleSpans.Data[i];
+            if (thingBottomSlope < span.Top && span.Bottom < thingTopSlope)
+            {
+                if (span.Top < thingTopSlope)
+                    span.Top = thingTopSlope;
+                if (span.Bottom > thingBottomSlope)
+                    span.Bottom = thingBottomSlope;
+
+                if (span.Top <= span.Bottom)
+                    continue;
+
+                thingTopSlope = span.Top;
+                thingBottomSlope = span.Bottom;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CheckSlope3D(Sector sector, in Vec3D start, double segTimeLength, bool normalSolid, SolidContext context)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
@@ -3243,23 +3334,35 @@ public abstract partial class WorldBase : IWorld
 
             var topZ = sector3D.ControlTop.Z;
             var bottomZ = sector3D.ControlBottom.Z;
+            var topSlope3D = (topZ - start.Z) / segTimeLength;
+            var bottomSlope3D = (bottomZ - start.Z) / segTimeLength;
 
-            // Restrict top vs bottom based on eye position.
-            // This isn't really correct but it will at least generate false negatives instead of false positives, otherwise LOS will need a complete rework to do traversal on span ranges with merging.
-            if (start.Z >= topZ)
+            // If leaving the current 3D sector then add this interval and create a new one from the start point to complete the span.
+            if (m_lastSector3D == sector)
             {
-                var topSlope3D = (topZ - start.Z) / segTimeLength;
-                if (topSlope3D > bottomSlope)
-                    bottomSlope = topSlope3D;
+                AddSlopeSpan(topSlope3D, bottomSlope3D);
+                if (m_visibleSpans.Length == 0)
+                    return false;
+
+                if (start.Z < bottomSlope3D)
+                {
+                    bottomSlope3D = topSlope3D;
+                    topSlope3D = sector3D.LastSlopeTop;
+                }
+                else
+                {
+                    topSlope3D = bottomSlope3D;
+                    bottomSlope3D = sector3D.LastSlopeBottom;
+                }
             }
             else
             {
-                var bottomSlope3D = (bottomZ - start.Z) / segTimeLength;
-                if (bottomSlope3D < topSlope)
-                    topSlope = bottomSlope3D;
+                sector3D.LastSlopeTop = topSlope3D;
+                sector3D.LastSlopeBottom = bottomSlope3D;
             }
 
-            if (topSlope <= bottomSlope)
+            AddSlopeSpan(topSlope3D, bottomSlope3D);
+            if (m_visibleSpans.Length == 0)
                 return false;
         }
 
@@ -3309,7 +3412,8 @@ public abstract partial class WorldBase : IWorld
 
     private static void GetOrderedSectors(in BlockLine line, in Vec3D start, out Sector front, out Sector back)
     {
-        if (line.Segment.OnRight(start))
+        // On front of line
+        if (line.Segment.PerpDot(start) <= 0)
         {
             front = line.FrontSector;
             back = line.BackSector!;
