@@ -100,6 +100,7 @@ public sealed class Sector3D
     public SectorPlanes RenderPlanes;
     public double LastSlopeTop;
     public double LastSlopeBottom;
+    public int LastSlopeCheckCount;
 
     private readonly Entity Entity;
 

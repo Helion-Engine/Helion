@@ -3178,6 +3178,7 @@ public abstract partial class WorldBase : IWorld
         var data = intersections.Data;
         int length = intersections.Length;
 
+        WorldStatic.CheckCounter++;
         m_visibleSpans.Length = 1;
         m_lastSector3D = startEntity.Sector;
         ref var startSpan = ref m_visibleSpans.Data[0];
@@ -3246,11 +3247,11 @@ public abstract partial class WorldBase : IWorld
                 if (segTimeLength == 0)
                     continue;
 
-                if (WorldStatic.Sector3D && m_lastSector3D != null && m_lastSector3D.Sectors3D.Length > 0)
+                // If we didn't complete the last slope block range create one here
+                if (WorldStatic.Sector3D && m_lastSector3D != null && m_lastSector3D.Sectors3D.Length > 0 &&
+                    !CheckSlope3D(m_lastSector3D, start, segTimeLength, normalSolid, context))
                 {
-                    // If we didn't complete the last range then make one at the end point
-                    if (!CheckSlope3D(m_lastSector3D, start, segTimeLength, normalSolid, context))
-                        return TraversalPitchStatus.Blocked;
+                    return TraversalPitchStatus.Blocked;
                 }
 
                 var currentEntity = DataCache.Entities[index];
@@ -3281,11 +3282,11 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        if (WorldStatic.Sector3D && m_lastSector3D != null && m_lastSector3D.Sectors3D.Length > 0)
+        // If we didn't complete the last slope block range create one here
+        if (WorldStatic.Sector3D && m_lastSector3D != null && m_lastSector3D.Sectors3D.Length > 0 &&
+            !CheckSlope3D(m_lastSector3D, start, segLength, normalSolid, context))
         {
-            // If we didn't complete the last range then make one at the end point
-            if (!CheckSlope3D(m_lastSector3D, start, segLength, normalSolid, context))
-                return TraversalPitchStatus.Blocked;
+            return TraversalPitchStatus.Blocked;
         }
 
         return TraversalPitchStatus.PitchNotSet;
@@ -3299,15 +3300,13 @@ public abstract partial class WorldBase : IWorld
             if (thingBottomSlope < span.Top && span.Bottom < thingTopSlope)
             {
                 if (span.Top < thingTopSlope)
-                    span.Top = thingTopSlope;
+                    thingTopSlope = span.Top;
                 if (span.Bottom > thingBottomSlope)
-                    span.Bottom = thingBottomSlope;
+                    thingBottomSlope = span.Bottom;
 
-                if (span.Top <= span.Bottom)
+                if (thingTopSlope <= thingBottomSlope)
                     continue;
 
-                thingTopSlope = span.Top;
-                thingBottomSlope = span.Bottom;
                 return true;
             }
         }
@@ -3344,7 +3343,15 @@ public abstract partial class WorldBase : IWorld
                 if (m_visibleSpans.Length == 0)
                     return false;
 
-                if (start.Z < bottomSlope3D)
+                // If started in a 3D sector then the slope needs be initialized.
+                // Since the seg length is zero set to the z distance.
+                if (sector3D.LastSlopeCheckCount != WorldStatic.CheckCounter)
+                {
+                    sector3D.LastSlopeTop = topZ - start.Z;
+                    sector3D.LastSlopeBottom = bottomZ - start.Z;
+                }
+
+                if (start.Z < bottomZ)
                 {
                     bottomSlope3D = topSlope3D;
                     topSlope3D = sector3D.LastSlopeTop;
@@ -3357,6 +3364,7 @@ public abstract partial class WorldBase : IWorld
             }
             else
             {
+                sector3D.LastSlopeCheckCount = WorldStatic.CheckCounter;
                 sector3D.LastSlopeTop = topSlope3D;
                 sector3D.LastSlopeBottom = bottomSlope3D;
             }
