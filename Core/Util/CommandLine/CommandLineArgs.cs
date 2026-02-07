@@ -60,6 +60,7 @@ public class CommandLineArgs
         "-levelstat",
         "-loadgame",
         "+sv_fastmonsters",
+        "-fast",
         "-deh",
         "-record",
         "-playdemo",
@@ -139,6 +140,8 @@ public class CommandLineArgs
                 commandLineArgs.LoadGame = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "+sv_fastmonsters"))
                 commandLineArgs.SV_FastMonsters = GetBoolArg(parsedArg);
+            else if (IsArgMatch(parsedArg, "-fast"))
+                commandLineArgs.SV_FastMonsters = true;
             else if (IsArgMatch(parsedArg, "-pistolstart"))
                 commandLineArgs.PistolStart = true;
             else if (IsArgMatch(parsedArg, "-deh"))

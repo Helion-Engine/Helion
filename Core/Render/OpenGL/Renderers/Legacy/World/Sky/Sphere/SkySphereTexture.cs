@@ -137,9 +137,9 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         GC.SuppressFinalize(this);
     }
 
-    public static Vec2F CalcOffset(Dimension dimension, SkyTransformTexture transform, SkyRenderMode mode, Vec2F scaleUV, SkyOptions options = SkyOptions.None)
+    public static Vec2F CalcOffset(Dimension dimension, SkyTransformTexture transform, Vec2F scrollValue, SkyRenderMode mode, Vec2F scaleUV, SkyOptions options = SkyOptions.None)
     {
-        var offset = transform.Offset + transform.CurrentScroll;
+        var offset = transform.Offset + scrollValue;
 
         if (mode == SkyRenderMode.Vanilla || dimension.Height < 128)
         {

@@ -17,6 +17,7 @@ public class SkyTransformTexture
     public Vec2F Offset;
     public Vec2F Scroll;
     public Vec2F Scale;
+    public Vec2F PrevScroll;
     public Vec2F CurrentScroll;
     public float? MidTexel;
     public SkyTransformType Type;

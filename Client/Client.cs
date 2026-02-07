@@ -226,7 +226,7 @@ public partial class Client : IDisposable, IInputManagement
 
     private void Rng_OnChanged(object? sender, RngMethod e) =>  m_invalidateRng = true;
 
-    private void SetOpenGLVersion(IConfig config)
+    private static void SetOpenGLVersion(IConfig config)
     {
         // MacOS is opposite from Windows/Linux. Request 3.3 with ForwardCompatible and MacOS will return the highest available (The M series appears to return 4.1).
         // Running the tests below appears to generate a hard crash so just force it here.

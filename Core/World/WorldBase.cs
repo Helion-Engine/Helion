@@ -1160,6 +1160,7 @@ public abstract partial class WorldBase : IWorld
             entity.ResetInterpolation();
 
         SpecialManager.ResetInterpolation();
+        TextureManager.ResetInterpolation();
         OnResetInterpolation?.Invoke(this, EventArgs.Empty);
     }
 
