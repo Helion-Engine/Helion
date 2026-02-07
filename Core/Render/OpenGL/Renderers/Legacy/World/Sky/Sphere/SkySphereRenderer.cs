@@ -169,7 +169,8 @@ public class SkySphereRenderer : IDisposable
 
         var dimension = GetSkyTextureDimension(skyTexture);
         var scaleUV = SkySphereTexture.CalcScale(dimension, skyTransform);
-        var offset = SkySphereTexture.CalcOffset(dimension, skyTransform, skyRenderMode, scaleUV, options);
+        var offset = SkySphereTexture.CalcOffset(dimension, skyTransform, skyTransform.CurrentScroll, skyRenderMode, scaleUV, options);
+        var prevOffset = SkySphereTexture.CalcOffset(dimension, skyTransform, skyTransform.PrevScroll, skyRenderMode, scaleUV, options);
         var skyHeight = SkySphereTexture.CalcSkyHeight(dimension.Height, skyRenderMode);
 
         skyProgram.BoundTexture(BindTextures.BoundTexture);
@@ -195,9 +196,11 @@ public class SkySphereRenderer : IDisposable
         skyProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         skyProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
         skyProgram.ScrollOffset(offset);
+        skyProgram.PrevScrollOffset(prevOffset);
         skyProgram.SkyHeight(skyHeight);
         skyProgram.SkyMin(0.5f - skyHeight);
         skyProgram.SkyMax(0.5f + skyHeight);
+        skyProgram.TimeFrac(renderInfo.TickFraction);
     }
 
     private static Dimension GetSkyTextureDimension(SkyTexture skyTexture)

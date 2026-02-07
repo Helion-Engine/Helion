@@ -17,6 +17,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_paletteIndexLocation;
     private readonly int m_colorMapIndexLocation;
     private readonly int m_scrollOffsetLocation;
+    private readonly int m_prevScrollOffsetLocation;
     private readonly int m_topColorLocation;
     private readonly int m_bottomColorLocation;
     private readonly int m_skyHeightLocation;
@@ -24,6 +25,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_skyMax;
     private readonly int m_colorMixLocation;
     private readonly int m_gammaCorrectionLocation;
+    private readonly int m_timeFracLocation;
 
     public SkySphereShader(string? name = null) : base(name ?? "Sky sphere")
     {
@@ -36,6 +38,7 @@ public class SkySphereShader : RenderProgram
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_scrollOffsetLocation = Uniforms.GetLocation("scrollOffset");
+        m_prevScrollOffsetLocation = Uniforms.GetLocation("prevScrollOffset");
         m_topColorLocation = Uniforms.GetLocation("topColor");
         m_bottomColorLocation = Uniforms.GetLocation("bottomColor");
         m_skyHeightLocation = Uniforms.GetLocation("skyHeight");
@@ -43,6 +46,7 @@ public class SkySphereShader : RenderProgram
         m_skyMax = Uniforms.GetLocation("skyMax");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
+        m_timeFracLocation = Uniforms.GetLocation("timeFrac");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -54,6 +58,7 @@ public class SkySphereShader : RenderProgram
     public void PaletteIndex(int index) => ProgramUniforms.Set(index, m_paletteIndexLocation);
     public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
     public void ScrollOffset(Vec2F offset) => ProgramUniforms.Set(offset, m_scrollOffsetLocation);
+    public void PrevScrollOffset(Vec2F offset) => ProgramUniforms.Set(offset, m_prevScrollOffsetLocation);
     public void TopColor(Vec4F topColor) => ProgramUniforms.Set(topColor, m_topColorLocation);
     public void BottomColor(Vec4F bottomColor) => ProgramUniforms.Set(bottomColor, m_bottomColorLocation);
     public void SkyHeight(float height) => ProgramUniforms.Set(height, m_skyHeightLocation);
@@ -61,6 +66,7 @@ public class SkySphereShader : RenderProgram
     public void SkyMax(float value) => ProgramUniforms.Set(value, m_skyMax);
     public void ColorMix(Vec3F value) => ProgramUniforms.Set(value, m_colorMixLocation);
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
+    public void TimeFrac(float value) => ProgramUniforms.Set(value, m_timeFracLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -69,15 +75,12 @@ public class SkySphereShader : RenderProgram
         layout(location = 1) in vec2 uv;
 
         out vec2 uvFrag;
-        flat out vec2 scrollOffsetFrag;
 
         uniform mat4 mvp;
         uniform int flipU;
-        uniform vec2 scrollOffset;
 
         void main() {
             uvFrag = uv;
-            scrollOffsetFrag = scrollOffset;
             if (flipU == 1)
                 uvFrag.x = -uvFrag.x;            
             gl_Position = mvp * vec4(pos, 1.0);
@@ -101,7 +104,6 @@ vec4 bottomFetchColor = bottomColor;
         #version 330
 
         in vec2 uvFrag;
-        flat in vec2 scrollOffsetFrag;
 
         out vec4 fragColor;
 
@@ -116,6 +118,9 @@ vec4 bottomFetchColor = bottomColor;
         uniform float skyMax;
         uniform vec3 colorMix;
         uniform float gammaCorrection;
+        uniform vec2 scrollOffset;
+        uniform vec2 prevScrollOffset;
+        uniform float timeFrac;
 
         uniform vec4 topColor;
         uniform vec4 bottomColor;
@@ -138,7 +143,7 @@ vec4 bottomFetchColor = bottomColor;
             }
             else {
                 vec2 textureUV = uvFrag - skyMin;
-                vec2 offset = scrollOffsetFrag;
+                vec2 offset = mix(prevScrollOffset, scrollOffset, timeFrac);
                 fragColor = texture(boundTexture, textureUV / scale + offset);
             }
 

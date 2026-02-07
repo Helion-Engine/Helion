@@ -437,12 +437,27 @@ public partial class TextureManager : ITickable
         for (int i = 0; i < m_skyTransforms.Count; i++)
         {
             var transform = m_skyTransforms[i];
+            transform.Sky.PrevScroll = transform.Sky.CurrentScroll;
             transform.Sky.CurrentScroll += transform.Sky.Scroll;
             if (transform.Foreground != null)
+            {
+                transform.Foreground.PrevScroll = transform.Foreground.CurrentScroll;
                 transform.Foreground.CurrentScroll += transform.Foreground.Scroll;
+            }
         }
 
         TickSkyFire();
+    }
+
+    public void ResetInterpolation()
+    {
+        for (int i = 0; i < m_skyTransforms.Count; i++)
+        {
+            var transform = m_skyTransforms[i];
+            transform.Sky.PrevScroll = transform.Sky.CurrentScroll;
+            if (transform.Foreground != null)
+                transform.Foreground.PrevScroll = transform.Foreground.CurrentScroll;
+        }
     }
 
     public void ResetAnimations()
