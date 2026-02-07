@@ -157,15 +157,21 @@ public sealed class PhysicsManager
         {
             var entity = entities[i];
             var onEntity = entity.OnEntity();
-            bool hasOnEntity = onEntity != null;
+            if (onEntity != null && onEntity.IsDisposed)
+                continue;
+
+            var hasOnEntity = onEntity != null;
             if (!hasOnEntity && entity.HadOnEntity)
             {
                 ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: true);
                 continue;
             }
 
-            if (onEntity!.Position.Z + onEntity.Height < entity.Position.Z || !onEntity.Overlaps2D(entity))
+            if (onEntity!.Position.Z + onEntity.Height < entity.Position.Z ||
+                (onEntity.Sector3D == null && onEntity.MidTexLine == null && !onEntity.Overlaps2D(entity))) // Only need to check overlap for real entities
+            {
                 ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: true);
+            }
         }
     }
 
