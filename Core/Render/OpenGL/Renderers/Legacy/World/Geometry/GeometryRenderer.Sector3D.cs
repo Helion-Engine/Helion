@@ -248,6 +248,8 @@ public partial class GeometryRenderer
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
 
+            result = renderFunc(args);
+
             // Skip inside slices that are not visible.
             if (ShouldSkipInsideSlice(plane3D, nextPlane3D, m_sliceSector))
             {
@@ -255,12 +257,11 @@ public partial class GeometryRenderer
                 if (m_glTextureManager.GetTexture(plane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0 &&
                     m_glTextureManager.GetTexture(nextPlane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0)
                 {
-                    SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
+                    SetWallOffsetFromResult(result, anchorSector3D, offsetY, nextPlane3D, anchorZ, prevAnchorZ);
                     continue;
                 }
             }
 
-            result = renderFunc(args);
             AddVertices(m_vertices, result.Vertices);
 
             if (i == 0)
@@ -273,8 +274,7 @@ public partial class GeometryRenderer
                 WorldStatic.LineVertexGapBottomZ = 0;
             }
 
-            if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z && (anchorSector3D == null || result.Vertices.Length > 0))
-                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
+            SetWallOffsetFromResult(result, anchorSector3D, offsetY, nextPlane3D, anchorZ, prevAnchorZ);
 
             lastPlane3D = nextPlane3D;
         }
@@ -292,6 +292,13 @@ public partial class GeometryRenderer
         side.Line.Flags.Unpegged = saveUnpeg;
         finalResult.Vertices = m_vertices.Data.AsSpan(0, m_vertices.Length);
         return finalResult;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SetWallOffsetFromResult(in RenderWallSliceResult result, Sector3D? anchorSector3D, float offsetY, in SectorPlane3D nextPlane3D, double anchorZ, double prevAnchorZ)
+    {
+        if (result.AddOffset && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z && (anchorSector3D == null || result.Vertices.Length > 0))
+            SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
     }
 
     private static bool ShouldSkipInsideSlice(in SectorPlane3D plane3D, in SectorPlane3D nextPlane3D, Sector sliceSector)
