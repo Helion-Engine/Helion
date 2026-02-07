@@ -248,6 +248,18 @@ public partial class GeometryRenderer
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
 
+            // Skip inside slices that are not visible.
+            if (ShouldSkipInsideSlice(plane3D, nextPlane3D, m_sliceSector))
+            {
+                // If either planes have transparent pixels then it's possible for this slice to be visible.
+                if (m_glTextureManager.GetTexture(plane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0 &&
+                    m_glTextureManager.GetTexture(nextPlane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0)
+                {
+                    SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
+                    continue;
+                }
+            }
+
             result = renderFunc(args);
             AddVertices(m_vertices, result.Vertices);
 
@@ -280,6 +292,15 @@ public partial class GeometryRenderer
         side.Line.Flags.Unpegged = saveUnpeg;
         finalResult.Vertices = m_vertices.Data.AsSpan(0, m_vertices.Length);
         return finalResult;
+    }
+
+    private static bool ShouldSkipInsideSlice(in SectorPlane3D plane3D, in SectorPlane3D nextPlane3D, Sector sliceSector)
+    {
+        var sector3D = plane3D.Sector3D ?? nextPlane3D.Sector3D;
+        return sector3D != null && plane3D.Face == PlaneFace3D.Top && nextPlane3D.Face == PlaneFace3D.Bottom &&
+            sliceSector.Floor.Z < sliceSector.Ceiling.Z &&
+            sector3D.IsLightTransfer == false &&
+            sector3D.RenderDataStyle == RenderDataStyle.Normal;
     }
 
     private static void SetWallSliceSector(Side side, Sector wallSector3D, Sector wallSector)
