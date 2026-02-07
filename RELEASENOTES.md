@@ -22,3 +22,4 @@
 - Removed unnecessary OpenGL clear calls. Small performance improvement with integrated GPUs.
 - Added better OpenGL version testing that would previously cause hard crashes on some Linux setups.
 - Added -fast parameter to toggle fast monsters in addition to sv_fastmonsters.
+- Interpolation for scrolling SKYDEFS.
