@@ -2484,29 +2484,34 @@ public abstract partial class WorldBase : IWorld
         var topSlope = (endSightPos.Z + to.Height - sightPos.Z) / segLength;
         var bottomSlope = (endSightPos.Z - sightPos.Z) / segLength;
 
-        if (segLength <= m_losDistance)
+        if (WorldStatic.Sector3D || segLength <= m_losDistance)
         {
             BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
                 return false;
 
-            var status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _);
+            var status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out var crossedLine);
             if (!WorldStatic.Sector3D || status == TraversalPitchStatus.Blocked)
                 return status != TraversalPitchStatus.Blocked;
+
+            if (m_pitchOnBlockLine != -1 || !crossedLine && !CheckLineOfSightPlane3D(from, to, sightPos, endSightPos, ref normalSolid))
+                return false;
 
             if (m_pitchOnBlockLine == -1)
                 return true;
 
-            var test = double.MaxValue;
-            Vec3D ignoreRange = new(0, 0, double.MinValue);
-            Vec3D ignoreSet = default;
+            // Entity on line can produce false positives and leak through blocking 3D sector planes.
+            ref var segStart = ref seg.Start;
+            segStart.X += 1;
+            segStart.Y += 1;
+            BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+            if (hitOneSidedLine)
+                return false;
 
-            ref var onLine = ref Blockmap.BlockLines[m_pitchOnBlockLine];
-
-            // Validate sight segments against the sector that the entities are in.
-            // This fixes cases where entities are exactly only lines and nothing is crossed etc. (this doesn't fix all cases though)
-            // Early exit is set as since order doesn't matter, just if it's blocked.
-            return !SegBlockedByHitScanSector3D(onLine.FrontSector, onLine.BackSector, sightPos, endSightPos, ignoreRange, ref ignoreSet, from.Sector, ref normalSolid, ref test, out _, earlyExit: true);
+            sightPos.X = segStart.X;
+            sightPos.Y = segStart.Y;
+            status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out _);
+            return status != TraversalPitchStatus.Blocked;
         }
 
         // A lot of LOS checks on large maps will short early. Check the first sorted set, and then rest if it passes.
@@ -2517,7 +2522,7 @@ public abstract partial class WorldBase : IWorld
         if (hitOneSidedLine)
             return false;
 
-        if (GetBlockmapTraversalPitch(intersections, sightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _) == TraversalPitchStatus.Blocked)
+        if (GetBlockmapTraversalPitch(intersections, sightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out _) == TraversalPitchStatus.Blocked)
             return false;
 
         seg = new Seg2D(seg.End, end);
@@ -2528,7 +2533,7 @@ public abstract partial class WorldBase : IWorld
 
         var slice = new Vec3D(sightPos.X + ((endSightPos.X - sightPos.X) * segTime), sightPos.Y + ((endSightPos.Y - sightPos.Y) * segTime),
             sightPos.Z + ((endSightPos.Z - sightPos.Z) * segTime));
-        return GetBlockmapTraversalPitch(intersections, slice, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _) != TraversalPitchStatus.Blocked;
+        return GetBlockmapTraversalPitch(intersections, slice, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out _) != TraversalPitchStatus.Blocked;
     }
 
     private bool CheckLineOfSightPlane3D(Entity from, Entity to, Vec3D sightPos, Vec3D endSightPos, ref bool normalSolid)
@@ -2538,7 +2543,7 @@ public abstract partial class WorldBase : IWorld
         Vec3D ignoreSet = default;
 
         // Validate sight segments against the sector that the entities are in.
-        // This fixes cases where entities are exactly only lines and nothing is crossed etc.
+        // This fixes cases where nothing between start and end when entity is at same x/y but different 3D sector plane.
         // Early exit is set as since order doesn't matter, just if it's blocked.
         if (SegBlockedByHitScanSector3D(from.Sector, null, sightPos, endSightPos, ignoreRange, ref ignoreSet, from.Sector, ref normalSolid, ref test, out _, earlyExit: true))
             return false;
@@ -3134,7 +3139,7 @@ public abstract partial class WorldBase : IWorld
 
             double max = MaxPitch;
             double min = MinPitch;
-            var status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, shootNormal, SolidContext.HitScan, ref max, ref min, out pitch, out entity);
+            var status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, shootNormal, SolidContext.HitScan, ref max, ref min, out pitch, out entity, out _);
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
 
@@ -3190,10 +3195,11 @@ public abstract partial class WorldBase : IWorld
 
     private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double segLength,
         bool normalSolid, SolidContext context,
-        ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity)
+        ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity, out bool crossedLine)
     {
         pitch = 0.0;
         entity = null;
+        crossedLine = false;
 
         var data = intersections.Data;
         int length = intersections.Length;
@@ -3219,13 +3225,15 @@ public abstract partial class WorldBase : IWorld
                 if (line.FrontSector == line.BackSector)
                     continue;
 
+                crossedLine = true;
+                var segTimeLength = bi.SegTime * segLength;
+
                 if (bi.SegTime == 0)
                 {
                     m_pitchOnBlockLine = index;
-                    continue;
+                    segTimeLength = 1;
                 }
 
-                var segTimeLength = bi.SegTime * segLength;
                 if (WorldStatic.Sector3D)
                 {
                     GetOrderedSectors(line, start, out var front, out var back);
