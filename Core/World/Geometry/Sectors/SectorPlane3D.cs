@@ -18,11 +18,11 @@ public struct SectorPlane3D(SectorPlane controlPlane, SectorPlane plane, Sector3
 
     public readonly double GetZ() => (Sector3D != null && Face == PlaneFace3D.Bottom)
             ? Sector3D.ClipBottomZ
-            : ControlPlane.Z;
+            : Plane.Z;
 
     public readonly double GetPrevZ() => (Sector3D != null && Face == PlaneFace3D.Bottom)
             ? Sector3D.ClipPrevBottomZ
-            : ControlPlane.PrevZ;
+            : Plane.PrevZ;
 
     public void UpdateSortKey()
     {
