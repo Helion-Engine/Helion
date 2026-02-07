@@ -70,8 +70,9 @@ public abstract partial class WorldBase : IWorld
 {
     const int BspBlockDimension = 16;
     public const int DefaultLineOfSightDistance = 1024;
-    private const double MaxPitch = 80.0 * Math.PI / 180.0;
-    private const double MinPitch = -80.0 * Math.PI / 180.0;
+    // Min/max tangent of 80 degrees
+    private const double MaxPitch = 5.67128;
+    private const double MinPitch = -5.67128;
 
     private static BlockMap? LastBlockMap;
     private static BlockMap? LastRenderBlockMap;
@@ -3302,6 +3303,25 @@ public abstract partial class WorldBase : IWorld
                 if (thingBottomSlope > topSlope)
                     continue;
 
+                if (WorldStatic.Sector3D)
+                {
+                    double topSlopeTest = topSlope, bottomSlopeTest = bottomSlope;
+                    topSlopeTest = Math.Min(topSlopeTest, thingTopSlope);
+                    bottomSlopeTest = Math.Max(bottomSlopeTest, thingBottomSlope);
+
+                    if (!SetValidClipSpan(ref topSlopeTest, ref bottomSlopeTest))
+                        continue;
+
+                    if (thingBottomSlope > topSlopeTest)
+                        continue;
+                    if (thingTopSlope < bottomSlopeTest)
+                        continue;
+
+                    pitch = Math.Atan((bottomSlopeTest + topSlopeTest) * 0.5);
+                    entity = currentEntity;
+                    return TraversalPitchStatus.PitchSet;
+                }
+
                 if (thingBottomSlope > topSlope)
                     return TraversalPitchStatus.Blocked;
                 if (thingTopSlope < bottomSlope)
@@ -3312,10 +3332,7 @@ public abstract partial class WorldBase : IWorld
                 if (thingBottomSlope > bottomSlope)
                     bottomSlope = thingBottomSlope;
 
-                if (WorldStatic.Sector3D && !SetValidClipSpan(ref topSlope, ref bottomSlope))
-                    return TraversalPitchStatus.Blocked;
-
-                pitch = Math.Atan((bottomSlope + topSlope) / 2.0);
+                pitch = Math.Atan((bottomSlope + topSlope) * 0.5);
                 entity = currentEntity;
                 return TraversalPitchStatus.PitchSet;
             }
@@ -3360,10 +3377,8 @@ public abstract partial class WorldBase : IWorld
             ref var span = ref m_visibleSpans.Data[i];
             if (thingBottomSlope < span.Top && span.Bottom < thingTopSlope)
             {
-                if (span.Top < thingTopSlope)
-                    thingTopSlope = span.Top;
-                if (span.Bottom > thingBottomSlope)
-                    thingBottomSlope = span.Bottom;
+                thingTopSlope = Math.Min(thingTopSlope, span.Top);
+                thingBottomSlope = Math.Max(thingBottomSlope, span.Bottom);
 
                 if (thingTopSlope <= thingBottomSlope)
                     continue;
