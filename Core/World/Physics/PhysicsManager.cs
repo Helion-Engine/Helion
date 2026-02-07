@@ -2101,6 +2101,15 @@ doneLinkToSectors:
         return lowestFriction;
     }
 
+    private static bool IgnoreOnEntityMoveZ(Entity entity)
+    {
+        var onEntity = entity.OnEntity();
+        if (!WorldStatic.Sector3D)
+            return onEntity == null;
+
+        return onEntity == null || onEntity.Sector3D == null || !onEntity.Sector3D.ControlSector.IsMoving;
+    }
+
     public void MoveZ(Entity entity)
     {
         if (entity.IsDisposed || m_world.WorldState == WorldState.Exit)
@@ -2108,7 +2117,7 @@ doneLinkToSectors:
 
         var noVelocity = entity.Velocity.Z == 0;
         var shouldApplyGravity = entity.ShouldApplyGravity();
-        if (noVelocity && !shouldApplyGravity && (entity.Flags.Flags1 & EntityFlags.FloatFlag) == 0 && entity.OnEntity() == null)
+        if (noVelocity && !shouldApplyGravity && (entity.Flags.Flags1 & EntityFlags.FloatFlag) == 0 && IgnoreOnEntityMoveZ(entity))
             return;
 
         var floatZ = entity.GetEnemyFloatMove();
