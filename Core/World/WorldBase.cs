@@ -921,8 +921,8 @@ public abstract partial class WorldBase : IWorld
         }
         else if (WorldState == WorldState.Normal)
         {
-            TickEntities();
             TickPlayers();
+            TickEntities();
             SpecialManager.Tick();
 
             if (WorldState != WorldState.Exit)
@@ -989,16 +989,6 @@ public abstract partial class WorldBase : IWorld
         var entity = EntityManager.Head;
         var nextEntity = entity;
 
-        // Doom would tick players separately
-        for (int i = 0; i < EntityManager.Players.Count; i++)
-        {
-            var player = EntityManager.Players[i];
-            if (player.PlayerNumber == short.MaxValue)
-                continue;
-
-            player.Tick();
-        }
-
         while (entity != null)
         {
             nextEntity = entity.Next;
@@ -1021,12 +1011,6 @@ public abstract partial class WorldBase : IWorld
                 {
                     m_fallCheckEntities.Add(entity);
                 }
-            }
-
-            if (entity.PlayerObj != null)
-            {
-                entity = nextEntity;
-                continue;
             }
 
             entity.Tick();
@@ -1059,6 +1043,7 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             player.HandleTickCommand();
+            player.PlayerTick();
             player.TickCommand.TickHandled();
 
             if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))

@@ -629,10 +629,8 @@ public class Player : Entity
         }
     }
 
-    public override void Tick()
+    public void PlayerTick()
     {
-        base.Tick();
-
         // Matching Doom behavior for A_Saw
         if (Flags.JustAttacked())
         {
