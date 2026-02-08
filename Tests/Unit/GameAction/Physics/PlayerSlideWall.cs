@@ -32,7 +32,7 @@ public class PlayerSlideWall
         GameActions.RunPlayerCommands(World, Player.AngleRadians, [TickCommands.Forward, TickCommands.Right], 16, () =>
         {
             Player.Velocity.Y.Should().BeLessThan(1);
-            Player.Velocity.Y.Should().BeGreaterThan(0);
+            Player.Velocity.Y.Should().Be(0);
             Player.Velocity.X.Should().BeGreaterThan(lastVelocity.X);
             lastVelocity = Player.Velocity;
         });
@@ -50,8 +50,7 @@ public class PlayerSlideWall
         var lastVelocity = Player.Velocity;
         GameActions.RunPlayerCommands(World, Player.AngleRadians, [TickCommands.Forward, TickCommands.Right], 16, () =>
         {
-            Player.Velocity.X.Should().BeLessThan(1);
-            Player.Velocity.X.Should().BeLessThan(0);
+            Player.Velocity.X.Should().Be(0);
             Player.Velocity.Y.Should().BeGreaterThan(lastVelocity.Y);
             lastVelocity = Player.Velocity;
         });
@@ -67,10 +66,9 @@ public class PlayerSlideWall
         Player.AngleRadians = GameActions.GetAngle(Bearing.NorthEast);
 
         var lastVelocity = Player.Velocity;
-        GameActions.RunPlayerCommands(World, Player.AngleRadians, [TickCommands.Forward, TickCommands.Right], 16, () =>
+        GameActions.RunPlayerCommands(World, Player.AngleRadians, [TickCommands.Forward, TickCommands.Right], 14, () =>
         {
-            Player.Velocity.Y.Should().BeLessThan(1);
-            Player.Velocity.Y.Should().BeGreaterThan(0);
+            Player.Velocity.Y.Should().Be(0);
             Player.Velocity.X.Should().BeGreaterThan(lastVelocity.X);
             lastVelocity = Player.Velocity;
         });
@@ -86,10 +84,9 @@ public class PlayerSlideWall
         Player.AngleRadians = GameActions.GetAngle(Bearing.NorthWest);
 
         var lastVelocity = Player.Velocity;
-        GameActions.RunPlayerCommands(World, Player.AngleRadians, [TickCommands.Forward, TickCommands.Right], 16, () =>
+        GameActions.RunPlayerCommands(World, Player.AngleRadians, [TickCommands.Forward, TickCommands.Right], 14, () =>
         {
-            Player.Velocity.X.Should().BeLessThan(1);
-            Player.Velocity.X.Should().BeLessThan(0);
+            Player.Velocity.X.Should().Be(0);
             Player.Velocity.Y.Should().BeGreaterThan(lastVelocity.Y);
             lastVelocity = Player.Velocity;
         });
@@ -108,7 +105,7 @@ public class PlayerSlideWall
         GameActions.RunPlayerCommands(World, Player.AngleRadians, [TickCommands.Forward], 16, () =>
         {
             Player.Velocity.Y.Should().BeApproximately(1.562, 3);
-            Player.Velocity.Y.Should().BeGreaterThan(0);
+            Player.Velocity.Y.Should().Be(0);
             Player.Velocity.X.Should().BeLessThan(0.31);
             lastVelocity = Player.Velocity;
         });

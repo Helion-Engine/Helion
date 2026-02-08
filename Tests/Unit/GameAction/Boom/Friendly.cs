@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
@@ -63,6 +64,8 @@ public class Friendly
     [Fact(DisplayName = "Friendly not blocked by two-sided impassible blocking line")]
     public void FriendlyImpassibleBlockLine()
     {
+        // Disable friendly imp targeting player
+        World.Player.Health = 0;
         var start = new Vec2D(1024, 288);
         var end = new Vec2D(1024, 256);
         var line = GameActions.GetLine(World, 16);
@@ -72,6 +75,7 @@ public class Friendly
         imp.Position.XY.Should().Be(start);
         GameActions.MoveEntity(World, imp, 32);
         imp.Position.XY.Should().NotBe(end);
+        imp.BlockingBlockLineIndex.Should().NotBe(-1);
         World.Blockmap.BlockLines[imp.BlockingBlockLineIndex].LineId.Should().Be(line.Id);
 
         imp.Kill(null);

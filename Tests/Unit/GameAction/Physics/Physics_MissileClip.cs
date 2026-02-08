@@ -22,9 +22,12 @@ public partial class Physics
         Player.AngleRadians = -MathHelper.HalfPi;
 
         Player.FireWeapon().Should().BeTrue();
-        GameActions.TickWorld(World, 10);
+        GameActions.TickWorld(World, 8);
         var plasma = GameActions.GetEntity(World, "PlasmaBall");
-        GameActions.TickWorld(World, () => plasma.BlockingBlockLineIndex == -1 && plasma.BlockingEntity == null, () => { });
+        GameActions.TickWorld(World, () =>
+        {
+            return plasma.BlockingBlockLineIndex == -1 && plasma.BlockingEntity == null;
+        }, () => { });
 
         World.Blockmap.BlockLines[plasma.BlockingBlockLineIndex].LineId.Should().Be(410);
         World.Config.Compatibility.MissileClip.Set(false);

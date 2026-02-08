@@ -118,8 +118,9 @@ public struct TeleportSpecial
 
         if (m_type == TeleportType.Doom)
         {
+            // Adding 1 to account for the decrement being handled in base entity class. Doom would do this only for players and because player logic ran first it would be one behind.
             if (entity.IsPlayer)
-                entity.FrozenTics = TeleportFreezeTicks;
+                entity.FrozenTics = TeleportFreezeTicks + 1;
             entity.Velocity = Vec3D.Zero;
             entity.AngleRadians = teleportAngle;
 

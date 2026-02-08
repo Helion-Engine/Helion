@@ -402,7 +402,7 @@ namespace Helion.Tests.Unit.GameAction
             }
         }
 
-        public static void TickWorld(WorldBase world, Func<bool> runWhile, Action action, TimeSpan? timeout = null)
+        public static void TickWorld(WorldBase world, Func<bool> runWhile, Action postTick, TimeSpan? timeout = null, Action? preTick = null)
         {
             if (!timeout.HasValue)
                 timeout = TimeSpan.FromSeconds(60);
@@ -410,6 +410,7 @@ namespace Helion.Tests.Unit.GameAction
             int runTicks = 0;
             while (true)
             {
+                preTick?.Invoke();
                 world.Tick();
                 runTicks++;
                 if (!runWhile())
@@ -418,7 +419,7 @@ namespace Helion.Tests.Unit.GameAction
                 if (runTicks > 35 * timeout.Value.TotalSeconds)
                     throw new Exception($"Tick world ran for more than {timeout.Value.TotalSeconds} seconds");
 
-                action();
+                postTick();
             }
         }
 
