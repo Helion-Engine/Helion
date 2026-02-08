@@ -1042,6 +1042,7 @@ public abstract partial class WorldBase : IWorld
             if (player.IsVooDooDoll || player.IsDisposed)
                 continue;
 
+            player.SetInterpolation();
             player.HandleTickCommand();
             player.PlayerTick();
             player.TickCommand.TickHandled();
