@@ -500,8 +500,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public virtual void Tick()
     {
-        PrevPosition = Position;
-
         Flags.ClearTeleported();
 
         if (FrozenTics > 0)

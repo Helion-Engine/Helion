@@ -817,7 +817,7 @@ public abstract partial class WorldBase : IWorld
     private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
     {
         if (m_lineOfSightEnemyData.Entity == checkEntity || checkEntity.IsDead() || !checkEntity.Flags.CountKill() ||
-            m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
+            m_lineOfSightEnemyData.Entity.Flags.Friendly() == checkEntity.Flags.Friendly() || checkEntity.IsPlayer)
             return GridIterationStatus.Continue;
 
         if (!m_lineOfSightEnemyData.AllAround && !InFieldOfViewOrInMeleeDistance(m_lineOfSightEnemyData.Entity, checkEntity))
@@ -988,19 +988,21 @@ public abstract partial class WorldBase : IWorld
         Profiler.World.TickEntity.Start();
         var entity = EntityManager.Head;
         var nextEntity = entity;
+
+        // Doom would tick players separately
+        for (int i = 0; i < EntityManager.Players.Count; i++)
+        {
+            var player = EntityManager.Players[i];
+            if (player.PlayerNumber == short.MaxValue)
+                continue;
+
+            player.Tick();
+        }
+
         while (entity != null)
         {
             nextEntity = entity.Next;
-            if (entity.PlayerObj != null && entity.PlayerObj.PlayerNumber == short.MaxValue)
-            {
-                entity = nextEntity;
-                continue;
-            }
-
-            entity.Tick();
-
-            if (WorldState == WorldState.Exit)
-                break;
+            entity.PrevPosition = entity.Position;
 
             // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
             if (!entity.IsDisposed)
@@ -1020,6 +1022,17 @@ public abstract partial class WorldBase : IWorld
                     m_fallCheckEntities.Add(entity);
                 }
             }
+
+            if (entity.PlayerObj != null)
+            {
+                entity = nextEntity;
+                continue;
+            }
+
+            entity.Tick();
+
+            if (WorldState == WorldState.Exit)
+                break;
 
             entity = nextEntity;
         }
