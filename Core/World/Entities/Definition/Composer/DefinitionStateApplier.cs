@@ -113,8 +113,30 @@ public class DefinitionStateApplier
         definition.PainState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Pain);
         definition.HealState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Heal);
 
+        if (definition.SpawnState.HasValue)
+            ValidateSpawnStateForMonsterCloset(entityFrameTable.Frames[definition.SpawnState.Value], definition);
+
         if (definition.HealState.HasValue && definition.HealState.Value < entityFrameTable.Frames.Count)
             definition.HealFrame = entityFrameTable.Frames[definition.HealState.Value];
+    }
+
+    private static void ValidateSpawnStateForMonsterCloset(EntityFrame entityFrame, EntityDefinition definition)
+    {
+        // If the monster does anything other than A_Look then set invalid for using A_ClosetLook.
+        var frame = entityFrame;
+        int count = 0;
+        while (count++ < 20)
+        {
+            if (frame.ActionFunction != null && frame.ActionFunction != A_Look)
+                return;
+
+            frame = frame.NextFrame;
+            if (frame == entityFrame)
+            {
+                definition.ValidForMonsterCloset = true;
+                return;
+            }
+        }
     }
 
     private static void ApplyAllLabels(EntityFrameTable entityFrameTable, EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)
