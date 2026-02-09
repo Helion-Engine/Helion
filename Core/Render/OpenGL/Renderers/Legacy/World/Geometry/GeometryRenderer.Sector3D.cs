@@ -254,8 +254,10 @@ public partial class GeometryRenderer
             if (ShouldSkipInsideSlice(plane3D, nextPlane3D, m_sliceSector))
             {
                 // If either planes have transparent pixels then it's possible for this slice to be visible.
-                if (m_glTextureManager.GetTexture(plane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0 &&
-                    m_glTextureManager.GetTexture(nextPlane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0)
+                // glTextureManager is null for integration tests.
+                if (m_glTextureManager == null || 
+                    (m_glTextureManager.GetTexture(plane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0 &&
+                    m_glTextureManager.GetTexture(nextPlane3D.ControlPlane.TextureHandle).TransparentPixelCount == 0))
                 {
                     SetWallOffsetFromResult(result, anchorSector3D, offsetY, nextPlane3D, anchorZ, prevAnchorZ);
                     continue;
