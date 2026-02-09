@@ -5,6 +5,7 @@ using NLog;
 using static Helion.Util.Assertion.Assert;
 using System.Collections.Generic;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Entities.Definition.States;
 
@@ -133,6 +134,7 @@ public struct FrameState
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetState(Entity entity, EntityFrame entityFrame) =>
         SetFrameIndexInternal(entity, entityFrame.MasterFrameIndex);
 
