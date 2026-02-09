@@ -43,12 +43,12 @@ namespace Helion.Tests.Unit.GameAction
         public void PlayerWalkForwardSpeed()
         {
             World.Config.Game.AlwaysRun.Set(false);
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, GameActions.GetAngle(Bearing.North), new TickCommands[] { TickCommands.Forward }, SpeedTestTicks);
 
             // Vanilla is 8.33302
-            Player.Velocity.ApproxEquals(new(0, 8.333324712653916, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(0, 8.333324712653916, 0)).Should().BeTrue();
             World.Config.Game.AlwaysRun.Set(true);
         }
 
@@ -56,52 +56,52 @@ namespace Helion.Tests.Unit.GameAction
         public void PlayerWalkSideSpeed()
         {
             World.Config.Game.AlwaysRun.Set(false);
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, GameActions.GetAngle(Bearing.North), new TickCommands[] { TickCommands.Right }, SpeedTestTicks);
 
             // Vanilla is 7.99968
-            Player.Velocity.ApproxEquals(new(7.999999736067171, 0, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(7.999999736067171, 0, 0)).Should().BeTrue();
             World.Config.Game.AlwaysRun.Set(true);
         }
 
         [Fact(DisplayName = "Player forward run speed")]
         public void PlayerRunSpeed()
         {
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, GameActions.GetAngle(Bearing.North), new TickCommands[] { TickCommands.Forward }, SpeedTestTicks);
 
             // Vanilla is 16.6662
-            Player.Velocity.ApproxEquals(new(0, 16.66666611680661, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(0, 16.66666611680661, 0)).Should().BeTrue();
         }
 
         [Fact(DisplayName = "Player run side speed")]
         public void PlayerRunSideSpeed()
         {
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, GameActions.GetAngle(Bearing.North), new TickCommands[] { TickCommands.Right }, SpeedTestTicks);
 
             // Vanilla is 13.3329
-            Player.Velocity.ApproxEquals(new(13.333332893445284, 0, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(13.333332893445284, 0, 0)).Should().BeTrue();
         }
 
         [Fact(DisplayName = "Player strafe run 40")]
         public void PlayerStrafeRun40()
         {
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, GameActions.GetAngle(Bearing.North), new TickCommands[] { TickCommands.Forward, TickCommands.Right }, SpeedTestTicks);
 
             // Vanilla is 13.3263 16.6712
-            Player.Velocity.ApproxEquals(new(13.333332893445284, 16.66666611680661, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(13.333332893445284, 16.66666611680661, 0)).Should().BeTrue();
         }
 
         [Fact(DisplayName = "Player strafe run 50")]
         public void PlayerStrafeRun50()
         {
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             double angle = GameActions.GetAngle(Bearing.North);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, angle,
@@ -111,13 +111,13 @@ namespace Helion.Tests.Unit.GameAction
             Player.AngleRadians.Should().Be(angle);
 
             // Vanilla is 16.6597 16.6725
-            Player.Velocity.ApproxEquals(new(16.66666611680661, 16.66666611680661, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(16.66666611680661, 16.66666611680661, 0)).Should().BeTrue();
         }
 
         [Fact(DisplayName = "Player strafe run 50 with mouse movement")]
         public void PlayerStrafeRun50Mouse()
         {
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             double angle = GameActions.GetAngle(Bearing.North);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, angle,
@@ -127,13 +127,13 @@ namespace Helion.Tests.Unit.GameAction
             Player.AngleRadians.Should().Be(angle);
 
             // Vanilla is 16.6597 16.6725
-            Player.Velocity.ApproxEquals(new(16.66666611680661, 16.66666611680661, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(16.66666611680661, 16.66666611680661, 0)).Should().BeTrue();
         }
 
         [Fact(DisplayName = "Player strafe with mouse movement")]
         public void PlayerMouseStrafe()
         {
-            Player.Velocity.Should().Be(Vec3D.Zero);
+            GetPlayerVelocity().Should().Be(Vec3D.Zero);
             double angle = GameActions.GetAngle(Bearing.North);
             GameActions.SetEntityPosition(World, Player, PlayerSpeedTestPos);
             GameActions.RunPlayerCommands(World, angle, new TickCommands[] { TickCommands.Strafe }, MathHelper.QuarterPi, SpeedTestTicks);
@@ -142,7 +142,9 @@ namespace Helion.Tests.Unit.GameAction
             Player.AngleRadians.Should().Be(angle);
 
             // Vanilla is 16.6597
-            Player.Velocity.ApproxEquals(new(16.66666611680661, 0, 0)).Should().BeTrue();
+            GetPlayerVelocity().ApproxEquals(new(16.66666611680661, 0, 0)).Should().BeTrue();
         }
+
+        private Vec3D GetPlayerVelocity() => Player.CalcLastVelocity();
     }
 }

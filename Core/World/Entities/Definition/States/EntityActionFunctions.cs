@@ -1589,7 +1589,7 @@ public static class EntityActionFunctions
 
     public static void A_Look(Entity entity)
     {
-        if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0)
+        if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0 && entity.Definition.ValidForMonsterCloset)
         {
             entity.SetClosetLook();
             return;

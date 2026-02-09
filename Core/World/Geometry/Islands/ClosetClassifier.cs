@@ -91,10 +91,6 @@ public static class ClosetClassifier
     private static void SetCloset(Island island, WorldBase world, List<Entity> entities,
         Dictionary<int, BspSubsector> entityToSubsector)
     {
-        // Monster closets are simple, should not have a ton of lines.
-        if (island.LineIds.Count > 300)
-            return;
-
         bool monsterCloset = true;
         bool voodooCloset = true;
 

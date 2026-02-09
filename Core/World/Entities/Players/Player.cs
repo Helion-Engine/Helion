@@ -639,10 +639,18 @@ public class Player : Entity
         }
     }
 
-    public override void Tick()
+    public void SetInterpolation()
     {
-        base.Tick();
+        m_interpolateAngle = ShouldInterpolate();
 
+        PrevPosition = Position;
+        PrevAngle = AngleRadians;
+        m_prevPitch = PitchRadians;
+        m_prevViewZ = m_viewZ;
+    }
+
+    public void PlayerTick()
+    {
         // Matching Doom behavior for A_Saw
         if (Flags.JustAttacked())
         {
@@ -662,12 +670,6 @@ public class Player : Entity
         // Match Boom functionality that continually checks to change weapons in G_BuildTickCmd
         if (AttackDown && !CheckAmmo() && PendingWeapon == null)
             TrySwitchWeapon();
-
-        m_interpolateAngle = ShouldInterpolate();
-
-        PrevAngle = AngleRadians;
-        m_prevPitch = PitchRadians;
-        m_prevViewZ = m_viewZ;
 
         if (m_jumpTics > 0)
             m_jumpTics--;

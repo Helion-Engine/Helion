@@ -19,11 +19,6 @@ public class CameraPlayer : Player
 
     public override void Tick()
     {
-        PrevPosition = Position;
-        m_interpolateAngle = ShouldInterpolate();
 
-        PrevAngle = AngleRadians;
-        m_prevPitch = PitchRadians;
-        m_prevViewZ = m_viewZ;
     }
 }

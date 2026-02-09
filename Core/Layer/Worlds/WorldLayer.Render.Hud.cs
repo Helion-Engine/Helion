@@ -412,14 +412,15 @@ public partial class WorldLayer
             return;
 
         var player = Player.World.GetCameraPlayer();
+        var velocity = player.CalcLastVelocity();
         DrawCoordinate(hud, "X", player.Position.X, ref topRightY);
         DrawCoordinate(hud, "Y", player.Position.Y, ref topRightY);
         DrawCoordinate(hud, "Z", player.Position.Z, ref topRightY);
         DrawCoordinate(hud, "A", player.AngleRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
         DrawCoordinate(hud, "P", player.PitchRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
-        DrawCoordinate(hud, "VX", player.Velocity.X, ref topRightY);
-        DrawCoordinate(hud, "VY", player.Velocity.Y, ref topRightY);
-        DrawCoordinate(hud, "VZ", player.Velocity.Z, ref topRightY);
+        DrawCoordinate(hud, "VX", velocity.X, ref topRightY);
+        DrawCoordinate(hud, "VY", velocity.Y, ref topRightY);
+        DrawCoordinate(hud, "VZ", velocity.Z, ref topRightY);
         topRightY += m_padding;
     }
 

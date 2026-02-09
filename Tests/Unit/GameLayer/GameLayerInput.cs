@@ -390,7 +390,7 @@ public class GameLayerInput
         InputManager.SetKeyDown(Key.LeftYMinus);
         InputManager.SetKeyDown(Key.LeftXPlus);
         GameLayerManager.RunLogic(SingleTick);
-        Vec3D velocityFullInput = Player.Velocity;
+        Vec3D velocityFullInput = Player.CalcLastVelocity();
 
         Math.Abs(velocityFullInput.X).Should().BeGreaterThan(Math.Abs(velocityHalfInput.X));
         Math.Abs(velocityFullInput.Y).Should().BeGreaterThan(Math.Abs(velocityHalfInput.Y));

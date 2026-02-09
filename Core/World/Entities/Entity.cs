@@ -91,6 +91,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public Vec3D CenterPoint => new(Position.X, Position.Y, Position.Z + (Height / 2));
     public Vec3D ProjectileAttackPos => new(Position.X, Position.Y, Position.Z + 32);
     public Vec3D HitscanAttackPos => new(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
+    public Vec3D CalcLastVelocity() => Position - PrevPosition;
     public int FrozenTics;
     public Sector Sector;
     public Sector HighestFloorSector;
@@ -529,8 +530,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public virtual void Tick()
     {
-        PrevPosition = Position;
-
         Flags.ClearTeleported();
 
         if (FrozenTics > 0)

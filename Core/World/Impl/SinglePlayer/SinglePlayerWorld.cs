@@ -278,9 +278,10 @@ public class SinglePlayerWorld : WorldBase
         if (ChaseCamPlayer == null || ignore)
             return;
 
+        ChaseCamPlayer.SetInterpolation();
         ChaseCamPlayer.HandleTickCommand();
-        ChaseCamPlayer.TickCommand.TickHandled();
         ChaseCamPlayer.Tick();
+        ChaseCamPlayer.TickCommand.TickHandled();
         PhysicsManager.Move(ChaseCamPlayer);
     }
 

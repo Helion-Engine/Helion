@@ -414,6 +414,7 @@ public partial class Inventory
         RunWeaponUntilNotRefire(Player, () => { });
 
         Player.TickCommand.Add(TickCommands.Attack);
+        Player.FireWeapon().Should().BeTrue();
 
         RunWeaponUntilRefire(Player, () =>
         {
@@ -454,12 +455,13 @@ public partial class Inventory
 
         RunWeaponUntilRefire(Player, () =>
         {
-            Player.TickCommand.Add(TickCommands.Attack);
             if (Player.Refire)
                 hitRefire = true;
-            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol", StringComparison.Ordinal) && 
+            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol", StringComparison.Ordinal) &&
                 weapon.FrameState.CurrentTick == 6)
                 fireCount++;
+        }, preTick: () => { 
+            Player.TickCommand.Add(TickCommands.Attack);
         });
 
         hitRefire.Should().BeTrue();
@@ -685,14 +687,14 @@ public partial class Inventory
         return entity!;
     }
 
-    private void RunWeaponUntilRefire(Player player, Action onTick)
+    private void RunWeaponUntilRefire(Player player, Action onTick, Action? preTick = null)
     {
         player.Weapon.Should().NotBeNull();
         var weapon = Player.Weapon!;
         GameActions.TickWorld(World, () =>
         {
             return weapon.FrameState.Frame.ActionFunction == null || !weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_ReFire", StringComparison.Ordinal);
-        }, onTick);
+        }, onTick, preTick: preTick);
     }
 
     private void RunWeaponUntilNotRefire(Player player, Action onTick)

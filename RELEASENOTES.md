@@ -14,6 +14,8 @@
 - Fix boom teleport line specials to match boom behavior for non-players. Fixes Remanence MAP01 cyber platforms not lowering.
 - Fix boom generalized sector damage not working.
 - Fix A_JumpIfFlagsSet always evaluating to true if Args3 is set for MBF21 flags.
+- Fix movement/ticking processing order so that movement is handled first. Fixes Dominus Diabolicus 2 Cybermancubus acid puddles not doing damage.
+- Add validation for custom monster look logic in monster closets. Fixes Wraith Dominus Diabolicus 2 in monster closet.
 
 ## Misc:
 - Add compatibility for Eviternity II Annihilate Me skill level to swap incorrect usage of SpawnMulti to SpawnMultiCoopOnly.
