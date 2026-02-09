@@ -211,6 +211,7 @@ public partial class GeometryRenderer
             OffsetSide = offsetSide,
             AllowAlpha = allowAlpha,
             Style = style,
+            WallLocation = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location
         };
 
         var renderThrough = style != RenderDataStyle.Normal;

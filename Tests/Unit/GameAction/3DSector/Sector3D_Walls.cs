@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -17,7 +18,7 @@ namespace Helion.Tests.Unit.GameAction._3DSector;
 [Collection("GameActions")]
 public class Sector3D_Walls
 {
-    record struct WallSlice(double TopZ, double BottomZ, short LightLevel, Vec2F Offset);
+    record struct WallSlice(double TopZ, double BottomZ, short LightLevel, Vec2D Offset);
 
     private readonly SinglePlayerWorld World;
     private readonly GeometryRenderer GeometryRenderer;
@@ -238,9 +239,9 @@ public class Sector3D_Walls
 
         // Called to render both inside and outside
         SetSlices(new WallSlice(-16, -64, 192, (0, 0)),
-            new WallSlice(-64, -128, 128, (0, 48)),
+            new WallSlice(-64, -128, 192, (0, 48)),
             new WallSlice(-16, -64, 192, (0, 0)),
-            new WallSlice(-64, -128, 128, (0, 48)));
+            new WallSlice(-64, -128, 192, (0, 48)));
 
         var sector3D = sector.Sectors3D[0];
         sector3D.WallHeights.Clipped.Should().BeTrue();
@@ -267,7 +268,7 @@ public class Sector3D_Walls
             args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
             args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
-            args.Side.Middle.Offset.Should().Be(slice.Offset);
+            AssertWallSliceOffset(args, slice);
         }
         return GeometryRenderer.RenderOneSidedSlice(args);
     }
@@ -280,7 +281,7 @@ public class Sector3D_Walls
             other.Floor.Z.Should().Be(slice.TopZ);
             facing.Floor.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
-            args.Side.Middle.Offset.Should().Be(slice.Offset);
+            AssertWallSliceOffset(args, slice);
         }
         return GeometryRenderer.RenderOneSidedSlice(args);
     }
@@ -293,7 +294,7 @@ public class Sector3D_Walls
             facing.Ceiling.Z.Should().Be(slice.TopZ);
             other.Ceiling.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
-            args.Side.Middle.Offset.Should().Be(slice.Offset);
+            AssertWallSliceOffset(args, slice);
         }
         return GeometryRenderer.RenderOneSidedSlice(args);
     }
@@ -306,12 +307,25 @@ public class Sector3D_Walls
             facing.Ceiling.Z.Should().Be(slice.TopZ);
             facing.Floor.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
-            args.Side.Middle.Offset.Should().Be(slice.Offset);
-
+            AssertWallSliceOffset(args, slice);
             return GeometryRenderer.RenderOneSidedSlice(args);
         }
 
         return RenderWallSliceResult.Empty3D;
+    }
+
+    private static void AssertWallSliceOffset(in RenderWallSliceArgs args, in WallSlice slice)
+    {
+        args.Side.ScrollData.Should().NotBeNull();
+
+        args.Side.Middle.Offset.X.Should().Be((float)slice.Offset.X);
+
+        // Y offset for slicing is handled through the scroll data since it needs to be interpolated during movement.
+        var offset = args.Side.ScrollData!.Offset(args.WallLocation, ScrollOffsetType.Current);
+        offset.Y.Should().Be(slice.Offset.Y);
+
+        var prevOffset = args.Side.ScrollData!.Offset(args.WallLocation, ScrollOffsetType.Previous);
+        prevOffset.Y.Should().Be(slice.Offset.Y);
     }
 
     private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
@@ -319,7 +333,6 @@ public class Sector3D_Walls
         var slice = m_slices[m_sliceIndex++];
         wallSector.Ceiling.Z.Should().Be(slice.TopZ);
         wallSector.Floor.Z.Should().Be(slice.BottomZ);
-        wall.Offset.Should().Be(slice.Offset);
     }
 
     private void EmptyRenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)

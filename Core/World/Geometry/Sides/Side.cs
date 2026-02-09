@@ -1,4 +1,3 @@
-using Helion.Dehacked;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
