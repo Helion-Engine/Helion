@@ -3181,7 +3181,7 @@ public abstract partial class WorldBase : IWorld
         healChaseEntity.SetTarget(entity);
         EntityActionFunctions.A_FaceTarget(healChaseEntity);
         healChaseEntity.SetTarget(saveTarget);
-        healChaseEntity.FrameState.SetState(entity, m_healChaseData.HealState);
+        healChaseEntity.FrameState.SetState(healChaseEntity, m_healChaseData.HealState);
 
         if (m_healChaseData.HealSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
