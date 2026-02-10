@@ -155,20 +155,16 @@ public sealed class PhysicsManager
     {
         for (int i = entities.Length - 1; i >= 0; i--)
         {
-            var entity = entities[i];
+            var entity = entities.Data[i];
+            if (entity == null || entity.IsDisposed)
+                continue;
+
             var onEntity = entity.OnEntity();
-            if (onEntity != null && onEntity.IsDisposed)
-                continue;
-
-            var hasOnEntity = onEntity != null;
-            if (!hasOnEntity && entity.HadOnEntity)
-            {
-                ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: true);
-                continue;
-            }
-
-            if (onEntity!.Position.Z + onEntity.Height < entity.Position.Z ||
-                (onEntity.Sector3D == null && onEntity.MidTexLine == null && !onEntity.Overlaps2D(entity))) // Only need to check overlap for real entities
+            if (
+                (onEntity == null && entity.HadOnEntity) 
+                ||
+                (onEntity != null && (onEntity.Position.Z + onEntity.Height < entity.Position.Z || 
+                (onEntity.Sector3D == null && onEntity.MidTexLine == null && !onEntity.Overlaps2D(entity)))))
             {
                 ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: true);
             }
