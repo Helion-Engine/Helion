@@ -755,11 +755,11 @@ public sealed class PhysicsManager
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
-            var sector3d = sector.Sectors3D[i];
-            if (!sector3d.IsSolid)
+            var sector3D = sector.Sectors3D[i];
+            if (!sector3D.IsSolid)
                 continue;
 
-            var sectorEntity = sector3d.GetSectorEntity3D();
+            var sectorEntity = sector3D.GetSectorEntity3D();
             if (BlocksEntityZ(entity, sectorEntity, tryMove, entity.OverlapsZ(sectorEntity), m_entityOpening))
                 return true;
         }
@@ -1515,36 +1515,10 @@ doneLinkToSectors:
         var blockLineIndex = -1;
         tryMove.DropOffZ_3D = double.MaxValue;
         tryMove.Subsector = m_world.ToSubsector(x, y);
-
-        var highFloorEntity = entity.HighestFloorEntity();
         var sector = tryMove.Subsector.Sector;
-        if (highFloorEntity != null && highFloorEntity.Flags.Solid() && highFloorEntity.Flags.ActLikeBridge())
-        {
-            if (highFloorEntity.MidTexLine != null)
-                highFloorEntity = GetMidTexEntity(highFloorEntity.MidTexLine.Id);
-
-            tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
-            tryMove.DropOffZ = WorldStatic.Sector3D ? GetStartDropOffZ(entity, sector, entity.Sector.Floor.Z) : entity.Sector.Floor.Z;
-        }
-        else
-        {
-            tryMove.HighestFloorZ = tryMove.Subsector.Sector.Floor.Z;
-            tryMove.DropOffZ = WorldStatic.Sector3D ? GetStartDropOffZ(entity, sector, sector.Floor.Z) : sector.Floor.Z;
-        }
-
-        var lowCeilEntity = entity.LowestCeilingEntity();
-        if (lowCeilEntity != null && lowCeilEntity.Flags.Solid() && lowCeilEntity.Flags.ActLikeBridge())
-        {
-            if (lowCeilEntity.MidTexLine != null)
-                lowCeilEntity = GetMidTexEntity(lowCeilEntity.MidTexLine.Id);
-
-            tryMove.LowestCeilingZ = lowCeilEntity.Position.Z;
-        }
-        else
-        {
-            tryMove.LowestCeilingZ = tryMove.Subsector.Sector.Ceiling.Z;
-        }
-
+        tryMove.HighestFloorZ = sector.Floor.Z;
+        tryMove.LowestCeilingZ = sector.Ceiling.Z;
+        tryMove.DropOffZ = sector.Floor.Z;
         tryMove.HighestValidStepFloorZ = tryMove.HighestFloorZ;
 
         entity.BlockingBlockLineIndex = -1;
@@ -1686,21 +1660,6 @@ doneLinkToSectors:
         return tryMove.Success;
     }
 
-    private static double GetStartDropOffZ(Entity entity, Sector sector, double startZ)
-    {
-        if (sector.Sectors3D.Length == 0)
-            return startZ;
-
-        for (int i = 0; i < sector.Sectors3D.Length; i++)
-        {
-            var sector3D = sector.Sectors3D[i];
-            if (sector3D.ControlTop.Z > startZ && sector3D.ControlTop.Z <= entity.Position.Z)
-                startZ = sector3D.ControlTop.Z;
-        }
-
-        return startZ;
-    }
-
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, LineOpening lineOpening)
     {
         if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null && other.Sector3D == null)
@@ -1713,13 +1672,10 @@ doneLinkToSectors:
         if (overlapsZ && !isPlayer && other.MidTexLine == null && other.Sector3D == null)
             return true;
 
-        if (!overlapsZ)
-            return false;
-
         return !lineOpening.CanPassOrStepThrough(entity);
     }
 
-    private void SetEntityLineOpening(Entity entity, Entity other, TryMoveData tryMove, LineOpening opening, bool setDropOff = true)
+    private static void SetEntityLineOpening(Entity entity, Entity other, TryMoveData tryMove, LineOpening opening, bool setDropOff = true)
     {
         if (entity.Position.Z + entity.Height > other.Position.Z)
         {
@@ -1733,7 +1689,7 @@ doneLinkToSectors:
             opening.SetBottom(tryMove, other.Position.Z);
         }
 
-        tryMove.SetIntersectionData3D(m_lineOpening, entity, setDropOff);
+        tryMove.SetIntersectionData3D(opening, entity, setDropOff);
     }
 
     public void MoveTo(Entity entity, double x, double y, TryMoveData tryMove, Action<Entity, TryMoveData>? onMoveTo = null)
