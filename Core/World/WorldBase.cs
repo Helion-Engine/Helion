@@ -649,7 +649,7 @@ public abstract partial class WorldBase : IWorld
     private void NoTossDrops_OnChanged(object? sender, bool enabled) =>
         WorldStatic.NoTossDrops = enabled;
     private void InfinitelyTallThings_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.InfinitelyTallThings = enabled;
+        WorldStatic.InfinitelyTallThings = !WorldStatic.Sector3D && enabled;
     private void AllowItemDropoff_OnChanged(object? sender, bool enabled) =>
         WorldStatic.AllowItemDropoff = enabled;
     private void MissileClip_OnChanged(object? sender, bool enabled) =>

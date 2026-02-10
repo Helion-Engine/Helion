@@ -24,6 +24,7 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
 using Helion.World.Stats;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -680,16 +681,17 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     public void InitSectors3D()
     {
-        var sectors3d = new List<Sector3D>();
+        var sectors3D = new List<Sector3D>();
         var counts = new Dictionary<int, int>();
         foreach (var line in m_world.Lines)
         {
             if (line.Special.LineSpecialType == ZDoomLineSpecialType.SectorSet3DFloor || line.Special.LineSpecialType == ZDoomLineSpecialType.TransferLight)
-                SetSector3DFloor(line, sectors3d, counts);
+                SetSector3DFloor(line, sectors3D, counts);
         }
 
-        WorldStatic.Sector3D = sectors3d.Count > 0;
-        if (sectors3d.Count == 0)
+        WorldStatic.Sector3D = sectors3D.Count > 0;
+        WorldStatic.InfinitelyTallThings = !WorldStatic.Sector3D && WorldStatic.InfinitelyTallThings;
+        if (sectors3D.Count == 0)
             return;
 
         foreach ((var sectorId, var count) in counts)
@@ -698,15 +700,15 @@ public sealed class SpecialManager : ITickable, IDisposable
             sector.Sectors3D = new Sector3D[count];
         }
 
-        sectors3d.Sort(SortBySectorId);
+        sectors3D.Sort(SortBySectorId);
         int lastSectorId = -1;
         int index = 0;
-        for (int i = 0; i < sectors3d.Count; i++)
+        for (int i = 0; i < sectors3D.Count; i++)
         {
-            var sector3d = sectors3d[i];
-            var sector = m_world.Sectors[sector3d.ParentSectorId];
+            var sector3D = sectors3D[i];
+            var sector = m_world.Sectors[sector3D.ParentSectorId];
 
-            Sectors3D[sector3d.SectorId] = sector3d;
+            Sectors3D[sector3D.SectorId] = sector3D;
 
             if (sector.Id != lastSectorId)
             {
@@ -715,7 +717,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             }
 
             if (sector.Sectors3D.Length > index)
-                sector.Sectors3D[index] = sector3d;
+                sector.Sectors3D[index] = sector3D;
             index++;
         }
     }
