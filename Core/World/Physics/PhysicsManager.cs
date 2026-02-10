@@ -1021,6 +1021,7 @@ public sealed class PhysicsManager
             m_canPassData.LowestCeilLight3D = double.MaxValue;
             m_canPassData.CeilingSector3D = null;
             m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
+            WorldStatic.CheckCounter++;
 
             if (tryMove == null)
             {
@@ -1107,6 +1108,10 @@ public sealed class PhysicsManager
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3D = sector.Sectors3D[i];
+            if (sector3D.CheckCount == WorldStatic.CheckCounter)
+                continue;
+
+            sector3D.CheckCount = WorldStatic.CheckCounter;
             CanPassTraverse(sector3D.GetSectorEntity3D());
 
             if (sector3D.ControlTop.Z < m_canPassData.LowestCeilLight3D &&
