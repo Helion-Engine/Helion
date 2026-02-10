@@ -1229,6 +1229,7 @@ public static class EntityActionFunctions
     private static void A_FireCrackle(Entity entity)
     {
         WorldStatic.SoundManager.CreateSoundOn(entity, "vile/firecrkl", new SoundParams(entity));
+        A_Fire(entity);
     }
 
     private static void A_FireCustomMissile(Entity entity)
@@ -3144,13 +3145,14 @@ public static class EntityActionFunctions
         if (entity.Definition.Flags.Missile() || entity.Definition.Flags.MbfBouncer())
         {
             createdEntity.SetOwner(entity.Owner());
+            createdEntity.SetTarget(entity.Target());
             createdEntity.SetTracer(entity.Tracer());
         }
         else
         {
             createdEntity.SetOwner(entity);
             createdEntity.SetTarget(entity);
-            createdEntity.SetTracer(entity.Tracer());
+            createdEntity.SetTracer(entity.Target());
         }
     }
 
