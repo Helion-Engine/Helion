@@ -704,12 +704,12 @@ public sealed class PhysicsManager
         {
             if (WorldStatic.Sector3D)
             {
-                opening = GetLineOpeningWithDropoff3D(entity, x, y, ref line);
+                opening = GetLineOpeningWithDropoff3D(entity, ref line);
                 tryMove.SetIntersectionData3D(opening, entity);
             }
             else
             {
-                opening = GetLineOpeningWithDropoff(x, y, ref line);
+                opening = GetLineOpeningWithDropoff(entity, ref line);
                 tryMove.SetIntersectionData3D(opening, entity);
             }
         }
@@ -717,7 +717,7 @@ public sealed class PhysicsManager
         {
             if (WorldStatic.Sector3D)
             {
-                opening = GetLineOpeningWithDropoff3D(entity, x, y, ref line);
+                opening = GetLineOpeningWithDropoff3D(entity, ref line);
                 tryMove.SetIntersectionData3D(opening, entity);
             }
             else
@@ -771,7 +771,6 @@ public sealed class PhysicsManager
     private Entity GetMidTexEntity(int lineId) =>
         m_world.Lines[lineId].GetMidTexEntity(m_world);
 
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LineOpening GetLineOpening(Sector front, Sector back)
     {
@@ -779,7 +778,7 @@ public sealed class PhysicsManager
         return m_lineOpening;
     }
 
-    public LineOpening GetLineOpeningWithDropoff(double x, double y, ref BlockLine line)
+    public LineOpening GetLineOpeningWithDropoff(Entity entity, ref BlockLine line)
     {
         Sector front = line.FrontSector;
         Sector back = line.BackSector!;
@@ -807,7 +806,7 @@ public sealed class PhysicsManager
 
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
 
-        var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
+        var dot = (line.Segment.Delta.X * (entity.Position.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (entity.Position.X - line.Segment.Start.X));
         if (dot <= 0)
             m_lineOpening.DropOffZ = back.Floor.Z;
         else
@@ -817,19 +816,19 @@ public sealed class PhysicsManager
         return m_lineOpening;
     }
 
-    public LineOpening GetLineOpeningWithDropoff3D(Entity entity, double x, double y, ref BlockLine line)
+    public LineOpening GetLineOpeningWithDropoff3D(Entity entity, ref BlockLine line)
     {
         var front = line.FrontSector;
         var back = line.BackSector!;
 
         if (front.Sectors3D.Length == 0 && back.Sectors3D.Length == 0)
-            return GetLineOpeningWithDropoff(x, y, ref line);
+            return GetLineOpeningWithDropoff(entity, ref line);
 
         GetLineOpening(front, back);
         m_lineOpening.DropOffZ = front.Floor.Z;
         SetOpeningPlanes3D(entity, front, back);
 
-        var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
+        var dot = (line.Segment.Delta.X * (entity.Position.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (entity.Position.X - line.Segment.Start.X));
         if (dot <= 0)
             m_lineOpening.DropOffZ = Math.Max(m_testOpeningBack.DropOffZ_3D, m_lineOpening.DropOffZ);
         else
