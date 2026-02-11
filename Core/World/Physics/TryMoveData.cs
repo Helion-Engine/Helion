@@ -22,8 +22,6 @@ public class TryMoveData
 
     public Sector? HighestFloor;
     public Sector? LowestCeiling;
-
-    public Entity? DropOffEntity;
     public Subsector? Subsector;
 
     public Entity? BlockingEntity;
@@ -47,7 +45,6 @@ public class TryMoveData
         IntersectMidTexLines.Clear();
         HighestFloorZ = double.MinValue;
         LowestCeilingZ = double.MaxValue;
-        DropOffEntity = null;
         Subsector = null;
         BlockingEntity = null;
     }
@@ -57,16 +54,10 @@ public class TryMoveData
         HasDropOff3D = HasDropOff3D || opening.HasDropOff3D;
 
         if (setDropOff && opening.DropOffZ < DropOffZ)
-        {
             DropOffZ = opening.DropOffZ;
-            DropOffEntity = null;
-        }
 
         if (opening.HasDropOff3D && opening.DropOffZ < DropOffZ_3D)
-        {
             DropOffZ_3D = opening.DropOffZ;
-            DropOffEntity = null;
-        }
 
         if (opening.FloorZ > HighestFloorZ)
         {

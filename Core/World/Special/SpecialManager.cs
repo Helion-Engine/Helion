@@ -24,7 +24,6 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
 using Helion.World.Stats;
-using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

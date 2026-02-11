@@ -973,9 +973,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         if (!ShouldCheckDropOff())
             return true;
 
-        if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge())
-            return false;
-
         var maxStepHeight = GetMaxStepHeight();
         // Walking on things test
         Entity? highestWalk = null;
@@ -987,6 +984,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         if (WorldStatic.Sector3D && !tryMove.HasDropOff3D || (tryMove.HighestFloorZ - tryMove.DropOffZ_3D <= maxStepHeight))
         {
+            WorldStatic.CheckCounter++;
             for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
                 highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.IntersectSectors.Data[i]);
 
@@ -999,16 +997,24 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             highestWalk.Position.Z + highestWalk.Height <= Position.Z)
             return false;
 
-        if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
-            return false;
+        // Entities can walk over the edge of another entity unlike normal sector lines.
+        // Check drop off from the entity they are on.
+        var onEntity = OnEntity();
+        if (onEntity != null && onEntity.Flags.ActLikeBridge())
+            return onEntity.Position.Z + onEntity.Height - tryMove.DropOffZ <= maxStepHeight;
 
         return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
     }
 
     private Entity? GetHighestWalkEntitySector3D(TryMoveData tryMove, double maxStepHeight, Entity? highestWalk, Sector sector)
     {
+        if (sector.CheckCount == WorldStatic.CheckCounter)
+            return highestWalk;
+
+        sector.CheckCount = WorldStatic.CheckCounter;
         for (int i = 0; i < sector.Sectors3D.Length; i++)
             highestWalk = GetHighestWalkEntity(tryMove, highestWalk, sector.Sectors3D[i].GetSectorEntity3D(), maxStepHeight);
+
         return highestWalk;
     }
 
