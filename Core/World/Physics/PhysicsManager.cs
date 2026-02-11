@@ -934,13 +934,7 @@ public sealed class PhysicsManager
             entity.Position.Z = lowestCeil - entity.GetClampHeight();
 
             if (highestFloor > short.MinValue)
-            {
-                var blockEntity = entity.LowestCeilingEntity();
-                if (blockEntity != null)
-                    entity.BlockingEntity = blockEntity;
-                else
-                    entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
-            }
+                SetBlockingCeiling(entity);
         }
 
         bool clippedFloor = entity.Position.Z <= highestFloor;
@@ -957,13 +951,7 @@ public sealed class PhysicsManager
                 m_onEntities[i].SetOverEntity(entity);
 
             if (clippedFloor)
-            {
-                var blockEntity = entity.HighestFloorEntity();
-                if (blockEntity != null)
-                    entity.BlockingEntity = blockEntity;
-                else if (entity.BlockingSectorPlane == null && entity.Velocity.Z < 0)
-                    entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
-            }
+                SetBlockingFloor(entity);
 
             SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ && prevHighestFloorZ != entity.HighestFloorZ);
         }
@@ -976,6 +964,36 @@ public sealed class PhysicsManager
 
         entity.CheckOnGround();
         m_onEntities.Clear();
+    }
+
+    private static void SetBlockingFloor(Entity entity)
+    {
+        var blockEntity = entity.HighestFloorEntity();
+        if (WorldStatic.Sector3D && blockEntity != null && blockEntity.Sector3D != null)
+        {
+            entity.BlockingSectorPlane = blockEntity.Sector3D.ControlTop;
+            return;
+        }
+
+        if (blockEntity != null)
+            entity.BlockingEntity = blockEntity;
+        else if (entity.BlockingSectorPlane == null && entity.Velocity.Z < 0)
+            entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
+    }
+
+    private static void SetBlockingCeiling(Entity entity)
+    {
+        var blockEntity = entity.LowestCeilingEntity();
+        if (WorldStatic.Sector3D && blockEntity != null && blockEntity.Sector3D != null)
+        {
+            entity.BlockingSectorPlane = blockEntity.Sector3D.ControlBottom;
+            return;
+        }
+
+        if (blockEntity != null)
+            entity.BlockingEntity = blockEntity;
+        else
+            entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
     }
 
     private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector>? intersectSectors, bool clampToLinkedSectors, TryMoveData? tryMove)
@@ -1660,7 +1678,7 @@ doneLinkToSectors:
         return tryMove.Success;
     }
 
-    private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, LineOpening lineOpening)
+    private static bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, LineOpening lineOpening)
     {
         if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null && other.Sector3D == null)
             return true;
