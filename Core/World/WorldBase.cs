@@ -1741,6 +1741,8 @@ public abstract partial class WorldBase : IWorld
         BlockmapIntersect? minReturnValue3D = null;
         Vec3D minIntersect3D = default;
         Sector? minHitSector3D = null;
+        Entity? validateEntity3D = null;
+        double validateEntityDistance3D = double.MaxValue;
         double minDistanceSquared3D = double.MaxValue;
 
         var passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
@@ -1884,8 +1886,21 @@ public abstract partial class WorldBase : IWorld
                 {
                     // Early exit if we've already found a closer 3D hit
                     var currentDistanceSquared = start.DistanceSquared(intersect);
-                    if (WorldStatic.Sector3D && currentDistanceSquared > minDistanceSquared3D)
-                        break;
+                    if (WorldStatic.Sector3D)
+                    {
+                        if (currentDistanceSquared > minDistanceSquared3D)
+                            break;
+
+                        if (noCrossCheck)
+                        {
+                            if (damage != Constants.HitscanTestDamage)
+                            {
+                                validateEntityDistance3D = currentDistanceSquared;
+                                validateEntity3D = entity;
+                            }
+                            break;
+                        }
+                    }
 
                     noCrossCheck = false;
                     returnValue = bi;
@@ -1917,6 +1932,12 @@ public abstract partial class WorldBase : IWorld
                 returnValue = null;
                 minReturnValue3D = new();
                 minHitSector3D = shooter.Sector;
+
+                if (validateEntity3D != null && distance3D > validateEntityDistance3D)
+                {
+                    DamageEntity(validateEntity3D, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                    CreateBloodOrPulletPuff(validateEntity3D, intersect, angle, distance, damage);
+                }
             }
             else if (noCrossCheck)
             {
