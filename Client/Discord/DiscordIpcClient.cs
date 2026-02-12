@@ -137,12 +137,34 @@ public class DiscordIpcClient(string clientId) : IDisposable
         m_pipeName = null;
     }
 
+    public DiscordCommandMessage CreateActivityMessage(bool playing, string? details = null, string? state = null)
+    {
+        return new DiscordCommandMessage()
+        {
+            Command = "SET_ACTIVITY",
+            Args = new DiscordCommandArgs
+            {
+                Activity = playing
+                    ? new DiscordActivity
+                    {
+                        Details = details,
+                        State = state,
+                    }
+                    : null,
+                ProcessId = m_processId
+            },
+            Nonce = Guid.NewGuid()
+        };
+    }
+
     private void Disconnect()
     {
         if (m_pipe?.IsConnected == true)
         {
             try
             {
+                // need to clear activity before disconnecting, otherwise it remains after exit
+                Send(DiscordMessageType.Activity, CreateActivityMessage(false));
                 Send(DiscordMessageType.Disconnect, new DiscordDisconnectMessage());
             }
             catch (Exception e)
@@ -165,21 +187,7 @@ public class DiscordIpcClient(string clientId) : IDisposable
         }
         try
         {
-            DiscordCommandMessage payload = new()
-            {
-                Command = "SET_ACTIVITY",
-                Args = new DiscordCommandArgs
-                {
-                    Activity = new DiscordActivity
-                    {
-                        Details = details,
-                        State = state,
-                    },
-                    ProcessId = m_processId
-                },
-                Nonce = Guid.NewGuid()
-            };
-
+            DiscordCommandMessage payload = CreateActivityMessage(true, details, state);
             await SendAsync(DiscordMessageType.Activity, payload, cancellationToken);
         }
         catch (Exception e)
