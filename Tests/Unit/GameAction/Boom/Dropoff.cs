@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
+using static Helion.World.Entities.Entity;
 
 namespace Helion.Tests.Unit.GameAction.Boom;
 
@@ -99,5 +100,24 @@ public class Dropoff
 
         GameActions.TickWorld(World, 35);
         imp.Position.Z.Should().Be(0);
+    }
+
+    [Fact(DisplayName = "Monster can't walk up steep stairs")]
+    public void DropoffSteepStairs()
+    {
+        var imp = GameActions.GetEntity(World, 11);
+        imp.SetMoveDirection(MoveDir.East);
+        imp.Position.Should().Be(new Vec3D(212, -208, 0));
+        imp.MoveEnemy(out var tryMove).Should().BeTrue();
+        imp.ResetInterpolation();
+        imp.Position.Should().Be(new Vec3D(220, -208, 0));
+        imp.MoveEnemy(out tryMove).Should().BeTrue();
+        imp.ResetInterpolation();
+        imp.Position.Should().Be(new Vec3D(228, -208, 16));
+        imp.MoveEnemy(out tryMove).Should().BeTrue();
+        imp.ResetInterpolation();
+        imp.Position.Should().Be(new Vec3D(236, -208, 16));
+        imp.MoveEnemy(out tryMove).Should().BeFalse();
+        imp.Position.Should().Be(new Vec3D(236, -208, 16));
     }
 }

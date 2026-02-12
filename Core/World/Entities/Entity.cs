@@ -996,6 +996,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
                 dropOffZ = tryMove.DropOffZ_3D;
         }
 
+        tryMove.DropOffZ = dropOffZ;
         if (highestWalk != null && !highestWalk.Flags.ActLikeBridge() &&
             highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
             highestWalk.Position.Z + highestWalk.Height <= Position.Z)
