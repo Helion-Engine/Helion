@@ -982,7 +982,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
             highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines[i]].GetMidTexEntity(World), maxStepHeight);
 
-        if (WorldStatic.Sector3D && !tryMove.HasDropOff3D || (tryMove.HighestFloorZ - tryMove.DropOffZ_3D <= maxStepHeight))
+        if (WorldStatic.Sector3D && (!tryMove.HasDropOff3D || (tryMove.HighestFloorZ - tryMove.DropOffZ_3D <= maxStepHeight)))
         {
             WorldStatic.CheckCounter++;
             for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
