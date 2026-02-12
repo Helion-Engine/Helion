@@ -2170,10 +2170,11 @@ public abstract partial class WorldBase : IWorld
             damage = (int)(damage * WorldStatic.DamageApplyMultiplier);
         }
 
-        if (target.Damage(source, damage, setPainState, damageType) || target.IsInvulnerable)
+        var success = target.Damage(source, damage, setPainState, damageType);
+        if (success || target.IsInvulnerable)
             target.Velocity += thrustVelocity;
 
-        return true;
+        return success;
     }
 
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
