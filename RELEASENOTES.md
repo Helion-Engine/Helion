@@ -18,6 +18,7 @@
 - Add validation for custom monster look logic in monster closets. Fixes Wraith Dominus Diabolicus 2 in monster closet.
 - Fix crash that can happen from A_HealChase. FIxes Skulltiverse II MAP24 boss.
 - Fix missing tracer set in A_SpawnObject and A_Fire call from A_CireCrackle. Fixes Dominus Diabolicus 2 MAP21 boss.
+- Fix ripper flag creating sound/blood when not applying damage.
 
 ## Misc:
 - Add compatibility for Eviternity II Annihilate Me skill level to swap incorrect usage of SpawnMulti to SpawnMultiCoopOnly.
