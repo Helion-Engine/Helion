@@ -16,15 +16,12 @@ internal sealed class SkySphereForegroundShader : SkySphereShader
         layout(location = 1) in vec2 uv;
 
         out vec2 uvFrag;
-        flat out vec2 scrollOffsetFrag;
 
         uniform mat4 mvp;
         uniform int flipU;
-        uniform vec2 scrollOffset;
 
         void main() {
             uvFrag = uv;
-            scrollOffsetFrag = scrollOffset;
             if (flipU == 1)
                 uvFrag.x = -uvFrag.x;            
             gl_Position = mvp * vec4(pos, 1.0);
@@ -35,7 +32,6 @@ internal sealed class SkySphereForegroundShader : SkySphereShader
         #version 330
 
         in vec2 uvFrag;
-        flat in vec2 scrollOffsetFrag;
 
         out vec4 fragColor;
 
@@ -50,6 +46,9 @@ internal sealed class SkySphereForegroundShader : SkySphereShader
         uniform float skyMax;
         uniform vec3 colorMix;
         uniform float gammaCorrection;
+        uniform vec2 scrollOffset;
+        uniform vec2 prevScrollOffset;
+        uniform float timeFrac;
         
         uniform vec4 topColor;
         uniform vec4 bottomColor;
@@ -78,7 +77,7 @@ internal sealed class SkySphereForegroundShader : SkySphereShader
             }
             else {
                 vec2 textureUV = uvFrag - skyMin;
-                vec2 offset = scrollOffsetFrag;
+                vec2 offset = mix(prevScrollOffset, scrollOffset, timeFrac);
                 fragColor = texture(boundTexture, textureUV / scale + offset);
             }
 
