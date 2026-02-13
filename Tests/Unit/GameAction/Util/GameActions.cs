@@ -560,7 +560,6 @@ namespace Helion.Tests.Unit.GameAction
             trueCount.Should().Be(trueField.Length);
         }
 
-
         public static void AssertBlockingLine(Entity entity, int lineId, bool blocks)
         {
             if (blocks)
@@ -572,6 +571,13 @@ namespace Helion.Tests.Unit.GameAction
             {
                 entity.BlockingBlockLineIndex.Should().NotBe(lineId);
             }
+        }
+
+        public static bool MoveEnemy(Entity entity)
+        {
+            var success = entity.MoveEnemy(out _);
+            entity.ResetInterpolation();
+            return success;
         }
     }
 }
