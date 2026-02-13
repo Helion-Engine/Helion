@@ -797,21 +797,16 @@ public sealed class PhysicsManager
         {
             m_lineOpening.FloorZ = front.Floor.Z;
             m_lineOpening.FloorSector = front;
+            m_lineOpening.DropOffZ = back.Floor.Z;
         }
         else
         {
             m_lineOpening.FloorZ = back.Floor.Z;
             m_lineOpening.FloorSector = back;
+            m_lineOpening.DropOffZ = front.Floor.Z;
         }
 
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
-
-        var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
-        if (dot <= 0)
-            m_lineOpening.DropOffZ = back.Floor.Z;
-        else
-            m_lineOpening.DropOffZ = front.Floor.Z;
-
         m_lineOpening.HasDropOff3D = false;
         return m_lineOpening;
     }
@@ -828,8 +823,7 @@ public sealed class PhysicsManager
         m_lineOpening.DropOffZ = front.Floor.Z;
         SetOpeningPlanes3D(entity, front, back);
 
-        var dot = (line.Segment.Delta.X * (entity.Position.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (entity.Position.X - line.Segment.Start.X));
-        if (dot <= 0)
+        if (m_testOpeningFront.FloorZ > m_testOpeningBack.FloorZ)
             m_lineOpening.DropOffZ = Math.Max(m_testOpeningBack.DropOffZ_3D, m_lineOpening.DropOffZ);
         else
             m_lineOpening.DropOffZ = Math.Max(m_testOpeningFront.DropOffZ_3D, m_lineOpening.DropOffZ);
