@@ -1986,7 +1986,7 @@ public abstract partial class WorldBase : IWorld
         if (hitSector3D != null)
             normalSolid = (hitSector3D.Flags & SectorFlags3D.ShootInvert) == 0;
 
-        if (minDistanceSquared3D != double.MaxValue)
+        if (minDistanceSquared3D < start.DistanceSquared(end))
         {
             hitIntersect = minHit;
             plane = hitPlane;
@@ -2041,7 +2041,7 @@ public abstract partial class WorldBase : IWorld
                 {
                     hitPlane = testPlane;
                     minHit = test;
-                    minDistanceSquared3D = 0;
+                    minDistanceSquared3D = start.DistanceSquared(test);
                     return;
                 }
 
