@@ -1925,8 +1925,8 @@ public abstract partial class WorldBase : IWorld
             var currentDistanceSquared = start.DistanceSquared(currentPlaneIntersect);
 
             var distance3D = double.MaxValue;
-            if (!SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref minIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out _) 
-                || (distance3D <= minDistanceSquared3D && distance3D <= currentDistanceSquared) )
+            if (minReturnValue3D != null && !SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref minIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out _) 
+                || (distance3D <= minDistanceSquared3D && distance3D <= currentDistanceSquared))
             {
                 returnValue = null;
                 minReturnValue3D = new();
