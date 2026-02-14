@@ -3,12 +3,13 @@ using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.World.Entities;
 using Helion.World.Impl.SinglePlayer;
+using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction._3DSector;
 
 [Collection("GameActions")]
-public class Sector3D_Physics
+public class Sector3D_Physics : IDisposable
 {
     private readonly SinglePlayerWorld World;
     private readonly Entity Imp;
@@ -17,6 +18,11 @@ public class Sector3D_Physics
     {
         World = WorldAllocator.LoadMap("Resources/sector3d-physics.zip", "sector3d-physics.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
         Imp = GameActions.CreateEntity(World, "DoomImp", default, frozen: false);
+    }
+
+    public void Dispose()
+    {
+        GameActions.DestroyCreatedEntities(World);
     }
 
     [Fact(DisplayName = "Monster walks on 3D sector")]
