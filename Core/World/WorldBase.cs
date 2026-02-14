@@ -1741,6 +1741,7 @@ public abstract partial class WorldBase : IWorld
         Vec3D minIntersect3D = default;
         Sector? minHitSector3D = null;
         Entity? validateEntity3D = null;
+        Vec3D validateEntityIntersect3D = default;
         double validateEntityDistance3D = double.MaxValue;
         double minDistanceSquared3D = double.MaxValue;
 
@@ -1883,10 +1884,10 @@ public abstract partial class WorldBase : IWorld
                 var entity = DataCache.Entities[index];
                 if (entity.BoxIntersects(start, end, ref intersect))
                 {
-                    // Early exit if we've already found a closer 3D hit
-                    var currentDistanceSquared = start.DistanceSquared(intersect);
                     if (WorldStatic.Sector3D)
                     {
+                        // Early exit if we've already found a closer 3D hit
+                        var currentDistanceSquared = start.DistanceSquared(intersect);
                         if (currentDistanceSquared > minDistanceSquared3D)
                             break;
 
@@ -1896,6 +1897,7 @@ public abstract partial class WorldBase : IWorld
                             {
                                 validateEntityDistance3D = currentDistanceSquared;
                                 validateEntity3D = entity;
+                                validateEntityIntersect3D = intersect;
                             }
                             break;
                         }
@@ -1910,6 +1912,7 @@ public abstract partial class WorldBase : IWorld
                         DamageEntity(entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
                         CreateBloodOrPulletPuff(entity, intersect, angle, distance, damage);
                     }
+                    // TODO handle for 3D sectors
                     if (!passThrough)
                         break;
                 }
@@ -1931,18 +1934,18 @@ public abstract partial class WorldBase : IWorld
                 returnValue = null;
                 minReturnValue3D = new();
                 minHitSector3D = shooter.Sector;
-
-                if (validateEntity3D != null && distance3D > validateEntityDistance3D)
-                {
-                    DamageEntity(validateEntity3D, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-                    CreateBloodOrPulletPuff(validateEntity3D, intersect, angle, distance, damage);
-                }
             }
             else if (noCrossCheck)
             {
                 returnValue = new();
                 hitSector = shooter.Sector;
                 intersect = currentPlaneIntersect;
+            }
+
+            if (validateEntity3D != null && distance3D > validateEntityDistance3D)
+            {
+                DamageEntity(validateEntity3D, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                CreateBloodOrPulletPuff(validateEntity3D, validateEntityIntersect3D, angle, distance, damage);
             }
         }
         else if (noCrossCheck && returnValue == null)
