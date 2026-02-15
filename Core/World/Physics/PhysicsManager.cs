@@ -62,6 +62,7 @@ public sealed class PhysicsManager
     private readonly LineOpening m_lineOpening = new();
     private readonly DynamicArray<Entity> m_crushEntities = new();
     private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
+    private readonly DynamicArray<Entity> m_sectorMoveEntitiesNoBlockMap = new();
     private readonly DynamicArray<SectorMoveEntityData> m_sectorMoveEntitiesData = new();
     private readonly DynamicArray<Entity> m_onEntities = new();
     private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
@@ -177,7 +178,7 @@ public sealed class PhysicsManager
 
         // Move lower entities first to handle stacked entities
         // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
-        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
+        GetSectorMoveOrderedEntities(m_sectorMoveEntities, m_sectorMoveEntitiesNoBlockMap, sector);
         m_sectorMoveEntitiesData.Clear();
 
         // Save the Z value because we are only checking if the dest is valid
@@ -350,9 +351,21 @@ public sealed class PhysicsManager
         if (moveData.Crush != null && m_crushEntities.Length > 0)
             CrushEntities(m_crushEntities, sector, moveData.Crush.Value);
 
+        for (int i = 0; i < m_sectorMoveEntitiesNoBlockMap.Length; i++)
+        {
+            var entity = m_sectorMoveEntitiesNoBlockMap.Data[i];
+            if (entity.Flags.Missile() &&
+                ((moveType == SectorPlaneFace.Floor && sectorPlane.Z > entity.Position.Z) ||
+                (moveType == SectorPlaneFace.Ceiling && sectorPlane.Z < entity.Position.Z + entity.GetClampHeight())))
+            {
+                m_world.HandleEntityHit(entity, entity.Velocity, null);
+            }
+        }
+
         m_clampIgnoreEntities.Clear();
         m_crushEntities.Clear();
         m_sectorMoveEntities.Clear();
+        m_sectorMoveEntitiesNoBlockMap.Clear();
 
         // If an entity is blocking this and the destination is blocked then we need to stop to match vanilla behavior.
         if (isCompleted && status == SectorMoveStatus.Blocked)
@@ -424,14 +437,17 @@ public sealed class PhysicsManager
         return GridIterationStatus.Continue;
     }
 
-    private void GetSectorMoveOrderedEntities(DynamicArray<Entity> entities, Sector sector)
+    private void GetSectorMoveOrderedEntities(DynamicArray<Entity> entities, DynamicArray<Entity> noBlockMapEntities, Sector sector)
     {
         LinkableNode<Entity>? node = sector.Entities.Head;
         while (node != null)
         {
             var entity = node.Value;
-            // Doom did this by blockmap so do not add things with NoBlockmap
-            if (!entity.Flags.NoBlockmap() && EntityHasMovementSector(entity, sector))
+            if (!EntityHasMovementSector(entity, sector))
+                continue;
+            if (entity.Flags.NoBlockmap())
+                noBlockMapEntities.Add(entity);
+            else
                 m_sectorMoveEntities.Add(entity);
             node = node.Next;
         }
@@ -1402,6 +1418,14 @@ doneLinkToSectors:
         }
 
         tryMove.CanFloat = true;
+
+        if (tryMove.LowestCeilingZ - entity.Position.Z < entity.Height)
+        {
+            tryMove.Subsector = null;
+            tryMove.Success = false;
+            return false;
+        }
+
         return tryMove.Success;
     }
 
