@@ -22,44 +22,27 @@ public static class HelionLoggers
         Layout = "${message} ${exception}"
     };
 
-    private static readonly FileTarget ErrorFileTarget = new("errorFileTarget")
-    {
-        // Note: The file name is overridden, but is here as a safeguard.
-        FileName = "errorlog.txt",
-        DeleteOldFileOnStartup = true,
-        Layout = "${time} ${message} ${exception:format=ToString,StackTrace}"
-    };
-
-    private static readonly FileTarget LogFileTarget = new("logFileTarget")
-    {
-        // Note: The file name is overridden, but is here as a safeguard.
-        FileName = "helion.log",
-        DeleteOldFileOnStartup = true,
-        Layout = "${time} [${level:uppercase=true}] ${message} ${exception}"
-    };
-
-    private static readonly FileTarget ProfilerFileTarget = new("profilerFileTarget")
-    {
-        // Note: The file name is overridden, but is here as a safeguard.
-        FileName = "profiler.log",
-        DeleteOldFileOnStartup = true,
-        Layout = "${message}"
-    };
-
     public static void Initialize(CommandLineArgs args, string userDataFolder)
     {
         LoggingConfiguration config = new();
 
-        AddClassLoggers(config, args);
+        AddClassLoggers(config, args, userDataFolder);
         AddErrorFileLogger(config, userDataFolder);
-        AddProfilerLogger(config, args);
+        AddProfilerLogger(config, args, userDataFolder);
 
         LogManager.Configuration = config;
     }
 
     private static void AddErrorFileLogger(LoggingConfiguration config, string userDataFolder)
     {
-        ErrorFileTarget.FileName = Path.Combine(userDataFolder, "errorlog.txt");
+        FileTarget ErrorFileTarget = new("errorFileTarget")
+        {
+            // Note: The file name is overridden, but is here as a safeguard.
+            FileName = Path.Combine(userDataFolder, "errorlog.txt"),
+            DeleteOldFileOnStartup = true,
+            Layout = "${time} ${message} ${exception:format=ToString,StackTrace}"
+        };
+
         config.AddTarget(ErrorFileTarget);
         config.AddRuleForAllLevels(ErrorFileTarget, ErrorLoggerName);
     }
@@ -77,8 +60,16 @@ public static class HelionLoggers
         return LogLevel.Info;
     }
 
-    private static void AddClassLoggers(LoggingConfiguration config, CommandLineArgs args)
+    private static void AddClassLoggers(LoggingConfiguration config, CommandLineArgs args, string userDataFolder)
     {
+        FileTarget LogFileTarget = new("logFileTarget")
+        {
+            // Note: The file name is overridden, but is here as a safeguard.
+            FileName = Path.Combine(userDataFolder, "helion.log"),
+            DeleteOldFileOnStartup = true,
+            Layout = "${time} [${level:uppercase=true}] ${message} ${exception}"
+        };
+
         LogLevel minLevel = GetMinLogLevel(args);
 
         config.AddTarget(ConsoleTarget);
@@ -90,22 +81,40 @@ public static class HelionLoggers
         if (args.LogFileName != null)
         {
             if (args.LogFileName != "")
-                LogFileTarget.FileName = args.LogFileName;
+                LogFileTarget.FileName = GetLogFilePath(userDataFolder, args.LogFileName);
 
             config.AddTarget(LogFileTarget);
             config.AddRule(minLevel, LogLevel.Fatal, LogFileTarget, "Helion.*");
         }
     }
 
-    private static void AddProfilerLogger(LoggingConfiguration config, CommandLineArgs args)
+    private static void AddProfilerLogger(LoggingConfiguration config, CommandLineArgs args, string userDataFolder)
     {
         if (args.LogProfilerFileName == null)
             return;
 
+        FileTarget ProfilerFileTarget = new("profilerFileTarget")
+        {
+            // Note: The file name is overridden, but is here as a safeguard.
+            FileName = Path.Combine(userDataFolder, "profiler.log"),
+            DeleteOldFileOnStartup = true,
+            Layout = "${message}"
+        };
+
         if (args.LogProfilerFileName != "")
-            ProfilerFileTarget.FileName = args.LogProfilerFileName;
+            ProfilerFileTarget.FileName = GetLogFilePath(userDataFolder, args.LogProfilerFileName);
 
         config.AddTarget(ProfilerFileTarget);
         config.AddRuleForAllLevels(ProfilerFileTarget, ProfilerLoggerName);
+    }
+
+    private static string GetLogFilePath(string userDataFolder, string filePath)
+    {
+        // If the user specified a directory then use it
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory))
+            return filePath;
+
+        return Path.Combine(userDataFolder, filePath);
     }
 }
