@@ -19,6 +19,8 @@
 - Fix crash that can happen from A_HealChase. FIxes Skulltiverse II MAP24 boss.
 - Fix missing tracer set in A_SpawnObject and A_Fire call from A_CireCrackle. Fixes Dominus Diabolicus 2 MAP21 boss.
 - Fix ripper flag creating sound/blood when not applying damage.
+- Fix missiles with NoBlockMap flag not being destroyed by crushers.
+- Fix levelstat and log file options not writing to the user's data folder when not in portable mode.
 
 ## Misc:
 - Add compatibility for Eviternity II Annihilate Me skill level to swap incorrect usage of SpawnMulti to SpawnMultiCoopOnly.

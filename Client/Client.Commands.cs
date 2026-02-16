@@ -1183,25 +1183,29 @@ public partial class Client
     private static bool ShouldWriteStatsFile(LevelChangeType type) =>
         type == LevelChangeType.Next || type == LevelChangeType.SecretNext;
 
-    private static void ClearStatsFile()
+    private string GetStatFilePath() => Path.Combine(m_pathsManager.UserDataFolder, StatFile);
+
+    private void ClearStatsFile()
     {
+        var filePath = GetStatFilePath();
         try
         {
-            File.WriteAllText(StatFile, string.Empty);
+            File.WriteAllText(filePath, string.Empty);
         }
         catch (Exception e)
         {
-            Log.Error($"Failed to clear {StatFile} - {e}");
+            Log.Error(e, $"Failed to clear {filePath}");
         }
     }
 
-    private static void WriteStatsFile(IWorld world)
+    private void WriteStatsFile(IWorld world)
     {
+        var filePath = GetStatFilePath();
         try
         {
             TimeSpan levelTime = TimeSpan.FromSeconds(world.LevelTime / Constants.TicksPerSecond);
             TimeSpan totalTime = TimeSpan.FromSeconds(world.GlobalData.TotalTime / Constants.TicksPerSecond);
-            using StreamWriter sw = File.AppendText(StatFile);
+            using StreamWriter sw = File.AppendText(filePath);
             sw.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0} - {1} ({2})  K: {3}/{4}  I: {5}/{6}  S: {7}/{8}", world.MapInfo.MapName,
                 $"{levelTime.Minutes}:{levelTime.Seconds}.{levelTime.Milliseconds}", $"{totalTime.Minutes}:{totalTime.Seconds}",
                 world.LevelStats.KillCount, world.LevelStats.TotalMonsters,
@@ -1210,7 +1214,7 @@ public partial class Client
         }
         catch (Exception e)
         {
-            Log.Error($"Failed to write {StatFile} - {e}");
+            Log.Error(e, $"Failed to write {filePath}");
         }
     }
 
