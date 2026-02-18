@@ -1738,14 +1738,7 @@ public abstract partial class WorldBase : IWorld
     {
         hitSector = null;
         BlockmapIntersect? returnValue = null;
-        BlockmapIntersect? minReturnValue3D = null;
-        Vec3D minIntersect3D = default;
-        Sector? minHitSector3D = null;
-        Entity? validateEntity3D = null;
-        Vec3D validateEntityIntersect3D = default;
-        double validateEntityDistance3D = double.MaxValue;
-        double minDistanceSquared3D = double.MaxValue;
-
+        var hitValues3D = new HitValues3D();
         var passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         var noCrossCheck = true;
         var seg = new Seg2D(start.XY, end.XY);
@@ -1775,7 +1768,7 @@ public abstract partial class WorldBase : IWorld
                 var currentDistanceSquared = segDistance * segDistance + deltaZ * deltaZ;
 
                 // Early exit if we've already found a closer 3D hit
-                if (WorldStatic.Sector3D && currentDistanceSquared > minDistanceSquared3D)
+                if (WorldStatic.Sector3D && currentDistanceSquared > hitValues3D.MinDistanceSquared3D)
                     break;
 
                 intersect.X = point.X;
@@ -1801,7 +1794,7 @@ public abstract partial class WorldBase : IWorld
                     {
                         // Direct wall hit - this is definitely the closest
                         returnValue = bi;
-                        minReturnValue3D = null;
+                        hitValues3D.ClearHit();
                         break;
                     }
 
@@ -1811,7 +1804,7 @@ public abstract partial class WorldBase : IWorld
                     GetSectorPlaneIntersection(start, end, line.FrontSector, floorZ, ceilingZ, ref intersect);
                     hitSector = line.FrontSector;
                     returnValue = bi;
-                    minReturnValue3D = null;
+                    hitValues3D.ClearHit();
                     break;
                 }
 
@@ -1840,15 +1833,16 @@ public abstract partial class WorldBase : IWorld
                     if (SegBlockedByHitScanSector3D(front, back, start, end, intersect, ref test3D, front, ref normalSolid, ref distance3D, out var sector3D, out var plane))
                     {
                         // Only update if this is closer than our previous best 3D hit
-                        if (distance3D < minDistanceSquared3D)
+                        if (distance3D < hitValues3D.MinDistanceSquared3D)
                         {
-                            minDistanceSquared3D = distance3D;
-                            minReturnValue3D = bi;
-                            minHitSector3D = sector3D?.FakeSector;
+                            hitValues3D.MinDistanceSquared3D = distance3D;
+                            hitValues3D.MinReturnValue3D = bi;
+                            hitValues3D.MinHitSector3D = sector3D?.FakeSector;
+                            hitValues3D.MinHitSectorPlane3D = plane;
                             if (plane != null)
-                                minIntersect3D = test3D;
+                                hitValues3D.MinIntersect3D = test3D;
                             else
-                                minIntersect3D = intersect;
+                                hitValues3D.MinIntersect3D = intersect;
                         }
                     }
                 }
@@ -1859,7 +1853,7 @@ public abstract partial class WorldBase : IWorld
                     GetSectorPlaneIntersection(start, end, front, floorZ, ceilingZ, ref intersect);
                     hitSector = front;
                     returnValue = bi;
-                    minReturnValue3D = null;
+                    hitValues3D.ClearHit();
                     break;
                 }
 
@@ -1868,7 +1862,7 @@ public abstract partial class WorldBase : IWorld
                     (ceilingZ != double.MaxValue && opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
                 {
                     returnValue = bi;
-                    minReturnValue3D = null;
+                    hitValues3D.ClearHit();
                     break;
                 }
 
@@ -1884,16 +1878,16 @@ public abstract partial class WorldBase : IWorld
                     {
                         // Early exit if we've already found a closer 3D hit
                         var currentDistanceSquared = start.DistanceSquared(intersect);
-                        if (currentDistanceSquared > minDistanceSquared3D)
+                        if (currentDistanceSquared > hitValues3D.MinDistanceSquared3D)
                             break;
 
                         if (noCrossCheck)
                         {
                             if (damage != Constants.HitscanTestDamage)
                             {
-                                validateEntityDistance3D = currentDistanceSquared;
-                                validateEntity3D = entity;
-                                validateEntityIntersect3D = intersect;
+                                hitValues3D.ValidateEntityDistance3D = currentDistanceSquared;
+                                hitValues3D.ValidateEntity3D = entity;
+                                hitValues3D.ValidateEntityIntersect3D = intersect;
                             }
                             break;
                         }
@@ -1901,7 +1895,7 @@ public abstract partial class WorldBase : IWorld
 
                     noCrossCheck = false;
                     returnValue = bi;
-                    minReturnValue3D = null;
+                    hitValues3D.MinReturnValue3D = null;
 
                     if (damage != Constants.HitscanTestDamage)
                     {
@@ -1925,12 +1919,10 @@ public abstract partial class WorldBase : IWorld
                 currentDistanceSquared = start.DistanceSquared(currentPlaneIntersect);
 
             var distance3D = double.MaxValue;
-            if (minReturnValue3D != null && !SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref minIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out _, out _) 
-                || (distance3D <= minDistanceSquared3D && distance3D <= currentDistanceSquared && currentDistanceSquared != double.MaxValue))
+            if (hitValues3D.MinReturnValue3D != null && !SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref hitValues3D.MinIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out _, out _) 
+                || (distance3D <= hitValues3D.MinDistanceSquared3D && distance3D <= currentDistanceSquared && currentDistanceSquared != double.MaxValue))
             {
                 returnValue = null;
-                minReturnValue3D = new();
-                //minHitSector3D = shooter.Sector;
             }
             else if (noCrossCheck)
             {
@@ -1939,10 +1931,10 @@ public abstract partial class WorldBase : IWorld
                 intersect = currentPlaneIntersect;
             }
 
-            if (validateEntity3D != null && distance3D > validateEntityDistance3D)
+            if (hitValues3D.ValidateEntity3D != null && distance3D > hitValues3D.ValidateEntityDistance3D)
             {
-                DamageEntity(validateEntity3D, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-                CreateBloodOrPulletPuff(validateEntity3D, validateEntityIntersect3D, angle, distance, damage);
+                DamageEntity(hitValues3D.ValidateEntity3D, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                CreateBloodOrPulletPuff(hitValues3D.ValidateEntity3D, hitValues3D.ValidateEntityIntersect3D, angle, distance, damage);
             }
         }
         else if (noCrossCheck && returnValue == null)
@@ -1953,19 +1945,25 @@ public abstract partial class WorldBase : IWorld
         }
 
         // Apply deferred 3D hit if it was the closest and we didn't find a concrete blocker
-        if (minReturnValue3D != null && returnValue == null)
+        if (hitValues3D.MinReturnValue3D != null && returnValue == null)
         {
-            returnValue = minReturnValue3D;
-            intersect = minIntersect3D;
-            hitSector = minHitSector3D;
+            returnValue = hitValues3D.MinReturnValue3D;
+            intersect = hitValues3D.MinIntersect3D;
+            hitSector = hitValues3D.MinHitSector3D;
         }
 
         if (returnValue != null && damage > 0)
         {
             // Only move closer on a line hit
             bool isLine = returnValue.Value.GetIndex(out var index) == IntersectType.Line;
-            if (isLine && hitSector == null)
+            if (isLine && hitSector == null && hitValues3D.MinHitSectorPlane3D == null)
                 MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * distance);
+            else if (isLine && hitSector?.Sector3D != null && hitValues3D.MinReturnValue3D.HasValue)
+                MoveIntersectCloser(start, ref intersect, angle, hitValues3D.MinReturnValue3D.Value.SegTime * distance);
+
+            if (hitValues3D.MinHitSectorPlane3D != null && hitValues3D.MinHitSectorPlane3D.Facing == SectorPlaneFace.Floor)
+                intersect.Z -= Constants.CeilingPlaneOffset;
+
             CreateBloodOrPulletPuff(isLine ? null : DataCache.Entities[index], intersect, angle, distance, damage);
         }
 

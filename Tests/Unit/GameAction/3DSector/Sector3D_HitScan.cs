@@ -147,7 +147,7 @@ public class Sector3D_HitScan : IDisposable
         data.HitSector.Sector3D.ControlSector.Id.Should().Be(3);
         data.Intersect.X.Should().BeApproximately(-576, 2);
         data.Intersect.Y.Should().BeApproximately(0, 2);
-        data.Intersect.Z.Should().BeApproximately(170.25, 2);
+        data.Intersect.Z.Should().BeApproximately(166.25, 2);
 
         // top 3D sector
         Player.PitchRadians = MathHelper.ToRadians(52);
@@ -167,5 +167,98 @@ public class Sector3D_HitScan : IDisposable
         data.Intersect.X.Should().BeApproximately(-576, 2);
         data.Intersect.Y.Should().BeApproximately(-254, 2);
         data.Intersect.Z.Should().BeApproximately(652.74, 2);
+    }
+
+    [Fact(DisplayName = "Hit scan hits 3D sector wall crossing multiple 3D sector lines")]
+    public void HitScanSectorMultiPass3D()
+    {
+        Player.AngleRadians = GameActions.GetAngle(Bearing.West);
+        GameActions.SetEntityPosition(World, Player, (240, -64, 0));
+
+        // pass through bottom and hit's farther stair sector
+        Player.PitchRadians = MathHelper.ToRadians(0);
+        var data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().NotBeNull();
+        data.HitSector.Sector3D.ControlSector.Id.Should().Be(12);
+
+        // middle 3D sector
+        Player.PitchRadians = MathHelper.ToRadians(30);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().NotBeNull();
+        data.HitSector.Sector3D.ControlSector.Id.Should().Be(3);
+
+        // pass through and hits normal wall
+        Player.PitchRadians = MathHelper.ToRadians(34);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitLine.Should().NotBeNull();
+        data.HitLine.Id.Should().Be(1);
+
+        // top 3D sector
+        Player.PitchRadians = MathHelper.ToRadians(42);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().NotBeNull();
+        data.HitSector.Sector3D.ControlSector.Id.Should().Be(4);
+
+        // over top 3D sector
+        Player.PitchRadians = MathHelper.ToRadians(56);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().BeNull();
+        data.HitSector.Id.Should().Be(6);
+    }
+
+    [Fact(DisplayName = "Hit scan blocked by top doesn't hit entity")]
+    public void TopBlocksEntityHit()
+    {
+        var baron = GameActions.CreateEntity(World, "BaronOfHell", (-576, -32, 96));
+        Player.AngleRadians = GameActions.GetAngle(Bearing.South);
+        GameActions.SetEntityPosition(World, Player, (-576, 160, 245));
+
+        Player.PitchRadians = MathHelper.ToRadians(-31);
+        var data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().BeNull();
+
+        Player.PitchRadians = MathHelper.ToRadians(-36);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().BeNull();
+
+        Player.PitchRadians = MathHelper.ToRadians(-40);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().Be(baron);
+    }
+
+    [Fact(DisplayName = "Hit scan blocked by bottom doesn't hit entity")]
+    public void CeilingBlocksEntityHit()
+    {
+        var baron = GameActions.CreateEntity(World, "BaronOfHell", (-576, -32, 96));
+        Player.AngleRadians = GameActions.GetAngle(Bearing.South);
+        GameActions.SetEntityPosition(World, Player, (-576, 10, 0));
+
+        Player.PitchRadians = MathHelper.ToRadians(44);
+        var data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().BeNull();
+
+        GameActions.SetEntityPosition(World, Player, (-576, 43, 0));
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().BeNull();
+
+        GameActions.SetEntityPosition(World, Player, (-576, 76, 0));
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().Be(baron);
+    }
+
+    [Fact(DisplayName = "Hit scan not blocked by non-solid sector 3D")]
+    public void HitScanNotBlockedByNonSolid()
+    {
+        Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+        GameActions.SetEntityPosition(World, Player, (512, 288, 0));
+        Player.PitchRadians = 0;
+
+        var data = GameActions.FireHitScanTest(World, Player);
+        data.HitLine.Should().NotBeNull();
+        data.HitLine.Id.Should().Be(2);
     }
 }
