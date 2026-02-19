@@ -21,7 +21,7 @@ using System.Reflection;
 
 namespace Helion.Tests.Unit.GameAction
 {
-    public record struct HitScanData(Vec3D Intersect, Entity? HitEntity, Line? HitLine, Sector? HitSector);
+    public record struct HitScanData(Vec3D Intersect, Entity? HitEntity, Line? HitLine, Sector? HitSector, SectorPlane? HitSectorPlane3D);
 
     public enum Bearing
     {
@@ -357,16 +357,19 @@ namespace Helion.Tests.Unit.GameAction
             var end = new Vec3D(start.X + cosAngle * distance, start.Y + sinAngle * distance, start.Z + zOffset);
 
             var bi = world.FireHitScan(entity, start, end, 
-                angle, pitch, distance, 5, HitScanOptions.Default, Math.Tan(pitch), ref intersect, out var hitSector);
+                angle, pitch, distance, 5, HitScanOptions.Default, Math.Tan(pitch), ref intersect, out var hitSector, out var hitPlane3D);
+
+            if (hitPlane3D != null)
+                return new HitScanData(intersect, null, null, null, hitPlane3D);
 
             if (!bi.HasValue || hitSector != null)
-                return new(intersect, null, null, hitSector);
+                return new(intersect, null, null, hitSector, null);
 
             var type = bi.Value.GetIndex(out var index);
             if (type == IntersectType.Line)
-                return new(intersect, null, world.Lines[world.Blockmap.BlockLines[index].LineId], hitSector);
+                return new(intersect, null, world.Lines[world.Blockmap.BlockLines[index].LineId], hitSector, null);
 
-            return new(intersect, world.DataCache.Entities[index], null, hitSector);
+            return new(intersect, world.DataCache.Entities[index], null, hitSector, null);
         }
 
         public static void SetEntityOutOfBounds(WorldBase world, Entity entity)

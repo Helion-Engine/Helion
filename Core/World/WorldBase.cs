@@ -1689,7 +1689,7 @@ public abstract partial class WorldBase : IWorld
         var end = new Vec3D(start.X + cosAngle * distance, start.Y + sinAngle * distance, start.Z + zOffset);
 
         var bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options,
-            tanPitch, ref intersect, out _);
+            tanPitch, ref intersect, out _, out _);
 
         if (shooter.PlayerObj != null && (options & HitScanOptions.DrawRail) != 0)
         {
@@ -1734,9 +1734,10 @@ public abstract partial class WorldBase : IWorld
     }
 
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
-        HitScanOptions options, double tanPitch, ref Vec3D intersect, out Sector? hitSector)
+        HitScanOptions options, double tanPitch, ref Vec3D intersect, out Sector? hitSector, out SectorPlane? hitPlane3D)
     {
         hitSector = null;
+        hitPlane3D = null;
         BlockmapIntersect? returnValue = null;
         var hitValues3D = new HitValues3D();
         var passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
@@ -1878,33 +1879,30 @@ public abstract partial class WorldBase : IWorld
                     {
                         // Early exit if we've already found a closer 3D hit
                         var currentDistanceSquared = start.DistanceSquared(intersect);
-                        if (currentDistanceSquared > hitValues3D.MinDistanceSquared3D)
+                        if (currentDistanceSquared >= hitValues3D.MinDistanceSquared3D)
                             break;
 
-                        if (noCrossCheck)
+                        if (damage != Constants.HitscanTestDamage)
                         {
-                            if (damage != Constants.HitscanTestDamage)
-                            {
-                                hitValues3D.ValidateEntityDistance3D = currentDistanceSquared;
-                                hitValues3D.ValidateEntity3D = entity;
-                                hitValues3D.ValidateEntityIntersect3D = intersect;
-                            }
-                            break;
+                            hitValues3D.ValidateEntityDistance3D = currentDistanceSquared;
+                            hitValues3D.ValidateEntity3D = entity;
+                            hitValues3D.ValidateEntityIntersect3D = intersect;
                         }
-                    }
-
-                    noCrossCheck = false;
-                    returnValue = bi;
-                    hitValues3D.MinReturnValue3D = null;
-
-                    if (damage != Constants.HitscanTestDamage)
-                    {
-                        DamageEntity(entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-                        CreateBloodOrPulletPuff(entity, intersect, angle, distance, damage);
-                    }
-                    // TODO handle for 3D sectors
-                    if (!passThrough)
                         break;
+                    }
+                    else
+                    {
+                        returnValue = bi;
+
+                        if (damage != Constants.HitscanTestDamage)
+                        {
+                            DamageEntity(entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                            CreateBloodOrPulletPuff(entity, intersect, angle, distance, damage);
+                        }
+                        // TODO handle for 3D sectors
+                        if (!passThrough)
+                            break;
+                    }
                 }
             }
         }
@@ -1933,8 +1931,28 @@ public abstract partial class WorldBase : IWorld
 
             if (hitValues3D.ValidateEntity3D != null && distance3D > hitValues3D.ValidateEntityDistance3D)
             {
-                DamageEntity(hitValues3D.ValidateEntity3D, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-                CreateBloodOrPulletPuff(hitValues3D.ValidateEntity3D, hitValues3D.ValidateEntityIntersect3D, angle, distance, damage);
+                var hitEntity = true;
+                if (noCrossCheck && 
+                    SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref hitValues3D.MinIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out var hitSector3D, out var hitPlane) &&
+                    distance3D <= hitValues3D.ValidateEntityDistance3D)
+                {
+                    intersect = hitValues3D.MinIntersect3D;
+                    returnValue = null;
+                    hitValues3D.MinReturnValue3D = new();
+                    hitValues3D.MinHitSector3D = hitSector3D?.FakeSector;
+                    hitValues3D.MinHitSectorPlane3D = hitPlane;
+                    hitEntity = false;
+                }
+
+                if (hitEntity)
+                {
+                    DamageEntity(hitValues3D.ValidateEntity3D, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                    CreateBloodOrPulletPuff(hitValues3D.ValidateEntity3D, hitValues3D.ValidateEntityIntersect3D, angle, distance, damage);
+                    return new()
+                    {
+                        Index = hitValues3D.ValidateEntity3D.Index | BlockmapIntersect.EntityFlag
+                    };
+                }
             }
         }
         else if (noCrossCheck && returnValue == null)
@@ -1949,7 +1967,9 @@ public abstract partial class WorldBase : IWorld
         {
             returnValue = hitValues3D.MinReturnValue3D;
             intersect = hitValues3D.MinIntersect3D;
-            hitSector = hitValues3D.MinHitSector3D;
+            hitPlane3D = hitValues3D.MinHitSectorPlane3D;
+            // 3D sector plane takes priority
+            hitSector = hitPlane3D == null ? hitValues3D.MinHitSector3D : null;
         }
 
         if (returnValue != null && damage > 0)
@@ -1958,7 +1978,7 @@ public abstract partial class WorldBase : IWorld
             bool isLine = returnValue.Value.GetIndex(out var index) == IntersectType.Line;
             if (isLine && hitSector == null && hitValues3D.MinHitSectorPlane3D == null)
                 MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * distance);
-            else if (isLine && hitSector?.Sector3D != null && hitValues3D.MinReturnValue3D.HasValue)
+            else if (isLine && hitPlane3D == null && hitSector?.Sector3D != null && hitValues3D.MinReturnValue3D.HasValue)
                 MoveIntersectCloser(start, ref intersect, angle, hitValues3D.MinReturnValue3D.Value.SegTime * distance);
 
             if (hitValues3D.MinHitSectorPlane3D != null && hitValues3D.MinHitSectorPlane3D.Facing == SectorPlaneFace.Floor)
@@ -1988,8 +2008,9 @@ public abstract partial class WorldBase : IWorld
         if (minDistanceSquared3D < start.DistanceSquared(end))
         {
             hitIntersect = minHit;
+            if (hitPlane == null)
+                sector3D = hitSector3D;
             plane = hitPlane;
-            sector3D = hitSector3D;
             return true;
         }
 
@@ -2020,6 +2041,7 @@ public abstract partial class WorldBase : IWorld
             {
                 if (earlyExit)
                 {
+                    hitPlane = null;
                     hitSector3D = sector3D;
                     minHit = intersect;
                     minDistanceSquared3D = 0;
@@ -2029,9 +2051,11 @@ public abstract partial class WorldBase : IWorld
                 var distance = start.DistanceSquared(intersect);
                 if (distance < minDistanceSquared3D)
                 {
+                    hitPlane = null;
                     hitSector3D = sector3D;
                     minHit = intersect;
                     minDistanceSquared3D = distance;
+                    return;
                 }
             }
 
@@ -2048,6 +2072,7 @@ public abstract partial class WorldBase : IWorld
                 var distance = start.DistanceSquared(test);
                 if (distance <= minDistanceSquared3D)
                 {
+                    hitSector3D = sector3D;
                     hitPlane = testPlane;
                     minHit = test;
                     minDistanceSquared3D = distance;

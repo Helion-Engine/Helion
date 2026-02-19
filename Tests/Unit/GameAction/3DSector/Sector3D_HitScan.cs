@@ -3,6 +3,7 @@ using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
 using System;
 using Xunit;
@@ -105,8 +106,8 @@ public class Sector3D_HitScan : IDisposable
         data.Intersect.Z.Should().BeApproximately(124, 2);
     }
 
-    [Fact(DisplayName = "Hit scan hits 3D sector wall")]
-    public void HitScanWall3D()
+    [Fact(DisplayName = "Hit scan hits 3D sector walls and planes from below")]
+    public void HitScanBelowSector3D()
     {
         Player.AngleRadians = GameActions.GetAngle(Bearing.South);
         GameActions.SetEntityPosition(World, Player, (-576, 160, 0));
@@ -120,7 +121,18 @@ public class Sector3D_HitScan : IDisposable
         data.Intersect.Y.Should().BeApproximately(-254, 2);
         data.Intersect.Z.Should().BeApproximately(36, 2);
 
-        // lower 3D sector
+        // lower 3D sector bottom plane
+        Player.PitchRadians = MathHelper.ToRadians(6.5);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Facing.Should().Be(SectorPlaneFace.Floor);
+        data.HitSectorPlane3D.Sector.Id.Should().Be(2);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(-85.75, 2);
+        // -4 from ceiling
+        data.Intersect.Z.Should().BeApproximately(60, 2);
+
+        // lower 3D sector wall (between top and bottom plane)
         Player.PitchRadians = MathHelper.ToRadians(12);
         data = GameActions.FireHitScanTest(World, Player);
         data.HitSector.Should().NotBeNull();
@@ -139,6 +151,16 @@ public class Sector3D_HitScan : IDisposable
         data.Intersect.Y.Should().BeApproximately(-254, 2);
         data.Intersect.Z.Should().BeApproximately(195.68, 2);
 
+        // middle 3D bottom plane
+        Player.PitchRadians = MathHelper.ToRadians(32);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Facing.Should().Be(SectorPlaneFace.Floor);
+        data.HitSectorPlane3D.Sector.Id.Should().Be(3);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(-38.44, 2);
+        data.Intersect.Z.Should().BeApproximately(156, 2);
+
         // middle 3D sector
         Player.PitchRadians = MathHelper.ToRadians(40);
         data = GameActions.FireHitScanTest(World, Player);
@@ -147,7 +169,7 @@ public class Sector3D_HitScan : IDisposable
         data.HitSector.Sector3D.ControlSector.Id.Should().Be(3);
         data.Intersect.X.Should().BeApproximately(-576, 2);
         data.Intersect.Y.Should().BeApproximately(0, 2);
-        data.Intersect.Z.Should().BeApproximately(166.25, 2);
+        data.Intersect.Z.Should().BeApproximately(170.25, 2);
 
         // top 3D sector
         Player.PitchRadians = MathHelper.ToRadians(52);
@@ -167,6 +189,92 @@ public class Sector3D_HitScan : IDisposable
         data.Intersect.X.Should().BeApproximately(-576, 2);
         data.Intersect.Y.Should().BeApproximately(-254, 2);
         data.Intersect.Z.Should().BeApproximately(652.74, 2);
+    }
+
+    [Fact(DisplayName = "Hit scan hits 3D sector walls and planes from above")]
+    public void HitScanAboveSector3D()
+    {
+        Player.AngleRadians = GameActions.GetAngle(Bearing.South);
+        GameActions.SetEntityPosition(World, Player, (-576, 160, 256));
+
+        // above top 3D sector
+        Player.PitchRadians = MathHelper.ToRadians(0);
+        var data = GameActions.FireHitScanTest(World, Player);
+        data.HitLine.Should().NotBeNull();
+        data.HitLine.Id.Should().Be(0);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(-254, 2);
+        data.Intersect.Z.Should().BeApproximately(292, 2);
+
+        // upper 3D sector top plane
+        Player.PitchRadians = MathHelper.ToRadians(-5.5);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Facing.Should().Be(SectorPlaneFace.Ceiling);
+        data.HitSectorPlane3D.Sector.Id.Should().Be(4);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(-47.70, 2);
+        data.Intersect.Z.Should().BeApproximately(268, 2);
+
+        // upper 3D sector wall (between top and bottom plane)
+        Player.PitchRadians = MathHelper.ToRadians(-14);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().NotBeNull();
+        data.HitSector.Sector3D.ControlSector.Id.Should().Be(4);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(2, 2);
+        data.Intersect.Z.Should().BeApproximately(252.10, 2);
+
+        // middle 3D top plane
+        Player.PitchRadians = MathHelper.ToRadians(-32);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Facing.Should().Be(SectorPlaneFace.Ceiling);
+        data.HitSectorPlane3D.Sector.Id.Should().Be(3);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(-0.03, 2);
+        data.Intersect.Z.Should().BeApproximately(188, 2);
+
+        // middle 3D sector
+        Player.PitchRadians = MathHelper.ToRadians(-38);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().NotBeNull();
+        data.HitSector.Sector3D.ControlSector.Id.Should().Be(3);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(2, 2);
+        data.Intersect.Z.Should().BeApproximately(166.99, 2);
+
+        // bottom 3D sector top plane
+        Player.PitchRadians = MathHelper.ToRadians(-44);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Facing.Should().Be(SectorPlaneFace.Ceiling);
+        data.HitSectorPlane3D.Sector.Id.Should().Be(2);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(-42.96, 2);
+        data.Intersect.Z.Should().BeApproximately(92, 2);
+
+        // bottom 3D sector wall (between top and bottom)
+        Player.PitchRadians = MathHelper.ToRadians(-54);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().NotBeNull();
+        data.HitSector.Sector3D.ControlSector.Id.Should().Be(2);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(2, 2);
+        data.Intersect.Z.Should().BeApproximately(71.77, 2);
+
+        // normal floor below bottom 3D sector
+        Player.PitchRadians = MathHelper.ToRadians(-56.5);
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitSector.Should().NotBeNull();
+        data.HitSector.Sector3D.Should().BeNull();
+        data.HitSector.Id.Should().Be(1);
+        data.Intersect.X.Should().BeApproximately(-576, 2);
+        data.Intersect.Y.Should().BeApproximately(-33.27, 2);
+        data.Intersect.Z.Should().BeApproximately(0, 2);
     }
 
     [Fact(DisplayName = "Hit scan hits 3D sector wall crossing multiple 3D sector lines")]
@@ -231,7 +339,7 @@ public class Sector3D_HitScan : IDisposable
     }
 
     [Fact(DisplayName = "Hit scan blocked by bottom doesn't hit entity")]
-    public void CeilingBlocksEntityHit()
+    public void BottomBlocksEntityHit()
     {
         var baron = GameActions.CreateEntity(World, "BaronOfHell", (-576, -32, 96));
         Player.AngleRadians = GameActions.GetAngle(Bearing.South);
@@ -246,6 +354,36 @@ public class Sector3D_HitScan : IDisposable
         data.HitEntity.Should().BeNull();
 
         GameActions.SetEntityPosition(World, Player, (-576, 76, 0));
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().Be(baron);
+    }
+
+    [Fact(DisplayName = "Hit scan blocked by sector with same floor/ceiling height")]
+    public void BottomBlockEntityHitSameFloorCeiling()
+    {
+        var baron = GameActions.CreateEntity(World, "BaronOfHell", (-592, 626, 96));
+
+        Player.AngleRadians = MathHelper.ToRadians(133);
+        Player.PitchRadians = MathHelper.ToRadians(65);
+        GameActions.SetEntityPosition(World, Player, (-564, 623, 0));
+
+        var data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().BeNull();
+        data.HitSector.Should().BeNull();
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Sector.Id.Should().Be(44);
+
+        Player.AngleRadians = MathHelper.ToRadians(133);
+        Player.PitchRadians = MathHelper.ToRadians(21.6);
+        GameActions.SetEntityPosition(World, Player, (-473, 530, 0));
+
+        data = GameActions.FireHitScanTest(World, Player);
+        data.HitEntity.Should().BeNull();
+        data.HitSector.Should().BeNull();
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Sector.Id.Should().Be(44);
+
+        GameActions.SetEntityPosition(World, Player, (-404, 458, 0));
         data = GameActions.FireHitScanTest(World, Player);
         data.HitEntity.Should().Be(baron);
     }
