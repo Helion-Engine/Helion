@@ -165,7 +165,10 @@ public class InterpolationShader : RenderProgram
     protected override string FragmentShader()
     {
         if (this is InterpolationPlaneClipShader)
-            return PlaneClip.WritePlaneFragFunction();
+            return PlaneClip.WritePlaneFragFunction(PlaneClipFragOptions.None);
+
+        if (this is InterpolationPlaneClipAlphaShader)
+            return PlaneClip.WritePlaneFragFunction(PlaneClipFragOptions.AlphaSample);
 
         if (this is InterpolationWallClipShader)
             return PlaneClip.WriteWallFragFunction(WallClipFragOptions.None);

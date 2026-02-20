@@ -36,11 +36,13 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
     private readonly InterpolationPlaneClipShader m_interpolationPlaneClipProgram = new();
+    private readonly InterpolationPlaneClipAlphaShader m_interpolationPlaneClipAlphaProgram = new();
     private readonly InterpolationPlaneClipShaderMrt m_interpolationPlaneClipMrtProgram = new();
     private readonly InterpolationWallClipShader m_interpolationWallClipShader = new();
     private readonly InterpolationWallClipAlphaShader m_interpolationWallClipAlphaProgram = new();
     private readonly StaticShader m_staticProgram = new("Main");
     private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
+    private readonly StaticPlaneClipAlphaShader m_staticPlaneClipAlphaProgram = new();
     private readonly StaticPlaneClipShaderMrt m_staticPlaneClipMrtProgram = new();
     private readonly StaticWallClipShader m_staticWallClipProgram = new();
     private readonly StaticWallClipAlphaShader m_staticWallClipAlphaProgram = new();
@@ -321,6 +323,8 @@ public class LegacyWorldRenderer : WorldRenderer
             m_worldDataManager.RenderWalls();
             m_interpolationProgram.VertexGapClampUV(false);
             m_worldDataManager.RenderFlats();
+            if (WorldStatic.Sector3D)
+                m_worldDataManager.RenderFlats3D();
 
             if (m_renderStatic)
             {
@@ -331,6 +335,8 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_geometryRenderer.RenderStaticGeometryWalls();
                 m_staticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticGeometryFlats();
+                if (WorldStatic.Sector3D)
+                    m_geometryRenderer.RenderStaticFlats3D();
             }
 
             RenderTwoSidedMiddleWalls(renderInfo);
@@ -349,6 +355,8 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             m_interpolationProgram.VertexGapClampUV(false);
             m_worldDataManager.RenderFlats();
+            if (WorldStatic.Sector3D)
+                m_worldDataManager.RenderFlats3D();
         }
 
         if (m_renderStatic)
@@ -364,6 +372,9 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_staticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticGeometryFlats();
             }
+
+            if (WorldStatic.Sector3D)
+                m_geometryRenderer.RenderStaticFlats3D();
         }
 
         RenderTwoSidedMiddleWalls(renderInfo);
@@ -476,8 +487,6 @@ public class LegacyWorldRenderer : WorldRenderer
             }
             
             m_worldDataManager.RenderTwoSidedMiddleWalls();
-            
-            m_interpolationWallClipAlphaProgram.Unbind();
         }
         else
         {
@@ -486,7 +495,13 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(program, renderInfo, false);
             m_worldDataManager.RenderFlats();
-            program.Unbind();
+
+            if (WorldStatic.Sector3D)
+            {
+                m_interpolationPlaneClipAlphaProgram.Bind();
+                SetInterpolationUniforms(m_interpolationPlaneClipAlphaProgram, renderInfo, false);
+                m_worldDataManager.RenderFlats3D();
+            }
         }
 
         if (m_renderStatic)
@@ -515,8 +530,6 @@ public class LegacyWorldRenderer : WorldRenderer
                 }
                 
                 m_geometryRenderer.RenderStaticTwoSidedWalls();
-                
-                m_staticWallClipAlphaProgram.Unbind();
             }
             else
             {
@@ -526,7 +539,13 @@ public class LegacyWorldRenderer : WorldRenderer
                 program.VertexGapClampUV(false);
                 SetStaticUniforms(program, renderInfo);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-                program.Unbind();
+
+                if (WorldStatic.Sector3D)
+                {
+                    m_staticPlaneClipAlphaProgram.Bind();
+                    SetStaticUniforms(m_staticPlaneClipAlphaProgram, renderInfo);
+                    m_geometryRenderer.RenderStaticFlats3D();
+                }
             }
         }
 

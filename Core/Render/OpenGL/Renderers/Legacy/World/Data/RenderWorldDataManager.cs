@@ -92,6 +92,11 @@ public sealed class RenderWorldDataManager : IDisposable
         m_lookup.Get(GeometryType.Flat).Draw();
     }
 
+    public void RenderFlats3D()
+    {
+        m_lookup.Get(GeometryType.Flat3D).Draw();
+    }
+
     public void RenderCoverWalls()
     {
         m_coverWalls?.Draw();

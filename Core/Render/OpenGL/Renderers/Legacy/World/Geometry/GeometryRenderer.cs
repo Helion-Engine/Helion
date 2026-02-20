@@ -359,6 +359,9 @@ public partial class GeometryRenderer : IDisposable
     public void RenderStaticMiddle3D() =>
         m_staticCacheGeometryRenderer.RenderMiddle3D();
 
+    public void RenderStaticFlats3D() =>
+        m_staticCacheGeometryRenderer.RenderFlats3D();
+
     public void RenderStaticSkies(RenderInfo renderInfo) =>
          m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
 
@@ -465,12 +468,12 @@ public partial class GeometryRenderer : IDisposable
                 if ((sector3D.RenderPlanes & SectorPlanes.Ceiling) != 0)
                 {
                     RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
+                        lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle, isSector3D: true);
 
                     if (sector3D.FakeTopFlipped != null)
                     {
                         RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                            lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
+                            lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle, isSector3D: true);
                     }
                 }
             }
@@ -489,12 +492,12 @@ public partial class GeometryRenderer : IDisposable
                 if ((sector3D.RenderPlanes & SectorPlanes.Floor) != 0)
                 {
                     RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                        lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
+                        lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle, isSector3D: true);
 
                     if (sector3D.FakeBottomFlipped != null)
                     {
                         RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                            lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
+                            lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle, isSector3D: true);
                     }
                 }
             }
@@ -1546,14 +1549,14 @@ public partial class GeometryRenderer : IDisposable
 
     private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood,
         BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
-        Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1, RenderDataStyle style = RenderDataStyle.Normal)
+        Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1, RenderDataStyle style = RenderDataStyle.Normal, bool isSector3D = false)
     {
         var textureHandle = GetFlatTextureHandle(renderPlane.TextureHandle, allowAlpha);
         var isSky = TextureManager.IsSkyTexture(textureHandle);
         var texture = m_glTextureManager.GetTexture(textureHandle);
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(textureHandle);
 
-        var geometryType = GetGeometryType(style, GeometryType.Flat);
+        var geometryType = GetGeometryType(style, isSector3D ? GeometryType.Flat3D : GeometryType.Flat);
         var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
         var flatChanged = FlatChanged(renderPlane);
         var sector = subsectors[0].Sector;

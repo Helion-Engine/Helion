@@ -705,7 +705,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void AddSectorPlane(Sector sectorForSubsectors, SectorPlaneFace face, bool floor, bool update = false, 
-        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false)
+        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false, bool isSector3D = false)
     {
         if ((floor && sectorForSubsectors.Floor.NoRender) || (!floor && sectorForSubsectors.Ceiling.NoRender))
             return;
@@ -738,8 +738,10 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var vertices = GetTextureVertices(GeometryType.Flat, textureHandle, true);
-        if (m_textureToGeometryLookup.TryGetValue(GeometryType.Flat, textureHandle, true, out var geometryData))
+        var geometryType = isSector3D ? GeometryType.Flat3D : GeometryType.Flat;
+
+        var vertices = GetTextureVertices(geometryType, textureHandle, true);
+        if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, true, out var geometryData))
         {
             geometryPlane.Static.GeometryData = geometryData;
             geometryPlane.Static.Index = vertices.Length;
@@ -757,6 +759,9 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
     public void RenderMiddle3D() =>
          RenderGeometry(m_geometry.GetGeometry(GeometryType.Middle3D));
+
+    public void RenderFlats3D() =>
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat3D));
 
     public void RenderFlats() => 
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));

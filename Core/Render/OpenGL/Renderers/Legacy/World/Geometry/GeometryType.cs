@@ -8,8 +8,9 @@ public enum GeometryType
     Wall,
     TwoSidedMiddleWall,
     Middle3D,
+    Flat3D,
     Flat,
-    
+
     Fuzzy,
     Translucent,
     TranslucentAdd,
@@ -22,6 +23,6 @@ public static class RenderDataStyleExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static GeometryType ToGeometryType(this RenderDataStyle style)
     {
-        return (GeometryType)((int)style + (int)GeometryType.Flat);
+        return (GeometryType)((int)style + (int)(GeometryType.Fuzzy - 1));
     }
 }
