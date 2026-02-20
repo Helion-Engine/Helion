@@ -187,7 +187,7 @@ public sealed class PhysicsManager
         // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
         m_sectorMoveEntities.Clear();
         m_sectorMoveEntitiesData.Clear();
-        GetSectorMoveOrderedEntities(m_sectorMoveEntities, m_sectorMoveEntitiesNoBlockMap, sector);
+        GetSectorMoveOrderedEntities(m_sectorMoveEntities, m_sectorMoveEntitiesNoBlockMap, sectorEntities);
 
         // Save the Z value because we are only checking if the dest is valid
         // If the move is invalid because of a blocking entity then it will not be set to destZ
