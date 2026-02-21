@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Planes;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -95,7 +96,6 @@ public partial class GeometryRenderer
             renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
     }
 
-
     private Span<SectorPlane3D> MergePlanes(SectorPlane3D[] a, SectorPlane3D[] b, Sector3D ignorePlane)
     {
         var checkCount = WorldStatic.CheckCounter++;
@@ -182,6 +182,13 @@ public partial class GeometryRenderer
 
         SetWallSliceSector(side, m_wallSector, m_sliceSector);
 
+        var offset = new Vec2F(wall.Offset.X + side.Offset.X, wall.Offset.Y + side.Offset.Y + (float)(side.ScrollData?.Offset(m_fakeWall.Location, ScrollOffsetType.Current).Y ?? 0));
+        if (anchorSector3D != null)
+        {
+            offset.X += anchorSector3D.GetOffsetX();
+            offset.Y += anchorSector3D.GetOffsetY();
+        }
+
         m_fakeSide.Line = side.Line;
         m_fakeSide.IsFront = isFrontSide;
         m_fakeSide.PartnerSide = side.PartnerSide;
@@ -190,11 +197,11 @@ public partial class GeometryRenderer
         m_fakeSide.Alpha = anchorSector3D == null ? 1f : anchorSector3D.Alpha;
         m_fakeSide.ScrollData = m_fakeSideScrollData;
         m_fakeWall.TextureHandle = wall.TextureHandle;
-        m_fakeWall.Offset.X = wall.Offset.X + side.Offset.X;
         m_fakeWall.Location = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location;
         m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Previous).Y = 0;
 
-        var offsetY = wall.Offset.Y + side.Offset.Y + (float)(side.ScrollData?.Offset(m_fakeWall.Location, ScrollOffsetType.Current).Y ?? 0);
+        m_fakeWall.Offset.X = offset.X;
+        var offsetY = offset.Y;
 
         var lightSector = side.Sector.Sectors3D[0].ParentSector;
         RenderWallSliceResult result;

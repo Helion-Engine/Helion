@@ -101,6 +101,7 @@ public sealed class Sector3D
     public double LastSlopeTop;
     public double LastSlopeBottom;
     public int LastSlopeCheckCount;
+    public Side ControlSide;
 
     private readonly Entity Entity;
 
@@ -118,7 +119,7 @@ public sealed class Sector3D
     private static readonly Comparison<Sector3D> SortSectors3D = new(HeightCompare);
     public static readonly Comparison<SectorPlane3D> SortPlanesByKey3D = new(PlaneHeightKeyCompare);
 
-    public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
+    public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, Side controlSide, SectorFlags3D flags, SectorLightFlags3D lightFlags, float alpha)
     {
         ParentSector = parentSector;
         ControlSector = controlSector;
@@ -129,6 +130,7 @@ public sealed class Sector3D
         Flags = flags;
         LightFlags = lightFlags;
         Alpha = alpha;
+        ControlSide = controlSide;
 
         SectorId = world.Geometry.CreateNewSectorId();
         ParentSectorId = parentSectorId;
@@ -150,7 +152,7 @@ public sealed class Sector3D
         FakeSector = new(SectorId, 0, 0, FakeBottom, FakeTop, default, default)
         {
             Sector3D = this,
-            Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle, (flags & SectorFlags3D.RenderInside) != 0)
+            Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], controlSide.Middle.TextureHandle, (flags & SectorFlags3D.RenderInside) != 0)
         };
 
         if ((Flags & SectorFlags3D.AdditiveTransparency) != 0)
@@ -175,6 +177,12 @@ public sealed class Sector3D
 
         ClipStyle = RenderDataStyle == RenderDataStyle.Normal && (Flags & SectorFlags3D.LightTransfer) == 0 ? ClipStyle.Solid : ClipStyle.NotSolid;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float GetOffsetX() => ControlSide.Middle.Offset.X + ControlSide.Offset.X;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float GetOffsetY() => ControlSide.Middle.Offset.Y + ControlSide.Offset.Y;
 
     public static void SetHeights3D(Sector sector)
     {

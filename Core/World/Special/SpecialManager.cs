@@ -908,7 +908,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front.Middle.TextureHandle, sectorFlags, lightFlags, alpha);
+            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front, sectorFlags, lightFlags, alpha);
             sectors3D.Add(sector3d);
             frontSector.TaggedSectors3D[taggedSectorIndex++] = sector3d;
             if (counts.TryGetValue(sector.Id, out var count))
