@@ -28,6 +28,41 @@ public partial class Physics
         monster.Position.Z.Should().Be(0);
     }
 
+
+    [Fact(DisplayName = "Moving enemy success with velocity")]
+    public void EnemyMoveWithVelocitySuccess()
+    {
+        var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-1504, 216, int.MinValue), frozen: false, initSpawn: true);
+        monster.MonsterMovementSpeed = 8;
+        monster.Position.Z.Should().Be(0);
+        monster.SetEnemyDirection(Entity.MoveDir.North);
+        monster.Velocity.X = 0.1;
+        monster.Velocity.Y = 0.1;
+        monster.PrevPosition.Y = 208;
+        monster.MoveEnemy(out _).Should().Be(true);
+        monster.Position.X.Should().Be(-1504);
+        monster.Position.Y.Should().Be(224);
+        monster.Position.Z.Should().Be(0);
+    }
+
+    [Fact(DisplayName = "Moving enemy fails with velocity because of blocking thing")]
+    public void EnemyMoveWithVelocityFail()
+    {
+        var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-1504, 216, int.MinValue), frozen: false, initSpawn: true);
+        var blockMonster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-1504, 216 + monster.Radius + 1, int.MinValue), frozen: false, initSpawn: true);
+        monster.MonsterMovementSpeed = 8;
+        monster.Position.Z.Should().Be(0);
+        monster.SetEnemyDirection(Entity.MoveDir.North);
+        monster.Velocity.X = 0.1;
+        monster.Velocity.Y = 0.1;
+        monster.PrevPosition.Y = 208;
+        monster.MoveEnemy(out _).Should().Be(false);
+        monster.BlockingEntity.Should().Be(blockMonster);
+        monster.Position.X.Should().Be(-1504);
+        monster.Position.Y.Should().Be(216);
+        monster.Position.Z.Should().Be(0);
+    }
+
     [Fact(DisplayName = "Moving to a position where the bounding box lands exactly on a blocking line is successful")]
     public void TryMoveBoundingBoxOnLine()
     {

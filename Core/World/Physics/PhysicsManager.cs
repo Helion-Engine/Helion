@@ -1151,7 +1151,6 @@ doneLinkToSectors:
         }
 
         bool success = true;
-        bool successfulSubmove = false;
         Vec3D saveVelocity = entity.Velocity;
         int slideBlockLineId = -1;
         Entity? slideBlockEntity = null;
@@ -1166,7 +1165,7 @@ doneLinkToSectors:
             double nextY = entity.Position.Y + stepDelta.Y;
             if (IsPositionValid(entity, nextX, nextY, TryMoveData) && entity.CheckDropOff(TryMoveData))
             {
-                successfulSubmove = true;
+                TryMoveData.SubMoveSuccess = true;
                 entity.MoveLinked = true;
                 MoveTo(entity, nextX, nextY, TryMoveData);
                 if (entity.Flags.Teleported())
@@ -1217,7 +1216,7 @@ doneLinkToSectors:
         }
 
         // Only required for ripper entities
-        if (successfulSubmove && entity.Flags.Ripper())
+        if (TryMoveData.SubMoveSuccess && entity.Flags.Ripper())
             m_world.HandleFinalizeEntityIntersections(entity, TryMoveData);
 
         if (!success)
