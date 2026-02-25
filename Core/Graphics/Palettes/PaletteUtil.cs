@@ -79,6 +79,8 @@ public static class PaletteUtil
         const int StartRedPals = 1;
         int palette = (damageCount + 7) >> 3;
         palette = (int)(palette * damgeIntensity);
+        if (palette <= 0)
+            return PaletteIndex.Normal;
         if (palette >= RedPals)
             palette = RedPals - 1;
         palette += StartRedPals;
