@@ -256,7 +256,7 @@ public partial class WorldLayer
     private void DrawStatInfo(IHudRenderContext hud, bool automapVisible, Vec2I start, ref int topRightY, 
         bool suppressStats = false, bool suppressTime = false)
     {
-        if (!m_config.Hud.ShowStats && !automapVisible)
+        if (!m_config.Hud.ShowStats && (!automapVisible || !m_config.Hud.AutoMap.ShowStats))
             return;
 
         start.X = -m_padding - m_hudPaddingX;
