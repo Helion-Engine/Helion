@@ -61,6 +61,10 @@ public class ConfigHudAutoMap: ConfigElement<ConfigHudAutoMap>
     [ConfigInfo("Show map title on the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Show Map Title")]
     public readonly ConfigValue<bool> MapTitle = new(true);
+
+    [ConfigInfo("Show stats (kills, items, secrets, time) on the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Show Stats")]
+    public readonly ConfigValue<bool> ShowStats = new(true);
     
     [ConfigInfo("Use average color from key icon image.")]
     [OptionMenu(OptionSectionType.Automap, "Key Image Color")]
