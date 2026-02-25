@@ -362,8 +362,10 @@ public partial class Entity
 
         bool isMoving = speedX != 0 || speedY != 0;
         bool setZ = true;
+        var posX = Position.X;
+        var posY = Position.Y;
         Flags.SetMonsterMove();
-        tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, Position.X + speedX, Position.Y + speedY);
+        tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, posX + speedX, posY + speedY);
         Flags.ClearMonsterMove();
 
         if (Flags.Teleported())
@@ -372,8 +374,8 @@ public partial class Entity
         if (tryMove.Success && moveFactor.Friction > Constants.DefaultFriction)
         {
             moveFactor.Factor *= Constants.DefaultFriction / 4;
-            Position.X = PrevPosition.X;
-            Position.Y = PrevPosition.Y;
+            Position.X = posX;
+            Position.Y = posY;
             Velocity.X += speedX * moveFactor.Factor;
             Velocity.Y += speedY * moveFactor.Factor;
             setZ = false;
@@ -398,7 +400,7 @@ public partial class Entity
 
         // With increased speeds using the TickMultiplier TryMove will iterate and can have partial successes.
         // A partial success needs be considered true in this case.
-        return Position.X != PrevPosition.X || Position.Y != PrevPosition.Y || tryMove.Success;
+        return tryMove.Success || tryMove.SubMoveSuccess;
     }
 
     public void TurnTowardsMovementDirection()
