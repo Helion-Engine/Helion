@@ -16,8 +16,10 @@ using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.StatusBar;
 using Helion.Strings;
 using Helion.Util;
+using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Consoles;
@@ -33,7 +35,6 @@ using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Resources.Definitions.StatusBar;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -344,11 +345,20 @@ public partial class WorldLayer
         return str;
     }
 
+    private Box2I GetNativeDrawBox()
+    {
+        if (Renderer.GetNativeLetterBoxes(m_config, m_viewport, out var left, out var right))
+            return new Box2I(new Vec2I(left.Max.X, left.Min.Y), new Vec2I(right.Min.X, right.Max.Y));
+
+        return new Box2I(new Vec2I(0, 0), new Vec2I(m_viewport.Width, m_viewport.Height));
+    }
+
     private void DrawHudEffects(IHudRenderContext hud)
     {
         if (!WorldStatic.World.DrawHud || (ShaderVars.PaletteColorMode && !m_config.Window.PaletteTrueColorOverlay))
             return;
 
+        var box = GetNativeDrawBox();
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
         if (powerup?.DrawColor != null && powerup.DrawPowerupEffect)
         {
@@ -356,7 +366,7 @@ public partial class WorldLayer
             if (powerup.PowerupType == PowerupType.Strength)
                 alpha *= (float)m_config.Game.BerserkIntensity;
 
-            hud.Clear(powerup.DrawColor.Value, alpha);
+            hud.Clear(box, powerup.DrawColor.Value, alpha);
         }
 
         if (Player.BonusCount > 0)
@@ -364,7 +374,7 @@ public partial class WorldLayer
             const float PickupScaleAmount = 3f;
             var pickupScale = (Player.BonusCount + 7) / PickupScaleAmount;
             pickupScale *= 1 / PickupScaleAmount;
-            hud.Clear(PickupColor, Math.Min(pickupScale, 0.2f));
+            hud.Clear(box, PickupColor, Math.Min(pickupScale, 0.2f));
         }
 
         if (Player.DamageCount > 0)
@@ -372,7 +382,7 @@ public partial class WorldLayer
             const float DamageScaleAmount = 8f;
             var damageScale = Math.Min(Player.DamageCount + 7, 100) / DamageScaleAmount;
             damageScale *= 1 / DamageScaleAmount;
-            hud.Clear(DamageColor, Math.Min(damageScale, 0.89f) * (float)m_config.Game.PainIntensity);
+            hud.Clear(box, DamageColor, Math.Min(damageScale, 0.89f) * (float)m_config.Game.PainIntensity);
         }
     }
 

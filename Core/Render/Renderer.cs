@@ -1,5 +1,6 @@
 using GlmSharp;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
@@ -340,6 +341,26 @@ public partial class Renderer : IDisposable
             GetDownScaleAmount(config, renderInfo));
     }
 
+    public static bool GetNativeLetterBoxes(IConfig config, Dimension renderDimension, out Box2I left, out Box2I right)
+    {
+        if (!config.Window.Virtual.Enable || config.Window.Virtual.Stretch || config.Window.Virtual.Dimension == renderDimension)
+        {
+            left = default;
+            right = default;
+            return false;
+        }
+
+        var virtualDim = config.Window.Virtual.Dimension.Value;
+        var scale = Math.Min((float)renderDimension.Width / virtualDim.Width, (float)renderDimension.Height / virtualDim.Height);
+
+        var scaledWidth = (int)(virtualDim.Width * scale);
+        var offsetX = (renderDimension.Width - scaledWidth) / 2;
+
+        left = new Box2I(new Vec2I(0, 0), new Vec2I(offsetX, renderDimension.Height));
+        right = new Box2I(new Vec2I(renderDimension.Width - offsetX, 0), new Vec2I(renderDimension.Width, renderDimension.Height));
+        return true;
+    }
+
     private static float GetDownScaleAmount(IConfig config, RenderInfo renderInfo)
     {
         if (renderInfo.Viewport.Height <= 480)
@@ -538,6 +559,9 @@ public partial class Renderer : IDisposable
                     if (tranCmd.Progress.HasValue)
                         m_transitionRenderer.Render(m_mainFramebuffer, tranCmd.Progress.Value);
                     break;
+                case RenderCommandType.Scissor:
+                    HandleScissorCommand(renderCommands.ScissorCommands[cmd.Index]);
+                    break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
                     break;
@@ -549,6 +573,19 @@ public partial class Renderer : IDisposable
 
         if (!virtualFrameBufferDraw)
             DrawVirtualFramebufferToMain();
+    }
+
+    private static void HandleScissorCommand(ScissorCommand cmd)
+    {
+        if (cmd.Enable != ScissorEnable.KeepState)
+        {
+            if (cmd.Enable == ScissorEnable.Enable)
+                GL.Enable(EnableCap.ScissorTest);
+            else
+                GL.Disable(EnableCap.ScissorTest);
+        }
+
+        GL.Scissor(cmd.Box.Min.X, cmd.Box.Min.Y, cmd.Box.Width, cmd.Box.Height);
     }
 
     private void BindColorMapBuffer()
@@ -872,7 +909,28 @@ public partial class Renderer : IDisposable
 
         m_mainFramebuffer.BindDraw();
         UpdateVirtualTextureFilter(m_virtualFramebuffer);
-        GL.Clear(ClearBufferMask.DepthBufferBit);
+
+        if (GetNativeLetterBoxes(m_config, Window.ClientDimension, out var left, out var right))
+        {
+            GL.Enable(EnableCap.ScissorTest);
+
+            GL.Scissor(left.Min.X, left.Min.Y, left.Width, left.Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+            GL.Scissor(right.Min.X, right.Min.Y, right.Width, right.Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+            var box = new Box2I(new Vec2I(left.Max.X, left.Min.Y), new Vec2I(right.Min.X, right.Max.Y));
+            GL.Scissor(box.Min.X, box.Min.Y, box.Width, box.Height);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            GL.Disable(EnableCap.ScissorTest);
+        }
+        else
+        {
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+        }
+
         m_framebufferRenderer.Render(m_virtualFramebuffer, CalculateVirtualMvp(m_virtualFramebuffer, GetVirtualDimension()));
     }
 

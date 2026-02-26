@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
-using Helion.Layer.Transition;
 using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Shared;
@@ -14,6 +12,8 @@ using Helion.Util.Configs;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Commands;
 
@@ -29,6 +29,7 @@ public enum RenderCommandType
     Automap,
     Hud,
     Transition,
+    Scissor
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -64,6 +65,7 @@ public class RenderCommands
     public List<DrawTextCommand> TextCommands = new();
     public List<DrawShapeCommand> ShapeCommands = new();
     public List<TransitionCommand> TransitionCommands = new();
+    public List<ScissorCommand> ScissorCommands = new();
 
     public Dimension RenderDimension => m_renderDimensions;
     public Dimension WindowDimension => m_windowDimensions;
@@ -98,6 +100,7 @@ public class RenderCommands
         ShapeCommands.Clear();
         AutomapCommands.Clear();
         TransitionCommands.Clear();
+        ScissorCommands.Clear();
 
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = RenderDimension };
         m_scale = Vec2D.One;
@@ -176,6 +179,12 @@ public class RenderCommands
     {
         Commands.Add(new RenderCommand(RenderCommandType.Transition, TransitionCommands.Count));
         TransitionCommands.Add(new TransitionCommand(type, progress, init));
+    }
+
+    public void Scissor(Box2I box, ScissorEnable enable)
+    {
+        Commands.Add(new RenderCommand(RenderCommandType.Scissor, ScissorCommands.Count));
+        ScissorCommands.Add(new(box, enable));
     }
 
     /// <summary>
