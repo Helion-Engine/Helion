@@ -4,6 +4,7 @@ using Helion.Graphics;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Commands;
+using Helion.Render.OpenGL.Commands.Types;
 using Helion.Window;
 using Helion.World;
 
@@ -68,12 +69,12 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
 
     public void Scissor(Box2I area)
     {
-        // Not part of the old renderer.
+        Commands.Scissor(area, ScissorEnable.KeepState);
     }
 
-    public void Scissor(Box2I area, Action action)
+    public void Scissor(Box2I area, bool enable)
     {
-        // Not part of the old renderer.
+        Commands.Scissor(area, enable ? ScissorEnable.Enable : ScissorEnable.Disable);
     }
 
     public void DrawVirtualFrameBuffer()

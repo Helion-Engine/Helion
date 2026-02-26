@@ -1,5 +1,6 @@
 using System;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -43,6 +44,7 @@ public interface IHudRenderContext : IDisposable
     /// <param name="color">The color to fill with.</param>
     /// <param name="alpha">The alpha value for the color.</param>
     void Clear(Color color, float alpha = 1.0f);
+    void Clear(Box2I box, Color color, float alpha = 1.0f);
 
     void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
 
