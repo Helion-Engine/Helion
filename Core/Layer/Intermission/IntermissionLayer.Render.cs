@@ -140,9 +140,8 @@ public partial class IntermissionLayer
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage, m_textUpscalingFactor), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
-            offsetY += (5 * drawArea.Height) / 4;
             DrawMapTitle(hud, NextMapInfo, ref offsetY, m_textUpscalingFactor);
+            hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage, m_textUpscalingFactor), both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
         }
         else
         {
