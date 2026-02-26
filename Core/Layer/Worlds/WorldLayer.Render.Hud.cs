@@ -151,7 +151,27 @@ public partial class WorldLayer
             DrawHudEffects(hud);
             hud.DrawPalette(false);
 
-            if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
+            bool hasCenteredMessage = false;
+            long currentNanos = Ticker.NanoTime();
+            lock (m_console.Messages)
+            {
+                var node = m_console.Messages.First;
+                while (node != null)
+                {
+                    var msg = node.Value;
+                    if (currentNanos - msg.TimeNanos > Constants.MaxMessageVisibleTimeNanos)
+                        break;
+                    if (msg.IsCentered)
+                    {
+                        hasCenteredMessage = true;
+                        break;
+                    }
+                    node = node.Next;
+                }
+            }
+
+            if (hasCenteredMessage) DrawCenterMessages(hud);
+            else if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
             {
                 DrawRecentConsoleMessages(hud);
                 DrawCenterMessages(hud);
@@ -467,15 +487,18 @@ public partial class WorldLayer
                     {
                         isCentered = msg.IsCentered;
 
-                        if (msg.StackCount > 1)
+                        if (!isCentered)
                         {
-                            var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
-                            var span = GetRenderMessageWithCount(worldMsg);
-                            consoleMsg = span.ToString(); 
-                        }
-                        else
-                        {
-                            consoleMsg = msg.Message;
+                            if (msg.StackCount > 1)
+                            {
+                                var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
+                                var span = GetRenderMessageWithCount(worldMsg);
+                                consoleMsg = span.ToString(); 
+                            }
+                            else
+                            {
+                                consoleMsg = msg.Message;
+                            }
                         }
                     }
                 }
