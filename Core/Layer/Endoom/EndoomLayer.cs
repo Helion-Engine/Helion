@@ -29,8 +29,6 @@
         private IRenderableTextureHandle? m_texture1;
         private IRenderableTextureHandle? m_texture2;
 
-        private readonly int m_pixelHeight;
-
         private readonly TextScreen? m_endoomScreen;
         private bool disposedValue;
 
@@ -39,18 +37,11 @@
             m_closeAction = closeAction;
             m_archiveCollection = archiveCollection;
 
-            // Find an integer scale for pixel height that keeps the render at or under 1080 px tall.  Rendering text to image is VERY slow.
-            for (int scaleFactor = 1; m_pixelHeight == 0; scaleFactor++)
-            {
-                int scaled = height / scaleFactor;
-                m_pixelHeight = scaled <= 1080 ? scaled : 0;
-            }
-
             byte[]? endoomData = m_archiveCollection.FindEntry(Constants.Endoom)?.ReadData();
             if (endoomData != null)
             {
                 byte[] fontData = m_archiveCollection.FindEntry(FONTNAME)!.ReadData();
-                m_endoomScreen = new TextScreen(endoomData, fontData, m_pixelHeight, ENDOOMROWS, ENDOOMCOLUMNS);
+                m_endoomScreen = new TextScreen(endoomData, fontData, height, ENDOOMROWS, ENDOOMCOLUMNS);
             }
         }
 

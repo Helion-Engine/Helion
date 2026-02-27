@@ -11,17 +11,19 @@
 
     public class TextScreen
     {
-        private int m_height;
-        private int m_width;
+        private readonly Color[] m_backgroundColors;
+        private readonly Color[] m_foregroundColors;
+        private readonly char[] m_characters;
+        private readonly bool[] m_blink;
+        
+        private readonly Font m_font;
 
-        private Color[] m_backgroundColors;
-        private Color[] m_foregroundColors;
-        private char[] m_characters;
-        private bool[] m_blink;
-        private Font m_font;
-        private int m_pixelHeight;
-        private int m_glyphWidth;
-        private int m_glyphHeight;
+        private readonly int m_height;
+        private readonly int m_width;
+
+        private readonly int m_pixelHeight;
+        private readonly int m_glyphWidth;
+        private readonly int m_glyphHeight;
 
         // This value indicates whether there are any blinking characters in this text screen
         public readonly bool HasBlink;
