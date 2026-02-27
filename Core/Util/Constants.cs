@@ -317,7 +317,7 @@ public static class Constants
         public const string LargeHud = "LargeHudFont";
         public const string Console = "Console";
         public const string SmallGrayFixedWidthNumbers = "SmallFontGrayscaleFixedWidthNumbers";
-        public const string VGA = "flexi-ibm-vga-true.regular";
+        public const string VGA = "Ac437_IBM_VGA_8x16";
     };
 
     public static class LightBuffer

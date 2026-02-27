@@ -13,3 +13,4 @@
 
 ## Misc:
 - Added option to disable stats showing in automap
+- Use more pixelated-looking TTF when generating ENDOOM
