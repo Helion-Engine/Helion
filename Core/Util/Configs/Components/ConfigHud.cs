@@ -4,33 +4,27 @@ using Helion.Resources.Definitions.StatusBar;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
-using Helion.World.StatusBar;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
 public static class HudView
 {
-    const int FullSizeHudHeight = 32;
-
-    public static int GetWeaponOffset(StatusBarSizeType statusBarSize, StatusBarLayoutDef? activeStatusBar)
+    public static int GetWeaponOffset(StatusBarLayoutDef? activeStatusBar)
     {
-        return GetStatusBarHeight(statusBarSize, activeStatusBar) / 2;
+        return GetStatusBarHeight(activeStatusBar) / 2;
     }
 
-    public static Vec2I GetViewPortOffset(StatusBarSizeType statusBarSize, Dimension viewport, StatusBarLayoutDef? activeStatusBar)
+    public static Vec2I GetViewPortOffset(StatusBarLayoutDef? activeStatusBar, Dimension viewport)
     {
-        var statusBarHeight = GetStatusBarHeight(statusBarSize, activeStatusBar);
-        if (statusBarHeight > 0)
-            return (0, (int)(viewport.Height / 200.0 * (statusBarHeight / 2.0)));
-
-        return Vec2I.Zero;
+        var statusBarHeight = GetStatusBarHeight(activeStatusBar);
+        return statusBarHeight > 0 ? (0, (int)(viewport.Height / 200.0 * (statusBarHeight / 2.0))) : Vec2I.Zero;
     }
 
-    private static int GetStatusBarHeight(StatusBarSizeType statusBarSize, StatusBarLayoutDef? activeStatusBar)
+    private static int GetStatusBarHeight(StatusBarLayoutDef? activeStatusBar)
     {
         if (activeStatusBar == null)
-            return statusBarSize == StatusBarSizeType.Full ? FullSizeHudHeight : 0;
+            return 0;
 
         return activeStatusBar.FullscreenRender ? 0 : activeStatusBar.Height;
     }
@@ -183,9 +177,9 @@ public class ConfigHud: ConfigElement<ConfigHud>
 
     // Status bar
 
-    [ConfigInfo("Size of the status bar.")]
-    [OptionMenu(OptionSectionType.Hud, "Status Bar Size", spacer: true)]
-    public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
+    [ConfigInfo("Name of the status bar layout to use (from SBARDEF).")]
+    [OptionMenu(OptionSectionType.Hud, "Status Bar Layout", spacer: true, isDynamicStringCycle: true)]
+    public readonly ConfigValue<string> StatusBarLayout = new("", NotEmpty);
     
     [ConfigInfo("Selects the active SBARDEF layout index.")]
     public readonly ConfigValue<int> SbarHudMode = new(0, GreaterOrEqual(0));

@@ -57,7 +57,13 @@ public class ListedConfigSection : IOptionSection
     private IConfigValue? m_currentEditValue;
     private IDialog? m_dialog;
 
-    public ListedConfigSection(IConfig config, OptionSectionType optionType, PathsManager pathsManager, SoundManager soundManager, IInputManager inputManager)
+    public Func<string, IReadOnlyList<string>?>? DynamicOptionProvider { get; set; }
+
+    public ListedConfigSection(IConfig config,
+        OptionSectionType optionType,
+        PathsManager pathsManager,
+        SoundManager soundManager,
+        IInputManager inputManager)
     {
         m_config = config;
         OptionType = optionType;
@@ -243,11 +249,14 @@ public class ListedConfigSection : IOptionSection
                     UpdateBoolOption(input, boolCfgValue, true);
 
                 m_rowEditText.Clear();
-                bool isCycleValue = m_currentEditValue is ConfigValue<bool> || m_currentEditValue.ValueType.BaseType == typeof(Enum);
+                bool isCycleValue = m_currentEditValue is ConfigValue<bool>
+                                    || m_currentEditValue.ValueType.BaseType == typeof(Enum)
+                                    || configData.Attr.IsDynamicStringCycle;
                 if (isCycleValue)
                 {
                     m_rowEditText.Append(GetDisplayStringForCurrentValue(m_currentEditValue));
-                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm.", lockOptions));
+                    OnLockChanged?.Invoke(this,
+                        new LockEvent(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm.", lockOptions));
                 }
                 else
                 {
@@ -310,10 +319,12 @@ public class ListedConfigSection : IOptionSection
 
     private bool CurrentRowAllowsTextInput()
     {
-        IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
+        var configData = m_configValues[m_currentRowIndex];
+        IConfigValue cfgValue = configData.CfgValue;
         bool isBool = cfgValue.ValueType == typeof(bool);
         bool isEnum = cfgValue.ValueType.BaseType != null && cfgValue.ValueType.BaseType == typeof(Enum);
-        return !(isBool || isEnum);
+        bool isDynamic = configData.Attr.IsDynamicStringCycle;
+        return !(isBool || isEnum || isDynamic);
     }
 
     private void UpdateBoolOption(IConsumableInput input, ConfigValue<bool> cfgValue, bool force)
@@ -388,10 +399,48 @@ public class ListedConfigSection : IOptionSection
         m_soundManager.PlayStaticSound(MenuSounds.Change);
     }
 
+    private void UpdateDynamicStringCycleOption(IConsumableInput input, OptionMenuAttribute attr)
+    {
+        bool left = input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.DPadLeft);
+        bool right = input.ConsumeKeyPressed(Key.Right) || input.ConsumeKeyPressed(Key.DPadRight);
+        int scroll = input.ConsumeScroll();
+        
+        if (!left && !right && scroll == 0) return;
+
+        var options = DynamicOptionProvider?.Invoke(attr.Name);
+        if (options is not { Count: > 0 }) return;
+
+        string current = m_rowEditText.ToString();
+        int index = 0;
+        
+        for (int i = 0; i < options.Count; i++)
+        {
+            if (!string.Equals(options[i], current, StringComparison.OrdinalIgnoreCase)) continue;
+            index = i;
+            break;
+        }
+
+        if (scroll != 0)
+        {
+            index = (index - scroll) % options.Count;
+            if (index < 0) index += options.Count;
+        }
+        else if (right) index = (index + 1) % options.Count;
+        else if (left) index = (index == 0) ? options.Count - 1 : index - 1;
+
+        string nextValue = options[index];
+        m_rowEditText.Clear();
+        m_rowEditText.Append(nextValue);
+        m_soundManager.PlayStaticSound(MenuSounds.Change);
+    }
+
     private static string GetDisplayStringForCurrentValue(IConfigValue configValue)
     {
         if (configValue.ValueType == typeof(bool))
             return ((bool)configValue.ObjectValue) ? ConfigConstants.Yes : ConfigConstants.No;
+
+        if (configValue.ValueType == typeof(string))
+            return configValue.ObjectValue?.ToString() ?? string.Empty;
 
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectValue).ToString() ?? "??";
@@ -405,6 +454,9 @@ public class ListedConfigSection : IOptionSection
 
     private static string GetDisplayStringForUserValue(IConfigValue configValue)
     {
+        if (configValue.ValueType == typeof(string))
+            return configValue.ObjectUserValue?.ToString() ?? string.Empty;
+
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectUserValue).ToString() ?? "??";
 
@@ -420,10 +472,13 @@ public class ListedConfigSection : IOptionSection
         if (configValue.ValueType == typeof(bool))
             return ((bool)configValue.ObjectDefaultValue) ? ConfigConstants.Yes : ConfigConstants.No;
 
+        if (configValue.ValueType == typeof(string))
+            return configValue.ObjectDefaultValue?.ToString() ?? string.Empty;
+
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectDefaultValue).ToString()
-                ?? configValue.ObjectDefaultValue?.ToString()
-                ?? string.Empty;
+                   ?? configValue.ObjectDefaultValue?.ToString()
+                   ?? string.Empty;
 
         var doubleValue = Convert.ToDouble(configValue.ObjectDefaultValue, CultureInfo.CurrentCulture);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
@@ -466,6 +521,8 @@ public class ListedConfigSection : IOptionSection
             UpdateBoolOption(input, boolCfgValue, false);
         else if (cfgValue.ValueType.BaseType == typeof(Enum))
             UpdateEnumOption(input, cfgValue);
+        else if (m_configValues[m_currentRowIndex].Attr.IsDynamicStringCycle)
+            UpdateDynamicStringCycleOption(input, m_configValues[m_currentRowIndex].Attr);
         else
             UpdateTextEditableOption(input);
 
@@ -508,7 +565,7 @@ public class ListedConfigSection : IOptionSection
         if (newValue == "")
             return;
 
-        (var cfgValue, var attr, var configAttr) = m_configValues[m_currentRowIndex];
+        (IConfigValue cfgValue, _, ConfigInfoAttribute configAttr) = m_configValues[m_currentRowIndex];
         ConfigSetResult result;
 
         // This is a hack for enums. The string we render for the user may
@@ -518,10 +575,7 @@ public class ListedConfigSection : IOptionSection
             if (ConfigEnums.KnownEnumValues.TryGetValue(cfgValue.ValueType, out Array? enumValues))
             {
                 var enumValue = enumValues.GetValue(m_currentEnumIndex.Value);
-                if (enumValue == null)
-                    result = ConfigSetResult.NotSetByBadConversion;
-                else
-                    result = cfgValue.Set(enumValue);
+                result = enumValue == null ? ConfigSetResult.NotSetByBadConversion : cfgValue.Set(enumValue);
             }
             else
             {

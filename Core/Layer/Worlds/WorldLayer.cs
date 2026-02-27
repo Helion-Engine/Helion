@@ -27,7 +27,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
-using Helion.World.StatusBar;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -67,11 +66,8 @@ public partial class WorldLayer : IGameLayerParent
     private readonly TickCommand m_tickCommand = new();
     private readonly TickCommand m_chaseCamTickCommand = new();
     private readonly TickCommand m_demoTickCommand = new();
-    private readonly Action<IHudRenderContext> m_virtualDrawFullStatusBarAction;
-    private readonly Action<HudStatusBarbackground> m_virtualStatusBarBackgroundAction;
     private readonly Action<IHudRenderContext> m_virtualDrawPauseAction;
     private readonly Func<IConsumableInput, KeyCommandItem, bool> m_checkCommandAction;
-    private StatusBarSizeType m_statusBarSizeType = StatusBarSizeType.Minimal;
     private TickerInfo m_lastTickInfo = new(0, 0);
     private Vec2I m_autoMapOffset = (0, 0);
     private double m_autoMapScale;
@@ -101,8 +97,6 @@ public partial class WorldLayer : IGameLayerParent
         m_drawHudAction = new(DrawHudContext);
         m_renderWorldAction = new(RenderWorld);
         m_renderAutomapAction = new(RenderAutomap);
-        m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
-        m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
         m_virtualDrawPauseAction = new(VirtualDrawPause);
         m_checkCommandAction = new(CheckCommand);
 
@@ -118,15 +112,10 @@ public partial class WorldLayer : IGameLayerParent
         for (int i = 0; i < stats.Length; i++)
             m_renderStats[i] = new(stats[i], InitRenderableString(), InitRenderableString(TextAlign.Right));
 
-        m_renderHealthString = InitRenderableString();
-        m_renderArmorString = InitRenderableString();
-        m_renderAmmoString = InitRenderableString();
         m_renderFpsString = InitRenderableString(TextAlign.Right);
         m_renderFpsMinString = InitRenderableString(TextAlign.Right);
         m_renderFpsMaxString = InitRenderableString(TextAlign.Right);
         m_renderTimeString = InitRenderableString(TextAlign.Right);
-
-        m_largeHudFont = GetFontOrDefault(LargeHudFont);
 
         World.LevelExiting += World_LevelExiting;
         World.WorldPaused += World_WorldPaused;

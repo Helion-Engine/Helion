@@ -157,7 +157,7 @@ public static class StatusBarConditionResolver
             9 => "Stimpack",
             10 => "Medikit",
             11 => "Soulsphere",
-            12 => "Megasphere",
+            12 => "Mega sphere",
             13 => "ArmorBonus",
             14 => "GreenArmor",
             15 => "BlueArmor", 
@@ -330,8 +330,38 @@ public static class StatusBarConditionResolver
 
     private static bool CheckHudMode(IWorld world, int param)
     {
-        int mode = world.Config.Hud.StatusBarSize.Value == StatusBarSizeType.Minimal ? 1 : 0;
+        var layout = GetActiveStatusBarLayout(world);
+        int mode = layout?.FullscreenRender == true ? 1 : 0;
         return mode == param;
+    }
+    
+    private static StatusBarLayoutDef? GetActiveStatusBarLayout(IWorld world)
+    {
+        var sbarDef = world.ArchiveCollection.Definitions.StatusBarDefinition;
+        var layoutName = world.Config.Hud.StatusBarLayout.Value;
+        
+        if (!string.IsNullOrEmpty(layoutName))
+        {
+            foreach (StatusBarLayoutDef layout in sbarDef.StatusBars)
+            {
+                if (string.Equals(layout.Name, layoutName, StringComparison.OrdinalIgnoreCase))
+                    return layout;
+            }
+        }
+        
+        int index = world.Config.Hud.SbarHudMode.Value;
+        if (index >= 0 && index < sbarDef.StatusBars.Count)
+        {
+            return sbarDef.StatusBars[index];
+        }
+        
+        foreach (StatusBarLayoutDef t in sbarDef.StatusBars)
+        {
+            if (!t.FullscreenRender)
+                return t;
+        }
+        
+        return sbarDef.StatusBars.Count > 0 ? sbarDef.StatusBars[0] : null;
     }
 
     private static bool CheckAutomap(StatusBarContext context, int param)

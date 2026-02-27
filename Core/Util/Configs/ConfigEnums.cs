@@ -6,7 +6,6 @@ using Helion.Util.Configs.Components;
 using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Entities.Players;
-using Helion.World.StatusBar;
 using OpenTK.Windowing.Common;
 using System;
 using System.Collections.Generic;
@@ -32,7 +31,6 @@ namespace Helion.Util.Configs
             { typeof(SkillLevel), Enum.GetValues<SkillLevel>() },
             { typeof(CrosshairStyle), Enum.GetValues<CrosshairStyle>() },
             { typeof(CrossColor), Enum.GetValues<CrossColor>() },
-            { typeof(StatusBarSizeType), Enum.GetValues<StatusBarSizeType>() },
             { typeof(PlayerGender), Enum.GetValues<PlayerGender>() },
             { typeof(RenderVsyncMode), Enum.GetValues<RenderVsyncMode>() },
             { typeof(FilterType), Enum.GetValues<FilterType>() },
@@ -60,7 +58,6 @@ namespace Helion.Util.Configs
             { typeof(SkillLevel), GetDescriptions<SkillLevel>() },
             { typeof(CrosshairStyle), GetDescriptions<CrosshairStyle>() },
             { typeof(CrossColor), GetDescriptions<CrossColor>() },
-            { typeof(StatusBarSizeType), GetDescriptions<StatusBarSizeType>() },
             { typeof(PlayerGender), GetDescriptions<PlayerGender>() },
             { typeof(RenderVsyncMode), GetDescriptions<RenderVsyncMode>() },
             { typeof(FilterType), GetDescriptions<FilterType>() },

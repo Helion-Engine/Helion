@@ -36,7 +36,6 @@ using Helion.World.Save;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using static Helion.Util.Assertion.Assert;
 
@@ -114,8 +113,8 @@ public class GameLayerManager : IGameLayerManager
         m_ctx = null!;
         m_hudRenderCtx = null!;
 
-        m_optionsLayer = new(this, m_config, pathsManager, m_soundManager, m_window);
-        m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
+        m_optionsLayer = new OptionsLayer(this, m_config, pathsManager, m_soundManager, m_window, m_archiveCollection);
+        m_consoleLayer = new ConsoleLayer(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
         m_optionsLayer.OnRestartApplication += OptionsLayer_OnRestartApplication;
@@ -773,7 +772,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (WorldLayer != null && WorldLayer.ShouldRender && (m_config.Hud.AutoMap.Overlay || !WorldLayer.DrawAutomap))
         {
-            var offset = HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, ctx.Surface.Dimension, WorldLayer.GetActiveStatusBarLayout());
+            var offset = HudView.GetViewPortOffset(WorldLayer.GetActiveStatusBarLayout(), ctx.Surface.Dimension);
             if (WorldLayer.World.DrawHud && (offset.X != 0 || offset.Y != 0))
             {
                 var box = new Box2I((offset.X, offset.Y), (ctx.Surface.Dimension.Width + offset.X, ctx.Surface.Dimension.Height + offset.Y));

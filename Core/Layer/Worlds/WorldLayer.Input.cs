@@ -1,6 +1,5 @@
 using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Container;
@@ -8,9 +7,9 @@ using Helion.Window;
 using Helion.Window.Input;
 using Helion.World;
 using Helion.World.Entities.Players;
-using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Worlds;
@@ -314,10 +313,34 @@ public partial class WorldLayer
 
     private void ChangeHudSize(bool increase)
     {
-        StatusBarSizeType current = m_config.Hud.StatusBarSize;
-        StatusBarSizeType next = (StatusBarSizeType)((int)current + (increase ? 1 : -1));
+        // Cycle through available SBARDEF layout names
+        var sbarDef = World.ArchiveCollection.Definitions.StatusBarDefinition;
+        if (sbarDef.StatusBars.Count == 0)
+            return;
 
-        if (m_config.Hud.StatusBarSize.Set(next) == ConfigSetResult.Set)
+        var layoutNames = sbarDef.StatusBars
+            .Where(l => !string.IsNullOrEmpty(l.Name))
+            .Select(l => l.Name)
+            .ToList();
+        
+        if (layoutNames.Count == 0)
+            return;
+
+        var currentName = m_config.Hud.StatusBarLayout.Value;
+        int currentIndex = string.IsNullOrEmpty(currentName) ? -1 : layoutNames.FindIndex(n => n.Equals(currentName, StringComparison.OrdinalIgnoreCase));
+        
+        int nextIndex;
+        if (currentIndex < 0)
+        {
+            // If current is not found or empty, start from first or last based on direction
+            nextIndex = increase ? 0 : layoutNames.Count - 1;
+        }
+        else
+        {
+            nextIndex = (currentIndex + (increase ? 1 : -1) + layoutNames.Count) % layoutNames.Count;
+        }
+        
+        if (m_config.Hud.StatusBarLayout.Set(layoutNames[nextIndex]) == ConfigSetResult.Set)
             World.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
     }
 }
