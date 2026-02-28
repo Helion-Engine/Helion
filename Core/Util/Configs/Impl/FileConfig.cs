@@ -100,7 +100,7 @@ public class FileConfig : Config
             string migratedName = oldSize switch
             {
                 StatusBarSizeType.Full => "Full",
-                StatusBarSizeType.Hidden => "{Helion:Hidden}",
+                StatusBarSizeType.Hidden => "Hidden",
                 _ => "Minimal"
             };
             Hud.StatusBarLayout.Set(migratedName);

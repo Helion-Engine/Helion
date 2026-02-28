@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -20,7 +21,7 @@ public class StatusBarFileDef
 
 public class StatusBarDefinition
 {
-    private const string HiddenLayoutName = "{Helion:Hidden}";
+    public const string HiddenLayoutName = "Hidden"; 
     
     [JsonPropertyName("numberfonts")]
     public List<StatusBarNumberFontDef> NumberFonts { get; set; } = [];
@@ -102,6 +103,10 @@ public class StatusBarDefinition
             if (string.IsNullOrWhiteSpace(layout.Name))
             {
                 layout.Name = $"Layout {i}";
+            }
+            else if (string.Equals(layout.Name, HiddenLayoutName, StringComparison.OrdinalIgnoreCase))
+            {
+                layout.Name += "*";
             }
         }
     }
