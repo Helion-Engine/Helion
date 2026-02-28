@@ -256,12 +256,12 @@ public partial class IntermissionLayer
             return;
 
         hud.Image("WITIME", (LeftOffsetTimeX, -OffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
-        RenderTime(LevelTimeSeconds, RightOffsetLevelTimeX, -OffsetY);
+        RenderTime(hud, LevelTimeSeconds, RightOffsetLevelTimeX, -OffsetY);
 
         if (ParTimeSeconds != 0)
         {
             hud.Image("WIPAR", (LeftOffsetParX, -OffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
-            RenderTime(ParTimeSeconds, 320 - LeftOffsetTimeX, -OffsetY);
+            RenderTime(hud, ParTimeSeconds, 320 - LeftOffsetTimeX, -OffsetY);
         }
 
         if (IntermissionState >= IntermissionState.ShowAllStats)
@@ -269,21 +269,21 @@ public partial class IntermissionLayer
             hud.Image("WIMSTT", (LeftOffsetTimeX, -TotalOffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
 
             int seconds = World.GlobalData.TotalTime / (int)Constants.TicksPerSecond;
-            RenderTime(seconds, RightOffsetLevelTimeX, -TotalOffsetY);
+            RenderTime(hud, seconds, RightOffsetLevelTimeX, -TotalOffsetY);
         }
+    }
 
-        string GetTimeString(int seconds)
-        {
-            int minutes = seconds / 60;
-            string secondsStr = (seconds % 60).ToString(CultureInfo.CurrentCulture).PadLeft(2, '0');
-            return $"{minutes}:{secondsStr}";
-        }
+    string GetTimeString(int seconds)
+    {
+        int minutes = seconds / 60;
+        string secondsStr = (seconds % 60).ToString(CultureInfo.CurrentCulture).PadLeft(2, '0');
+        return $"{minutes}:{secondsStr}";
+    }
 
-        void RenderTime(int seconds, int rightOffsetX, int y)
-        {
-            string levelTime = GetTimeString(seconds);
-            int fontSize = hud.GetFontMaxHeight(MainFont);
-            hud.Text(levelTime, MainFont, fontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
-        }
+    void RenderTime(IHudRenderContext hud, int seconds, int rightOffsetX, int y)
+    {
+        string levelTime = GetTimeString(seconds);
+        int fontSize = hud.GetFontMaxHeight(MainFont);
+        hud.Text(levelTime, MainFont, fontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
     }
 }

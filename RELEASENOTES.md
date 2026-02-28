@@ -10,6 +10,7 @@
 - Fix letterbox areas not clearing and pain/pickup overlays drawing over letterbox areas when using virtual resolution
 - Fix vertical alignment for fullscreen CWILV## graphics in Intermissions (like in Eviternity.WAD)
 - Fix ZDoom-style message centering when using SBARDEF
+- Fix intermission exitpic from MAPINFO not being set on transition. Fixes Eviternity II.
 
 ## Misc:
 - Added option to disable stats showing in automap

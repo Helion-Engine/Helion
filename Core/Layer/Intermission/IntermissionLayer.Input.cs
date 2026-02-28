@@ -66,6 +66,9 @@ public partial class IntermissionLayer
         {
             m_delayStateTics = (int)Constants.TicksPerSecond * 4;
             m_delayState = IntermissionState.Complete;
+
+            if (NextMapInfo != null && !string.IsNullOrEmpty(NextMapInfo.EnterPic))
+                IntermissionPic = NextMapInfo.EnterPic;
         }
     }
 
