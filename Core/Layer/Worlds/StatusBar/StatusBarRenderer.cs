@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using Helion.Geometry;
 
 namespace Helion.Layer.Worlds.StatusBar;
 
@@ -88,7 +89,10 @@ public class StatusBarRenderer
     private float m_hOffset;
     private Vec2F m_scale = Vec2F.One;
 
-    private bool m_texturesResolved;
+    private readonly HashSet<StatusBarLayoutDef> m_resolvedLayouts = new();
+    private Dimension m_lastWindowDimension;
+    private float m_lastUserScale = -1f;
+
     private bool m_hasTicks;
     private bool m_invalidateBounds;
     private float m_userScale;
@@ -99,18 +103,12 @@ public class StatusBarRenderer
         m_world = world;
         m_archiveCollection = world.ArchiveCollection;
         StatusBarDefinition sbarDef = world.ArchiveCollection.Definitions.StatusBarDefinition;
-        world.Config.Hud.Scale.OnChanged += Scale_OnChanged;
 
         foreach (StatusBarNumberFontDef f in sbarDef.NumberFonts)
             m_fontNumberLookup[f.Name] = f;
 
         foreach (StatusBarHudFontDef f in sbarDef.HudFonts)
             m_hudFontLookup[f.Name] = f;
-    }
-
-    private void Scale_OnChanged(object? sender, double e)
-    {
-        m_invalidateBounds = true;
     }
 
     public static StatusBarCoverage GetCoverage(StatusBarLayoutDef layout)
@@ -195,10 +193,22 @@ public class StatusBarRenderer
     {
         m_hasTicks = hasTicks;
         StatusBarConditionResolver.ShouldEvaluate = hasTicks;
-        if (!m_texturesResolved)
+
+        float currentUserScale = (float)m_world.Config.Hud.Scale.Value;
+        
+        bool scaleChanged = Math.Abs(m_lastUserScale - currentUserScale) > 0.001f;
+
+        if (m_lastWindowDimension != hud.WindowDimension || scaleChanged)
+        {
+            m_invalidateBounds = true;
+            m_lastWindowDimension = hud.WindowDimension;
+            m_lastUserScale = currentUserScale;
+        }
+
+        if (!m_resolvedLayouts.Contains(layout))
         {
             EnsureTexturesResolved(hud, layout);
-            m_texturesResolved = true;
+            m_resolvedLayouts.Add(layout);
         }
 
         const int Width = 320;

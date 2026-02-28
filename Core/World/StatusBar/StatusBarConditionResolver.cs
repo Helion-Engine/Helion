@@ -79,7 +79,7 @@ public static class StatusBarConditionResolver
             StatusBarConditionType.GameModeEq => CheckGameMode(gameConf, c.Param, equals: true),
             StatusBarConditionType.GameModeNeq => CheckGameMode(gameConf, c.Param, equals: false),
             
-            StatusBarConditionType.HudModeEq => CheckHudMode(world, c.Param),
+            StatusBarConditionType.HudModeEq => CheckHudMode(context, c.Param),
             
             // v1.1 Extensions
             StatusBarConditionType.AutomapModeEq => CheckAutomap(context, c.Param),
@@ -157,7 +157,7 @@ public static class StatusBarConditionResolver
             9 => "Stimpack",
             10 => "Medikit",
             11 => "Soulsphere",
-            12 => "Megasphere",
+            12 => "Mega sphere",
             13 => "ArmorBonus",
             14 => "GreenArmor",
             15 => "BlueArmor", 
@@ -328,11 +328,12 @@ public static class StatusBarConditionResolver
         return equals ? (currentIndex == param) : (currentIndex != param);
     }
 
-    private static bool CheckHudMode(IWorld world, int param)
+    private static bool CheckHudMode(StatusBarContext context, int param)
     {
-        int mode = world.Config.Hud.StatusBarSize.Value == StatusBarSizeType.Minimal ? 1 : 0;
+        int mode = context.ActiveLayout?.FullscreenRender == true ? 1 : 0;
         return mode == param;
     }
+    
 
     private static bool CheckAutomap(StatusBarContext context, int param)
     {

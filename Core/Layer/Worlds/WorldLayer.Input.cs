@@ -1,6 +1,5 @@
 using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Container;
@@ -8,9 +7,9 @@ using Helion.Window;
 using Helion.Window.Input;
 using Helion.World;
 using Helion.World.Entities.Players;
-using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Worlds;
@@ -314,10 +313,30 @@ public partial class WorldLayer
 
     private void ChangeHudSize(bool increase)
     {
-        StatusBarSizeType current = m_config.Hud.StatusBarSize;
-        StatusBarSizeType next = (StatusBarSizeType)((int)current + (increase ? 1 : -1));
+        // Cycle through available SBARDEF layout names
+        var sbarDef = World.ArchiveCollection.Definitions.StatusBarDefinition;
+        if (sbarDef.StatusBars.Count == 0)
+            return;
 
-        if (m_config.Hud.StatusBarSize.Set(next) == ConfigSetResult.Set)
-            World.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
+        var currentLayoutName = m_config.Hud.StatusBarLayout.Value;
+        int currentIndex = -1;
+
+        for (int i = 0; i < sbarDef.StatusBars.Count; i++)
+        {
+            if (!sbarDef.StatusBars[i].Name.Equals(currentLayoutName, StringComparison.OrdinalIgnoreCase)) continue;
+            currentIndex = i;
+            break;
+        }
+
+        int step = increase ? 1 : -1;
+        int nextIndex = (currentIndex + step + sbarDef.StatusBars.Count) % sbarDef.StatusBars.Count;
+        
+        while (string.IsNullOrEmpty(sbarDef.StatusBars[nextIndex].Name) && nextIndex != currentIndex)
+        {
+            nextIndex = (nextIndex + step + sbarDef.StatusBars.Count) % sbarDef.StatusBars.Count;
+        }
+        
+        if (m_config.Hud.StatusBarLayout.Set(sbarDef.StatusBars[nextIndex].Name) == ConfigSetResult.Set)
+            World.SoundManager.PlayStaticSound(MenuSounds.Change);
     }
 }

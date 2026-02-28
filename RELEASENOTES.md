@@ -1,7 +1,8 @@
 # 0.9.9.2 (Pre-release)
 
 ## Features:
-
+- Added "Detailed" HUD
+- Ability to swap between multiple HUD layouts defined in SBARDEF.lmp (Options, or +/- keys)
 
 ## Bug Fixes:
 - Fix issue where monsters would not move when they have velocity applied (e.g. from bullet hit or explosion damage)
@@ -15,3 +16,4 @@
 ## Misc:
 - Added option to disable stats showing in automap
 - Use more pixelated-looking TTF when generating ENDOOM
+- Refactor of old Status Bar renderer to data-driven SBARDEF format.

@@ -22,6 +22,8 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
+using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.StatusBar;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -32,7 +34,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public InterpolationAnimation<IAnimationLayer> Animation { get; }
     public bool ClearOnExit { get; set; }
     public long LastClosedNanos;
-    public bool CurrentlyBindingKey => m_sections[m_currentSectionIndex] is KeyBindingSection x && x.CurrentlyBinding;
+    public bool CurrentlyBindingKey => m_sections[m_currentSectionIndex] is KeyBindingSection { CurrentlyBinding: true };
 
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
@@ -45,9 +47,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private readonly PathsManager m_pathsManager;
     private readonly SoundManager m_soundManager;
     private readonly IWindow m_window;
+    private readonly ArchiveCollection m_archiveCollection;
     private readonly List<IOptionSection> m_sections;
     private readonly BoxList m_backForwardPos = new();
     private readonly List<StringSlice> m_footerLines = [];
+    private readonly List<string> m_sbarLayoutNames = new();
     private Dimension m_windowSize;
     private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
@@ -67,13 +71,14 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private bool m_didMouseWheelScroll;
     private MessageDialog? m_dialog;
 
-    public OptionsLayer(GameLayerManager manager, IConfig config, PathsManager pathsManager, SoundManager soundManager, IWindow window)
+    public OptionsLayer(GameLayerManager manager, IConfig config, PathsManager pathsManager, SoundManager soundManager, IWindow window, ArchiveCollection archiveCollection)
     {
         m_manager = manager;
         m_config = config;
         m_pathsManager = pathsManager;
         m_soundManager = soundManager;
         m_window = window;
+        m_archiveCollection = archiveCollection;
         m_sections = GenerateSections();
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -114,6 +119,33 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     public void OnShow()
     {
+        m_sbarLayoutNames.Clear();
+        string fallbackName = string.Empty;
+        var sbarDef = m_archiveCollection.Definitions.StatusBarDefinition;
+        
+        foreach (var layout in sbarDef.StatusBars)
+        {
+            if (string.IsNullOrEmpty(layout.Name)) continue;
+            m_sbarLayoutNames.Add(layout.Name);
+            
+            if (string.IsNullOrEmpty(fallbackName) && !layout.FullscreenRender) fallbackName = layout.Name;
+        }
+
+        if (string.IsNullOrEmpty(fallbackName) && m_sbarLayoutNames.Count > 0) fallbackName = m_sbarLayoutNames[0];
+
+        string currentLayout = m_config.Hud.StatusBarLayout.Value;
+        bool isValid = false;
+        
+        foreach (string layoutName in m_sbarLayoutNames)
+        {
+            if (!string.Equals(layoutName, currentLayout, StringComparison.OrdinalIgnoreCase)) continue;
+            
+            isValid = true;
+            break;
+        }
+
+        if (!isValid && !string.IsNullOrEmpty(fallbackName)) m_config.Hud.StatusBarLayout.Set(fallbackName);
+
         ClearMessage();
         if (m_currentSectionIndex < m_sections.Count)
             m_sections[m_currentSectionIndex].OnShow();
@@ -208,6 +240,10 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         foreach ((IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr) in m_config.GetAllConfigFields())
         {
             ListedConfigSection cfgSection = GetOrMakeListedConfigSectionOrThrow(sectionMap, attr.Section);
+
+            if (attr.Section == OptionSectionType.Hud) 
+                cfgSection.DynamicOptionProvider = (name) => name == "Status Bar Layout" ? m_sbarLayoutNames : null;
+
             cfgSection.Add(value, attr, configAttr);
         }
 
