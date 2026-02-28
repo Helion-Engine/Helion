@@ -32,7 +32,6 @@
         private readonly int m_pixelHeight;
 
         private readonly TextScreen? m_endoomScreen;
-        private readonly byte[]? m_fontBytes;
         private bool disposedValue;
 
         public EndoomLayer(Action closeAction, ArchiveCollection archiveCollection, int height)
@@ -50,8 +49,8 @@
             byte[]? endoomData = m_archiveCollection.FindEntry(Constants.Endoom)?.ReadData();
             if (endoomData != null)
             {
-                m_endoomScreen = new TextScreen(endoomData, ENDOOMROWS, ENDOOMCOLUMNS);
-                m_fontBytes = m_archiveCollection.FindEntry(FONTNAME)?.ReadData();
+                byte[] fontData = m_archiveCollection.FindEntry(FONTNAME)!.ReadData();
+                m_endoomScreen = new TextScreen(endoomData, fontData, m_pixelHeight, ENDOOMROWS, ENDOOMCOLUMNS);
             }
         }
 
@@ -73,7 +72,7 @@
         {
             hud.Clear(Graphics.Color.Black);
 
-            if (m_endoomScreen == null || m_fontBytes == null)
+            if (m_endoomScreen == null)
             {
                 // If we don't have anything to render, just bail out
                 m_closeAction();
@@ -96,7 +95,7 @@
                 return;
             }
 
-            Graphics.Image image = m_endoomScreen!.GenerateImage(m_fontBytes!, m_pixelHeight, blink);
+            Graphics.Image image = m_endoomScreen!.GenerateImage(blink);
             handle = hud.CreateOrReplaceImage(image, textureName, Resources.ResourceNamespace.Textures);
         }
 

@@ -61,8 +61,8 @@ public interface IRenderableSurfaceContext
     /// restores back to the area before this call.
     /// </summary>
     /// <param name="area">The restricted scissor area.</param>
-    /// <param name="action">The actions to run with the new area.</param>
-    void Scissor(Box2I area, Action action);
+    /// <param name="enable">If scissor should be applied to the restricted area.</param>
+    void Scissor(Box2I area, bool enable);
 
     /// <summary>
     /// Begins hud rendering actions.

@@ -8,6 +8,7 @@ namespace Helion.World.Physics;
 public class TryMoveData
 {
     public bool Success;
+    public bool SubMoveSuccess;
     public bool CanFloat;
     public bool BlockedLineClearsVelocity;
     public bool HasTouchy;
@@ -47,6 +48,7 @@ public class TryMoveData
         LowestCeilingZ = double.MaxValue;
         Subsector = null;
         BlockingEntity = null;
+        SubMoveSuccess = false;
     }
 
     public void SetIntersectionData3D(LineOpening opening, Entity entity, bool setDropOff = true)

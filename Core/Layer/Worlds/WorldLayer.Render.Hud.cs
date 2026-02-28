@@ -16,8 +16,10 @@ using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.StatusBar;
 using Helion.Strings;
 using Helion.Util;
+using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Consoles;
@@ -33,7 +35,6 @@ using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Resources.Definitions.StatusBar;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -150,7 +151,27 @@ public partial class WorldLayer
             DrawHudEffects(hud);
             hud.DrawPalette(false);
 
-            if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
+            bool hasCenteredMessage = false;
+            long currentNanos = Ticker.NanoTime();
+            lock (m_console.Messages)
+            {
+                var node = m_console.Messages.First;
+                while (node != null)
+                {
+                    var msg = node.Value;
+                    if (currentNanos - msg.TimeNanos > Constants.MaxMessageVisibleTimeNanos)
+                        break;
+                    if (msg.IsCentered)
+                    {
+                        hasCenteredMessage = true;
+                        break;
+                    }
+                    node = node.Next;
+                }
+            }
+
+            if (hasCenteredMessage) DrawCenterMessages(hud);
+            else if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
             {
                 DrawRecentConsoleMessages(hud);
                 DrawCenterMessages(hud);
@@ -256,7 +277,7 @@ public partial class WorldLayer
     private void DrawStatInfo(IHudRenderContext hud, bool automapVisible, Vec2I start, ref int topRightY, 
         bool suppressStats = false, bool suppressTime = false)
     {
-        if (!m_config.Hud.ShowStats && !automapVisible)
+        if (!m_config.Hud.ShowStats && (!automapVisible || !m_config.Hud.AutoMap.ShowStats))
             return;
 
         start.X = -m_padding - m_hudPaddingX;
@@ -344,11 +365,20 @@ public partial class WorldLayer
         return str;
     }
 
+    private Box2I GetNativeDrawBox()
+    {
+        if (Renderer.GetNativeLetterBoxes(m_config, m_viewport, out var left, out var right))
+            return new Box2I(new Vec2I(left.Max.X, left.Min.Y), new Vec2I(right.Min.X, right.Max.Y));
+
+        return new Box2I(new Vec2I(0, 0), new Vec2I(m_viewport.Width, m_viewport.Height));
+    }
+
     private void DrawHudEffects(IHudRenderContext hud)
     {
         if (!WorldStatic.World.DrawHud || (ShaderVars.PaletteColorMode && !m_config.Window.PaletteTrueColorOverlay))
             return;
 
+        var box = GetNativeDrawBox();
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
         if (powerup?.DrawColor != null && powerup.DrawPowerupEffect)
         {
@@ -356,7 +386,7 @@ public partial class WorldLayer
             if (powerup.PowerupType == PowerupType.Strength)
                 alpha *= (float)m_config.Game.BerserkIntensity;
 
-            hud.Clear(powerup.DrawColor.Value, alpha);
+            hud.Clear(box, powerup.DrawColor.Value, alpha);
         }
 
         if (Player.BonusCount > 0)
@@ -364,7 +394,7 @@ public partial class WorldLayer
             const float PickupScaleAmount = 3f;
             var pickupScale = (Player.BonusCount + 7) / PickupScaleAmount;
             pickupScale *= 1 / PickupScaleAmount;
-            hud.Clear(PickupColor, Math.Min(pickupScale, 0.2f));
+            hud.Clear(box, PickupColor, Math.Min(pickupScale, 0.2f));
         }
 
         if (Player.DamageCount > 0)
@@ -372,7 +402,7 @@ public partial class WorldLayer
             const float DamageScaleAmount = 8f;
             var damageScale = Math.Min(Player.DamageCount + 7, 100) / DamageScaleAmount;
             damageScale *= 1 / DamageScaleAmount;
-            hud.Clear(DamageColor, Math.Min(damageScale, 0.89f) * (float)m_config.Game.PainIntensity);
+            hud.Clear(box, DamageColor, Math.Min(damageScale, 0.89f) * (float)m_config.Game.PainIntensity);
         }
     }
 
@@ -457,15 +487,18 @@ public partial class WorldLayer
                     {
                         isCentered = msg.IsCentered;
 
-                        if (msg.StackCount > 1)
+                        if (!isCentered)
                         {
-                            var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
-                            var span = GetRenderMessageWithCount(worldMsg);
-                            consoleMsg = span.ToString(); 
-                        }
-                        else
-                        {
-                            consoleMsg = msg.Message;
+                            if (msg.StackCount > 1)
+                            {
+                                var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
+                                var span = GetRenderMessageWithCount(worldMsg);
+                                consoleMsg = span.ToString(); 
+                            }
+                            else
+                            {
+                                consoleMsg = msg.Message;
+                            }
                         }
                     }
                 }

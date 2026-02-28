@@ -1,4 +1,5 @@
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -62,6 +63,15 @@ public class GLHudRenderContext : IHudRenderContext
 
         Dimension dim = m_commands.WindowDimension;
         m_commands.FillRect(new((0, 0), (dim.Vector)), color, alpha);
+    }
+
+    public void Clear(Box2I box, Color color, float alpha)
+    {
+        if (m_context == null)
+            return;
+
+        var imageBox = new ImageBox2I(box.Min, box.Max);
+        m_commands.FillRect(imageBox, color, alpha);
     }
 
     public void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f)

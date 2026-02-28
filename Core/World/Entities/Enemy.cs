@@ -363,6 +363,8 @@ public partial class Entity
             new MoveFactor(Constants.DefaultMoveFactor, Constants.DefaultFriction);
         GetEnemySpeed(moveFactor, out double speedX, out double speedY);
 
+        var posX = Position.X;
+        var posY = Position.Y;
         var onSet = !floatFlag && (speedX != 0 || speedY != 0) && moveFactor.Friction <= Constants.DefaultFriction ? OnMoveToAction : null;
 
         Flags.SetMonsterMove();
@@ -375,8 +377,8 @@ public partial class Entity
         if (tryMove.Success && moveFactor.Friction > Constants.DefaultFriction)
         {
             moveFactor.Factor *= Constants.DefaultFriction / 4;
-            Position.X = PrevPosition.X;
-            Position.Y = PrevPosition.Y;
+            Position.X = posX;
+            Position.Y = posY;
             Velocity.X += speedX * moveFactor.Factor;
             Velocity.Y += speedY * moveFactor.Factor;
         }
@@ -398,7 +400,7 @@ public partial class Entity
 
         // With increased speeds using the TickMultiplier TryMove will iterate and can have partial successes.
         // A partial success needs be considered true in this case.
-        return Position.X != PrevPosition.X || Position.Y != PrevPosition.Y || tryMove.Success;
+        return tryMove.Success || tryMove.SubMoveSuccess;
     }
 
     private static void OnMoveTo(Entity entity, TryMoveData tryMove)

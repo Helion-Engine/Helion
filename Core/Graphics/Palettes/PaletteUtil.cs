@@ -73,12 +73,15 @@ public static class PaletteUtil
         return (PaletteIndex)palette;
     }
 
-    private static PaletteIndex GetDamagePalette(int damageCount, float damgeIntensity)
+    private static PaletteIndex GetDamagePalette(int damageCount, float damageIntensity)
     {
+        if (damageIntensity <= 0)
+            return PaletteIndex.Normal;
+
         const int RedPals = 8;
         const int StartRedPals = 1;
         int palette = (damageCount + 7) >> 3;
-        palette = (int)(palette * damgeIntensity);
+        palette = (int)(palette * damageIntensity);
         if (palette >= RedPals)
             palette = RedPals - 1;
         palette += StartRedPals;

@@ -51,7 +51,7 @@ public class StatusBarRenderer
     // Mapping SBARDEF stems to Helion Internal Fonts to enable grayscale tinting and better rendering
     private static readonly Dictionary<string, string> StemToHelionFontMap = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "STCFN", Constants.Fonts.SmallGray },
+        { "STCFN", Constants.Fonts.Small },
         { "STT", Constants.Fonts.LargeHud },
         { "STG", Constants.Fonts.SmallGrayFixedWidthNumbers },
         { "STYS", "HudYellowNumbers" }

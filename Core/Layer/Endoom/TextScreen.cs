@@ -1,14 +1,13 @@
 ﻿namespace Helion.Layer.Endoom
 {
-    using System;
-    using System.Globalization;
-    using System.IO;
     using SixLabors.Fonts;
     using SixLabors.ImageSharp;
-    using SixLabors.ImageSharp.Advanced;
     using SixLabors.ImageSharp.Drawing.Processing;
     using SixLabors.ImageSharp.PixelFormats;
     using SixLabors.ImageSharp.Processing;
+    using System;
+    using System.Globalization;
+    using System.IO;
 
     public class TextScreen
     {
@@ -19,6 +18,10 @@
         private Color[] m_foregroundColors;
         private char[] m_characters;
         private bool[] m_blink;
+        private Font m_font;
+        private int m_pixelHeight;
+        private int m_glyphWidth;
+        private int m_glyphHeight;
 
         // This value indicates whether there are any blinking characters in this text screen
         public readonly bool HasBlink;
@@ -27,10 +30,12 @@
         /// Represents a screen full of double-byte (color plus character) characters, similar to an 80x25 console text buffer
         /// </summary>
         /// <param name="screenData">Raw byte data for the screen</param>
+        /// <param name="fontData">Raw bytes for the font data (TrueType font)</param>
+        /// <param name="pixelHeight">Pixel height at which text screens will be rendered</param>
         /// <param name="rows">Number of rows in the screen</param>
         /// <param name="columns">Number of columns in the screen</param>
         /// <exception cref="Exception">Thrown if the number of bytes does not match 2 * rows * columns</exception>
-        public TextScreen(byte[] screenData, int rows, int columns)
+        public TextScreen(byte[] screenData, byte[] fontData, int pixelHeight, int rows, int columns)
         {
             if (!(screenData.Length >= rows * columns * 2))
             {
@@ -39,6 +44,7 @@
 
             m_height = rows;
             m_width = columns;
+            m_pixelHeight = pixelHeight;
 
             m_backgroundColors = new Color[rows * columns];
             m_foregroundColors = new Color[rows * columns];
@@ -61,36 +67,26 @@
 
                 HasBlink |= (blink != 0);
             }
-        }
-
-        /// <summary>
-        /// Generate an ARGB(8,8,8,8) image from this text buffer
-        /// </summary>
-        /// <param name="fontData">Byte data for a TrueType font to render the text with.  Monospace strongly recommended.</param>
-        /// <param name="pixelHeight">Desired height for the output</param>
-        /// <param name="blinkOn">If True, then characters marked with "blink" will show background color only in this image</param>
-        /// <returns>A rendering of this text buffer</returns>
-        public Graphics.Image GenerateImage(byte[] fontData, int pixelHeight, bool blinkOn)
-        {
-            Font? consoleFont = null;
 
             using (MemoryStream fontDataStream = new MemoryStream(fontData))
             {
                 FontCollection fontCollection = new();
                 FontFamily consoleFontFamily = fontCollection.Add(fontDataStream, CultureInfo.InvariantCulture);
-                consoleFont = consoleFontFamily.CreateFont(pixelHeight / m_height); // Use whatever pixel value fits all the lines
+                m_glyphHeight = pixelHeight / m_height;
+                m_glyphWidth = m_glyphHeight / 2;  // Assume use of 8x16 style fonts
+                m_font = consoleFontFamily.CreateFont(m_glyphHeight); // Use whatever pixel value fits all the lines   
             }
+        }
 
-            RichTextOptions textOptions = new(consoleFont);
-            // Assume we are using a monospace font, so all upper-case chars have the same effective dimensions.  
-            // We're intentionally going to pack characters just a little too close together, so that any "block" characters don't end up with 
-            // fine lines in between.
-            FontRectangle dimensions = TextMeasurer.MeasureAdvance("A", textOptions);
-            float charHeight = dimensions.Height - 1;
-            float charWidth = dimensions.Width - 1;
-
+        /// <summary>
+        /// Generate an ARGB(8,8,8,8) image from this text buffer
+        /// </summary>
+        /// <param name="blinkOn">If True, then characters marked with "blink" will show background color only in this image</param>
+        /// <returns>A rendering of this text buffer</returns>
+        public Graphics.Image GenerateImage(bool blinkOn)
+        {
             float xOffset = 0, yOffset = 0;
-            using (Image<Argb32> bitmap = new Image<Argb32>((int)charWidth * m_width, pixelHeight))
+            using (Image<Argb32> bitmap = new Image<Argb32>(m_glyphWidth * m_width, m_pixelHeight))
             {
                 bitmap.Mutate(ctx =>
                 {
@@ -108,19 +104,19 @@
                             ctx.FillPolygon(
                                 backgroundColor,
                                 new PointF(xOffset, yOffset),
-                                new PointF(xOffset + charWidth + 1, yOffset),
-                                new PointF(xOffset + charWidth + 1, yOffset + charHeight),
-                                new PointF(xOffset, yOffset + charHeight));
+                                new PointF(xOffset + m_glyphWidth, yOffset),
+                                new PointF(xOffset + m_glyphWidth, yOffset + m_glyphHeight),
+                                new PointF(xOffset, yOffset + m_glyphHeight));
 
                             if (!(characterBlinking && blinkOn))
                             {
-                                ctx.DrawText($"{textCharacter}", consoleFont, foregroundColor, new PointF() { X = xOffset, Y = yOffset });
+                                ctx.DrawText($"{textCharacter}", m_font, foregroundColor, new PointF() { X = xOffset, Y = yOffset });
                             }
-                            xOffset += charWidth;
+                            xOffset += m_glyphWidth;
 
                             index++;
                         }
-                        yOffset += charHeight;
+                        yOffset += m_glyphHeight;
                     }
                 });
 

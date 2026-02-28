@@ -140,14 +140,25 @@ public partial class IntermissionLayer
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage, m_textUpscalingFactor), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
-            offsetY += (5 * drawArea.Height) / 4;
+            bool isFullscreen = IsFullscreenPatch(hud, NextMapInfo.TitlePatch, m_textUpscalingFactor);
+
+            hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage, m_textUpscalingFactor), 
+                out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
+
+            if (!isFullscreen) offsetY += 5 * drawArea.Height / 4;
+
             DrawMapTitle(hud, NextMapInfo, ref offsetY, m_textUpscalingFactor);
         }
         else
         {
+            bool isFullscreen = IsFullscreenPatch(hud, CurrentMapInfo.TitlePatch, m_textUpscalingFactor);
             DrawMapTitle(hud, CurrentMapInfo, ref offsetY, m_textUpscalingFactor);
-            hud.Image(FinishedImage, (0, offsetY) + GetPatchOffset(hud, FinishedImage, m_textUpscalingFactor), both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
+
+            if (!isFullscreen)
+            {
+                hud.Image(FinishedImage, (0, offsetY) + GetPatchOffset(hud, FinishedImage, m_textUpscalingFactor), 
+                    both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
+            }
         }
     }
 
@@ -155,10 +166,18 @@ public partial class IntermissionLayer
     {
         if (!string.IsNullOrEmpty(mapInfo.TitlePatch))
         {
-            hud.Image(mapInfo.TitlePatch, (0, offsetY) + GetPatchOffset(hud, mapInfo.TitlePatch, m_textUpscalingFactor),
-                out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: textUpscalingFactor);
-            offsetY += (5 * drawArea.Height) / 4;
-            return;
+            if (hud.Textures.TryGet(mapInfo.TitlePatch, out var handle, upscalingFactor: textUpscalingFactor))
+            {
+                bool isFullscreen = handle.Dimension.Width >= 320 || handle.Dimension.Height >= 200;
+                int drawY = isFullscreen ? 0 : offsetY;
+
+                hud.Image(mapInfo.TitlePatch, (0, drawY) + TranslateDoomOffset(handle.Offset),
+                    out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: textUpscalingFactor);
+
+                if (!isFullscreen) offsetY += 5 * drawArea.Height / 4;
+            }
+            
+            return; 
         }
 
         // TODO would look nicer if there was a large font for the level text
@@ -180,6 +199,15 @@ public partial class IntermissionLayer
         if (hud.Textures.TryGet(name, out var text, upscalingFactor: upscalingFactor))
             return TranslateDoomOffset(text.Offset);
         return Vec2I.Zero;
+    }
+
+    private static bool IsFullscreenPatch(IHudRenderContext hud, string patchName, int upscalingFactor)
+    {
+        if (string.IsNullOrEmpty(patchName)) return false;
+
+        if (hud.Textures.TryGet(patchName, out var handle, upscalingFactor: upscalingFactor))
+            return handle.Dimension.Width >= 320 || handle.Dimension.Height >= 200;
+        return false;
     }
 
     private void DrawStatistics(IHudRenderContext hud)
@@ -228,12 +256,12 @@ public partial class IntermissionLayer
             return;
 
         hud.Image("WITIME", (LeftOffsetTimeX, -OffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
-        RenderTime(LevelTimeSeconds, RightOffsetLevelTimeX, -OffsetY);
+        RenderTime(hud, LevelTimeSeconds, RightOffsetLevelTimeX, -OffsetY);
 
         if (ParTimeSeconds != 0)
         {
             hud.Image("WIPAR", (LeftOffsetParX, -OffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
-            RenderTime(ParTimeSeconds, 320 - LeftOffsetTimeX, -OffsetY);
+            RenderTime(hud, ParTimeSeconds, 320 - LeftOffsetTimeX, -OffsetY);
         }
 
         if (IntermissionState >= IntermissionState.ShowAllStats)
@@ -241,21 +269,21 @@ public partial class IntermissionLayer
             hud.Image("WIMSTT", (LeftOffsetTimeX, -TotalOffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
 
             int seconds = World.GlobalData.TotalTime / (int)Constants.TicksPerSecond;
-            RenderTime(seconds, RightOffsetLevelTimeX, -TotalOffsetY);
+            RenderTime(hud, seconds, RightOffsetLevelTimeX, -TotalOffsetY);
         }
+    }
 
-        string GetTimeString(int seconds)
-        {
-            int minutes = seconds / 60;
-            string secondsStr = (seconds % 60).ToString(CultureInfo.CurrentCulture).PadLeft(2, '0');
-            return $"{minutes}:{secondsStr}";
-        }
+    string GetTimeString(int seconds)
+    {
+        int minutes = seconds / 60;
+        string secondsStr = (seconds % 60).ToString(CultureInfo.CurrentCulture).PadLeft(2, '0');
+        return $"{minutes}:{secondsStr}";
+    }
 
-        void RenderTime(int seconds, int rightOffsetX, int y)
-        {
-            string levelTime = GetTimeString(seconds);
-            int fontSize = hud.GetFontMaxHeight(MainFont);
-            hud.Text(levelTime, MainFont, fontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
-        }
+    void RenderTime(IHudRenderContext hud, int seconds, int rightOffsetX, int y)
+    {
+        string levelTime = GetTimeString(seconds);
+        int fontSize = hud.GetFontMaxHeight(MainFont);
+        hud.Text(levelTime, MainFont, fontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
     }
 }
