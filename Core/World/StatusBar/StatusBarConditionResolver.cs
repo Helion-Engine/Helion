@@ -79,7 +79,7 @@ public static class StatusBarConditionResolver
             StatusBarConditionType.GameModeEq => CheckGameMode(gameConf, c.Param, equals: true),
             StatusBarConditionType.GameModeNeq => CheckGameMode(gameConf, c.Param, equals: false),
             
-            StatusBarConditionType.HudModeEq => CheckHudMode(world, c.Param),
+            StatusBarConditionType.HudModeEq => CheckHudMode(context, c.Param),
             
             // v1.1 Extensions
             StatusBarConditionType.AutomapModeEq => CheckAutomap(context, c.Param),
@@ -328,41 +328,12 @@ public static class StatusBarConditionResolver
         return equals ? (currentIndex == param) : (currentIndex != param);
     }
 
-    private static bool CheckHudMode(IWorld world, int param)
+    private static bool CheckHudMode(StatusBarContext context, int param)
     {
-        var layout = GetActiveStatusBarLayout(world);
-        int mode = layout?.FullscreenRender == true ? 1 : 0;
+        int mode = context.ActiveLayout?.FullscreenRender == true ? 1 : 0;
         return mode == param;
     }
     
-    private static StatusBarLayoutDef? GetActiveStatusBarLayout(IWorld world)
-    {
-        var sbarDef = world.ArchiveCollection.Definitions.StatusBarDefinition;
-        var layoutName = world.Config.Hud.StatusBarLayout.Value;
-        
-        if (!string.IsNullOrEmpty(layoutName))
-        {
-            foreach (StatusBarLayoutDef layout in sbarDef.StatusBars)
-            {
-                if (string.Equals(layout.Name, layoutName, StringComparison.OrdinalIgnoreCase))
-                    return layout;
-            }
-        }
-        
-        int index = world.Config.Hud.SbarHudMode.Value;
-        if (index >= 0 && index < sbarDef.StatusBars.Count)
-        {
-            return sbarDef.StatusBars[index];
-        }
-        
-        foreach (StatusBarLayoutDef t in sbarDef.StatusBars)
-        {
-            if (!t.FullscreenRender)
-                return t;
-        }
-        
-        return sbarDef.StatusBars.Count > 0 ? sbarDef.StatusBars[0] : null;
-    }
 
     private static bool CheckAutomap(StatusBarContext context, int param)
     {

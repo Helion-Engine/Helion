@@ -184,23 +184,20 @@ public partial class WorldLayer
         
         if (!string.IsNullOrEmpty(layoutName))
         {
-            foreach (StatusBarLayoutDef t in sbarDef.StatusBars)
+            for (int i = 0; i < sbarDef.StatusBars.Count; i++)
             {
-                if (t.Name.Equals(layoutName, StringComparison.OrdinalIgnoreCase))
-                    return t;
+                if (sbarDef.StatusBars[i].Name.Equals(layoutName, StringComparison.OrdinalIgnoreCase))
+                    return sbarDef.StatusBars[i];
             }
         }
         
         int manualIndex = m_config.Hud.SbarHudMode.Value;
         if (manualIndex >= 0 && manualIndex < sbarDef.StatusBars.Count)
-        {
             return sbarDef.StatusBars[manualIndex];
-        }
         
-        foreach (StatusBarLayoutDef t in sbarDef.StatusBars)
+        for (int i = 0; i < sbarDef.StatusBars.Count; i++)
         {
-            if (!t.FullscreenRender) 
-                return t;
+            if (!sbarDef.StatusBars[i].FullscreenRender) return sbarDef.StatusBars[i];
         }
         
         return sbarDef.StatusBars[0];
@@ -268,8 +265,9 @@ public partial class WorldLayer
 
             if (HasTicks)
             {
-                foreach (RenderStat renderStat in m_renderStats)
+                for (int i = 0; i < m_renderStats.Length; i++)
                 {
+                    var renderStat = m_renderStats[i];
                     renderStat.String.Clear();
                     (int current, int max) = renderStat.GetValues(World);
                     renderStat.String = AppendStatString(renderStat.String, current, max);
@@ -279,15 +277,17 @@ public partial class WorldLayer
                 }
             }
 
-            foreach (RenderStat renderStat in m_renderStats)
+            for (int i = 0; i < m_renderStats.Length; i++)
             {
+                var renderStat = m_renderStats[i];
                 maxLabelWidth = Math.Max(renderStat.RenderLabel.DrawArea.Width, maxLabelWidth);
                 maxValueWidth = Math.Max(renderStat.RenderValue.DrawArea.Width, maxValueWidth);
             }
 
             labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
-            foreach (RenderStat renderStat in m_renderStats)
+            for (int i = 0; i < m_renderStats.Length; i++)
             {
+                var renderStat = m_renderStats[i];
                 if (!renderStat.ShouldRender(World))
                     continue;
                 hud.Text(renderStat.RenderLabel, labelPos, both: align, alpha: m_hudAlpha);
@@ -296,8 +296,9 @@ public partial class WorldLayer
 
             labelPos = start;
 
-            foreach (RenderStat renderStat in m_renderStats)
+            for (int i = 0; i < m_renderStats.Length; i++)
             {
+                var renderStat = m_renderStats[i];
                 if (!renderStat.ShouldRender(World))
                     continue;
                 hud.Text(renderStat.RenderValue, labelPos, both: align, alpha: m_hudAlpha);
@@ -473,7 +474,7 @@ public partial class WorldLayer
             }
         }
 
-        var context = new StatusBarContext(World, Player, automapVisible, isWidescreen, fps, consoleMsg,
+        var context = new StatusBarContext(World, Player, activeLayout, automapVisible, isWidescreen, fps, consoleMsg,
             isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName));
         m_statusBarRenderer.Draw(hud, activeLayout, context, HasTicks, m_hudPaddingX);
     }
@@ -483,21 +484,27 @@ public partial class WorldLayer
         if (!WorldStatic.World.DrawHud)
             return;
 
-        if (Player.AnimationWeapon == null) return;
-        // When using palette mode disable boom colormaps for weapons
-        hudContext.DrawColorMap = ShaderVars.PaletteColorMode || Player.DrawInvulnerableColorMap();
-        IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
-        if (powerup is { DrawPowerupEffect: true })
-            hudContext.DrawFuzz = true;
+        if (Player.AnimationWeapon != null)
+        {
+            // When using palette mode disable boom colormaps for weapons
+            if (ShaderVars.PaletteColorMode)
+                hudContext.DrawColorMap = true;
+            else
+                hudContext.DrawColorMap = Player.DrawInvulnerableColorMap();
+                
+            IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
+            if (powerup is { DrawPowerupEffect: true })
+                hudContext.DrawFuzz = true;
 
-        // Push the gun sprite up based on the status bar height
-        int yOffset = HudView.GetWeaponOffset(GetActiveStatusBarLayout());
-        DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
-        if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
-            DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
+            // Push the gun sprite up based on the status bar height
+            int yOffset = HudView.GetWeaponOffset(GetActiveStatusBarLayout());
+            DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
+            if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
+                DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
 
-        hudContext.DrawColorMap = false;
-        hudContext.DrawFuzz = false;
+            hudContext.DrawColorMap = false;
+            hudContext.DrawFuzz = false;
+        }
     }
 
     private static short GetLightLevel(Player player)

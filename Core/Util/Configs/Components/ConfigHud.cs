@@ -4,6 +4,7 @@ using Helion.Resources.Definitions.StatusBar;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
+using Helion.World.StatusBar;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
@@ -179,10 +180,13 @@ public class ConfigHud: ConfigElement<ConfigHud>
 
     [ConfigInfo("Name of the status bar layout to use (from SBARDEF).")]
     [OptionMenu(OptionSectionType.Hud, "Status Bar Layout", spacer: true, isDynamicStringCycle: true)]
-    public readonly ConfigValue<string> StatusBarLayout = new("", NotEmpty);
-    
+    public readonly ConfigValue<string> StatusBarLayout = new("");
+
     [ConfigInfo("Selects the active SBARDEF layout index.")]
     public readonly ConfigValue<int> SbarHudMode = new(0, GreaterOrEqual(0));
+
+    [ConfigInfo("Size of the status bar.", legacy: true)]
+    public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal);
 
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
     [OptionMenu(OptionSectionType.Hud, "Status Bar Texture", dialogType: DialogType.TexturePicker)]

@@ -318,29 +318,25 @@ public partial class WorldLayer
         if (sbarDef.StatusBars.Count == 0)
             return;
 
-        var layoutNames = sbarDef.StatusBars
-            .Where(l => !string.IsNullOrEmpty(l.Name))
-            .Select(l => l.Name)
-            .ToList();
-        
-        if (layoutNames.Count == 0)
-            return;
+        var currentLayoutName = m_config.Hud.StatusBarLayout.Value;
+        int currentIndex = -1;
 
-        var currentName = m_config.Hud.StatusBarLayout.Value;
-        int currentIndex = string.IsNullOrEmpty(currentName) ? -1 : layoutNames.FindIndex(n => n.Equals(currentName, StringComparison.OrdinalIgnoreCase));
-        
-        int nextIndex;
-        if (currentIndex < 0)
+        for (int i = 0; i < sbarDef.StatusBars.Count; i++)
         {
-            // If current is not found or empty, start from first or last based on direction
-            nextIndex = increase ? 0 : layoutNames.Count - 1;
+            if (!sbarDef.StatusBars[i].Name.Equals(currentLayoutName, StringComparison.OrdinalIgnoreCase)) continue;
+            currentIndex = i;
+            break;
         }
-        else
+
+        int step = increase ? 1 : -1;
+        int nextIndex = (currentIndex + step + sbarDef.StatusBars.Count) % sbarDef.StatusBars.Count;
+        
+        while (string.IsNullOrEmpty(sbarDef.StatusBars[nextIndex].Name) && nextIndex != currentIndex)
         {
-            nextIndex = (currentIndex + (increase ? 1 : -1) + layoutNames.Count) % layoutNames.Count;
+            nextIndex = (nextIndex + step + sbarDef.StatusBars.Count) % sbarDef.StatusBars.Count;
         }
         
-        if (m_config.Hud.StatusBarLayout.Set(layoutNames[nextIndex]) == ConfigSetResult.Set)
-            World.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
+        if (m_config.Hud.StatusBarLayout.Set(sbarDef.StatusBars[nextIndex].Name) == ConfigSetResult.Set)
+            World.SoundManager.PlayStaticSound(MenuSounds.Change);
     }
 }

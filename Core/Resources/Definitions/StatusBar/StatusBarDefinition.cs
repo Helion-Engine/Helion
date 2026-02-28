@@ -20,7 +20,7 @@ public class StatusBarFileDef
 
 public class StatusBarDefinition
 {
-    public const string HiddenLayoutName = "Hidden";
+    private const string HiddenLayoutName = "{Helion:Hidden}";
     
     [JsonPropertyName("numberfonts")]
     public List<StatusBarNumberFontDef> NumberFonts { get; set; } = [];
