@@ -11,6 +11,7 @@
 - Fix vertical alignment for fullscreen CWILV## graphics in Intermissions (like in Eviternity.WAD)
 - Fix ZDoom-style message centering when using SBARDEF
 - Fix intermission exitpic from MAPINFO not being set on transition. Fixes Eviternity II.
+- Fix software emulation discarding extra sprite pixels on the backside of upper textures.
 
 ## Misc:
 - Added option to disable stats showing in automap
