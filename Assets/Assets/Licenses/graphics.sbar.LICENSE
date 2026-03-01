@@ -1,0 +1,69 @@
+Modified from: https://github.com/NightFright2k19/doom_sbardef
+
+The "Detailed" Status Bar layout and associated graphics located in the`Graphics/sbar/` directory 
+are based on the work of NightFright2k19's "doom_sbardef" repository which utilizes assets originating
+from The Eternity Engine.
+
+The Eternity Engine is Copyright (C) 2013 James Haley and Team Eternity.
+Licensed under the GNU General Public License Version 3 (GPLv3).
+
+======================================================================
+Additional Terms and Conditions for The Eternity Engine
+======================================================================
+
+Copyright (C) 2013 James Haley.
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+
+1. Additional Permission for Licensing Reciprocity
+
+   If code originating from a third-party program (henceforth referred to as
+   "project") covered under the terms of the GNU General Public License Version
+   2 or higher has been integrated into The Eternity Engine, permission is 
+   granted to re-incorporate into the original project any changes to that 
+   code made within The Eternity Engine under the terms of the same Version 2 
+   license, or any later version thereof, so long as the project meets the 
+   following criteria:
+   
+   a) The project does not contain any Technological Measure as defined by
+      article 11 of the WIPO copyright treaty adopted on 20 December 1996, or
+      similar laws prohibiting or restricting circumvention, for the purpose
+      of restricting the ability to freely execute or distribute the compiled
+      binary program code, whether or not any modifications are made to the
+      source code or binary image.
+   
+   b) The project is not dependent upon any undisclosed cryptographic keys used
+      for the purpose of signing code for execution on platforms where such 
+      signing is required in order for a modified version of the source code
+      to be compiled and executed in binary form by any recipient of the source
+      code, and a suitable replacement key cannot be obtained automatically by
+      an end user.
+      
+   c) The project does not require a written request for the source code, as
+      was allowed under GNU General Public License Version 2, Section 3, 
+      Item (b), unless the project is distributed only on a physical medium, as 
+      is allowed under GNU General Public License Version 3, Section 6, 
+      Item (b).
+      
+   If any of the above three conditions are not met, the project maintainers 
+   will be bound by the full terms of the GNU General Public License Version 3 
+   when adopting any changes made within The Eternity Engine.
+   
+2. Allowable Additional Restrictions
+
+   To the extent allowed by the GNU General Public License version 3, Section 7, 
+   the following terms and conditions apply to all code for which the only 
+   copyright owners are part of The Eternity Engine development team (also doing 
+   business as "Team Eternity"):
+   
+   a) Preservation of specified reasonable legal notices and author attributions
+      in the material taken from The Eternity Engine and in any Appropriate 
+      Legal Notices displayed is required.
+      
+   b) Misrepresentation of the origin of material taken from The Eternity Engine
+      is forbidden.
+
+   Source code files to which the terms in this section apply are clearly marked
+   in the files' headers to refer to this list of terms and conditions. Terms in
+   this Section shall not be construed so as to limit any rights granted by the
+   terms of Section 1.
