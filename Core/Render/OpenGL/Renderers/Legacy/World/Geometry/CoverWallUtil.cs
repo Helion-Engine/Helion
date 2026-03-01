@@ -1,7 +1,6 @@
 ﻿using Helion.World;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
-using Helion.World.Physics;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
@@ -75,10 +74,11 @@ public class CoverWallUtil
 
         // Do not add to upper portion of lower textures, or upper portion of lower textures
         // Adjust cover wall offsets to not block extra pixels from the the backside
-        return new Heights
-        (
-            location == WallLocation.Lower ? -(float)WorldStatic.LineVertexGap : ProjectHeight,
-            location == WallLocation.Upper ? (float)WorldStatic.LineVertexGap : ProjectHeight
-        );
+        return location switch
+        {
+            WallLocation.Upper => new Heights(ProjectHeight, -(float)WorldStatic.LineVertexGap),
+            WallLocation.Lower => new Heights(-(float)WorldStatic.LineVertexGap, ProjectHeight),
+            _ => new(ProjectHeight, ProjectHeight),
+        };
     }
 }
