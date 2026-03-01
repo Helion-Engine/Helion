@@ -356,11 +356,11 @@ public sealed class Sector3D
             {
                 case SectorLightFlags3D.ToNextTypeZero:
                     if (nextSector3D != currentLightSector3D && nextSector3D.LightFlags == SectorLightFlags3D.ToNextTypeZero)
-                        resetLight = true;
+                        return false;
                     break;
                 case SectorLightFlags3D.ToNextAny:
                     if (nextSector3D != currentLightSector3D && nextSector3D.LightFlags != SectorLightFlags3D.None)
-                        resetLight = true;
+                        return false;
                     break;
                 case SectorLightFlags3D.ToControlFloor:
                     if (nextSector3D == currentLightSector3D && nextPlane3D.Face == PlaneFace3D.Bottom)
