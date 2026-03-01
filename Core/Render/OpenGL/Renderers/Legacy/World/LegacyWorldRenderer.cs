@@ -373,8 +373,12 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_geometryRenderer.RenderStaticGeometryFlats();
             }
 
+            // Not yet supported in MRT shader
             if (WorldStatic.Sector3D)
+            {
+                m_staticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticFlats3D();
+            }
         }
 
         RenderTwoSidedMiddleWalls(renderInfo);
