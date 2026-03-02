@@ -481,7 +481,8 @@ public class LegacyWorldRenderer : WorldRenderer
         }
         else
         {
-            InterpolationShader program = m_downscaleVanillaBuffer ? m_interpolationPlaneClipProgram : m_interpolationPlaneClipMrtProgram;
+            InterpolationShader program = m_downscaleVanillaBuffer ? 
+                (WorldStatic.Sector3D ? m_interpolationPlaneClipAlphaProgram : m_interpolationPlaneClipAlphaProgram) : m_interpolationPlaneClipMrtProgram;
             program.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(program, renderInfo, false);
@@ -517,7 +518,8 @@ public class LegacyWorldRenderer : WorldRenderer
             }
             else
             {
-                StaticShader program = m_downscaleVanillaBuffer ? m_staticPlaneClipProgram : m_staticPlaneClipMrtProgram;
+                StaticShader program = m_downscaleVanillaBuffer ? 
+                    (WorldStatic.Sector3D ? m_staticPlaneClipAlphaProgram : m_staticPlaneClipProgram) : m_staticPlaneClipMrtProgram;
                 program.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 program.VertexGapClampUV(false);
