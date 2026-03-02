@@ -8,7 +8,6 @@ public enum GeometryType
     Wall,
     TwoSidedMiddleWall,
     Middle3D,
-    Flat3D,
     Flat,
 
     Fuzzy,

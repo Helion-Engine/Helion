@@ -323,8 +323,6 @@ public class LegacyWorldRenderer : WorldRenderer
             m_worldDataManager.RenderWalls();
             m_interpolationProgram.VertexGapClampUV(false);
             m_worldDataManager.RenderFlats();
-            if (WorldStatic.Sector3D)
-                m_worldDataManager.RenderFlats3D();
 
             if (m_renderStatic)
             {
@@ -335,8 +333,6 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_geometryRenderer.RenderStaticGeometryWalls();
                 m_staticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-                if (WorldStatic.Sector3D)
-                    m_geometryRenderer.RenderStaticFlats3D();
             }
 
             RenderTwoSidedMiddleWalls(renderInfo);
@@ -355,8 +351,6 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             m_interpolationProgram.VertexGapClampUV(false);
             m_worldDataManager.RenderFlats();
-            if (WorldStatic.Sector3D)
-                m_worldDataManager.RenderFlats3D();
         }
 
         if (m_renderStatic)
@@ -371,13 +365,6 @@ public class LegacyWorldRenderer : WorldRenderer
             {
                 m_staticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-            }
-
-            // Not yet supported in MRT shader
-            if (WorldStatic.Sector3D)
-            {
-                m_staticProgram.VertexGapClampUV(false);
-                m_geometryRenderer.RenderStaticFlats3D();
             }
         }
 
@@ -463,7 +450,7 @@ public class LegacyWorldRenderer : WorldRenderer
     }
 
     private void WritePlaneClipData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer, bool walls)
-    {
+    {        
         planeClipFrameBuffer.BindFrameBuffer();
         PlaneClipFrameBuffer.StartRender();
         GL.Disable(EnableCap.Blend);
@@ -499,13 +486,6 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(program, renderInfo, false);
             m_worldDataManager.RenderFlats();
-
-            if (WorldStatic.Sector3D)
-            {
-                m_interpolationPlaneClipAlphaProgram.Bind();
-                SetInterpolationUniforms(m_interpolationPlaneClipAlphaProgram, renderInfo, false);
-                m_worldDataManager.RenderFlats3D();
-            }
         }
 
         if (m_renderStatic)
@@ -543,13 +523,6 @@ public class LegacyWorldRenderer : WorldRenderer
                 program.VertexGapClampUV(false);
                 SetStaticUniforms(program, renderInfo);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-
-                if (WorldStatic.Sector3D)
-                {
-                    m_staticPlaneClipAlphaProgram.Bind();
-                    SetStaticUniforms(m_staticPlaneClipAlphaProgram, renderInfo);
-                    m_geometryRenderer.RenderStaticFlats3D();
-                }
             }
         }
 

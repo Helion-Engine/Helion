@@ -359,9 +359,6 @@ public partial class GeometryRenderer : IDisposable
     public void RenderStaticMiddle3D() =>
         m_staticCacheGeometryRenderer.RenderMiddle3D();
 
-    public void RenderStaticFlats3D() =>
-        m_staticCacheGeometryRenderer.RenderFlats3D();
-
     public void RenderStaticSkies(RenderInfo renderInfo) =>
          m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
 
@@ -1556,7 +1553,7 @@ public partial class GeometryRenderer : IDisposable
         var texture = m_glTextureManager.GetTexture(textureHandle);
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(textureHandle);
 
-        var geometryType = GetGeometryType(style, isSector3D ? GeometryType.Flat3D : GeometryType.Flat);
+        var geometryType = GetGeometryType(style, GeometryType.Flat);
         var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
         var flatChanged = FlatChanged(renderPlane);
         var sector = subsectors[0].Sector;

@@ -738,7 +738,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var geometryType = isSector3D ? GeometryType.Flat3D : GeometryType.Flat;
+        var geometryType = GeometryType.Flat;
 
         var vertices = GetTextureVertices(geometryType, textureHandle, true);
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, true, out var geometryData))
@@ -759,9 +759,6 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
     public void RenderMiddle3D() =>
          RenderGeometry(m_geometry.GetGeometry(GeometryType.Middle3D));
-
-    public void RenderFlats3D() =>
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat3D));
 
     public void RenderFlats() => 
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
