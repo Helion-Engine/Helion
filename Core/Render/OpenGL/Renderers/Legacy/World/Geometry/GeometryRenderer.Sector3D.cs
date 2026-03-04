@@ -313,14 +313,11 @@ public partial class GeometryRenderer
 
     private static bool ShouldSkipInsideSlice(in SectorPlane3D plane3D, in SectorPlane3D nextPlane3D, Sector sliceSector)
     {
-        if (plane3D.Sector3D != null && !plane3D.Sector3D.IsSolid)
-            return false;
-
         var sector3D = plane3D.Sector3D ?? nextPlane3D.Sector3D;
         return sector3D != null && plane3D.Face == PlaneFace3D.Top && nextPlane3D.Face == PlaneFace3D.Bottom &&
             sliceSector.Floor.Z < sliceSector.Ceiling.Z &&
             sector3D.IsLightTransfer == false &&
-            sector3D.RenderDataStyle == RenderDataStyle.Normal;
+            sector3D.RenderDataStyle == RenderDataStyle.Normal && sector3D.IsSolid;
     }
 
     private static void SetWallSliceSector(Side side, Sector wallSector3D, Sector wallSector)

@@ -69,6 +69,23 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+    [Fact(DisplayName = "Render lower slice with non-solid 3D sector")]
+    public void RenderLowerSliceWithNonSolidSector3D()
+    {
+        var sector = GameActions.GetSector(World, 4);
+        sector.Sectors3D.Length.Should().Be(3);
+
+        SetSlices(new WallSlice(0, -16, 128, (0, 0)),
+            new WallSlice(-16, -64, 128, (0, 16)));
+
+        var line = GameActions.GetLine(World, 20);
+        var result = GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Lower, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderLowerSlice);
+        AssertSlices();
+
+        // Sliced by water pool. Water is non-solid so the inside portion should render.
+        result.Vertices.Length.Should().Be(12);
+    }
+
     [Fact(DisplayName = "Render one-sided middle sector line sliced by single 3D sector with lower unpeg")]
     public void RenderOneSidedMiddleSliceLowerUnpeg()
     {
@@ -282,8 +299,10 @@ public class Sector3D_Walls
             facing.Floor.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
             AssertWallSliceOffset(args, slice);
+            return GeometryRenderer.RenderOneSidedSlice(args);
         }
-        return GeometryRenderer.RenderOneSidedSlice(args);
+
+        return RenderWallSliceResult.EmptyNoAddOffset;
     }
 
     private RenderWallSliceResult RenderUpperSlice(RenderWallSliceArgs args)
@@ -295,8 +314,10 @@ public class Sector3D_Walls
             other.Ceiling.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
             AssertWallSliceOffset(args, slice);
+            return GeometryRenderer.RenderOneSidedSlice(args);
         }
-        return GeometryRenderer.RenderOneSidedSlice(args);
+
+        return RenderWallSliceResult.EmptyNoAddOffset;
     }
 
     private RenderWallSliceResult RenderSlice3D(RenderWallSliceArgs args)
