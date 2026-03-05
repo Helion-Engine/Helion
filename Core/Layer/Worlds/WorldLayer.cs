@@ -79,6 +79,8 @@ public partial class WorldLayer : IGameLayerParent
     public bool ShouldFocus => !World.Paused || (World.IsChaseCamMode && !AnyLayerObscuring);
     private readonly Font DefaultFont;
 
+    private static StatusBarRenderer? StatusBarRenderer;
+
     public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, FpsTracker fpsTracker,
         SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)
     {
@@ -92,7 +94,9 @@ public partial class WorldLayer : IGameLayerParent
         m_profiler = profiler;
         World = world;
         CurrentMap = mapInfoDef;
-        m_statusBarRenderer = new StatusBarRenderer(World);
+
+        StatusBarRenderer ??= new StatusBarRenderer(world.ArchiveCollection);
+        m_statusBarRenderer = StatusBarRenderer;
 
         m_drawHudAction = new(DrawHudContext);
         m_renderWorldAction = new(RenderWorld);
