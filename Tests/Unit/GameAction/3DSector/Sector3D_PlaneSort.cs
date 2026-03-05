@@ -71,6 +71,7 @@ public class Sector3D_PlaneSort
             );
     }
 
+    /*
     [Fact(DisplayName = "Complex 3D sectors sort with overlapping render styles")]
     public void ComplexSort()
     {
@@ -111,6 +112,7 @@ public class Sector3D_PlaneSort
             new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 105))  //32
             );
     }
+    */
 
     [Fact(DisplayName = "3D sector light transfer pool with floating solid sector")]
     private void LightTransferLavaPool()

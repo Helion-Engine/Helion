@@ -18,7 +18,7 @@ namespace Helion.Tests.Unit.GameAction._3DSector;
 [Collection("GameActions")]
 public class Sector3D_Walls
 {
-    record struct WallSlice(double TopZ, double BottomZ, short LightLevel, Vec2D Offset);
+    record struct WallSlice(double TopZ, double BottomZ, short LightLevel, Vec2D Offset, Sector? LightSector = null);
 
     private readonly SinglePlayerWorld World;
     private readonly GeometryRenderer GeometryRenderer;
@@ -275,6 +275,111 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+    [Fact(DisplayName = "Light transfer type 0 (control ceiling to top of another type 0)")]
+    public void LightTransferType0()
+    {
+        var sector = GameActions.GetSector(World, 191);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        // No second light transfer type 0. Wall gets sliced but keeps the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (832, 0), GameActions.GetSector(World, 191)),
+            new WallSlice(128, 64, 192, (832, 384), GameActions.GetSector(World, 193)),
+            new WallSlice(64, 0, 192, (832, 448), GameActions.GetSector(World, 193)));
+
+        var line = GameActions.GetLine(World, 710);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+
+        sector = GameActions.GetSector(World, 194);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        // Second light transfer is completely clipped by the first so all keep the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (704, 0), GameActions.GetSector(World, 194)),
+            new WallSlice(128, 64, 192, (704, 384), GameActions.GetSector(World, 193)),
+            new WallSlice(64, 32, 192, (704, 448), GameActions.GetSector(World, 195)),
+            new WallSlice(32, 0, 192, (704, 480), GameActions.GetSector(World, 195)));
+
+        m_sliceIndex = 0;
+        line = GameActions.GetLine(World, 720);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+
+        sector = GameActions.GetSector(World, 196);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        // Second light transfer is completely clipped by the first so all keep the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (576, 0), GameActions.GetSector(World, 196)),
+            new WallSlice(128, 96, 192, (576, 384), GameActions.GetSector(World, 199)),
+            new WallSlice(96, 48, 192, (576, 416), GameActions.GetSector(World, 199)),
+            new WallSlice(48, 0, 192, (576, 464), GameActions.GetSector(World, 199)));
+
+        m_sliceIndex = 0;
+        line = GameActions.GetLine(World, 729);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light transfer type 1 (control ceiling to control floor)")]
+    public void LightTransferType1()
+    {
+        var sector = GameActions.GetSector(World, 200);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        // No second light transfer type 0. Wall gets sliced but keeps the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (384, 0), GameActions.GetSector(World, 200)),
+            new WallSlice(128, 64, 192, (384, 384), GameActions.GetSector(World, 204)),
+            new WallSlice(64, 0, 192, (384, 448), GameActions.GetSector(World, 200)));
+
+        var line = GameActions.GetLine(World, 742);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+
+        sector = GameActions.GetSector(World, 201);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        // Second light transfer is completely clipped by the first so all keep the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (256, 0), GameActions.GetSector(World, 201)),
+            new WallSlice(128, 64, 192, (256, 384), GameActions.GetSector(World, 204)),
+            new WallSlice(64, 32, 192, (256, 448), GameActions.GetSector(World, 205)),
+            new WallSlice(32, 0, 192, (256, 480), GameActions.GetSector(World, 201)));
+
+        m_sliceIndex = 0;
+        line = GameActions.GetLine(World, 746);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+
+        sector = GameActions.GetSector(World, 202);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        // Second light transfer is completely clipped by the first so all keep the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (128, 0), GameActions.GetSector(World, 202)),
+            new WallSlice(128, 96, 192, (128, 384), GameActions.GetSector(World, 203)),
+            new WallSlice(96, 48, 192, (128, 416), GameActions.GetSector(World, 207)),
+            new WallSlice(48, 0, 192, (128, 464), GameActions.GetSector(World, 207)));
+
+        m_sliceIndex = 0;
+        line = GameActions.GetLine(World, 750);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light transfer type 2 (control sector ceiling to any extra light)")]
+    public void LightTransferType2()
+    {
+        var sector = GameActions.GetSector(World, 216);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        // No second light transfer type 0. Wall gets sliced but keeps the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (0, 0), GameActions.GetSector(World, 216)),
+            new WallSlice(128, 96, 255, (0, 384), GameActions.GetSector(World, 218)),
+            new WallSlice(96, 64, 255, (0, 416), GameActions.GetSector(World, 217)),
+            new WallSlice(64, 0, 255, (0, 448), GameActions.GetSector(World, 217)));
+
+        var line = GameActions.GetLine(World, 803);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
         // This might change later where this is called with slices that have no height.
@@ -285,6 +390,10 @@ public class Sector3D_Walls
             args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
             args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
             args.LightSector.LightLevel.Should().Be(slice.LightLevel);
+
+            if (slice.LightSector != null)
+                args.LightSector.Should().Be(slice.LightSector);
+
             AssertWallSliceOffset(args, slice);
         }
         return GeometryRenderer.RenderOneSidedSlice(args);
