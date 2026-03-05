@@ -148,7 +148,10 @@ public partial class WorldLayer
                 }
             }
 
-            if (hasCenteredMessage) DrawCenterMessages(hud);
+            if (hasCenteredMessage)
+            {
+                DrawCenterMessages(hud);
+            }
             else if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
             {
                 DrawRecentConsoleMessages(hud);
@@ -474,9 +477,9 @@ public partial class WorldLayer
             }
         }
 
-        var context = new StatusBarContext(World, Player, activeLayout, automapVisible, isWidescreen, fps, consoleMsg,
-            isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName));
-        m_statusBarRenderer.Draw(hud, activeLayout, context, HasTicks, m_hudPaddingX);
+        var context = new StatusBarContext(World, Player, World.MapInfo, activeLayout, automapVisible, isWidescreen, fps, consoleMsg,
+            isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName), HasTicks);
+        m_statusBarRenderer.Draw(hud, activeLayout, context, m_hudPaddingX);
     }
     
     private void DrawWeapon(IHudRenderContext hud, HudRenderContext hudContext)

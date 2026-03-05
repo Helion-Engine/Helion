@@ -273,7 +273,7 @@ public partial class IntermissionLayer
         }
     }
 
-    string GetTimeString(int seconds)
+    static string GetTimeString(int seconds)
     {
         int minutes = seconds / 60;
         string secondsStr = (seconds % 60).ToString(CultureInfo.CurrentCulture).PadLeft(2, '0');
