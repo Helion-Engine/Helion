@@ -380,6 +380,23 @@ public class Sector3D_Walls
         AssertSlices();
     }
 
+    [Fact(DisplayName = "Light transfer type 2 (control sector ceiling to any extra light) with type 0 (control ceiling to control floor)")]
+    public void LightTransferType2WithType0()
+    {
+        var sector = GameActions.GetSector(World, 219);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        // No second light transfer type 0. Wall gets sliced but keeps the same light sector
+        SetSlices(new WallSlice(512, 128, 192, (0, 0), GameActions.GetSector(World, 219)),
+            new WallSlice(128, 96, 255, (0, 384), GameActions.GetSector(World, 221)),
+            new WallSlice(96, 64, 255, (0, 416), GameActions.GetSector(World, 220)),
+            new WallSlice(64, 0, 255, (0, 448), GameActions.GetSector(World, 221)));
+
+        var line = GameActions.GetLine(World, 814);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
         // This might change later where this is called with slices that have no height.

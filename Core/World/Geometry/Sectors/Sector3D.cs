@@ -354,10 +354,8 @@ public sealed class Sector3D
         {
             switch(currentLightSector3D.LightFlags)
             {
+                // These don't appear to work how they are documented. Both to next types need to allow another to render.
                 case SectorLightFlags3D.ToNextTypeZero:
-                    if (nextSector3D != currentLightSector3D && nextSector3D.LightFlags == SectorLightFlags3D.ToNextTypeZero)
-                        return false;
-                    break;
                 case SectorLightFlags3D.ToNextAny:
                     if (nextSector3D != currentLightSector3D && nextSector3D.LightFlags != SectorLightFlags3D.None)
                         return false;
