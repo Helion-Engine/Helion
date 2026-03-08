@@ -82,6 +82,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public bool Flood;
     public bool Silent;
     public bool NoAttack;
+    public bool HasDamageSector3D;
     public Sector3D? Sector3D;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
@@ -96,7 +97,11 @@ public sealed class Sector : IFloorCeilingAnchor
     public Sector SetTransferFloorLightSector;
     public Sector SetTransferCeilingLightSector;
 
+#if DEBUG
+    public SectorDamageSpecial? SectorDamageSpecial { get; private set; }
+#else
     public SectorDamageSpecial? SectorDamageSpecial;
+#endif
 
     private Box2D? m_boundingBox;
 
@@ -168,6 +173,7 @@ public sealed class Sector : IFloorCeilingAnchor
         Floor.Reset(m_initialLightLevel);
         Ceiling.Reset(m_initialLightLevel);
         Gravity = 1;
+        HasDamageSector3D = default;
 
         for (int i = 0; i < Sectors3D.Length; i++)
             Sectors3D[i].Reset();
@@ -280,6 +286,22 @@ public sealed class Sector : IFloorCeilingAnchor
 
         KillEffect = effect;
         DataChanges |= SectorDataTypes.KillEffect;
+    }
+
+    public void SetDamageSpecial(SectorDamageSpecial? special)
+    {
+        SectorDamageSpecial = special;
+
+        if (special == null)
+            return;
+
+        // Currently damage sectors are the only ones that need checking.
+        // Flag each sector if there is a potential damage sector so every entity doesn't needlessly iterate every 3D sector every tick.
+        for (int i = 0; i < TaggedSectors3D.Length; i++)
+        {
+            var sector = TaggedSectors3D[i];
+            sector.ParentSector.HasDamageSector3D = true;
+        }
     }
 
     public void PlaneTextureChange(SectorPlane sectorPlane)

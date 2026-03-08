@@ -259,10 +259,10 @@ public class SectorMoveSpecial : ISectorSpecial
                 m_world.SetPlaneTexture(Sector.Ceiling, MoveData.CeilingChangeTextureHandle.Value);
 
             if (MoveData.DamageSpecial != null)
-                Sector.SectorDamageSpecial = MoveData.DamageSpecial.Copy(Sector);
+                m_world.SetSectorDamageSpecial(Sector, MoveData.DamageSpecial.Copy(Sector));
 
             if ((MoveData.Flags & SectorMoveFlags.ClearDamage) != 0)
-                Sector.SectorDamageSpecial = null;
+                m_world.SetSectorDamageSpecial(Sector, null);
 
             if (MoveData.SectorEffect != null)
                 m_world.SetSectorEffect(Sector, MoveData.SectorEffect.Value);

@@ -1,6 +1,9 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Resources.IWad;
+using Helion.World.Cheats;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
@@ -14,6 +17,7 @@ namespace Helion.Tests.Unit.GameAction._3DSector;
 public class Sector3D_Map
 {
     private readonly SinglePlayerWorld World;
+    private Player Player => World.Player;
 
     public Sector3D_Map()
     {

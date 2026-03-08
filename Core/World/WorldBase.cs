@@ -60,7 +60,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using static Helion.Dehacked.DehackedDefinition;
 using static Helion.Util.Assertion.Assert;
@@ -1028,8 +1027,8 @@ public abstract partial class WorldBase : IWorld
 
                 entity.Sector.SectorDamageSpecial?.Tick(entity, DamageTickOptions.CheckOnFloor);
 
-                if (WorldStatic.Sector3D && entity.WaterControlSector != null)
-                    entity.WaterControlSector.SectorDamageSpecial?.Tick(entity, DamageTickOptions.CheckWaterControlSector);
+                if (WorldStatic.Sector3D && entity.Sector.HasDamageSector3D)
+                    CheckDamageSector3D(entity);
 
                 if (!WorldStatic.InfinitelyTallThings &&
                     (entity.HadOnEntity || entity.OnEntity() != null) &&
@@ -1053,6 +1052,27 @@ public abstract partial class WorldBase : IWorld
         PhysicsManager.EntityFallCheck(m_fallCheckEntities);
         m_fallCheckEntities.Clear();
         Profiler.World.TickEntity.Stop();
+    }
+
+    private static void CheckDamageSector3D(Entity entity)
+    {
+        for (int i = 0; i < entity.Sector.Sectors3D.Length; i++)
+        {
+            var sector3D = entity.Sector.Sectors3D[i];
+
+            if (sector3D.IsSolid)
+            {
+                if (entity.Position.Z != sector3D.ControlTop.Z)
+                    continue;
+            }
+            else
+            {
+                if (entity.Position.Z > sector3D.ControlTop.Z || entity.Position.Z + entity.Height < sector3D.ControlBottom.Z)
+                    continue;
+            }
+
+            sector3D.ControlSector.SectorDamageSpecial?.Tick(entity, DamageTickOptions.None);
+        }
     }
 
     private void TickPlayers()
@@ -4193,6 +4213,11 @@ public abstract partial class WorldBase : IWorld
     public void SetSectorKillEffect(Sector sector, InstantKillEffect effect)
     {
         sector.SetKillEffect(effect);
+    }
+
+    public void SetSectorDamageSpecial(Sector sector, SectorDamageSpecial? special)
+    {
+        sector.SetDamageSpecial(special);
     }
 
     public void SetSectorColorMap(Sector sector, Colormap? colormap)

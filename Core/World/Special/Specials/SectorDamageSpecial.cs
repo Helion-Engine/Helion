@@ -8,8 +8,8 @@ namespace Helion.World.Special.Specials;
 
 public enum DamageTickOptions
 {
-    CheckOnFloor = 1,
-    CheckWaterControlSector = 2
+    None = 0,
+    CheckOnFloor = 1
 }
 
 public class SectorDamageSpecial
@@ -95,17 +95,11 @@ public class SectorDamageSpecial
 
     protected bool ShouldDamage(Entity entity, DamageTickOptions options)
     {
-        var shouldDamage = false;
-        switch (options)
+        var shouldDamage = options switch
         {
-            case DamageTickOptions.CheckOnFloor:
-                shouldDamage = entity.OnSectorFloorZ(m_sector);
-                break;
-            case DamageTickOptions.CheckWaterControlSector:
-                shouldDamage = entity.WaterControlSector != null && entity.WaterSubmersionLevel > SubmersionLevel.None;
-                break;
-        }
-
+            DamageTickOptions.CheckOnFloor => entity.OnSectorFloorZ(m_sector),
+            _ => true,
+        };
         return m_damageInterval > 0 && m_damage > 0 && shouldDamage && (m_world.LevelTime % m_damageInterval) == 0;
     }
 

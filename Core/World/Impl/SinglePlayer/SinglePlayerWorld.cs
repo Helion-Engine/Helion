@@ -321,7 +321,7 @@ public class SinglePlayerWorld : WorldBase
             if (!((IWorld)this).IsSectorIdValid(model.SectorId))
                 continue;
 
-            Sectors[model.SectorId].SectorDamageSpecial = model.ToWorldSpecial(this);
+            SetSectorDamageSpecial(Sectors[model.SectorId], model.ToWorldSpecial(this));
         }
     }
 

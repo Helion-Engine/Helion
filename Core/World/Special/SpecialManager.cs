@@ -1215,22 +1215,22 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             case ZDoomSectorSpecialType.DamageNukage:
             case ZDoomSectorSpecialType.DamageHellslime:
-                sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType)));
                 break;
             case ZDoomSectorSpecialType.LightStrobeHurtDoom:
             case ZDoomSectorSpecialType.DamageSuperHell:
-                sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType), 5);
+                m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType), 5));
                 break;
             case ZDoomSectorSpecialType.DamageEnd:
-                sector.SectorDamageSpecial = new SectorDamageEndSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                m_world.SetSectorDamageSpecial(sector, new SectorDamageEndSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType)));
                 break;
         }
 
         if (sector.DamageAmount > 0)
-            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount, sector.DamageLeakiness, sector.DamageInterval);
+            m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, sector.DamageAmount, sector.DamageLeakiness, sector.DamageInterval));
 
         if (sector.KillEffect != InstantKillEffect.None)
-            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.KillEffect);
+            m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, sector.KillEffect));
     }
 
     private static int GetDamageAmount(ZDoomSectorSpecialType type)
@@ -2009,9 +2009,9 @@ public sealed class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.NextHighestFloor);
         m_world.SetPlaneTexture(sector.Floor, line.Front.Sector.Floor.TextureHandle);
-        sector.SectorDamageSpecial = null;
+        m_world.SetSectorDamageSpecial(sector, null);
 
-        SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
+        var moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
         return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultFloorSound);
     }
 
