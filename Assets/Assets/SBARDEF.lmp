@@ -7844,33 +7844,13 @@
                           "translucency": false,
                           "conditions": [
                             {
-                              "condition": 9,
-                              "param": 1,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 3,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 5,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 6,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 7,
+                              "condition": 5,
+                              "param": 0,
                               "param2": 0
                             }
                           ],
                           "children": [],
-                          "patch": "AMMOA0"
+                          "patch": "CLIPA0"
                         }
                       },
                       {
@@ -7883,33 +7863,8 @@
                           "translucency": false,
                           "conditions": [
                             {
-                              "condition": 9,
+                              "condition": 5,
                               "param": 1,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 2,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 4,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 5,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 6,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 7,
                               "param2": 0
                             }
                           ],
@@ -7927,33 +7882,8 @@
                           "translucency": false,
                           "conditions": [
                             {
-                              "condition": 9,
-                              "param": 1,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 2,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
+                              "condition": 5,
                               "param": 3,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 4,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 6,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 7,
                               "param2": 0
                             }
                           ],
@@ -7971,28 +7901,8 @@
                           "translucency": false,
                           "conditions": [
                             {
-                              "condition": 9,
-                              "param": 1,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
+                              "condition": 5,
                               "param": 2,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 3,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 4,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 9,
-                              "param": 5,
                               "param2": 0
                             }
                           ],
