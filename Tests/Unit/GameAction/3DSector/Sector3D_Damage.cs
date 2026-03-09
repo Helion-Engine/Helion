@@ -8,6 +8,8 @@ using Xunit;
 
 namespace Helion.Tests.Unit.GameAction._3DSector;
 
+
+[Collection("GameActions")]
 public class Sector3D_Damage
 {
     private readonly SinglePlayerWorld World;
