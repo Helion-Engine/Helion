@@ -31,6 +31,7 @@ public class UdmfLine : ILine
     public int Health;
     public int HealthGroup;
     public int LineId;
+    public int[] MoreLineIds = [];
     public bool DamageSpecial;
     public bool DeathSpecial;
     public bool WrapMidTex;

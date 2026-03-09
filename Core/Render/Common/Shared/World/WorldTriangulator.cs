@@ -1,6 +1,8 @@
 using System;
+using System.Runtime.CompilerServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Render.Common.Shared.World;
 using Helion.Util.Container;
 using Helion.World;
@@ -9,6 +11,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Geometry.Walls;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World;
@@ -17,23 +20,51 @@ public static class WorldTriangulator
 {
     public const double NoOverride = double.MaxValue;
 
-    public static void HandleOneSided(Side side, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse, ref WallVertices wall,
-        double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true)
+    public static void HandleOneSided(Side side, Side offsetSide, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse, ref WallVertices wall,
+        double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true, bool calculateUV = true)
     {
         Line line = side.Line;
+        GetLeftRightVertices(isFront, line, out var left, out var right);
 
-        Vec2F left = isFront ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFront ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
-        double topZ = overrideCeiling == NoOverride ? ceiling.Z + WorldStatic.LineVertexGap : overrideCeiling;
-        double bottomZ = overrideFloor == NoOverride ? floor.Z - WorldStatic.LineVertexGap : overrideFloor;
-        double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ + WorldStatic.LineVertexGap : overrideCeiling;
-        double prevBottomZ = overrideFloor == NoOverride ? floor.PrevZ - WorldStatic.LineVertexGap : overrideFloor;
+        double topZ, bottomZ, prevTopZ, prevBottomZ;
+        if (overrideCeiling == NoOverride)
+        {
+            topZ = ceiling.Z + WorldStatic.LineVertexGapTopZ;
+            prevTopZ = ceiling.PrevZ + WorldStatic.LineVertexGapTopZ;
+        }
+        else
+        {
+            topZ = overrideCeiling;
+            prevTopZ = overrideCeiling;
+        }
+
+        if (overrideFloor == NoOverride)
+        {
+            bottomZ = floor.Z - WorldStatic.LineVertexGapBottomZ;
+            prevBottomZ = floor.PrevZ - WorldStatic.LineVertexGapBottomZ;
+        }
+        else
+        {
+            bottomZ = overrideFloor;
+            prevBottomZ = overrideFloor;
+        }
 
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
-        WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = CalculateOneSidedWallUV(line, side, length, textureUVInverse, prevSpanZ, previous: true);
+        WallUV uv;
+        WallUV prevUV;
+
+        if (calculateUV)
+        {
+            uv = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, spanZ, previous: false);
+            prevUV = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, prevSpanZ, previous: true);
+        }
+        else
+        {
+            uv = default;
+            prevUV = default;
+        }
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
@@ -58,20 +89,28 @@ public static class WorldTriangulator
     }
 
     public static void HandleTwoSidedLower(Side facingSide, SectorPlane topFlat, SectorPlane bottomFlat,
-        in Vec2F textureUVInverse, bool isFrontSide, ref WallVertices wall)
+        in Vec2F textureUVInverse, bool isFrontSide, ref WallVertices wall, bool calculateUV = true)
     {
         Line line = facingSide.Line;
+        GetLeftRightVertices(isFrontSide, line, out var left, out var right);
 
-        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
-        double topZ = topFlat.Z + WorldStatic.LineVertexGap;
-        double bottomZ = bottomFlat.Z - WorldStatic.LineVertexGap;
-        double prevTopZ = topFlat.PrevZ + WorldStatic.LineVertexGap;
-        double prevBottomZ = bottomFlat.PrevZ - WorldStatic.LineVertexGap;
+        double topZ = topFlat.Z + WorldStatic.LineVertexGapTopZ;
+        double bottomZ = bottomFlat.Z - WorldStatic.LineVertexGapBottomZ;
+        double prevTopZ = topFlat.PrevZ + WorldStatic.LineVertexGapTopZ;
+        double prevBottomZ = bottomFlat.PrevZ - WorldStatic.LineVertexGapBottomZ;
 
         double length = line.GetLength();
-        WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
-        WallUV prevUV = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, prevTopZ, prevBottomZ, previous: true);
+        WallUV uv, prevUV;
+        if (calculateUV)
+        {
+            uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
+            prevUV = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, prevTopZ, prevBottomZ, previous: true);
+        }
+        else
+        {
+            uv = default;
+            prevUV = default;
+        }
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
@@ -98,7 +137,7 @@ public static class WorldTriangulator
     public static void HandleTwoSidedMiddle(Side facingSide,
         in Dimension textureDimension, in Vec2F textureUVInverse, in MidTexOpening opening, in MidTexOpening prevOpening,
         bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
-        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling, bool vertexGap = true)
+        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling, bool vertexGap = true, MidTexSpan? restrictSpan = null)
     {
         if (RenderBlock.IsBlocked(facingSide.Line))
         {
@@ -110,19 +149,19 @@ public static class WorldTriangulator
         // Set offset according to the scroll Y offset. The doom renderer would push the entire texture up/down.
         if (facingSide.ScrollData != null)
         {
-            offset += facingSide.ScrollData.OffsetMiddle.Y;
-            prevOffset += facingSide.ScrollData.LastOffsetMiddle.Y;
+            offset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Y;
+            prevOffset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Previous).Y;
         }
 
-        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes, vertexGap);
+        var drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes, vertexGap, restrictSpan);
         if (drawSpan.NotVisible())
         {
             nothingVisible = true;
             return;
         }
 
-        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
+        GetLeftRightVertices(isFrontSide, line, out var left, out var right);
+
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.TopZ, drawSpan.BottomZ, 
             drawSpan.VisibleTopZ, drawSpan.VisibleBottomZ, textureUVInverse, previous: false);
@@ -153,22 +192,43 @@ public static class WorldTriangulator
     }
 
     public static void HandleTwoSidedUpper(Side facingSide, SectorPlane topPlane, SectorPlane bottomPlane, in Vec2F textureUVInverse,
-        bool isFrontSide, ref WallVertices wall, double overrideTopZ = NoOverride)
+        bool isFrontSide, ref WallVertices wall, double overrideTopZ = NoOverride, bool calculateUV = true)
     {
         Line line = facingSide.Line;
+        GetLeftRightVertices(isFrontSide, line, out var left, out var right);
 
-        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
-        double topZ = overrideTopZ == NoOverride ? topPlane.Z + WorldStatic.LineVertexGap : overrideTopZ;
-        double bottomZ = bottomPlane.Z - WorldStatic.LineVertexGap;
-        double prevTopZ = overrideTopZ == NoOverride ? topPlane.PrevZ + WorldStatic.LineVertexGap : overrideTopZ;
-        double prevBottomZ = bottomPlane.PrevZ - WorldStatic.LineVertexGap;
+        double topZ, prevTopZ;
+        if (overrideTopZ == NoOverride)
+        {
+            topZ = topPlane.Z + WorldStatic.LineVertexGapTopZ;
+            prevTopZ = topPlane.PrevZ + WorldStatic.LineVertexGapTopZ;
+        }
+        else
+        {
+            topZ = overrideTopZ;
+            prevTopZ = overrideTopZ;
+        }
+
+        var bottomZ = bottomPlane.Z - WorldStatic.LineVertexGapBottomZ;
+        var prevBottomZ = bottomPlane.PrevZ - WorldStatic.LineVertexGapBottomZ;
 
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
-        WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
+        WallUV uv;
+        WallUV prevUV;
+
+        if (calculateUV)
+        {
+            uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: false);
+            prevUV = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
+        }
+        else
+        {
+            uv = default;
+            prevUV = default;
+        }
+
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
         wall.TopLeft.Z = (float)topZ;
@@ -191,7 +251,7 @@ public static class WorldTriangulator
         wall.PrevBottomZ = (float)prevBottomZ;
     }
 
-    public static unsafe void HandleSubsector(CompactBspTree bspTree, Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
+    public static unsafe void HandleSubsector(CompactBspTree bspTree, Subsector subsector, SectorPlane sectorPlane, bool floor, in Vec2F textureVector,
         DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
@@ -223,7 +283,7 @@ public static class WorldTriangulator
         int count = length - index;
         int add = 1;
 
-        if (sectorPlane.Facing == SectorPlaneFace.Floor)
+        if (floor)
         {
             edgeIndex = length - 1;
             add = -1;
@@ -308,7 +368,7 @@ public static class WorldTriangulator
     }
 
     private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, in MidTexOpening opening, in MidTexOpening prevOpening, 
-        in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes, bool vertexGap)
+        in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes, bool vertexGap, MidTexSpan? restrictSpan)
     {
         if (facingSide.Flags.WrapMidTex)
             return new(opening.BottomZ, opening.TopZ, opening.BottomZ, opening.TopZ, prevOpening.BottomZ, prevOpening.TopZ, prevOpening.BottomZ, prevOpening.TopZ);
@@ -341,35 +401,39 @@ public static class WorldTriangulator
         var visibleBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? bottomZ : Math.Max(bottomZ, opening.MinBottomZ);
         var visiblePrevBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? prevBottomZ : Math.Max(prevBottomZ, prevOpening.MinBottomZ);
 
+        if (restrictSpan.HasValue)
+        {
+            if (visibleTopZ > restrictSpan.Value.TopZ)
+                visibleTopZ = restrictSpan.Value.TopZ;
+            if (visiblePrevTopZ > restrictSpan.Value.PrevTopZ)
+                visiblePrevTopZ = restrictSpan.Value.PrevTopZ;
+            if (visibleBottomZ < restrictSpan.Value.BottomZ)
+                visibleBottomZ = restrictSpan.Value.BottomZ;
+            if (visiblePrevBottomZ < restrictSpan.Value.PrevBottomZ)
+                visiblePrevBottomZ = restrictSpan.Value.PrevBottomZ;
+        }
+
         if (vertexGap)
         {
-            return new(bottomZ - WorldStatic.LineVertexGap, topZ + WorldStatic.LineVertexGap, visibleBottomZ - WorldStatic.LineVertexGap, visibleTopZ + WorldStatic.LineVertexGap,
-                prevBottomZ - WorldStatic.LineVertexGap, prevTopZ + WorldStatic.LineVertexGap, visiblePrevBottomZ - WorldStatic.LineVertexGap, visiblePrevTopZ + WorldStatic.LineVertexGap);
+            return new(bottomZ - WorldStatic.LineVertexGapBottomZ, topZ + WorldStatic.LineVertexGapTopZ, visibleBottomZ - WorldStatic.LineVertexGapBottomZ, visibleTopZ + WorldStatic.LineVertexGapTopZ,
+                prevBottomZ - WorldStatic.LineVertexGapBottomZ, prevTopZ + WorldStatic.LineVertexGapTopZ, visiblePrevBottomZ - WorldStatic.LineVertexGapBottomZ, visiblePrevTopZ + WorldStatic.LineVertexGapTopZ);
         }
 
         return new(bottomZ, topZ , visibleBottomZ, visibleTopZ ,
             prevBottomZ, prevTopZ, visiblePrevBottomZ, visiblePrevTopZ);
     }
 
-    public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
+    public static WallUV CalculateOneSidedWallUV(Line line, Side side, Side offsetSide, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
         var absScaleX = Math.Abs(side.Middle.Scale.X);
         var absScaleY = Math.Abs(side.Middle.Scale.Y);
-        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
-        if (side.ScrollData != null)
+        var offsetU = (offsetSide.Offset.X + offsetSide.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (offsetSide.Offset.Y + offsetSide.Middle.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
+        if (offsetSide.ScrollData != null)
         {
-            if (previous)
-            {
-                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V / absScaleY;
-            }
-            else
-            {
-                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.OffsetMiddle.Y * textureUVInverse.V / absScaleY;
-            }
+            offsetU += (float)offsetSide.ScrollData.Offset(WallLocation.Middle, previous).X * textureUVInverse.U / absScaleX;
+            offsetV += (float)offsetSide.ScrollData.Offset(WallLocation.Middle, previous).Y * textureUVInverse.V / absScaleY;
         }
 
         float wallSpanU = (float)length * textureUVInverse.U;
@@ -403,16 +467,8 @@ public static class WorldTriangulator
         var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
-            if (previous)
-            {
-                offsetU += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.X / absScaleX;
-                offsetV += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.Y / absScaleY;
-            }
-            else
-            {
-                offsetU += (float)side.ScrollData.OffsetLower.X * textureUVInverse.X / absScaleX;
-                offsetV += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.Y / absScaleY;
-            }
+            offsetU += (float)side.ScrollData.Offset(WallLocation.Lower, previous).X * textureUVInverse.X / absScaleX;
+            offsetV += (float)side.ScrollData.Offset(WallLocation.Lower, previous).Y * textureUVInverse.Y / absScaleY;
         }       
 
         float wallSpanU = (float)length * textureUVInverse.X;
@@ -443,17 +499,12 @@ public static class WorldTriangulator
         double visibleTopZ, double visibleBottomZ, in Vec2F textureUVInverse, bool previous)
     {
         if (side.Flags.WrapMidTex)
-            return CalculateOneSidedWallUV(side.Line, side, length, textureUVInverse, visibleTopZ - visibleBottomZ, previous);
+            return CalculateOneSidedWallUV(side.Line, side, side, length, textureUVInverse, visibleTopZ - visibleBottomZ, previous);
 
         var absScaleX = Math.Abs(side.Middle.Scale.X);
         var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
         if (side.ScrollData != null)
-        {
-            if (previous)
-                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.X / absScaleX;
-            else
-                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.X / absScaleX;
-        }
+            offsetU += (float)side.ScrollData.Offset(WallLocation.Middle, previous).X * textureUVInverse.X / absScaleX;
 
         float wallSpanU = (float)length * textureUVInverse.X;
         float leftU = offsetU;
@@ -480,16 +531,8 @@ public static class WorldTriangulator
         var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
-            if (previous)
-            {
-                offsetU += (float)side.ScrollData.LastOffsetUpper.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.LastOffsetUpper.Y * textureUVInverse.V / absScaleY;
-            }
-            else
-            {
-                offsetU += (float)side.ScrollData.OffsetUpper.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.OffsetUpper.Y * textureUVInverse.V / absScaleY;
-            }
+            offsetU += (float)side.ScrollData.Offset(WallLocation.Upper, previous).X * textureUVInverse.U / absScaleX;
+            offsetV += (float)side.ScrollData.Offset(WallLocation.Upper, previous).Y * textureUVInverse.V / absScaleY;
         }
 
         float wallSpanU = (float)length * textureUVInverse.U;
@@ -513,4 +556,20 @@ public static class WorldTriangulator
 
         return new WallUV(new(leftU * side.Upper.Scale.X, topV * side.Upper.Scale.Y), new(rightU * side.Upper.Scale.X, bottomV * side.Upper.Scale.Y));
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void GetLeftRightVertices(bool isFront, Line line, out Vec2F left, out Vec2F right)
+    {
+        if (isFront)
+        {
+            left = new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
+            right = new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+        }
+        else
+        {
+            left = new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+            right = new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
+        }
+    }
+
 }

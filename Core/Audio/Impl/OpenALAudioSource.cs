@@ -17,6 +17,8 @@ public class OpenALAudioSource : IAudioSource
     private const ALSourcei SourceDistanceModel = (ALSourcei)53248;
     private const ALSourcei SourceRelative = (ALSourcei)0x202;
 
+    public float Pitch { get; set; } = 1f;
+
     private AudioData m_audioData;
 
     public event EventHandler? Completed;
@@ -49,6 +51,7 @@ public class OpenALAudioSource : IAudioSource
     {
         Owner = owner;
         AudioData = audioData;
+        Pitch = 1f;
 
         var rolloffFactor = 1f;
         var maxDistance = 65536.0f;

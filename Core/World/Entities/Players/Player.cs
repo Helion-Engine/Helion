@@ -52,6 +52,7 @@ public class Player : Entity
     private const int JumpDelayTicks = 7;
     private const int SlowTurnTicks = 6;
     private const double MaxPitch = Camera.MaxPitch;
+    public const double WaterJumpSpeed = 3.5;
     private static readonly PowerupType[] PowerupsWithBrightness = [PowerupType.LightAmp, PowerupType.Invulnerable];
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -118,6 +119,8 @@ public class Player : Entity
     // Possible line with middle texture clipping player's view.
     public bool ViewLineClip;
     public bool ViewPlaneClip;
+    public int AirSupplyTicks;
+    public int AirTicks;
 
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
@@ -175,6 +178,7 @@ public class Player : Entity
         StatusBar = new PlayerStatusBar(this);
         SetPlayerInfo();
         SetupEvents();
+        ResetAirSupply(false);
     }
 
     public void Set(int index, PlayerModel playerModel, Dictionary<int, EntityModelPair> entities, EntityDefinition definition, IWorld world)
@@ -219,6 +223,11 @@ public class Player : Entity
             SetAttacker(attacker.Entity);
         if (playerModel.Killer.HasValue && entities.TryGetValue(playerModel.Killer.Value, out var killer))
             m_killer = new WeakEntity(killer.Entity);
+
+        if (playerModel.AirTicks.HasValue)
+            AirTicks = playerModel.AirTicks.Value;
+        else
+            ResetAirSupply();
 
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
@@ -313,6 +322,7 @@ public class Player : Entity
         playerModel.ArmorDefinition = ArmorDefinition?.Name;
         playerModel.Armor = Armor;
         playerModel.PlayerStats = PlayerStats;
+        playerModel.AirTicks = AirTicks;
 
         Inventory.ToInventoryModel(playerModel.Inventory);
 
@@ -684,11 +694,30 @@ public class Player : Entity
         SetBob();
         SetViewHeight();
         SetRunningFrameState();
+        CheckAirSupply();
 
         if (IsDead())
             DeathTick();
 
         m_hasNewWeapon = false;
+    }
+
+    private void CheckAirSupply()
+    {
+        if (WaterSubmersionLevel < SubmersionLevel.Full || IsInvulnerable)
+            ResetAirSupply();
+        else
+            AirTicks--;
+
+        if (AirTicks < 0 && (World.Gametick & 31) == 0)
+            World.DamageEntity(this, null, Math.Abs(AirTicks) / (int)Constants.TicksPerSecond, DamageType.Drowning, thrust: Thrust.None);
+    }
+
+    public void ResetAirSupply(bool playSound = true)
+    {
+        if (playSound && AirTicks < 0)
+            World.SoundManager.CreateSoundOn(this, "*gasp", new(this));
+        AirTicks = World.MapInfo.AirSupply;
     }
 
     public override void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
@@ -827,7 +856,7 @@ public class Player : Entity
 
         if (movement != Vec3D.Zero)
         {
-            if (!OnGround && !Flags.NoGravity())
+            if (!OnGround && !Flags.NoGravity() && WaterSubmersionLevel == SubmersionLevel.None)
                 movement *= AirControl;
 
             Velocity.X += MathHelper.Clamp(movement.X, -MaxMovement, MaxMovement);
@@ -882,18 +911,17 @@ public class Player : Entity
             AngleRadians += MathHelper.GetPositiveAngle(TickCommand.MouseAngle);
             PitchRadians = AddPitch(PitchRadians, TickCommand.MousePitch);
         }
+
+        HasMovementXY = Math.Abs(movement.X) > 0 || Math.Abs(movement.Y) > 0;
+        HasMovementZ = movement.Z > 0;
     }
 
     private Vec3D CalculateForwardMovement(double speed)
     {
-        double x = Math.Cos(AngleRadians) * speed;
-        double y = Math.Sin(AngleRadians) * speed;
-        double z = 0;
+        if (Flags.NoGravity() || WaterSubmersionLevel > SubmersionLevel.None)
+            return Vec3D.UnitSphere(AngleRadians, PitchRadians) * speed;
 
-        if (Flags.NoGravity())
-            z = speed * PitchRadians;
-
-        return new Vec3D(x, y, z);
+        return new(Math.Cos(AngleRadians) * speed, Math.Sin(AngleRadians) * speed, 0);
     }
 
     private Vec3D CalculateStrafeMovement(double speed)
@@ -1185,17 +1213,25 @@ public class Player : Entity
     public double GetForwardMovementSpeed()
     {
         if (TickCommand.IsFastSpeed(WorldStatic.World.Config.Game.AlwaysRun))
-            return ForwardMovementSpeedRun;
+            return ForwardMovementSpeedRun * GetMoveSpeedFactor();
 
-        return ForwardMovementSpeedWalk;
+        return ForwardMovementSpeedWalk * GetMoveSpeedFactor();
     }
 
     public double GetSideMovementSpeed()
     {
         if (TickCommand.IsFastSpeed(WorldStatic.World.Config.Game.AlwaysRun))
-            return SideMovementSpeedRun;
+            return SideMovementSpeedRun * GetMoveSpeedFactor();
 
-        return SideMovementSpeedWalk;
+        return SideMovementSpeedWalk * GetMoveSpeedFactor();
+    }
+
+    private double GetMoveSpeedFactor()
+    {
+        if (WaterSubmersionLevel == SubmersionLevel.None)
+            return 1;
+
+        return 0.5;
     }
 
     public double GetTurnAngle()
@@ -1609,7 +1645,8 @@ public class Player : Entity
         if (damage < KillDamage)
         {
             damage = WorldStatic.World.SkillDefinition.GetDamage(damage);
-            damage = ApplyArmorDamage(damage);
+            if (damageType != DamageType.Drowning)
+                damage = ApplyArmorDamage(damage);
         }
 
         bool damageApplied = base.Damage(source, damage, setPainState, damageType);
@@ -1655,10 +1692,10 @@ public class Player : Entity
         WorldStatic.SoundManager.CreateSoundOn(this, "*land", new SoundParams(this));
     }
 
-    protected override void SetDeath(Entity? source, bool gibbed)
+    protected override void SetDeath(Entity? source, DamageType damageType, bool gibbed)
     {
         PlayerStats.DeathCount++;
-        base.SetDeath(source, gibbed);
+        base.SetDeath(source, damageType, gibbed);
         m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
 
         if (source != null)
@@ -1695,7 +1732,14 @@ public class Player : Entity
         {
             m_jumpStartZ = Position.Z;
             m_isJumping = true;
-            Velocity.Z += Properties.Player.JumpZ;
+
+            if (WaterSubmersionLevel == SubmersionLevel.None)
+            {
+                Velocity.Z = Properties.Player.JumpZ;
+                return;
+            }    
+
+            Velocity.Z = WaterJumpSpeed;
         }
     }
 
@@ -1726,7 +1770,9 @@ public class Player : Entity
         m_viewZ = MathHelper.Clamp(ViewHeight + m_viewBob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
     }
 
-    private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !WorldStatic.World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
+    private bool AbleToJump() => 
+         WaterSubmersionLevel > SubmersionLevel.LessThanHalf ||
+        (OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !WorldStatic.World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity());
 
     public override bool Equals(object? obj)
     {

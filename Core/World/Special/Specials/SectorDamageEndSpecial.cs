@@ -26,7 +26,7 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
         return model;
     }
 
-    public override void Tick(Entity entity)
+    public override void Tick(Entity entity, DamageTickOptions options)
     {
         if (entity.PlayerObj == null)
             return;
@@ -34,7 +34,7 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
         var player = entity.PlayerObj;
         m_world.CheatManager.DeactivateCheat(player, CheatType.God);
 
-        if (!ShouldDamage(player))
+        if (!ShouldDamage(player, options))
             return;
 
         m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);

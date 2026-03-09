@@ -12,7 +12,6 @@ using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -21,7 +20,7 @@ using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
-public class EntityRenderer : IDisposable
+public sealed class EntityRenderer : IDisposable
 {
     const int MinBarWidth = 20;
     const int MaxBarWidth = 80;
@@ -245,7 +244,7 @@ public class EntityRenderer : IDisposable
         var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         var texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
-        var sector = entity.Sector.GetRenderSector(m_transferHeightView);
+        var sector = entity.LightCeilingSector3D ?? entity.Sector.GetRenderSector(m_transferHeightView);
 
         int flipU;
         int offsetX = texture.Offset.X;
@@ -313,7 +312,7 @@ public class EntityRenderer : IDisposable
         vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, flipU, colorMapIndex, lightLevel);
-        vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
+        vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
@@ -481,19 +480,17 @@ public class EntityRenderer : IDisposable
 
         if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.Add))
         {
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+            LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.Add);
             m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
         }
 
         if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.ColorAdd))
         {
-            GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+            LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.ColorAdd);
             m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
         }
 
-        GL.BlendEquation(BlendEquationMode.FuncAdd);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
+        LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.Normal);
         m_programComposite.Unbind();
     }
 

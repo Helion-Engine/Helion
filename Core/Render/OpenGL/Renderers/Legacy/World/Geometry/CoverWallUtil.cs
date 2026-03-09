@@ -1,6 +1,7 @@
 ﻿using Helion.World;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
@@ -40,7 +41,7 @@ public class CoverWallUtil
         }
     }
 
-    public static unsafe void CopyCoverWallVertices(Side side, StaticVertex[] staticVertices, DynamicVertex[] vertices, int index, WallLocation location)
+    public static unsafe void CopyCoverWallVertices(Side side, StaticVertex[] staticVertices, Span<DynamicVertex> vertices, int index, WallLocation location)
     {
         var heights = GetProjectHeights(side, location);
         fixed (DynamicVertex* startVertex = &vertices[0])
@@ -68,6 +69,9 @@ public class CoverWallUtil
 
     private static Heights GetProjectHeights(Side side, WallLocation location)
     {
+        if (location == WallLocation.Middle3D)
+            return new Heights(0, 0);
+
         // Treat two-sided lines that block rendering as one-sided cover to prevent sprites from bleeding through.
         if (side.PartnerSide == null || RenderBlock.IsBlocked(side.Line))
             return new Heights(ProjectHeight, ProjectHeight);
@@ -76,8 +80,8 @@ public class CoverWallUtil
         // Adjust cover wall offsets to not block extra pixels from the the backside
         return location switch
         {
-            WallLocation.Upper => new Heights(ProjectHeight, -(float)WorldStatic.LineVertexGap),
-            WallLocation.Lower => new Heights(-(float)WorldStatic.LineVertexGap, ProjectHeight),
+            WallLocation.Upper => new Heights(ProjectHeight, -(float)WorldStatic.LineVertexGapBottomZ),
+            WallLocation.Lower => new Heights(-(float)WorldStatic.LineVertexGapTopZ, ProjectHeight),
             _ => new(ProjectHeight, ProjectHeight),
         };
     }

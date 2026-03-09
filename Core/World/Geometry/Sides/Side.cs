@@ -1,4 +1,3 @@
-using Helion.Dehacked;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
@@ -45,8 +44,8 @@ public sealed class Side
     public SideTexture FloodTextures;
     public byte LightLevel;
 
-    public bool IsFront => this == Line.Front;
-    public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
+    public bool IsFront;
+    public Side? PartnerSide;
 
     public SideScrollData? ScrollData;
 
@@ -62,6 +61,7 @@ public sealed class Side
     public int CeilingFloodKey;
     public SectorPlanes MidTextureFlood;
     public SideFlags Flags;
+    public float Alpha = 1f;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
         : this(id, offset, upper, middle, lower, sector, 0, false, false, false, false)
@@ -132,5 +132,15 @@ public sealed class Side
                 break;
         }
         Line.DataChanges |= LineDataTypes.Texture;
+    }
+
+    public override string ToString() => $"Id={Id} {GetSideToString()} | Line-{Line}";
+
+    private string GetSideToString()
+    {
+        if (PartnerSide == null)
+            return "1s";
+
+        return $"2s-{(IsFront ? "front" : "back")}";
     }
 }

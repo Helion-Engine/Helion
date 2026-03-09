@@ -1,5 +1,4 @@
 ﻿using Helion.Geometry.Segments;
-using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
@@ -75,6 +74,8 @@ public class UdmfGeometryBuilder
                 SkyFloor = mapSector.SkyFloor,
                 SkyCeiling = mapSector.SkyCeiling,
                 DamageInterval = mapSector.DamageInterval == 0 ? SectorDamageSpecial.DefaultDamageInterval : mapSector.DamageInterval,
+                MoreTags = mapSector.MoreTags,
+                LightColor = new(mapSector.LightColor)
             };
 
             if (mapSector.DamageAmount != 0)
@@ -133,6 +134,8 @@ public class UdmfGeometryBuilder
                 VanillaLineSpecTranslator.FinalizeLine(mapLine, line);
                 line.MapLineId = mapLine.LineId;
             }
+
+            line.MoreLineIds = mapLine.MoreLineIds;
 
             if (mapLine.Alpha != 1)
                 line.SetAlpha(mapLine.Alpha);

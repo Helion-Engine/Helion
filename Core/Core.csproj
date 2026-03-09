@@ -30,6 +30,6 @@
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
     <PackageReference Include="ini-parser-net8" Version="2.6.2.1" />
     <PackageReference Include="xBRZNet" Version="1.2.0" />
-    <PackageReference Include="zdbspSharp" Version="1.0.7" />
+    <PackageReference Include="zdbspSharp" Version="1.0.8" />
   </ItemGroup>
 </Project>

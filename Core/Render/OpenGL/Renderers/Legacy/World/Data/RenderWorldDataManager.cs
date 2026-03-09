@@ -7,9 +7,9 @@ using Helion.World.Geometry.Walls;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
-public class RenderWorldDataManager : IDisposable
+public sealed class RenderWorldDataManager : IDisposable
 {
-    private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup = new(() =>  new RenderWorldDataList());
+    private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup = new(() => new RenderWorldDataList());
     private RenderWorldData? m_coverWalls;
 
     public bool BufferCoverWalls = true;
@@ -30,7 +30,7 @@ public class RenderWorldDataManager : IDisposable
         return renderDataList.Add(texture, program, brightmapTexture);
     }
 
-    public void AddCoverWallVertices(Side side, DynamicVertex[] vertices, WallLocation location)
+    public void AddCoverWallVertices(Side side, Span<DynamicVertex> vertices, WallLocation location)
     {
         if (m_coverWalls == null || !BufferCoverWalls)
             return;
@@ -67,14 +67,24 @@ public class RenderWorldDataManager : IDisposable
         m_lookup.Get(GeometryType.TwoSidedMiddleWall).Draw();
     }
 
-    public void RenderAlphaWalls()
+    public void RenderMiddle3D()
     {
-        m_lookup.Get(GeometryType.AlphaWall).Draw();
+        m_lookup.Get(GeometryType.Middle3D).Draw();
     }
 
-    public bool HasAlphaWalls()
+    public bool HasAlpha()
     {
-        return m_lookup.Get(GeometryType.AlphaWall).RenderData.Count > 0;
+        return HasGeometryType(GeometryType.Translucent) || HasGeometryType(GeometryType.TranslucentAdd) || HasGeometryType(GeometryType.TranslucentColorAdd);
+    }
+
+    public bool HasStyle(RenderDataStyle style)
+    {
+        return m_lookup.Get(style.ToGeometryType()).RenderData.Count > 0;
+    }
+
+    public bool HasGeometryType(GeometryType type)
+    {
+        return m_lookup.Get(type).RenderData.Count > 0;
     }
 
     public void RenderFlats()
@@ -85,6 +95,23 @@ public class RenderWorldDataManager : IDisposable
     public void RenderCoverWalls()
     {
         m_coverWalls?.Draw();
+    }
+
+    public void RenderAllAlpha()
+    {
+        Render(GeometryType.Translucent);
+        Render(GeometryType.TranslucentAdd);
+        Render(GeometryType.TranslucentColorAdd);
+    }
+
+    public void Render(GeometryType type)
+    {
+        m_lookup.Get(type).Draw();
+    }
+
+    public void Render(RenderDataStyle style)
+    {
+        m_lookup.Get(style.ToGeometryType()).Draw();
     }
 
     public void Dispose()

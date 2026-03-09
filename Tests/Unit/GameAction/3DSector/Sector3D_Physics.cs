@@ -1,0 +1,193 @@
+﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
+using Helion.Resources.IWad;
+using Helion.World.Entities;
+using Helion.World.Impl.SinglePlayer;
+using System;
+using Xunit;
+
+namespace Helion.Tests.Unit.GameAction._3DSector;
+
+[Collection("GameActions")]
+public class Sector3D_Physics : IDisposable
+{
+    private readonly SinglePlayerWorld World;
+    private readonly Entity Imp;
+
+    public Sector3D_Physics()
+    {
+        World = WorldAllocator.LoadMap("Resources/sector3d-physics.zip", "sector3d-physics.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        Imp = GameActions.CreateEntity(World, "DoomImp", default, frozen: false);
+    }
+
+    public void Dispose()
+    {
+        GameActions.DestroyCreatedEntities(World);
+    }
+
+    [Fact(DisplayName = "Monster walks on 3D sector")]
+    public void MonsterWalkSector3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-576, -96, 96));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-576, -88, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-576, -80, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-576, -72, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-576, -64, 96));
+    }
+
+    [Fact(DisplayName = "Monster walks to same 3D sector")]
+    public void MonsterWalksToSameSector3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-616, -64, 96));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.West);
+        Imp.SetMoveDirection(Entity.MoveDir.West);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-624, -64, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-632, -64, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-640, -64, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-648, -64, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-656, -64, 96));
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-664, -64, 96));
+    }
+
+    [Fact(DisplayName = "Monster walks on 3D sector drop off")]
+    public void MonsterWalkDropOff3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-576, -32, 96));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Monster walks on 3D sector drop off stair line")]
+    public void MonsterWalkOnDropOffStairLine3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-296, 0, 16));
+        Imp.OnGround.Should().BeTrue();
+
+        // Can't walk up the stairs since drop off would be 32
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.West);
+        Imp.SetMoveDirection(Entity.MoveDir.West);
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+
+        // Can walk back down to floor
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.East);
+        Imp.SetMoveDirection(Entity.MoveDir.East);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+
+        // Can walk on same stair
+        GameActions.SetEntityPosition(World, Imp, (-296, 0, 16));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.South);
+        Imp.SetMoveDirection(Entity.MoveDir.South);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Monster falls on 3D sector")]
+    public void MonsterFallSector3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-576, -96, 128));
+        Imp.OnGround.Should().BeFalse();
+        GameActions.TickWorld(World, () => Imp.OnGround == false, () => { });
+        Imp.OnGround.Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-576, -96, 96));
+    }
+
+    [Fact(DisplayName = "Monster walks up 3D sector stairs")]
+    public void MonsterWalksUpStairSectors3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-248, -64, 0));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.West);
+        Imp.SetMoveDirection(Entity.MoveDir.West);
+        Imp.OnGround.Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-248, -64, 0));
+
+        var height = 16.0;
+        for (int step = 0; step < 6; step++)
+        {
+            for (int move = 0; move < 6; move++)
+            {
+                GameActions.MoveEnemy(Imp).Should().BeTrue();
+                Imp.Position.Z.Should().Be(height);
+            }
+            height += 16.0;
+        }
+    }
+
+    [Fact(DisplayName = "Monster walks down 3D sector stairs")]
+    public void MonsterWalksDownStairSectors3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-544, -64, 96));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.East);
+        Imp.SetMoveDirection(Entity.MoveDir.East);
+        Imp.OnGround.Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-544, -64, 96));
+
+        var height = 96.0;
+        for (int step = 0; step < 6; step++)
+        {
+            for (int move = 0; move < 6; move++)
+            {
+                GameActions.MoveEnemy(Imp).Should().BeTrue();
+                Imp.Position.Z.Should().Be(height);
+            }
+            height -= 16.0;
+        }
+    }
+
+    [Fact(DisplayName = "Monster steps up to 3D sector with 3D sector ceiling exact height")]
+    public void MonsterStepUpCeilingExact()
+    {        
+        GameActions.SetEntityPosition(World, Imp, (-576, 232, 16));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        Imp.LowestCeilingZ.Should().Be(1024);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-576, 240, 32));
+        Imp.LowestCeilingZ.Should().Be(88);
+    }
+
+    [Fact(DisplayName = "Monster doesn't step up to 3D sector with 3D sector ceiling too low")]
+    public void MonsterNoStepUpCeilingLow()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-384, 232, 16));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        Imp.LowestCeilingZ.Should().Be(1024);
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+        Imp.Position.Should().Be(new Vec3D(-384, 232, 16));
+        Imp.LowestCeilingZ.Should().Be(1024);
+    }
+
+    [Fact(DisplayName = "Monster blocked by two 3D sectors that are closed")]
+    public void MonsterBlockedByTwoClosedSectors3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-152, 296, 0));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Monster blocked my middle sector in between z and height")]
+    public void MonsterBlockedByMiddleSector3D()
+    {
+        GameActions.SetEntityPosition(World, Imp, (64, 296, 0));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+}

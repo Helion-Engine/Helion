@@ -6,6 +6,7 @@ namespace Helion.Models;
 public class EntityModel
 {
     public const int MidTexEntityFlag = 1 << 31;
+    public const int Sector3DEntityFlag = 1 << 30;
     public string Name = string.Empty;
     public int Id;
     public int ThingId;

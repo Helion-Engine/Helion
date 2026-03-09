@@ -44,6 +44,18 @@ public class Shoot
         GameActions.FindEntity(World, "Blood").Should().NotBeNull();
     }
 
+    [Fact(DisplayName = "Auto aim hitscan single bullet success with high pitch")]
+    public void AutoAimHighPitchSuccess()
+    {
+        var demon = GameActions.GetEntity(World, "Demon");
+        int startHealth = demon.Health;
+        Player.Position = (-256, -216, 0);
+        World.FirePlayerHitscanBullets(Player, 1, 0, 0, 0, 2048, true, DamageFunc);
+        Player.Position = (-256, -480, 0);
+        demon.Health.Should().Be(startHealth - 1);
+        GameActions.FindEntity(World, "Blood").Should().NotBeNull();
+    }
+
     [Fact(DisplayName = "Auto aim hitscan multiple bullets success")]
     public void AutoAimHitScanMultipleSuccess()
     {

@@ -21,6 +21,7 @@ public readonly struct UpdateParams(float distance)
 public interface IAudioSource : IDisposable
 {
     public event EventHandler? Completed;
+    float Pitch { get; set; }
 
     void SetPosition(float x, float y, float z);
     Vec3F GetPosition();

@@ -432,8 +432,13 @@ public class EntityManager : IDisposable
                 entity.HighestFloorZ = entity.HighestFloorSector.ToFloorZ(entity.Position);
                 entity.LowestCeilingZ = entity.LowestCeilingSector.ToCeilingZ(entity.Position);
 
-                entity.HighestFloorObject = GetBoundingObject(result, entity.HighestFloorSector, pair.Model.HighEntity);
-                entity.LowestCeilingObject = GetBoundingObject(result, entity.LowestCeilingSector, pair.Model.LowEntity);
+                entity.HighestFloorObject = GetBoundingObject(result, entity.HighestFloorSector, pair.Model.HighEntity, out var highFloorEntity);
+                entity.LowestCeilingObject = GetBoundingObject(result, entity.LowestCeilingSector, pair.Model.LowEntity, out var lowCeilEntity);
+                if (highFloorEntity != null)
+                    entity.SetHighestFloorEntity(highFloorEntity);
+                if (lowCeilEntity != null)
+                    entity.SetLowestCeilingEntity(lowCeilEntity);
+
                 entity.Position = new Vec3D(pair.Model.Box.CenterX, pair.Model.Box.CenterY, pair.Model.Box.CenterZ);
                 setOnGround = pair.Model.OnGround;
             }
@@ -457,10 +462,23 @@ public class EntityManager : IDisposable
         return player;
     }
 
-    private object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)
+    private IFloorCeilingAnchor GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId, out Entity? entity)
     {
+        entity = null;
         if (!entityId.HasValue)
             return sector;
+
+        if ((entityId & EntityModel.Sector3DEntityFlag) != 0)
+        {
+            int sectorId = entityId.Value & ~EntityModel.Sector3DEntityFlag;
+            if (World.SpecialManager.Sectors3D.TryGetValue(sectorId, out var sector3D))
+            {
+                entity = sector3D.GetSectorEntity3D();
+                return entity;
+            }
+
+            return sector;
+        }
 
         if ((entityId & EntityModel.MidTexEntityFlag) != 0)
         {
@@ -472,12 +490,14 @@ public class EntityManager : IDisposable
             if (!line.Flags.Blocking.MidTex3D)
                 return sector;
 
-            return World.Lines[lineId].GetMidTexEntity(World);
+            entity = World.Lines[lineId].GetMidTexEntity(World);
+            return entity;
         }
 
         if (!result.Entities.TryGetValue(entityId.Value, out var pair))
-            return false;
+            return sector;
 
+        entity = pair.Entity;
         return pair.Entity;
     }
 

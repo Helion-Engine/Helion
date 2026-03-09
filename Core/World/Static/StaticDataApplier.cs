@@ -114,13 +114,25 @@ public class StaticDataApplier
         if ((face & SectorPlanes.Ceiling) != 0)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
-            world.RenderBlockmap.LinkDynamic(world, sector);
+        if (sector.Sector3D == null)
+        {
+            if (ShouldLink(sector, sectorDynamic))
+                world.RenderBlockmap.LinkDynamic(world, sector);
+        }
+        else if (ShouldLink(sector.Sector3D.FakeSector, sectorDynamic))
+        {
+            world.RenderBlockmap.LinkDynamic(world, sector.Sector3D);
+        }
 
         if (sectorDynamic == SectorDynamic.Movement)
-            SetSectorDynamicMovement(world, sector);
+            SetSectorDynamicMovement(sector);
         else if (sectorDynamic == SectorDynamic.TransferHeights)
             SetSectorTransferHeights(sector);
+    }
+
+    private static bool ShouldLink(Sector sector, SectorDynamic sectorDynamic)
+    {
+        return sector.BlockmapNodes.Length == 0 && (sectorDynamic & (SectorDynamic.Movement | SectorDynamic.Scroll | SectorDynamic.Alpha)) != 0;
     }
 
     private static void SetSectorTransferHeights(Sector sector)
@@ -135,7 +147,7 @@ public class StaticDataApplier
         }
     }
 
-    private static void SetSectorDynamicMovement(WorldBase world, Sector sector)
+    private static void SetSectorDynamicMovement(Sector sector)
     {
         for (int i = 0; i < sector.Lines.Length; i++)
             SetDynamicMovement(sector.Lines[i]);
@@ -146,7 +158,7 @@ public class StaticDataApplier
         plane.Dynamic &= ~SectorDynamic.Movement;
 
         // Floor and ceiling can move independently so don't clear it yet.
-        if (plane.Sector.IsMoving || (plane.Dynamic & SectorDynamic.TransferHeights) != 0)
+        if (plane.Sector.IsMoving || (plane.Dynamic & SectorDynamic.TransferHeights) != 0 || (WorldStatic.Sector3D && plane.Sector.Sector3D != null && plane.Sector.Sector3D.ControlSector.IsMoving))
             return;
                 
         if ((plane.Sector.Floor.Dynamic & SectorDynamic.Scroll) == 0 && (plane.Sector.Ceiling.Dynamic & SectorDynamic.Scroll) == 0)

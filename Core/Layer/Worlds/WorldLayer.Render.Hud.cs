@@ -513,7 +513,7 @@ public partial class WorldLayer
     private static short GetLightLevel(Player player)
     {
         // TODO this should probably use RenderInfo
-        Sector sector = player.Sector.GetRenderSector(player.Sector, player.Position.Z + player.ViewHeight);
+        var sector = player.LightCeilingSector3D ?? player.Sector.GetRenderSector(player.Sector, player.Position.Z + player.ViewHeight);
         return (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
     }
 
@@ -550,7 +550,7 @@ public partial class WorldLayer
         if (colorMixUniforms.Sector != Vec3F.One)
             colorMix = colorMixUniforms.Sector;
 
-        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :
+        var lightLevelColor =
             ((byte)Math.Min(lightLevel * colorMix.X, 255),
             (byte)Math.Min(lightLevel * colorMix.Y, 255),
             (byte)Math.Min(lightLevel * colorMix.Z, 255));

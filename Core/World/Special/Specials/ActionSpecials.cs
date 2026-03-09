@@ -1,7 +1,10 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Maps.Components;
 using Helion.Maps.Specials;
 using Helion.Util;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
@@ -179,6 +182,18 @@ public static class ActionSpecials
     public static void TeleportEndGame(IWorld world)
     {
         world.ExitLevel(ExitLevelArgs.EndGame());
+    }
+
+    public static bool SectorSetColor(IWorld world, in SpecialArgs args)
+    {
+        var colormap = world.ArchiveCollection.Definitions.GetLevelSectorColormap(new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3));
+        var sectors = world.FindBySectorTag(args.Arg0);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+            world.SetSectorColorMap(sector, colormap);
+        }
+        return true;
     }
 
     private static Entity? GetActivator(Entity activator, IWorld world, int tid)
