@@ -2130,8 +2130,8 @@ public partial class GeometryRenderer : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        m_staticCacheGeometryRenderer.Dispose();
-        m_skyRenderer.Dispose();
-        Portals.Dispose();
+        m_staticCacheGeometryRenderer?.Dispose();
+        m_skyRenderer?.Dispose();
+        Portals?.Dispose();
     }
 }
