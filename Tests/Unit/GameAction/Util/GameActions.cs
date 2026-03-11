@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
+using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
@@ -20,6 +21,8 @@ using System.Reflection;
 
 namespace Helion.Tests.Unit.GameAction
 {
+    public record struct HitScanData(Vec3D Intersect, Entity? HitEntity, Line? HitLine, Sector? HitSector, SectorPlane? HitSectorPlane3D);
+
     public enum Bearing
     {
         East,
@@ -340,13 +343,33 @@ namespace Helion.Tests.Unit.GameAction
             return plasma != null;
         }
 
-        public static BlockmapIntersect? FireHitscanTest(WorldBase world, Entity entity)
+        public static HitScanData FireHitScanTest(WorldBase world, Entity entity, double distance = Constants.EntityShootDistance)
         {
-            Vec3D intersect = Vec3D.Zero;
-            double angle = entity.AngleRadians;
-            double pitch = entity.PlayerObj == null ? 0 : entity.PlayerObj.PitchRadians;
-            return world.FireHitScan(entity, entity.HitscanAttackPos, Vec3D.UnitSphere(entity.AngleRadians, 0) * Constants.EntityShootDistance, 
-                angle, pitch, Constants.EntityShootDistance, 5, HitScanOptions.Default, ref intersect, out _);
+            var angle = entity.AngleRadians;
+            var pitch = entity.PlayerObj == null ? 0 : entity.PlayerObj.PitchRadians;
+            var sinAngle = Math.Sin(angle);
+            var cosAngle = Math.Cos(angle);
+            var tanPitch = Math.Tan(pitch);
+            var zOffset = tanPitch * distance;
+
+            var intersect = Vec3D.Zero;
+            var start = entity.HitscanAttackPos;
+            var end = new Vec3D(start.X + cosAngle * distance, start.Y + sinAngle * distance, start.Z + zOffset);
+
+            var bi = world.FireHitScan(entity, start, end, 
+                angle, pitch, distance, 5, HitScanOptions.Default, Math.Tan(pitch), ref intersect, out var hitSector, out var hitPlane3D);
+
+            if (hitPlane3D != null)
+                return new HitScanData(intersect, null, null, null, hitPlane3D);
+
+            if (!bi.HasValue || hitSector != null)
+                return new(intersect, null, null, hitSector, null);
+
+            var type = bi.Value.GetIndex(out var index);
+            if (type == IntersectType.Line)
+                return new(intersect, null, world.Lines[world.Blockmap.BlockLines[index].LineId], hitSector, null);
+
+            return new(intersect, world.DataCache.Entities[index], null, hitSector, null);
         }
 
         public static void SetEntityOutOfBounds(WorldBase world, Entity entity)
@@ -558,7 +581,6 @@ namespace Helion.Tests.Unit.GameAction
             trueCount.Should().Be(trueField.Length);
         }
 
-
         public static void AssertBlockingLine(Entity entity, int lineId, bool blocks)
         {
             if (blocks)
@@ -570,6 +592,13 @@ namespace Helion.Tests.Unit.GameAction
             {
                 entity.BlockingBlockLineIndex.Should().NotBe(lineId);
             }
+        }
+
+        public static bool MoveEnemy(Entity entity)
+        {
+            var success = entity.MoveEnemy(out _);
+            entity.ResetInterpolation();
+            return success;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Container;
@@ -98,6 +99,12 @@ public class DynamicArray<T> : IList<T>
         if (Length == Capacity)
             SetCapacity(Capacity * 2);
 
+        Data[Length++] = element;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddUnsafe(T element)
+    {
         Data[Length++] = element;
     }
 

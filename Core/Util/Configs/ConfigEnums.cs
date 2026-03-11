@@ -6,13 +6,13 @@ using Helion.Util.Configs.Components;
 using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Entities.Players;
-using Helion.World.StatusBar;
 using OpenTK.Windowing.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Helion.World.StatusBar;
 
 namespace Helion.Util.Configs
 {

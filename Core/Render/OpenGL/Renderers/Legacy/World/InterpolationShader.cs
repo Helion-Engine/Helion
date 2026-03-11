@@ -165,7 +165,10 @@ public class InterpolationShader : RenderProgram
     protected override string FragmentShader()
     {
         if (this is InterpolationPlaneClipShader)
-            return PlaneClip.WritePlaneFragFunction();
+            return PlaneClip.WritePlaneFragFunction(PlaneClipFragOptions.None);
+
+        if (this is InterpolationPlaneClipAlphaShader)
+            return PlaneClip.WritePlaneFragFunction(PlaneClipFragOptions.AlphaSample);
 
         if (this is InterpolationWallClipShader)
             return PlaneClip.WriteWallFragFunction(WallClipFragOptions.None);
@@ -216,7 +219,7 @@ public class InterpolationShader : RenderProgram
                     float planeClipDepth = texelFetch(planeClipTexture, sampleCoords, 0).g;
                     // This is for alpha walls and vanilla rendering
                     // There is no depth buffer at this point so sample the plane clip texture to discard
-                    if (wallClipDepth < depthFrag || planeClipDepth < depthFrag)
+                    if (wallClipDepth <= depthFrag || planeClipDepth <= depthFrag)
                         discard;
                 }
 

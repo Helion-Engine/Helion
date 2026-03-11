@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -25,6 +24,9 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
 using Helion.World.Stats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Helion.World.Special;
 
@@ -36,6 +38,8 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     public const int MaxDest = 32000;
     public const int MinDest = -32000;
+
+    public readonly Dictionary<int, Sector3D> Sectors3D = [];
 
     private readonly LinkedList<ISpecial> m_specials = new();
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = [];
@@ -674,6 +678,54 @@ public sealed class SpecialManager : ITickable, IDisposable
         return spec;
     }
 
+    public void InitSectors3D()
+    {
+        var sectors3D = new List<Sector3D>();
+        var counts = new Dictionary<int, int>();
+        foreach (var line in m_world.Lines)
+        {
+            if (line.Special.LineSpecialType == ZDoomLineSpecialType.SectorSet3DFloor || line.Special.LineSpecialType == ZDoomLineSpecialType.TransferLight)
+                SetSector3DFloor(line, sectors3D, counts);
+        }
+
+        WorldStatic.Sector3D = sectors3D.Count > 0;
+        WorldStatic.InfinitelyTallThings = !WorldStatic.Sector3D && WorldStatic.InfinitelyTallThings;
+        if (sectors3D.Count == 0)
+            return;
+
+        foreach ((var sectorId, var count) in counts)
+        {
+            var sector = m_world.Sectors[sectorId];
+            sector.Sectors3D = new Sector3D[count];
+        }
+
+        sectors3D.Sort(SortBySectorId);
+        int lastSectorId = -1;
+        int index = 0;
+        for (int i = 0; i < sectors3D.Count; i++)
+        {
+            var sector3D = sectors3D[i];
+            var sector = m_world.Sectors[sector3D.ParentSectorId];
+
+            Sectors3D[sector3D.SectorId] = sector3D;
+
+            if (sector.Id != lastSectorId)
+            {
+                lastSectorId = sector.Id;
+                index = 0;
+            }
+
+            if (sector.Sectors3D.Length > index)
+                sector.Sectors3D[index] = sector3D;
+            index++;
+        }
+    }
+
+    private int SortBySectorId(Sector3D x, Sector3D y)
+    {
+        return x.ParentSectorId.CompareTo(y.ParentSectorId);
+    }
+
     public void StartInitSpecials(LevelStats levelStats, bool flagsOnly)
     {
         if (flagsOnly)
@@ -686,24 +738,33 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
         else
         {
+            var definitions = m_world.ArchiveCollection.Definitions;
+            definitions.ClearLevelSectorColorMaps();
+
             foreach (var line in m_world.Lines)
             {
                 if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
                     HandleLineInitSpecial(line);
+
+                if (line.Special != null && line.Special.LineSpecialType == ZDoomLineSpecialType.SectorSetColor)
+                    definitions.GetOrCreateLevelSectorColormap(new((byte)line.Args.Arg1, (byte)line.Args.Arg2, (byte)line.Args.Arg3));
             }
 
             for (int i = 0; i < m_world.Sectors.Count; i++)
             {
-                Sector sector = m_world.Sectors[i];
+                var sector = m_world.Sectors[i];
                 if (sector.Secret)
                     levelStats.TotalSecrets++;
                 HandleSectorSpecial(sector);
+
+                if (sector.LightColor.m_value > 0)
+                    sector.SetColorMap(definitions.GetOrCreateLevelSectorColormap(sector.LightColor));
             }
         }
     }
 
     // This is currently just for the id24 offset and rotate since it needs to set the FlatTransformMethod.
-    // Prevents the method from needing to be serialized and keeps saves backwards compatibile.
+    // Prevents the method from needing to be serialized and keeps saves backwards compatible.
     private void HandleLineInitSpecialFlag(Line line)
     {
         switch (line.Special.LineSpecialType)
@@ -790,6 +851,70 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.SetSectorColorMap:
                 SetSectorColorMap(line, true);
                 break;
+        }
+    }
+
+    private void SetSector3DFloor(Line specialLine, List<Sector3D> sectors3D, Dictionary<int, int> counts)
+    {
+        var sectors = GetSectorsFromSpecialLine(specialLine);
+        var sectorFlags = SectorFlags3D.None;
+        var type = (ZDoom3DFloorType)(specialLine.Args.Arg1 & 0x3);
+        var flags = (ZDoom3DFloorFlags)specialLine.Args.Arg2;
+        var alpha = specialLine.Args.Arg3 / 255f;
+        var lightFlags = SectorLightFlags3D.None;
+
+        switch(type)
+        {
+            case ZDoom3DFloorType.Solid:
+                sectorFlags |= SectorFlags3D.Solid;
+                break;
+            case ZDoom3DFloorType.Swimmable:
+                sectorFlags |= SectorFlags3D.Swim | SectorFlags3D.RenderInside;
+                break;
+            case ZDoom3DFloorType.NonSolid:
+                break;
+        }
+
+        if ((specialLine.Args.Arg1 & (int)ZDoom3DFloorFlagsForType.RenderInside) != 0)
+            sectorFlags |= SectorFlags3D.RenderInside;
+        if ((specialLine.Args.Arg1 & (int)ZDoom3DFloorFlagsForType.VisibilityInvert) != 0)
+            sectorFlags |= SectorFlags3D.SightInvert;
+        if ((specialLine.Args.Arg1 & (int)ZDoom3DFloorFlagsForType.ShootabilityInvert) != 0)
+            sectorFlags |= SectorFlags3D.ShootInvert;
+
+        sectorFlags |= (SectorFlags3D)((int)flags * 128 & ((int)SectorFlags3D.NoRender - 1));
+
+        if (specialLine.Special.LineSpecialType == ZDoomLineSpecialType.TransferLight)
+        {
+            lightFlags = (SectorLightFlags3D)specialLine.Args.Arg1 + 1;
+            sectorFlags = SectorFlags3D.NoRender | SectorFlags3D.LightTransfer;
+            alpha = 1;
+        }
+
+        var frontSector = specialLine.Front.Sector;
+        int taggedSectorIndex = 0;
+        if (frontSector.TaggedSectors3D.Length == 0)
+        {
+            frontSector.TaggedSectors3D = new Sector3D[sectors.Count];
+        }
+        else
+        {
+            taggedSectorIndex = frontSector.TaggedSectors3D.Length;
+            var newSectors = new Sector3D[taggedSectorIndex + sectors.Count];
+            Array.Copy(frontSector.TaggedSectors3D, newSectors, taggedSectorIndex);
+            frontSector.TaggedSectors3D = newSectors;
+        }
+
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors.GetSector(i);
+            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front, sectorFlags, lightFlags, alpha);
+            sectors3D.Add(sector3d);
+            frontSector.TaggedSectors3D[taggedSectorIndex++] = sector3d;
+            if (counts.TryGetValue(sector.Id, out var count))
+                counts[sector.Id] = ++count;
+            else
+                counts[sector.Id] = 1;
         }
     }
 
@@ -1090,22 +1215,22 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             case ZDoomSectorSpecialType.DamageNukage:
             case ZDoomSectorSpecialType.DamageHellslime:
-                sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType)));
                 break;
             case ZDoomSectorSpecialType.LightStrobeHurtDoom:
             case ZDoomSectorSpecialType.DamageSuperHell:
-                sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType), 5);
+                m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType), 5));
                 break;
             case ZDoomSectorSpecialType.DamageEnd:
-                sector.SectorDamageSpecial = new SectorDamageEndSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
+                m_world.SetSectorDamageSpecial(sector, new SectorDamageEndSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType)));
                 break;
         }
 
         if (sector.DamageAmount > 0)
-            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount, sector.DamageLeakiness, sector.DamageInterval);
+            m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, sector.DamageAmount, sector.DamageLeakiness, sector.DamageInterval));
 
         if (sector.KillEffect != InstantKillEffect.None)
-            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.KillEffect);
+            m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, sector.KillEffect));
     }
 
     private static int GetDamageAmount(ZDoomSectorSpecialType type)
@@ -1196,6 +1321,9 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.ThingDestroy:
                 return ActionSpecials.ThingDestroy(m_world, line.Args);
+
+            case ZDoomLineSpecialType.SectorSetColor:
+                return ActionSpecials.SectorSetColor(m_world, line.Args);
         }
 
         return false;
@@ -1712,6 +1840,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             var sector = sectors.GetSector(i);
             sector.TransferCeilingLightSector = line.Front.Sector;
+            sector.SetTransferCeilingLightSector = line.Front.Sector;
             m_world.SetSectorCeilingLightLevel(sector, line.Front.Sector.Ceiling.LightLevel);
         }
     }
@@ -1723,6 +1852,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             var sector = sectors.GetSector(i);
             sector.TransferFloorLightSector = line.Front.Sector;
+            sector.SetTransferFloorLightSector = line.Front.Sector;
             m_world.SetSectorFloorLightLevel(sector, line.Front.Sector.Floor.LightLevel);
         }
     }
@@ -1879,9 +2009,9 @@ public sealed class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.NextHighestFloor);
         m_world.SetPlaneTexture(sector.Floor, line.Front.Sector.Floor.TextureHandle);
-        sector.SectorDamageSpecial = null;
+        m_world.SetSectorDamageSpecial(sector, null);
 
-        SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
+        var moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
         return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultFloorSound);
     }
 
@@ -1930,7 +2060,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         if (line.Special.CanActivateByTag && ((options & SectorTagOptions.IncludeZero) != 0 || line.HasSectorTag))
             return new(m_world.FindBySectorTag(line.SectorTag));
         if (line.Special.CanActivateByBackSide && line.Back != null)
-            return new (line.Back.Sector);
+            return new(line.Back.Sector);
 
         return new(Array.Empty<Sector>());
     }

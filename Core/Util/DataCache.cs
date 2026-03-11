@@ -43,7 +43,7 @@ public class DataCache
 
     private readonly DynamicArray<int> m_entities = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
-    private readonly DynamicArray<LinkableNode<Island>> m_islandNodes = new(DefaultLength);
+    private readonly DynamicArray<LinkableNode<DynamicIsland>> m_islandNodes = new(DefaultLength);
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
     private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
@@ -212,7 +212,7 @@ public class DataCache
         m_entityNodes.Add(node);
     }
 
-    public LinkableNode<Island> GetLinkableNodeIsland(Island island)
+    public LinkableNode<DynamicIsland> GetLinkableNodeIsland(in DynamicIsland island)
     {
         if (m_islandNodes.Length > 0)
         {
@@ -221,14 +221,14 @@ public class DataCache
             return node;
         }
 
-        return new LinkableNode<Island> { Value = island };
+        return new LinkableNode<DynamicIsland> { Value = island };
     }
 
-    public void FreeLinkableNodeIsland(LinkableNode<Island> node)
+    public void FreeLinkableNodeIsland(LinkableNode<DynamicIsland> node)
     {
         node.Previous = null!;
         node.Next = null;
-        node.Value = null!;
+        node.Value = default;
         m_islandNodes.Add(node);
     }
 

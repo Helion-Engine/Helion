@@ -27,11 +27,14 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities;
 
+
 /// <summary>
 /// An actor in a world.
 /// </summary>
-public partial class Entity : IDisposable, ITickable, ISoundSource
+public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilingAnchor
 {
+    public const double WaterSinkSpeed = 0.5;
+    public const double WaterSinkFactor = 0.125;
     private const double Speed = 47000 / 65536.0;
     protected const int ForceGibDamage = ushort.MaxValue;
     protected const int KillDamage = ushort.MaxValue - 1;
@@ -43,6 +46,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Entity? Next;
     public Entity? Previous;
     public Line? MidTexLine;
+    public Sector3D? Sector3D;
 
     public Entity? RenderBlockNext;
     public Entity? RenderBlockPrevious;
@@ -57,6 +61,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Vec3D Position;
     public Vec3D Velocity;
     public IAudioSource? AudioSource;
+    public SubmersionLevel WaterSubmersionLevel;
+    public Sector? WaterControlSector;
 
     public int Health;
     public int MoveCount;
@@ -71,6 +77,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Entity? OnEntity() => m_onEntity != null && m_onEntity.Id == m_onEntityId ? m_onEntity : null;
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity? OverEntity() => m_overEntity != null && m_overEntity.Id == m_overEntityId ? m_overEntity : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity? LowestCeilingEntity() => LowestCeilingObject is Entity entity && entity.Id == m_lowCeilEntityId ? entity : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity? HighestFloorEntity() => HighestFloorObject is Entity entity && entity.Id == m_highFloorEntityId ? entity : null;
 
     public EntityDefinition Definition;
     public EntityProperties Properties;
@@ -86,9 +96,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Sector Sector;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
+    public Sector? LightCeilingSector3D;
     // Can be Sector or Entity
-    public object HighestFloorObject;
-    public object LowestCeilingObject;
+    public IFloorCeilingAnchor HighestFloorObject;
+    public IFloorCeilingAnchor LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public DynamicArray<Sector> IntersectSectors = new();
@@ -108,6 +119,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public bool Respawn;
     public bool HadOnEntity;
     public bool StealthVisible;
+    public bool HasMovementZ;
+    public bool HasMovementXY;
     public float Alpha;
     public RenderStyle RenderStyle;
 
@@ -160,6 +173,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     private int m_ownerId;
     private int m_onEntityId;
     private int m_overEntityId;
+    private int m_lowCeilEntityId;
+    private int m_highFloorEntityId;
 
     public Entity()
     {
@@ -203,6 +218,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         HighestFloorObject = sector;
         LowestCeilingSector = sector;
         LowestCeilingObject = sector;
+        LightCeilingSector3D = null;
         CheckOnGround();
 
         Threshold = 0;
@@ -259,6 +275,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         LowestCeilingSector = Sector;
         HighestFloorObject = Sector;
         LowestCeilingObject = Sector;
+        LightCeilingSector3D = null;
 
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
 
@@ -327,8 +344,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.HighSec = HighestFloorSector.Id;
         entityModel.LowSec = LowestCeilingSector.Id;
 
-        entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
-        entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
+        entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject, m_highFloorEntityId);
+        entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject, m_lowCeilEntityId);
         entityModel.OnGround = OnGround;
         entityModel.Gravity = Gravity;
         entityModel.Alpha = Alpha;
@@ -341,21 +358,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return entityModel;
     }
 
-    private static int? GetMidTexLine(object obj)
+    private static int? GetBoundingEntityForModel(IFloorCeilingAnchor obj, int validateEntityId)
     {
-        if (obj is not Entity entity || entity.MidTexLine == null)
-            return null;
-
-        return entity.MidTexLine.Id;
-    }
-
-    private static int? GetBoundingEntityForModel(object obj)
-    {
-        if (obj is not Entity entity)
+        if (obj is not Entity entity || entity.Id != validateEntityId)
             return null;
 
         if (entity.MidTexLine != null)
             return entity.MidTexLine.Id | EntityModel.MidTexEntityFlag;
+
+        if (entity.Sector3D != null)
+            return entity.Sector3D.SectorId | EntityModel.Sector3DEntityFlag;
+
+        if (entity.Id < 0)
+            return null;
 
         return entity.Id;
     }
@@ -400,6 +415,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     {
         m_owner = entity;
         m_ownerId = entity == null ? 0 : entity.Id;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetLowestCeilingEntity(Entity entity)
+    {
+        LowestCeilingObject = entity;
+        m_lowCeilEntityId = entity.Id;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetHighestFloorEntity(Entity entity)
+    {
+        HighestFloorObject = entity;
+        m_highFloorEntityId = entity.Id;
     }
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
@@ -562,7 +591,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public void Kill(Entity? source) =>
         Damage(source, Health, false, DamageType.AlwaysApply);
 
-    private void KillInternal(Entity? source)
+    private void KillInternal(Entity? source, DamageType damageType)
     {
         if (Health > 0)
             Health = 0;
@@ -577,9 +606,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             Flags.FlipMirror();
 
         if (gib && Definition.XDeathState != null)
-            SetXDeathState(source);
+            SetXDeathState(source, damageType);
         else
-            SetDeathState(source);
+            SetDeathState(source, damageType);
     }
 
     public void SetSpawnState()
@@ -606,12 +635,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             FrameState.SetFrameIndex(this, Definition.MeleeState.Value);
     }
 
-    public void SetDeathState(Entity? source)
+    public void SetDeathState(Entity? source, DamageType damageType)
     {
         // Doom didn't check null death states
         var deathState = Definition.DeathState ?? 0;       
         if (!IsDisposed)
-            SetDeath(source, false);
+            SetDeath(source, damageType, false);
                 
         FrameState.SetFrameIndex(this, deathState);
 
@@ -619,10 +648,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             SetDeathRandomizeTicks();
     }
 
-    public void SetXDeathState(Entity? source)
+    public void SetXDeathState(Entity? source, DamageType damageType)
     {
         if (!IsDisposed)
-            SetDeath(source, true);
+            SetDeath(source, damageType, true);
 
         if (Definition.XDeathState.HasValue)
             FrameState.SetFrameIndex(this, Definition.XDeathState.Value);
@@ -808,7 +837,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         if (Health <= 0)
         {
-            KillInternal(source);
+            KillInternal(source, damageType);
             return true;
         }
         else if (setPainState && !Flags.Skullfly() && Definition.PainState != null)
@@ -881,6 +910,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Flags.NoGravity())
             return false;
 
+        if (WaterSubmersionLevel >= SubmersionLevel.MoreThanHalf && HasMovementZ)
+            return false;
+
         return !OnGround;
     }
 
@@ -891,7 +923,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             return false;
 
         // Need to apply friction for player fly
-        return OnGround || Flags.Fly();
+        return OnGround || Flags.Fly() || WaterSubmersionLevel > SubmersionLevel.None;
     }
 
     /// <summary>
@@ -941,41 +973,68 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (!ShouldCheckDropOff())
             return true;
 
-        if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge())
-            return false;
-
         var maxStepHeight = GetMaxStepHeight();
+        var dropOffZ = tryMove.DropOffZ;
         // Walking on things test
         Entity? highestWalk = null;
         for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
-            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, tryMove.IntersectEntities2D[i], maxStepHeight);
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, tryMove.IntersectEntities2D.Data[i], maxStepHeight, ref dropOffZ);
 
         for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
-            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines[i]].GetMidTexEntity(World), maxStepHeight);
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines.Data[i]].GetMidTexEntity(World), maxStepHeight, ref dropOffZ);
 
+        if (WorldStatic.Sector3D)
+        {
+            WorldStatic.CheckCounter++;
+            for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
+                highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.IntersectSectors.Data[i], ref dropOffZ);
+
+            if (tryMove.Subsector != null)
+                highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.Subsector.Sector, ref dropOffZ);
+
+            if (tryMove.HasDropOff3D)
+                dropOffZ = tryMove.DropOffZ_3D;
+        }
+
+        tryMove.DropOffZ = dropOffZ;
         if (highestWalk != null && !highestWalk.Flags.ActLikeBridge() &&
             highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
             highestWalk.Position.Z + highestWalk.Height <= Position.Z)
             return false;
 
-        if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
-            return false;
+        // Entities can walk over the edge of another entity unlike normal sector lines.
+        // Check drop off from the entity they are on.
+        var onEntity = highestWalk ?? OnEntity();
+        if (onEntity != null && onEntity.Flags.ActLikeBridge())
+            return onEntity.Position.Z + onEntity.Height - dropOffZ <= maxStepHeight;
 
-        return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
+        return tryMove.HighestFloorZ - dropOffZ <= maxStepHeight;
     }
 
-    private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight)
+    private Entity? GetHighestWalkEntitySector3D(TryMoveData tryMove, double maxStepHeight, Entity? highestWalk, Sector sector, ref double dropOffZ)
+    {
+        if (sector.CheckCount == WorldStatic.CheckCounter)
+            return highestWalk;
+
+        sector.CheckCount = WorldStatic.CheckCounter;
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, sector.Sectors3D[i].GetSectorEntity3D(), maxStepHeight, ref dropOffZ);
+
+        return highestWalk;
+    }
+
+    private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight, ref double dropOffZ)
     {
         var topZ = entity.Position.Z + entity.Height;
 
-        if (CanBlockEntity(entity) && topZ >= tryMove.DropOffZ)
+        if (CanBlockEntity(entity) && topZ >= dropOffZ)
         {
             // Ignore if can't step up
             if (topZ > Position.Z && topZ - Position.Z > maxStepHeight)
                 return highestWalk;
 
             // ActLikeBridge takes precedence when z is equal
-            if (topZ == tryMove.DropOffZ)
+            if (topZ == dropOffZ)
             {
                 if (highestWalk == null || !highestWalk.Flags.ActLikeBridge())
                     highestWalk = entity;
@@ -986,7 +1045,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             }
 
             if (entity.Flags.ActLikeBridge())
-                tryMove.DropOffZ = topZ;
+                dropOffZ = topZ;
         }
 
         return highestWalk;
@@ -1073,6 +1132,65 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return (Flags.Flags3 & EntityFlags.TranslationFlag) >> 11;
     }
 
+    public void SetWaterSubmersionLevel()
+    {
+        if (!Sector.GetWaterSubmersionHeight(this, out var height, out var sector3d))
+        {
+            WaterControlSector = null;
+            WaterSubmersionLevel = SubmersionLevel.None;
+            return;
+        }
+
+        WaterControlSector = sector3d.ControlSector;
+        var depth = height - Position.Z;
+        if (depth <= 0)
+        {
+            WaterSubmersionLevel = SubmersionLevel.None;
+            return;
+        }
+
+        if (depth > Height / 2)
+        {
+            if (depth >= Height || (PlayerObj != null && depth >= PlayerObj.ViewHeight))
+                WaterSubmersionLevel = SubmersionLevel.Full;
+            else
+                WaterSubmersionLevel = SubmersionLevel.MoreThanHalf;
+        }
+        else
+        {
+            WaterSubmersionLevel = SubmersionLevel.LessThanHalf;
+        }
+    }
+
+    public bool IsNormalByContext(double heightZ, SolidContext context)
+    {
+        if (!WorldStatic.Sector3D)
+            return true;
+
+        var sector3d = GetSectorByHeight3D(heightZ);
+        if (sector3d == null)
+            return true;
+
+        if (context == SolidContext.LineOfSight)
+            return (sector3d.Flags & SectorFlags3D.SightInvert) == 0;
+
+        return (sector3d.Flags & SectorFlags3D.ShootInvert) == 0;
+    }
+
+    public Sector3D? GetSectorByHeight3D(double heightZ)
+    {
+        for (int i = 0; i < Sector.Sectors3D.Length; i++)
+        {
+            var sector3d = Sector.Sectors3D[i];
+            if (sector3d.ControlTop.Z < heightZ || sector3d.ControlBottom.Z > heightZ)
+                continue;
+
+            return sector3d;
+        }
+
+        return null;
+    }
+
     public void Dispose()
     {
         if (IsDisposed)
@@ -1107,6 +1225,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         m_overEntity = null;
         m_overEntityId = 0;
 
+        m_lowCeilEntityId = 0;
+        m_highFloorEntityId = 0;
+
         if (!WaitSoundDispose)
             FreeToDataCache();
 
@@ -1132,6 +1253,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         ChaseFailureSkipCount = 0;
         ClosetChaseSpeed = DefaultClosetChaseSpeed;
         Special = ZDoomLineSpecialType.None;
+        WaterSubmersionLevel = SubmersionLevel.None;
+        WaterControlSector = null;
     }
 
     private void FreeToDataCache()
@@ -1161,7 +1284,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Previous = null;
     }
 
-    protected virtual void SetDeath(Entity? source, bool gibbed)
+    protected virtual void SetDeath(Entity? source, DamageType damageType, bool gibbed)
     {
         if (Flags.Missile())
         {
@@ -1179,7 +1302,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
                 Flags.ClearNoGravity();
         }
 
-        WorldStatic.World.HandleEntityDeath(this, source, gibbed);
+        WorldStatic.World.HandleEntityDeath(this, source, damageType, gibbed);
     }
 
     [Conditional("DEBUG")]

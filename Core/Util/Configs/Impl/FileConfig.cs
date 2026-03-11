@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Helion.Util.SerializationContexts;
+using Helion.World.StatusBar;
 
 namespace Helion.Util.Configs.Impl;
 
@@ -93,6 +94,18 @@ public class FileConfig : Config
 
     private void MigrateValues()
     {
+        if (string.IsNullOrEmpty(Hud.StatusBarLayout.Value))
+        {
+            var oldSize = Hud.StatusBarSize.Value;
+            string migratedName = oldSize switch
+            {
+                StatusBarSizeType.Full => "Full",
+                StatusBarSizeType.Hidden => "Hidden",
+                _ => "Minimal"
+            };
+            Hud.StatusBarLayout.Set(migratedName);
+        }
+
         if (Hud.MoveBob.Value != 1.0)
         {
             Hud.ViewBob.Set(Hud.MoveBob.Value);

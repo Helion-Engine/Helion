@@ -35,11 +35,11 @@ public partial class TextureManager : ITickable
     private readonly HashSet<int> m_processedEntityDefinitions = [];
     private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = [];
     private int m_skyIndex;
-    private int m_blackTextureIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
     private readonly bool m_cacheAllSprites;
 
+    public int BlackTextureIndex;
     public int Ticks;
     public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
 
@@ -270,12 +270,7 @@ public partial class TextureManager : ITickable
     public Texture GetTexture(string name, ResourceNamespace resourceNamespace, ResourceNamespace? priority = null)
     {
         if (name.Equals(Constants.NoTexture, StringComparison.OrdinalIgnoreCase))
-        {
-            if (priority == ResourceNamespace.Flats)
-                return m_textures[m_blackTextureIndex];
-
             return m_textures[Constants.NoTextureIndex];
-        }
 
         if (m_unitTest)
             HandleUnitTestAdd(name, resourceNamespace, priority);
@@ -664,7 +659,7 @@ public partial class TextureManager : ITickable
 
     private Texture CreateBlackTexture(int index)
     {
-        m_blackTextureIndex = index;
+        BlackTextureIndex = index;
         return new Texture(Constants.BlackTextureName, ResourceNamespace.Textures, index)
         {
             Image = Image.CreateBlackImage()

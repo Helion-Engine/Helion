@@ -1,8 +1,10 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Walls;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using Xunit;
@@ -67,7 +69,7 @@ public class Scroll
             AssertTwoSidedScroll(line, (-1 * count, 0.5 * count));
         });
 
-        var offset = line.Front.ScrollData!.OffsetMiddle;
+        var offset = line.Front.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current);
         GameActions.TickWorld(World, 1);
         // Sector has completed movement so scrolling stops
         AssertTwoSidedScroll(line, offset);
@@ -94,27 +96,27 @@ public class Scroll
             AssertTwoSidedScroll(line, current);
         });
 
-        var offset = line.Front.ScrollData!.OffsetMiddle;
+        var offset = line.Front.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current);
         GameActions.TickWorld(World, 1);
         // Scroll keeps moving even though sector has stopped
-        line.Front.ScrollData.OffsetMiddle.Should().NotBe(offset);
+        line.Front.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Should().NotBe(offset);
 
         GameActions.ActivateLine(World, Player, 37, ActivationContext.UseLine);
         GameActions.RunSectorPlaneSpecial(World, GameActions.GetSectorByTag(World, 5), () => { });
-        offset = line.Front.ScrollData!.OffsetMiddle;
+        offset = line.Front.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current);
         GameActions.TickWorld(World, 1);
         // Scroll stops moving with sector back to start height
-        line.Front.ScrollData.OffsetMiddle.Should().Be(offset);
+        line.Front.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(offset);
     }
 
     private static void AssertTwoSidedScroll(Line line, Vec2D offset)
     { 
         line.Front.ScrollData.Should().NotBeNull();
-        line.Front.ScrollData!.OffsetMiddle.Should().Be(offset);
+        line.Front.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(offset);
   
         line.Back.Should().NotBeNull();
         line.Back!.ScrollData.Should().NotBeNull();
-        line.Front.ScrollData!.OffsetMiddle.Should().Be(offset);
-        line.Back.ScrollData!.OffsetMiddle.Should().Be(new Vec2D(-offset.X, offset.Y));
+        line.Front.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(offset);
+        line.Back.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current).Should().Be(new Vec2D(-offset.X, offset.Y));
     }
 }

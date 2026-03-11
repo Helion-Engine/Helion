@@ -35,6 +35,10 @@ public class ElevatorSpecial : ISectorSpecial
             new SectorMoveData(SectorPlaneFace.Ceiling, moveDirection, MoveRepetition.None, speed, 0), soundData);
 
         // Sector plane that can potentially be blocked needs to moved first
+        // Reverse when sector controls 3D sectors
+        if (sector.TaggedSectors3D.Length > 0)
+            moveDirection = moveDirection == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
+
         if (moveDirection == MoveDirection.Up)
         {
             m_firstMove = floor;

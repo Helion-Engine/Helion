@@ -1,10 +1,12 @@
 ﻿using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.World.Bsp;
+using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Islands;
+public readonly record struct DynamicIsland(Sector Sector, Island Island);
 
 /// <summary>
 /// A collection of lines and sectors that are reachable from each other by

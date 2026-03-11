@@ -137,7 +137,10 @@ public class StaticShader : RenderProgram
     protected override string FragmentShader()
     {
         if (this is StaticPlaneClipShader)
-            return PlaneClip.WritePlaneFragFunction();
+            return PlaneClip.WritePlaneFragFunction(PlaneClipFragOptions.None);
+
+        if (this is StaticPlaneClipAlphaShader)
+            return PlaneClip.WritePlaneFragFunction(PlaneClipFragOptions.AlphaSample);
 
         if (this is StaticWallClipShader)
             return PlaneClip.WriteWallFragFunction(WallClipFragOptions.None);

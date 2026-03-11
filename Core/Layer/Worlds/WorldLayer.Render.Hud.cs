@@ -2,7 +2,6 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Graphics.Fonts;
 using Helion.Layer.Worlds.StatusBar;
 using Helion.Render;
 using Helion.Render.Common;
@@ -19,7 +18,6 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.StatusBar;
 using Helion.Strings;
 using Helion.Util;
-using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Consoles;
@@ -34,7 +32,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -57,7 +54,6 @@ public partial class WorldLayer
     private const string SmallHudFont = Constants.Fonts.Small;
     private const string LargeHudFont = Constants.Fonts.LargeHud;
     private const string FixedNumberFont = Constants.Fonts.SmallGrayFixedWidthNumbers;
-    private int m_fontHeight = 16;
     private int m_padding = 4;
     private int m_hudPaddingX;
     private float m_scale = 1.0f;
@@ -67,7 +63,6 @@ public partial class WorldLayer
     private Dimension m_viewport;
     private readonly List<WorldMessage> m_messages = [];
 
-    private int m_healthWidth;
     private string m_weaponSprite = StringBuffer.GetStringExact(6);
     private string m_weaponFlashSprite = StringBuffer.GetStringExact(6);
     private string m_renderMessageBufferString = StringBuffer.GetString();
@@ -75,16 +70,7 @@ public partial class WorldLayer
     private readonly SpanString m_weaponFlashSpriteSpan = new("123456");
     
     private readonly StatusBarRenderer m_statusBarRenderer; 
-
-    private readonly SpanString m_healthString = new();
-    private readonly SpanString m_armorString = new();
-    private readonly SpanString m_ammoString = new();
-    private readonly SpanString m_maxAmmoString = new();
-
-    private readonly RenderableString m_renderHealthString;
-    private readonly RenderableString m_renderArmorString;
-    private readonly RenderableString m_renderAmmoString;
-
+    
     private readonly SpanString m_fpsString = new();
     private readonly SpanString m_fpsMinString = new();
     private readonly SpanString m_fpsMaxString = new();
@@ -98,10 +84,7 @@ public partial class WorldLayer
 
     private readonly RenderStat[] m_renderStats;
 
-    private readonly Font m_largeHudFont;
     private readonly List<StringSlice> m_lineWrapStrings = [];
-
-    private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset, bool Flash);
 
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)
     {
@@ -110,15 +93,10 @@ public partial class WorldLayer
         m_infoFontSize = Math.Max((int)(m_scale * DebugFontSize), 16);
         m_mapHeaderFontSize = Math.Max((int)(m_scale * MapFontSize), 20);
         m_padding = (int)(4 * m_scale);
-        m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
 
-        // Check SBARDEF coverage
         StatusBarLayoutDef? activeSbarLayout = GetActiveStatusBarLayout();
-        int? sbarHeight = activeSbarLayout != null 
-            ? (activeSbarLayout.FullscreenRender ? 0 : activeSbarLayout.Height) 
-            : null;
-        
+
         StatusBarCoverage sbarCoverage = StatusBarCoverage.None;
         if (activeSbarLayout != null)
         {
@@ -126,10 +104,10 @@ public partial class WorldLayer
         }
 
         if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)
-            DrawWeapon(hud, hudContext, sbarHeight);
+            DrawWeapon(hud, hudContext);
 
         if ((m_renderHudOptions & RenderHudOptions.Crosshair) != 0 && m_config.Hud.Crosshair)
-            DrawCrosshair(hud, sbarHeight);
+            DrawCrosshair(hud);
 
         if ((m_renderHudOptions & RenderHudOptions.Hud) != 0)
         {
@@ -146,7 +124,7 @@ public partial class WorldLayer
                 suppressStats: (sbarCoverage & StatusBarCoverage.Stats) != 0,
                 suppressTime: (sbarCoverage & StatusBarCoverage.Time) != 0);
 
-            DrawBottomHud(hud, topRightY, hudContext, automapVisible, activeSbarLayout);
+            DrawBottomHud(hud, automapVisible, activeSbarLayout);
             
             DrawHudEffects(hud);
             hud.DrawPalette(false);
@@ -170,7 +148,10 @@ public partial class WorldLayer
                 }
             }
 
-            if (hasCenteredMessage) DrawCenterMessages(hud);
+            if (hasCenteredMessage)
+            {
+                DrawCenterMessages(hud);
+            }
             else if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
             {
                 DrawRecentConsoleMessages(hud);
@@ -198,35 +179,31 @@ public partial class WorldLayer
         if (!WorldStatic.World.DrawHud)
             return null;
         
-        m_statusBarSizeType = m_config.Hud.StatusBarSize.Value;
-        
-        if (m_statusBarSizeType == StatusBarSizeType.Hidden)
+        var sbarDef = World.ArchiveCollection.Definitions.StatusBarDefinition;
+        if (sbarDef.StatusBars.Count == 0)
             return null;
 
-        var sbarDef = World.ArchiveCollection.Definitions.StatusBarDefinition;
-        if (sbarDef.StatusBars.Count > 0)
+        var layoutName = m_config.Hud.StatusBarLayout.Value;
+        
+        if (!string.IsNullOrEmpty(layoutName))
         {
-            // Manual overrides from console/config
-            int manualIndex = m_config.Hud.SbarHudMode.Value;
-            if (manualIndex >= 2 && manualIndex < sbarDef.StatusBars.Count)
+            for (int i = 0; i < sbarDef.StatusBars.Count; i++)
             {
-                return sbarDef.StatusBars[manualIndex];
-            }
-            
-            if (m_statusBarSizeType == StatusBarSizeType.Full)
-            {
-                return sbarDef.StatusBars.FirstOrDefault(layout => !layout.FullscreenRender);
-            }
-
-            if (m_statusBarSizeType == StatusBarSizeType.Minimal || 
-                m_statusBarSizeType == StatusBarSizeType.FullNoBackground)
-            {
-                return sbarDef.StatusBars.FirstOrDefault(layout => layout.FullscreenRender);
+                if (sbarDef.StatusBars[i].Name.Equals(layoutName, StringComparison.OrdinalIgnoreCase))
+                    return sbarDef.StatusBars[i];
             }
         }
         
-        // Fallback
-        return null;
+        int manualIndex = m_config.Hud.SbarHudMode.Value;
+        if (manualIndex >= 0 && manualIndex < sbarDef.StatusBars.Count)
+            return sbarDef.StatusBars[manualIndex];
+        
+        for (int i = 0; i < sbarDef.StatusBars.Count; i++)
+        {
+            if (!sbarDef.StatusBars[i].FullscreenRender) return sbarDef.StatusBars[i];
+        }
+        
+        return sbarDef.StatusBars[0];
     }
     
     private void SetHudPadding(IHudRenderContext hud)
@@ -245,16 +222,16 @@ public partial class WorldLayer
     private void DrawMapHeader(IHudRenderContext hud)
     {
         const int StatusBarSize = 32;
-        const int FaceSize = 24;
         float doomScale = hud.Dimension.Height / 200f;
         int padding = (int)(2 * m_scale);
         Vec2I pos = new(padding + m_hudPaddingX, -padding);
-        var offsetY = m_statusBarSizeType switch
+        
+        var activeLayout = GetActiveStatusBarLayout();
+        int offsetY = 0;
+        if (activeLayout != null)
         {
-            StatusBarSizeType.Hidden => 0,
-            StatusBarSizeType.Minimal => (int)(FaceSize * doomScale) + (int)(8 * doomScale),
-            _ => (int)(StatusBarSize * doomScale),
-        };
+            offsetY = activeLayout.FullscreenRender ? 0 : (int)(StatusBarSize * doomScale);
+        }
         pos.Y -= offsetY;
 
         string text = World.MapInfo.GetDisplayNameWithPrefix(World.ArchiveCollection.Language);
@@ -295,7 +272,7 @@ public partial class WorldLayer
                 {
                     var renderStat = m_renderStats[i];
                     renderStat.String.Clear();
-                    (var current, var max) = renderStat.GetValues(World);
+                    (int current, int max) = renderStat.GetValues(World);
                     renderStat.String = AppendStatString(renderStat.String, current, max);
                     renderStat.RenderLabel = SetRenderableString(renderStat.Label, renderStat.RenderLabel, FixedNumberFont, m_infoFontSize, useDoomScale: false);
                     renderStat.RenderValue = SetRenderableString(renderStat.String.AsSpan(), renderStat.RenderValue, FixedNumberFont, m_infoFontSize,
@@ -380,7 +357,7 @@ public partial class WorldLayer
 
         var box = GetNativeDrawBox();
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
-        if (powerup?.DrawColor != null && powerup.DrawPowerupEffect)
+        if (powerup is { DrawColor: not null, DrawPowerupEffect: true })
         {
             var alpha = powerup.DrawAlpha;
             if (powerup.PowerupType == PowerupType.Strength)
@@ -463,59 +440,49 @@ public partial class WorldLayer
     }
 
         
-    private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext, 
-        bool automapVisible, StatusBarLayoutDef? activeLayout)
+    private void DrawBottomHud(IHudRenderContext hud, bool automapVisible, StatusBarLayoutDef? activeLayout)
     {
         if (!WorldStatic.World.DrawHud)
             return;
 
-        // Always prioritize SBARDEF if a layout was resolved
-        if (activeLayout != null)
+        if (activeLayout == null) 
+            return;
+
+        bool isWidescreen = hud.WindowDimension.AspectRatio > 4.0f / 3.0f;
+        int fps = (int)Math.Round(m_fpsTracker.AverageFramesPerSecond);
+
+        string? consoleMsg = null;
+        bool isCentered = false; 
+
+        lock (m_console.Messages)
         {
-            bool isWidescreen = hud.WindowDimension.AspectRatio > (4.0f / 3.0f);
-            int fps = (int)Math.Round(m_fpsTracker.AverageFramesPerSecond);
-
-            string? consoleMsg = null;
-            bool isCentered = false; 
-
-            lock (m_console.Messages)
+            if (m_console.Messages.First != null)
             {
-                if (m_console.Messages.First != null)
+                var msg = m_console.Messages.First.Value;
+                if (Ticker.NanoTime() - msg.TimeNanos < Constants.MaxMessageVisibleTimeNanos)
                 {
-                    var msg = m_console.Messages.First.Value;
-                    if (Ticker.NanoTime() - msg.TimeNanos < Constants.MaxMessageVisibleTimeNanos)
-                    {
-                        isCentered = msg.IsCentered;
+                    isCentered = msg.IsCentered;
 
-                        if (!isCentered)
+                    if (!isCentered)
+                    {
+                        if (msg.StackCount > 1)
                         {
-                            if (msg.StackCount > 1)
-                            {
-                                var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
-                                var span = GetRenderMessageWithCount(worldMsg);
-                                consoleMsg = span.ToString(); 
-                            }
-                            else
-                            {
-                                consoleMsg = msg.Message;
-                            }
+                            var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
+                            var span = GetRenderMessageWithCount(worldMsg);
+                            consoleMsg = span.ToString(); 
                         }
+                        else consoleMsg = msg.Message;
                     }
                 }
             }
-
-            var context = new StatusBarContext(World, Player, automapVisible, isWidescreen, fps, consoleMsg, isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName));
-            m_statusBarRenderer.Draw(hud, activeLayout, context, HasTicks, m_hudPaddingX);
-            return;
         }
 
-        // Fallback to Hardcoded HUDs if no SBARDEF layout was found
-        if (m_statusBarSizeType == StatusBarSizeType.Minimal) { DrawMinimalStatusBar(hud, topRightY); return; }
-        else if (m_statusBarSizeType == StatusBarSizeType.Hidden) { return; }
-        DrawFullStatusBar(hud);
+        var context = new StatusBarContext(World, Player, World.MapInfo, activeLayout, automapVisible, isWidescreen, fps, consoleMsg,
+            isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName), HasTicks);
+        m_statusBarRenderer.Draw(hud, activeLayout, context, m_hudPaddingX);
     }
     
-    private void DrawWeapon(IHudRenderContext hud, HudRenderContext hudContext, int? sbarHeight = null)
+    private void DrawWeapon(IHudRenderContext hud, HudRenderContext hudContext)
     {
         if (!WorldStatic.World.DrawHud)
             return;
@@ -527,12 +494,13 @@ public partial class WorldLayer
                 hudContext.DrawColorMap = true;
             else
                 hudContext.DrawColorMap = Player.DrawInvulnerableColorMap();
+                
             IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
-            if (powerup != null && powerup.DrawPowerupEffect)
+            if (powerup is { DrawPowerupEffect: true })
                 hudContext.DrawFuzz = true;
 
             // Push the gun sprite up based on the status bar height
-            int yOffset = HudView.GetWeaponOffset(m_config.Hud.StatusBarSize.Value, GetActiveStatusBarLayout());
+            int yOffset = HudView.GetWeaponOffset(GetActiveStatusBarLayout());
             DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
             if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                 DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
@@ -545,7 +513,7 @@ public partial class WorldLayer
     private static short GetLightLevel(Player player)
     {
         // TODO this should probably use RenderInfo
-        Sector sector = player.Sector.GetRenderSector(player.Sector, player.Position.Z + player.ViewHeight);
+        var sector = player.LightCeilingSector3D ?? player.Sector.GetRenderSector(player.Sector, player.Position.Z + player.ViewHeight);
         return (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
     }
 
@@ -582,7 +550,7 @@ public partial class WorldLayer
         if (colorMixUniforms.Sector != Vec3F.One)
             colorMix = colorMixUniforms.Sector;
 
-        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :
+        var lightLevelColor =
             ((byte)Math.Min(lightLevel * colorMix.X, 255),
             (byte)Math.Min(lightLevel * colorMix.Y, 255),
             (byte)Math.Min(lightLevel * colorMix.Z, 255));
@@ -680,7 +648,7 @@ public partial class WorldLayer
         return sprite;
     }
     
-    private void DrawCrosshair(IHudRenderContext hud, int? sbarHeight = null)
+    private void DrawCrosshair(IHudRenderContext hud)
     {
         int Width = Math.Max((int)(1 * m_scale), 1);
         int HalfWidth = Math.Max(Width / 2, 1);
@@ -709,7 +677,7 @@ public partial class WorldLayer
             totalCrosshairLength += 1;
 
         Vec2I center = m_viewport.Vector / 2;
-        center -= HudView.GetViewPortOffset(m_config.Hud.StatusBarSize.Value, m_viewport, GetActiveStatusBarLayout());
+        center -= HudView.GetViewPortOffset(GetActiveStatusBarLayout(), m_viewport);
 
         Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);
         Vec2I vertical = center - new Vec2I(HalfWidth, crosshairLength);
@@ -763,13 +731,6 @@ public partial class WorldLayer
         _ => Color.White
     };
 
-    private void DrawMinimalStatusBar(IHudRenderContext hud, int topRightY)
-    {
-        DrawMinimalHudHealthAndArmor(hud);
-        DrawMinimalHudKeys(hud, topRightY);
-        DrawMinimalHudAmmo(hud);
-    }
-
     private static Color GetStatColor(int current, int total)
     {
         if (current >= total && total != int.MinValue)
@@ -784,397 +745,13 @@ public partial class WorldLayer
             return renderableString;
 
         renderableString.Set(World.ArchiveCollection.DataCache, charSpan, GetFontOrDefault(font),
-            fontSize, TextAlign.Left, drawColor: drawColor);
+            fontSize, drawColor: drawColor);
         if (useDoomScale)
             renderableString.DrawArea = new(renderableString.DrawArea.Width, (int)(renderableString.DrawArea.Height * DoomVerticalScale));
         return renderableString;
     }
 
     private bool HasTicks => m_lastTickInfo.Ticks > 0;
-
-    private void DrawMinimalHudHealthAndArmor(IHudRenderContext hud)
-    {
-        const string Medkit = "MEDIA0";
-
-        // We will draw the medkit slightly higher so it looks like it
-        // aligns with the font.
-        int x = m_padding + m_hudPaddingX;
-        int y = -m_padding;
-
-        bool hasArmorImage = false;
-        var armorProp = Player.ArmorProperties;
-        var armorDimension = new Dimension(0, 0);
-        if (armorProp != null && hud.Textures.HasImage(armorProp.Inventory.Icon))
-        {
-            armorDimension = GetDoomScaledImageArea(hud, armorProp.Inventory.Icon);
-            hasArmorImage = true;
-        }
-
-        // Force the column width to the maximum of armor / medkit images
-        // Custom images can change the dimensions and cause it to bump whem armor is picked up. Assume a 32 width for armor by default.
-        var medkitDimension = GetDoomScaledImageArea(hud, Medkit);
-        int setWidth = Math.Max(armorDimension.Width, medkitDimension.Width);
-        setWidth = Math.Max(setWidth, (int)(32 * m_scale));
-        int textStartX = m_hudPaddingX + setWidth + m_padding * 2;
-
-        x += (setWidth - medkitDimension.Width) / 2;
-        DrawDoomScaledImage(hud, Medkit, (x, y), out var medkitArea, both: Align.BottomLeft, alpha: m_hudAlpha);
-        x = textStartX;
-
-        m_healthString.Clear();
-        m_healthString.Append(Math.Max(0, Player.Health));
-
-        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, m_fontHeight);
-        hud.Text(m_renderHealthString, (x, y), both: Align.BottomLeft, alpha: m_hudAlpha);
-
-        // This is to make sure the face never moves (even if the health changes).
-        if (HasTicks)
-            m_healthWidth = hud.MeasureText("9999", LargeHudFont, m_fontHeight).Width;
-        x += m_healthWidth;
-        int highestX = x;
-
-        DrawDoomScaledImage(hud, Player.StatusBar.GetFacePatch(), (x, y), out var faceArea, both: Align.BottomLeft, alpha: m_hudAlpha);
-
-        if (Player.Armor > 0)
-        {
-            x = m_hudPaddingX + m_padding + (setWidth - armorDimension.Width) / 2;
-            y -= medkitArea.Height + m_padding;
-
-            if (armorProp != null && hasArmorImage)
-                DrawDoomScaledImage(hud, armorProp.Inventory.Icon, (x, y), out var armorArea, both: Align.BottomLeft, alpha: m_hudAlpha);
-
-            x = textStartX;
-
-            m_armorString.Clear();
-            m_armorString.Append(Player.Armor);
-            SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, m_fontHeight);
-
-            hud.Text(m_renderArmorString, (x, y), both: Align.BottomLeft, alpha: m_hudAlpha);
-        }
-    }
-
-    private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null, float alpha = 1)
-    {
-        if (!hud.Textures.TryGet(image, out var handle, SpriteLookupNamespace))
-        {
-            area = default;
-            return;
-        }
-
-        var verticalScale = hud.Dimension.Width == 320 && hud.Dimension.Height == 200 ? 1 : DoomVerticalScale;
-        var scale = new Vec2D(1 * m_scale, verticalScale * m_scale);
-        var imageArea = new Box2D(handle.Area.Min.Double * scale, handle.Area.Max.Double * scale).Int;
-        area = new HudBox(origin + imageArea.Min, origin + imageArea.Max);
-        hud.Image(image, area, resourceNamespace: SpriteLookupNamespace, both: both, alpha: alpha);
-    }
-
-    private Dimension GetDoomScaledImageArea(IHudRenderContext hud, string image)
-    {
-        if (!hud.Textures.TryGet(image, out var handle, SpriteLookupNamespace))
-            return default;
-
-        var scale = new Vec2D(1 * m_scale, DoomVerticalScale * m_scale);
-        return new Dimension((int)(handle.Area.Width * scale.X), (int)(handle.Area.Height * scale.Y));
-    }
-
-    private void DrawMinimalHudKeys(IHudRenderContext hud, int y)
-    {
-        List<InventoryItem> keys = Player.Inventory.GetKeys();
-        y += m_padding;
-
-        for (int i = 0; i < keys.Count; i++)
-        {
-            InventoryItem key = keys[i];
-            string icon = key.Definition.Properties.Inventory.Icon;
-            if (!hud.Textures.HasImage(icon))
-                continue;
-            DrawDoomScaledImage(hud, icon, (-m_padding - m_hudPaddingX, y), out var drawArea, both: Align.TopRight, alpha: m_hudAlpha);
-            y += drawArea.Height + m_padding;
-        }
-    }
-
-    private void DrawMinimalHudAmmo(IHudRenderContext hud)
-    {
-        var weapon = Player.AnimationWeapon;
-        if (weapon == null)
-            return;
-
-        string ammoType = weapon.Definition.Properties.Weapons.AmmoType;
-        if (ammoType.Length == 0)
-            return;
-
-        int x = -m_padding - m_hudPaddingX;
-        int y = -m_padding;
-
-        if (HasTicks)
-        {
-            int ammo = Player.Inventory.Amount(ammoType);
-            m_ammoString.Clear();
-            m_ammoString.Append(ammo);
-
-            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, m_fontHeight);
-        }
-
-        hud.Text(m_renderAmmoString, (x, y), both: Align.BottomRight, alpha: m_hudAlpha);
-
-        x -= m_renderAmmoString.DrawArea.Width + m_padding;
-        if (weapon.AmmoSprite.Length <= 0 || !hud.Textures.TryGet(weapon.AmmoSprite, out var handle))
-            return;
-
-        x -= (int)(handle.Dimension.Width * m_scale);
-        DrawDoomScaledImage(hud, weapon.AmmoSprite, (x, y), out _, both: Align.BottomRight, alpha: m_hudAlpha);
-    }
-
-    private void DrawFullStatusBar(IHudRenderContext hud)
-    {
-        const string StatusBar = "STBAR";
-        if (m_statusBarSizeType == StatusBarSizeType.Full)
-        {
-            if (hud.Textures.TryGet(StatusBar, out var statusBarHandle))
-                DrawStatusBarBackground(hud, statusBarHandle);
-            hud.RenderStatusBar(StatusBar);
-        }
-
-        hud.DoomVirtualResolution(m_virtualDrawFullStatusBarAction, hud);
-    }
-
-    private void VirtualDrawFullStatusBar(IHudRenderContext hud)
-    {
-        var hudAlpha = m_hudAlpha;
-        if (m_statusBarSizeType == StatusBarSizeType.Full)
-            m_hudAlpha = 1;
-
-        DrawFullHudHealthArmorAmmo(hud);
-        DrawFullHudWeaponSlots(hud);
-        if (m_statusBarSizeType == StatusBarSizeType.Full)
-            HudImageWithOffset(hud, Player.StatusBar.GetFacePatch(), (143, 168));
-        DrawFullHudKeys(hud);
-        DrawFullTotalAmmo(hud);
-
-        m_hudAlpha = hudAlpha;
-    }
-
-    private void HudImageWithOffset(IHudRenderContext hud, string image, Vec2I pos, Align? both = null)
-    {
-        if (!hud.Textures.TryGet(image, out var faceHandle))
-            return;
-        pos += TranslateDoomOffset(faceHandle.Offset);
-        hud.Image(image, pos, both: both, alpha: m_hudAlpha);
-    }
-
-    private readonly record struct HudStatusBarbackground(IHudRenderContext Hud, string BackgroundTextureName, IRenderableTextureHandle BarHandle, IRenderableTextureHandle BackgroundHandle);
-
-    private void DrawStatusBarBackground(IHudRenderContext hud, IRenderableTextureHandle barHandle)
-    {
-        var textureName = m_config.Hud.BackgroundTexture.Value;
-        bool hasBackground = hud.Textures.TryGet(textureName, out var backgroundHandle);
-
-        if (string.IsNullOrEmpty(textureName) || !hasBackground)
-        {
-            textureName = World.GameInfo.BorderFlat;
-            hud.Textures.TryGet(World.GameInfo.BorderFlat, out backgroundHandle);
-        }
-
-        if (backgroundHandle == null)
-            return;
-
-        hud.DoomVirtualResolution(m_virtualStatusBarBackgroundAction, new HudStatusBarbackground(hud, textureName, barHandle, backgroundHandle),
-            ResolutionScale.None);
-    }
-
-    private void VirtualStatusBarBackground(HudStatusBarbackground hud)
-    {
-        var aspectRatio = m_viewport.AspectRatio;
-        int yOffset = -hud.BarHandle.Dimension.Height + 1;
-        int backgroundHandleWidth = hud.BackgroundHandle.Dimension.Width;
-        int calcWidth = (int)((aspectRatio) / 1.6f * 320) + hud.BarHandle.Dimension.Width;
-        int iterations = (calcWidth / hud.BackgroundHandle.Dimension.Width) + 1;
-
-        int xOffset = 0;
-        for (int i = 0; i < iterations; i++)
-        {
-            hud.Hud.Image(hud.BackgroundTextureName, (xOffset, yOffset), Align.BottomLeft);
-            xOffset += backgroundHandleWidth;
-        }
-    }
-
-    private void DrawFullHudHealthArmorAmmo(IHudRenderContext hud)
-    {
-        // Note: This area is already drawn using Doom's stretched scale so useDoomScale needs to be false.
-        const int OffsetY = 171;
-        int fontSize = hud.GetFontMaxHeight(LargeHudFont);
-
-        const int HealthX = 90;
-        const int ArmorX = 221;
-        const int AmmoX = 43;
-
-        var weapon = Player.AnimationWeapon;
-        if (weapon != null && weapon.Definition.Properties.Weapons.AmmoType.Length > 0)
-        {
-            int ammoAmount = Player.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
-            m_ammoString.Clear();
-            m_ammoString.Append(Math.Clamp(ammoAmount, 0, 999));
-            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, fontSize, useDoomScale: false);
-            hud.Text(m_renderAmmoString, (AmmoX, OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
-        }
-
-        m_healthString.Clear();
-        m_healthString.Append(Math.Clamp(Player.Health, 0, 999));
-        m_healthString.Append('%');
-
-        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, fontSize, useDoomScale: false);
-        hud.Text(m_renderHealthString, (CalcPercentStartOffsetX(HealthX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
-
-        m_armorString.Clear();
-        m_armorString.Append(Math.Clamp(Player.Armor, 0, 999));
-        m_armorString.Append('%');
-
-        SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, fontSize, useDoomScale: false);
-        hud.Text(m_renderArmorString, (CalcPercentStartOffsetX(ArmorX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
-    }
-
-    private static int CalcPercentStartOffsetX(int offsetX, Font font)
-    {
-        if (!font.FixedWidthChar.HasValue)
-            return offsetX - 1;
-        return offsetX + font.FixedWidthChar.Value.Area.Width / font.UpscalingFactor - 1;
-    }
-
-    private void DrawFullHudWeaponSlots(IHudRenderContext hud)
-    {
-        if (m_statusBarSizeType == StatusBarSizeType.Full)
-            HudImageWithOffset(hud, "STARMS", (104, 168), both: Align.TopLeft);
-
-        for (int slot = 2; slot <= 7; slot++)
-            DrawWeaponNumber(hud, slot);
-    }
-
-    private static readonly string[] HasWeaponImages = new[]
-    {
-        string.Empty,
-        "STYSNUM1",
-        "STYSNUM2",
-        "STYSNUM3",
-        "STYSNUM4",
-        "STYSNUM5",
-        "STYSNUM6",
-        "STYSNUM7",
-    };
-
-    private static readonly string[] WeaponImages = new[]
-    {
-        string.Empty,
-        "STGNUM1",
-        "STGNUM2",
-        "STGNUM3",
-        "STGNUM4",
-        "STGNUM5",
-        "STGNUM6",
-        "STGNUM7",
-    };
-
-    private void DrawWeaponNumber(IHudRenderContext hud, int slot)
-    {
-        bool hasSlot = Player.Inventory.Weapons.HasWeaponSlot(slot);
-        if (slot < 0 || slot >= WeaponImages.Length || slot >= HasWeaponImages.Length)
-            return;
-
-        string image = hasSlot ? HasWeaponImages[slot] : WeaponImages[slot];
-        if (string.IsNullOrEmpty(image))
-            return;
-
-        HudImageWithOffset(hud, image, slot switch
-        {
-            2 => (111, 172),
-            3 => (123, 172),
-            4 => (135, 172),
-            5 => (111, 182),
-            6 => (123, 182),
-            7 => (135, 182),
-            _ => throw new Exception($"Bad slot index: {slot}")
-        });
-    }
-
-    private void DrawFullHudKeys(IHudRenderContext hud)
-    {
-        const int OffsetX = 239;
-        const int BlueOffsetY = 171;
-        const int YellowOffsetY = BlueOffsetY + 10;
-        const int RedOffsetY = YellowOffsetY + 10;
-        const string BothBlueKeysIcon = "STKEYS6";
-        const string BothYellowKeysIcon = "STKEYS7";
-        const string BothRedKeysIcon = "STKEYS8";
-
-        InventoryItem? blueCard = null;
-        InventoryItem? blueSkull = null;
-        InventoryItem? yellowCard = null;
-        InventoryItem? yellowSkull = null;
-        InventoryItem? redCard = null;
-        InventoryItem? redSkull = null;
-        var keys = Player.Inventory.GetKeys();
-        for (int i = 0; i < keys.Count; i++)
-        {
-            InventoryItem key = keys[i];
-            if (key.Definition.Name.EqualsIgnoreCase("BlueCard"))
-                blueCard = key;
-            else if (key.Definition.Name.EqualsIgnoreCase("BlueSkull"))
-                blueSkull = key;
-            else if (key.Definition.Name.EqualsIgnoreCase("YellowCard"))
-                yellowCard = key;
-            else if (key.Definition.Name.EqualsIgnoreCase("YellowSkull"))
-                yellowSkull = key;
-            else if (key.Definition.Name.EqualsIgnoreCase("RedCard"))
-                redCard = key;
-            else if (key.Definition.Name.EqualsIgnoreCase("RedSkull"))
-                redSkull = key;
-        }
-        DrawKeysIfOwned(hud, blueCard, blueSkull, BothBlueKeysIcon, OffsetX, BlueOffsetY);
-        DrawKeysIfOwned(hud, yellowCard, yellowSkull, BothYellowKeysIcon, OffsetX, YellowOffsetY);
-        DrawKeysIfOwned(hud, redCard, redSkull, BothRedKeysIcon, OffsetX, RedOffsetY);
-    }
-
-    private void DrawKeysIfOwned(IHudRenderContext hud, InventoryItem? cardKey, InventoryItem? skullKey, string bothKeysIcon, int x, int y)
-    {
-        if (cardKey != null && skullKey != null && hud.Textures.HasImage(bothKeysIcon))
-        {
-            HudImageWithOffset(hud, bothKeysIcon, (x, y));
-            return;
-        }
-
-        string? cardKeyIcon = cardKey?.Definition.Properties.Inventory.Icon;
-        if (cardKeyIcon != null && hud.Textures.HasImage(cardKeyIcon))
-            HudImageWithOffset(hud, cardKeyIcon, (x, y));
-
-        string? skullKeyIcon = skullKey?.Definition.Properties.Inventory.Icon;
-        if (skullKeyIcon != null && hud.Textures.HasImage(skullKeyIcon))
-            HudImageWithOffset(hud, skullKeyIcon, (x, y));
-    }
-
-    private void DrawFullTotalAmmo(IHudRenderContext hud)
-    {
-        bool hasBackpack = Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName);
-        DrawFullTotalAmmoText(hud, "Clip", hasBackpack, 173);
-        DrawFullTotalAmmoText(hud, "Shell", hasBackpack, 179);
-        DrawFullTotalAmmoText(hud, "RocketAmmo", hasBackpack, 185);
-        DrawFullTotalAmmoText(hud, "Cell", hasBackpack, 191);
-    }
-
-    void DrawFullTotalAmmoText(IHudRenderContext hud, string ammoName, bool hasBackpack, int y)
-    {
-        const int FontSize = 6;
-        const string YellowFontName = "HudYellowNumbers";
-        int ammo = Player.Inventory.Amount(ammoName);
-
-        var def = WorldStatic.EntityManager.DefinitionComposer.GetByNameOrDefault(ammoName);
-        int amount = hasBackpack ? def.Properties.Ammo.BackpackMaxAmount : def.Properties.Inventory.MaxAmount;
-
-        m_ammoString.Clear();
-        m_maxAmmoString.Clear();
-        m_ammoString.Append(ammo);
-        m_maxAmmoString.Append(amount);
-        hud.Text(m_ammoString.AsSpan(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight, alpha: m_hudAlpha);
-        hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (313, y), anchor: Align.TopRight, alpha: m_hudAlpha);
-    }
 
     private void DrawRecentConsoleMessages(IHudRenderContext hud)
     {
@@ -1237,7 +814,7 @@ public partial class WorldLayer
                     renderMessageLength = StringBuffer.StringLength(m_renderMessageBufferString);
                 }
 
-                hud.LineWrap(renderMessageString, SmallHudFont, fontSize, (int)width, m_lineWrapStrings, out var drawHeight, length: renderMessageLength);
+                hud.LineWrap(renderMessageString, SmallHudFont, fontSize, (int)width, m_lineWrapStrings, out int _, length: renderMessageLength);
 
                 foreach (var line in m_lineWrapStrings)
                 {

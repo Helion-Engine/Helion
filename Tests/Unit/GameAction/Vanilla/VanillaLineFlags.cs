@@ -83,10 +83,9 @@ namespace Helion.Tests.Unit.GameAction
 
             // Hitscan passes through
             GameActions.SetEntityToLine(World, Player, 8, Player.Radius);
-            var bi = GameActions.FireHitscanTest(World, Player);
-            bi.Should().NotBeNull();
-            bi!.Value.GetIndex(out var index).Should().Be(IntersectType.Line);
-            World.Blockmap.BlockLines[index].LineId.Should().Be(2);
+            var data = GameActions.FireHitScanTest(World, Player);
+            data.HitLine.Should().NotBeNull();
+            data.HitLine.Id.Should().Be(2);
         }
 
         [Fact(DisplayName = "Two-sided line block monster")]
@@ -104,10 +103,9 @@ namespace Helion.Tests.Unit.GameAction
 
             // Hitscan passes through
             GameActions.SetEntityToLine(World, Player, 9, Player.Radius);
-            var bi = GameActions.FireHitscanTest(World, Player);
-            bi.Should().NotBeNull();
-            bi!.Value.GetIndex(out var index).Should().Be(IntersectType.Line);
-            World.Blockmap.BlockLines[index].LineId.Should().Be(6);
+            var data = GameActions.FireHitScanTest(World, Player);
+            data.HitLine.Should().NotBeNull();
+            data.HitLine.Id.Should().Be(6);
         }
     }
 }

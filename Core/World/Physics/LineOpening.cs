@@ -15,8 +15,10 @@ public class LineOpening
     public double FloorZ;
     public double OpeningHeight;
     public double DropOffZ;
+    public double DropOffZ_3D;
     public Sector? FloorSector;
     public Sector? CeilingSector;
+    public bool HasDropOff3D;
 
     public static double GetOpeningHeight(Line line)
     {
@@ -63,8 +65,8 @@ public class LineOpening
         }
 
         OpeningHeight = CeilingZ - FloorZ;
+        HasDropOff3D = false;
     }
-
 
     public void SetTop(TryMoveData tryMove, double topZ)
     {
@@ -74,16 +76,18 @@ public class LineOpening
         DropOffZ = FloorZ;
         CeilingSector = null;
         FloorSector = null;
+        HasDropOff3D = false;
     }
 
     public void SetBottom(TryMoveData tryMove, double bottomZ)
     {
         CeilingZ = bottomZ;
-        FloorZ = tryMove.HighestFloorZ;
+        FloorZ = tryMove.HighestValidStepFloorZ;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
         CeilingSector = null;
         FloorSector = null;
+        HasDropOff3D = false;
     }
 
     public bool CanStepUpInto(Entity entity)

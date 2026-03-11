@@ -7,6 +7,7 @@ using System.Collections.Generic;
 namespace Helion.Graphics.Palettes;
 
 public enum TranslateColor { Gray, Brown, Red, Count }
+public enum ColorMapType { Default, SectorRgb }
 
 public class Colormap
 {
@@ -19,9 +20,9 @@ public class Colormap
     private readonly List<byte[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
 
-
     public int Index;
     public Vec3F ColorMix;
+    public ColorMapType Type;
     public readonly Entry? Entry;
 
     public int Count => m_layers.Count;
@@ -100,6 +101,11 @@ public class Colormap
         return new(colormapLayers, colormapLayerIndices, colorMix, entry, fullBright);
     }
 
+    public Colormap ReferenceClone()
+    {
+        return new Colormap(m_layers, m_indexLayers, ColorMix, Entry, FullBright);
+    }
+
     public Color[] Layer(int index)
     {
         if (index >= m_layers.Count)
@@ -134,13 +140,20 @@ public class Colormap
 
     public static Colormap? TranslateToNearestMatch(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colorMap, PaletteColor translateColor)
     {
-        var translated = TranslateIndicesNearest(palette, paletteColorLookup, colorMap, translateColor);
+        var translated = TranslateIndicesNearest(palette, paletteColorLookup, colorMap, ToHsl(translateColor));
         return From(palette, translated, null);
     }
 
-    private static byte[] TranslateIndicesNearest(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colorMap, PaletteColor translateColor)
+    public static Colormap? GetSectorRgbColormap(Colormap baseColormap, Color color)
     {
-        var hsl = ToHsl(translateColor);
+        var colormap = baseColormap.ReferenceClone();
+        // Reset calculated color mix
+        colormap.ColorMix = new(color.R / 255f, color.G / 255f, color.B / 255f);
+        return colormap;
+    }
+
+    private static byte[] TranslateIndicesNearest(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colorMap, HslShift hsl)
+    {        
         var translate = new byte[colorMap.Length];
         var lookup = new Dictionary<Color, byte>();
         var colors = palette.Layer(0);

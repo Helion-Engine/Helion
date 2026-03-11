@@ -6,6 +6,7 @@ using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Walls;
 using System;
 
 namespace Helion.World.Special.Specials;
@@ -95,23 +96,37 @@ public class ScrollSpecial : ISpecial
         if (offsetX.Length != 3 || offsetY.Length != 3)
             return;
 
-        scroll.OffsetUpper.X = scroll.LastOffsetUpper.X = offsetX[0];
-        scroll.OffsetMiddle.X = scroll.LastOffsetMiddle.X = offsetX[1];
-        scroll.OffsetLower.X = scroll.LastOffsetLower.X = offsetX[2];
+        ref var upper = ref scroll.Offset(WallLocation.Upper, ScrollOffsetType.Current);
+        ref var lower = ref scroll.Offset(WallLocation.Lower, ScrollOffsetType.Current);
+        ref var middle = ref scroll.Offset(WallLocation.Middle, ScrollOffsetType.Current);
+        ref var prevUpper = ref scroll.Offset(WallLocation.Upper, ScrollOffsetType.Previous);
+        ref var prevLower = ref scroll.Offset(WallLocation.Lower, ScrollOffsetType.Previous);
+        ref var prevMiddle = ref scroll.Offset(WallLocation.Middle, ScrollOffsetType.Previous);
 
-        scroll.OffsetUpper.Y = scroll.LastOffsetUpper.Y = offsetY[0];
-        scroll.OffsetMiddle.Y = scroll.LastOffsetMiddle.Y = offsetY[1];
-        scroll.OffsetLower.Y = scroll.LastOffsetLower.Y = offsetY[2];
+        upper.X = prevUpper.X = offsetX[0];
+        middle.X = prevMiddle.X = offsetX[1];
+        lower.X = prevLower.X = offsetX[2];
+
+        upper.Y = prevUpper.Y = offsetY[0];
+        middle.Y = prevMiddle.Y = offsetY[1];
+        lower.Y = prevLower.Y = offsetY[2];
     }
 
     private static void ApplyScrollOffset(SideScrollData scroll, in ScrollSideOffsets offsets)
     {
-        scroll.OffsetUpper.X = offsets.Up.X;
-        scroll.OffsetUpper.Y = offsets.Up.Y;
-        scroll.OffsetMiddle.X = offsets.Mid.X;
-        scroll.OffsetMiddle.Y = offsets.Mid.Y;
-        scroll.OffsetLower.X = offsets.Low.X;
-        scroll.OffsetLower.Y = offsets.Low.Y;
+        ref var upper = ref scroll.Offset(WallLocation.Upper, ScrollOffsetType.Current);
+        ref var lower = ref scroll.Offset(WallLocation.Lower, ScrollOffsetType.Current);
+        ref var middle = ref scroll.Offset(WallLocation.Middle, ScrollOffsetType.Current);
+        ref var prevUpper = ref scroll.Offset(WallLocation.Upper, ScrollOffsetType.Previous);
+        ref var prevLower = ref scroll.Offset(WallLocation.Lower, ScrollOffsetType.Previous);
+        ref var prevMiddle = ref scroll.Offset(WallLocation.Middle, ScrollOffsetType.Previous);
+
+        upper.X = prevUpper.X = offsets.Up.X;
+        upper.Y = prevUpper.Y = offsets.Up.Y;
+        middle.X = prevMiddle.X = offsets.Mid.X;
+        middle.Y = prevMiddle.Y = offsets.Mid.Y;
+        lower.X = prevLower.X = offsets.Low.X;
+        lower.Y = prevLower.Y = offsets.Low.Y;
     }
 
     public static ScrollSpecial? ToWorldSpecial(Line line, Sector? accelSector, in ScrollSpecialModel model)
@@ -234,13 +249,17 @@ public class ScrollSpecial : ISpecial
         throw new HelionException("Scroll special has neither line or sector plane set.");
     }
 
-    private static ScrollSideOffsets SetScrollSideOffsets(SideScrollData sideScroll)
+    private static ScrollSideOffsets SetScrollSideOffsets(SideScrollData scroll)
     {
+        ref var upper = ref scroll.Offset(WallLocation.Upper, ScrollOffsetType.Current);
+        ref var lower = ref scroll.Offset(WallLocation.Lower, ScrollOffsetType.Current);
+        ref var middle = ref scroll.Offset(WallLocation.Middle, ScrollOffsetType.Current);
+
         return new()
         {
-            Up = new(sideScroll.OffsetUpper.X, sideScroll.OffsetUpper.Y),
-            Mid = new(sideScroll.OffsetMiddle.X, sideScroll.OffsetMiddle.Y),
-            Low = new(sideScroll.OffsetLower.X, sideScroll.OffsetLower.Y),
+            Up = new(upper.X, upper.Y),
+            Mid = new(middle.X, middle.Y),
+            Low = new(lower.X, lower.Y),
         };
     }
 
@@ -277,30 +296,25 @@ public class ScrollSpecial : ISpecial
     {
         bool updateInterpolation = WorldStatic.World.Gametick != scrollData.Gametick; 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.UpperTexture) != 0)
-        {
-            if (updateInterpolation)
-                scrollData.LastOffsetUpper = scrollData.OffsetUpper;
-            scrollData.OffsetUpper.X += x;
-            scrollData.OffsetUpper.Y += y;
-        }
+            SetScroll(WallLocation.Upper, scrollData, x, y, updateInterpolation);
 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.MiddleTexture) != 0)
-        {
-            if (updateInterpolation)
-                scrollData.LastOffsetMiddle = scrollData.OffsetMiddle;
-            scrollData.OffsetMiddle.X += x;
-            scrollData.OffsetMiddle.Y += y;
-        }
+            SetScroll(WallLocation.Middle, scrollData, x, y, updateInterpolation);
 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.LowerTexture) != 0)
-        {
-            if (updateInterpolation)
-                scrollData.LastOffsetLower = scrollData.OffsetLower;
-            scrollData.OffsetLower.X += x;
-            scrollData.OffsetLower.Y += y;
-        }
+            SetScroll(WallLocation.Lower, scrollData, x, y, updateInterpolation);
 
         scrollData.Gametick = WorldStatic.World.Gametick;
+    }
+
+    private static void SetScroll(WallLocation location, SideScrollData scrollData, double x, double y, bool updateInterpolation)
+    {
+        ref var offset = ref scrollData.Offset(location, ScrollOffsetType.Current);
+        if (updateInterpolation)
+            scrollData.Offset(location, ScrollOffsetType.Previous) = offset;
+
+        offset.X += x;
+        offset.Y += y;
     }
 
     private void ScrollPlane(SectorPlane sectorPlane, double x, double y)

@@ -1,6 +1,4 @@
 ﻿using Helion.Geometry.Vectors;
-using Helion.World.Entities;
-using OpenTK.Audio.OpenAL;
 using System;
 
 namespace Helion.Audio.Impl;
@@ -12,6 +10,7 @@ internal sealed class MockAudioSource : IAudioSource
     public IAudioSource? Next { get; set; }
 
     public event EventHandler? Completed;
+    public float Pitch { get; set; } = 1f;
 
     private bool m_playing;
     private bool m_finished;

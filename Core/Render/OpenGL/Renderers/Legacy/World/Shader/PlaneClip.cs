@@ -9,9 +9,18 @@ public enum WallClipFragOptions
     DiscardNegativeMapId
 }
 
+public enum PlaneClipFragOptions
+{
+    None,
+    AlphaSample
+}
+
 public static class PlaneClip
 {
-    public static string WritePlaneFragFunction() =>
+    public static string WritePlaneFragFunction(PlaneClipFragOptions options)
+    {
+        var alphaSample = (options & PlaneClipFragOptions.AlphaSample) != 0;
+        return
          $@"
             #version 330
 
@@ -19,12 +28,19 @@ public static class PlaneClip
             flat in float upperFrag;
             flat in float lowerFrag;
             in float depthFrag;
+            ${{InVars}}
+
+            uniform sampler2D boundTexture;
 
             layout (location = 0) out vec3 outPlane;
 
             void main() {{
+                ${{AlphaTexture}}
                 {GetOutPlane(true)}
-            }}";
+            }}"
+        .Replace("${InVars}", alphaSample ? "in vec2 uvFrag;" : "")
+        .Replace("${AlphaTexture}", GetAlphaSample(alphaSample));
+    }
 
     public static string WriteWallFragFunction(WallClipFragOptions options)
     {

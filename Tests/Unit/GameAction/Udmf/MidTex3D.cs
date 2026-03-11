@@ -78,7 +78,7 @@ public class MidTex3D
         imp.Position.ApproxEquals(new Vec3D(32, 8, 256)).Should().BeTrue();
     }
 
-    [Fact(DisplayName = "Monster steps up to midtex")]
+    [Fact(DisplayName = "Monster steps up and down to midtex")]
     public void MonsterStepsUpAndDownToMidTex()
     {
         var imp = Imp;
@@ -97,17 +97,23 @@ public class MidTex3D
         imp.MoveEnemy(out _).Should().Be(true);
         imp.Position.ApproxEquals(new Vec3D(196, -288, 32)).Should().BeTrue();
 
+        imp.MoveEnemy(out _).Should().Be(true);
+        imp.Position.ApproxEquals(new Vec3D(196, -296, 32)).Should().BeTrue();
+
         imp.AngleRadians = GameActions.GetAngle(Bearing.North);
         imp.SetEnemyDirection(Entity.MoveDir.North);
 
         imp.MoveEnemy(out _).Should().Be(true);
-        imp.Position.ApproxEquals(new Vec3D(196, -280, 32)).Should().BeTrue();
+        imp.Position.ApproxEquals(new Vec3D(196, -288, 32)).Should().BeTrue();
+
+        imp.MoveEnemy(out _).Should().Be(true);
+        imp.Position.ApproxEquals(new Vec3D(196, -280, 16)).Should().BeTrue();
 
         imp.MoveEnemy(out _).Should().Be(true);
         imp.Position.ApproxEquals(new Vec3D(196, -272, 16)).Should().BeTrue();
 
         imp.MoveEnemy(out _).Should().Be(true);
-        imp.Position.ApproxEquals(new Vec3D(196, -264, 16)).Should().BeTrue();
+        imp.Position.ApproxEquals(new Vec3D(196, -264, 0)).Should().BeTrue();
 
         imp.MoveEnemy(out _).Should().Be(true);
         imp.Position.ApproxEquals(new Vec3D(196, -256, 0)).Should().BeTrue();

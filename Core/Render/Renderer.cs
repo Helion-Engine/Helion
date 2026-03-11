@@ -170,12 +170,16 @@ public partial class Renderer : IDisposable
     {
         if (set)
         {
+            WorldStatic.LineVertexGapTopZ = Constants.VertexGapPush;
+            WorldStatic.LineVertexGapBottomZ = Constants.VertexGapPush;
             WorldStatic.LineVertexGap = Constants.VertexGapPush;
             WorldStatic.LineVertexOffset = -(float)Constants.VertexGapPush;
             WorldStatic.CoverWallOffset = -(float)Constants.VertexGapPush * 2;
         }
         else
         {
+            WorldStatic.LineVertexGapTopZ = 0;
+            WorldStatic.LineVertexGapBottomZ = 0;
             WorldStatic.LineVertexGap = 0;
             WorldStatic.LineVertexOffset = 0;
             WorldStatic.CoverWallOffset = 0;
@@ -388,9 +392,15 @@ public partial class Renderer : IDisposable
     public static ColorMixUniforms GetColorMix(Entity viewer, OldCamera camera)
     {
         ColorMixUniforms uniforms = new(Vec3F.One, Vec3F.One, Vec3F.One);
-        if (!ShaderVars.PaletteColorMode)
+        GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
+        if (ShaderVars.PaletteColorMode)
         {
-            GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
+            // Sectors that have rgb set will always use true color mix even in palette color mode.
+            if (sectorColormap != null && sectorColormap.Type == ColorMapType.SectorRgb)
+                uniforms.Sector = sectorColormap.ColorMix;
+        }
+        else
+        {
             if (globalColormap != null)
                 uniforms.Global = globalColormap.ColorMix;
             if (sectorColormap != null)
@@ -414,7 +424,11 @@ public partial class Renderer : IDisposable
             skyColormap = globalColormap;
         }
 
-        if (viewer.Sector.TransferFloorLightSector.Colormap != null)
+        if (viewer.WaterControlSector != null && viewer.Position.Z + viewer.ViewZ < viewer.WaterControlSector.Ceiling.Z && viewer.WaterControlSector.Colormap != null)
+            sectorColormap = viewer.WaterControlSector.Colormap;
+        else if (viewer.LightCeilingSector3D != null && viewer.Position.Z + viewer.ViewZ < viewer.LightCeilingSector3D.Ceiling.Z && viewer.LightCeilingSector3D.Colormap != null)
+            sectorColormap = viewer.LightCeilingSector3D.Colormap;
+        else if (viewer.Sector.Sectors3D.Length == 0 && viewer.Sector.TransferFloorLightSector.Colormap != null)
             sectorColormap = viewer.Sector.TransferFloorLightSector.Colormap;
     }
 

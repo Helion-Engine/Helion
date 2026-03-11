@@ -1,5 +1,6 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
@@ -17,12 +18,13 @@ using Helion.World.Special;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using static Helion.World.Entities.EntityManager;
 using Vector2D = Helion.Models.Vector2D;
 
 namespace Helion.World.Geometry.Sectors;
 
-public sealed class Sector
+public sealed class Sector : IFloorCeilingAnchor
 {
     public static readonly Sector Default = CreateDefault();
 
@@ -30,12 +32,16 @@ public sealed class Sector
 
     public int Id;
     public int Tag;
+    public int[] MoreTags = [];
     public SectorPlane Floor;
     public SectorPlane Ceiling;
     public Line[] Lines = [];
     public Line[] MidTex3DLines = [];
+    public Sector3D[] Sectors3D = [];
+    public Sector3D[] TaggedSectors3D = [];
+    public SectorPlane3D[] SectorPlanes3D = [];
     public LinkableList<Entity> Entities = new();
-    public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
+    public DynamicArray<LinkableNode<DynamicIsland>> BlockmapNodes = new();
     public int[] LineIds = [];
     public Island Island = null!;
 
@@ -52,6 +58,7 @@ public sealed class Sector
     public int DamageAmount;
     public int DamageInterval;
     public int DamageLeakiness;
+    public Color LightColor;
     public string SkyFloor;
     public string SkyCeiling;
     public int? FloorSkyTextureHandle;
@@ -75,6 +82,8 @@ public sealed class Sector
     public bool Flood;
     public bool Silent;
     public bool NoAttack;
+    public bool HasDamageSector3D;
+    public Sector3D? Sector3D;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
     public InstantKillEffect KillEffect;
@@ -85,8 +94,14 @@ public sealed class Sector
 
     public Sector TransferFloorLightSector;
     public Sector TransferCeilingLightSector;
+    public Sector SetTransferFloorLightSector;
+    public Sector SetTransferCeilingLightSector;
 
+#if DEBUG
+    public SectorDamageSpecial? SectorDamageSpecial { get; private set; }
+#else
     public SectorDamageSpecial? SectorDamageSpecial;
+#endif
 
     private Box2D? m_boundingBox;
 
@@ -124,7 +139,9 @@ public sealed class Sector
         floor.Sector = this;
         ceiling.Sector = this;
         TransferFloorLightSector = this;
+        SetTransferFloorLightSector = this;
         TransferCeilingLightSector = this;
+        SetTransferCeilingLightSector = this;
         m_initialLightLevel = lightLevel;
         m_initialSectorEffect = SectorEffect;
         m_initialKillEffect = KillEffect;
@@ -139,7 +156,9 @@ public sealed class Sector
         SectorEffect = m_initialSectorEffect;
         KillEffect = m_initialKillEffect;
         TransferFloorLightSector = this;
+        SetTransferFloorLightSector = this;
         TransferCeilingLightSector = this;
+        SetTransferCeilingLightSector = this;
         RenderLightChangeGametick = default;
         LastRenderGametick = default;
         RenderGametick = default;
@@ -149,10 +168,15 @@ public sealed class Sector
         ActiveFloorMove = default;
         ActiveCeilingMove = default;
         SectorDamageSpecial = default;
+        Colormap = default;
         ActivatedByLineId = -1;
         Floor.Reset(m_initialLightLevel);
         Ceiling.Reset(m_initialLightLevel);
         Gravity = 1;
+        HasDamageSector3D = default;
+
+        for (int i = 0; i < Sectors3D.Length; i++)
+            Sectors3D[i].Reset();
     }
 
     public static Sector CreateDefault() =>
@@ -175,25 +199,6 @@ public sealed class Sector
             return this;
 
         return TransferHeights.GetRenderSector(view);
-    }
-
-    public bool LightingChanged() => LightingChanged(LastRenderGametick);
-
-    public bool LightingChanged(int gametick)
-    {
-        if (RenderLightChangeGametick >= gametick - 1)
-            return true;
-
-        if (TransferFloorLightSector.Id != Id && TransferFloorLightSector.RenderLightChangeGametick >= gametick - 1)
-            return true;
-
-        if (TransferCeilingLightSector.Id != Id && TransferCeilingLightSector.RenderLightChangeGametick >= gametick - 1)
-            return true;
-
-        if (TransferHeights != null && TransferHeights.ParentSector.Id != TransferHeights.ControlSector.Id && TransferHeights.ControlSector.LightingChanged(gametick))
-            return true;
-
-        return false;
     }
 
     public bool CheckRenderingChanged(int gametick, bool checkTransferHeights = true)
@@ -283,6 +288,22 @@ public sealed class Sector
         DataChanges |= SectorDataTypes.KillEffect;
     }
 
+    public void SetDamageSpecial(SectorDamageSpecial? special)
+    {
+        SectorDamageSpecial = special;
+
+        if (special == null)
+            return;
+
+        // Currently damage sectors are the only ones that need checking.
+        // Flag each sector if there is a potential damage sector so every entity doesn't needlessly iterate every 3D sector every tick.
+        for (int i = 0; i < TaggedSectors3D.Length; i++)
+        {
+            var sector = TaggedSectors3D[i];
+            sector.ParentSector.HasDamageSector3D = true;
+        }
+    }
+
     public void PlaneTextureChange(SectorPlane sectorPlane)
     {
         if (sectorPlane.Facing == SectorPlaneFace.Floor)
@@ -319,8 +340,8 @@ public sealed class Sector
             SectorDataChanges = (int)DataChanges,
             FloorSkyTexture = FloorSkyTextureHandle,
             CeilingSkyTexture = FloorSkyTextureHandle,
-            TransferFloorLight = TransferFloorLightSector?.Id,
-            TransferCeilingLight = TransferCeilingLightSector?.Id,
+            TransferFloorLight = SetTransferFloorLightSector.Id,
+            TransferCeilingLight = SetTransferCeilingLightSector.Id,
             TransferHeights = TransferHeights?.ControlSector.Id,
             TransferHeightsColormapUpper = TransferHeights?.UpperColormap?.Entry?.Path.Name,
             TransferHeightsColormapMiddle = TransferHeights?.MiddleColormap?.Entry?.Path.Name,
@@ -351,7 +372,12 @@ public sealed class Sector
                     sectorModel.CeilingLightLevel = Ceiling.LightLevel;
             }
             if ((DataChanges & SectorDataTypes.ColorMap) != 0)
+            {
+                if (Colormap != null && Colormap.Type == ColorMapType.SectorRgb)
+                    sectorModel.ColorMapRgb = new(Colormap.ColorMix);
+
                 sectorModel.ColorMap = Colormap?.Entry?.Path.Name;
+            }
             if ((DataChanges & SectorDataTypes.Offset) != 0)
             {
                 if (Floor.RenderOffsets.Offset.X != 0 || Floor.RenderOffsets.Offset.Y != 0)
@@ -455,8 +481,18 @@ public sealed class Sector
 
             DamageAmount = sectorModel.DamageAmount;
 
-            if ((DataChanges & SectorDataTypes.ColorMap) != 0 && sectorModel.ColorMap != null && textureManager.TryGetColormap(sectorModel.ColorMap, out var sectorColorMap))
-                Colormap = sectorColorMap;
+            if ((DataChanges & SectorDataTypes.ColorMap) != 0 && sectorModel.ColorMap != null)
+            {
+                if (sectorModel.ColorMapRgb.HasValue)
+                {
+                    var rgb = new Vec3F(sectorModel.ColorMapRgb.Value.X, sectorModel.ColorMapRgb.Value.Y, sectorModel.ColorMapRgb.Value.Z);
+                    Colormap = world.ArchiveCollection.Definitions.FindLevelSectorColormap(rgb);
+                }
+                else if (textureManager.TryGetColormap(sectorModel.ColorMap, out var sectorColorMap))
+                {
+                    Colormap = sectorColorMap;
+                }
+            }
         }
 
         if (sectorModel.FloorOffset.HasValue)
@@ -479,10 +515,16 @@ public sealed class Sector
             Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
 
         if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
+        {
             TransferFloorLightSector = sectors[sectorModel.TransferFloorLight.Value];
+            SetTransferFloorLightSector = TransferFloorLightSector;
+        }
 
         if (sectorModel.TransferCeilingLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferCeilingLight.Value))
+        {
             TransferCeilingLightSector = sectors[sectorModel.TransferCeilingLight.Value];
+            SetTransferCeilingLightSector = TransferCeilingLightSector;
+        }
 
         if (sectorModel.TransferHeights.HasValue && IsSectorIdValid(sectors, sectorModel.TransferHeights.Value))
         {
@@ -515,6 +557,28 @@ public sealed class Sector
     public int GetTexture(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
     public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
     public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;
+
+    public bool GetWaterSubmersionHeight(Entity entity, out double height, [NotNullWhen(true)] out Sector3D? sector3d)
+    {
+        if (WorldStatic.Sector3D && Sectors3D.Length > 0)
+        {
+            var centerZ = entity.Position.Z + (entity.Height / 2);
+            for (int i = 0; i < Sectors3D.Length; i++)
+            {
+                sector3d = Sectors3D[i];
+
+                if (!sector3d.IsSwimmable || sector3d.ControlBottom.Z > centerZ || sector3d.ControlTop.Z <= entity.Position.Z)
+                    continue;
+
+                height = sector3d.ControlTop.Z;
+                return true; 
+            }
+        }
+
+        sector3d = null;
+        height = 0;
+        return false;
+    }
 
     /// <summary>
     /// The currently active move special, or null if there's no active
@@ -885,6 +949,8 @@ public sealed class Sector
 
     public override int GetHashCode() => Id.GetHashCode();
 
+    public override string ToString() => Sector3D?.ToString() ?? $"Id={Id} [{Floor.Z} -> {Ceiling.Z}] LightLevel={LightLevel}";
+
     public void UnlinkFromWorld(IWorld world)
     {
         for (int i = 0; i < BlockmapNodes.Length; i++)
@@ -895,6 +961,12 @@ public sealed class Sector
         }
 
         BlockmapNodes.Clear();
+
+        if (WorldStatic.Sector3D && Sectors3D.Length > 0)
+        {
+            for (int i = 0; i < Sectors3D.Length; i++)
+                Sectors3D[i].FakeSector.UnlinkFromWorld(world);
+        }
     }
 
     public void ApplyTriggerChanges(IWorld world, TriggerChanges changes, SectorPlaneFace planeType, bool transferSpecial)
@@ -910,5 +982,14 @@ public sealed class Sector
             if (changes.KillEffect.HasValue)
                 SetKillEffect(changes.KillEffect.Value);
         }
+    }
+
+    public void ResetInterpolationForPlane()
+    {
+        if (!WorldStatic.Sector3D)
+            return;
+
+        for (int i = 0; i < TaggedSectors3D.Length; i++)
+            TaggedSectors3D[i].CalculateHeights();
     }
 }

@@ -36,11 +36,13 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
     private readonly InterpolationPlaneClipShader m_interpolationPlaneClipProgram = new();
+    private readonly InterpolationPlaneClipAlphaShader m_interpolationPlaneClipAlphaProgram = new();
     private readonly InterpolationPlaneClipShaderMrt m_interpolationPlaneClipMrtProgram = new();
     private readonly InterpolationWallClipShader m_interpolationWallClipShader = new();
     private readonly InterpolationWallClipAlphaShader m_interpolationWallClipAlphaProgram = new();
     private readonly StaticShader m_staticProgram = new("Main");
     private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
+    private readonly StaticPlaneClipAlphaShader m_staticPlaneClipAlphaProgram = new();
     private readonly StaticPlaneClipShaderMrt m_staticPlaneClipMrtProgram = new();
     private readonly StaticWallClipShader m_staticWallClipProgram = new();
     private readonly StaticWallClipAlphaShader m_staticWallClipAlphaProgram = new();
@@ -208,20 +210,22 @@ public class LegacyWorldRenderer : WorldRenderer
 
         for (var islandNode = sectorList.Head; islandNode != null; islandNode = islandNode.Next)
         {
-            var sectorIsland = islandNode.Value;
-            if (sectorIsland.BlockmapCount == m_renderData.CheckCount)
+            var sectorIsland = islandNode.Value.Island;
+            var sector = islandNode.Value.Sector;
+            // Multiple 3D sectors can link in the same island so this check can't short here.
+            // The island node's sector is the fake 3D sector so using the CheckCount on it is valid below.
+            if (sector.Sector3D == null && sector.Sectors3D.Length == 0 && sectorIsland.BlockmapCount == m_renderData.CheckCount)
                 continue;
 
             sectorIsland.BlockmapCount = m_renderData.CheckCount;
             if (sectorIsland.ParentIsland != null && sectorIsland.ParentIsland != m_renderData.ViewIsland)
                 continue;
 
-            var sector = world.Sectors[sectorIsland.SectorId];
             if (sector.CheckCount == m_renderData.CheckCount)
                 continue;
 
-            double dx1 = Math.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
-            double dy1 = Math.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
+            var dx1 = Math.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
+            var dy1 = Math.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
             if (dx1 * dx1 + dy1 * dy1 <= m_renderData.MaxDistanceSquared)
             {
                 m_geometryRenderer.RenderSector(sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
@@ -381,12 +385,17 @@ public class LegacyWorldRenderer : WorldRenderer
         // Setting the factor using PolygonOffset will push them further away in depth so middle textures are closer and render over.
         // Very tiny for reversed z. Flood fill is pushed in world coordinates in the shader.
         GL.Enable(EnableCap.PolygonOffsetFill);
+        SetPolygonOffsetFloodFill();
+        m_geometryRenderer.RenderPortals(renderInfo);
+        GL.Disable(EnableCap.PolygonOffsetFill);
+    }
+
+    private static void SetPolygonOffsetFloodFill()
+    {
         if (ShaderVars.ReversedZ)
             GL.PolygonOffset(-0.005f, -0.002f);
         else
             GL.PolygonOffset(0.05f, 1f);
-        m_geometryRenderer.RenderPortals(renderInfo);
-        GL.Disable(EnableCap.PolygonOffsetFill);
     }
 
     private void WriteSpriteClipBuffers(RenderInfo renderInfo, GLFramebuffer framebuffer)
@@ -441,7 +450,7 @@ public class LegacyWorldRenderer : WorldRenderer
     }
 
     private void WritePlaneClipData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer, bool walls)
-    {
+    {        
         planeClipFrameBuffer.BindFrameBuffer();
         PlaneClipFrameBuffer.StartRender();
         GL.Disable(EnableCap.Blend);
@@ -459,17 +468,25 @@ public class LegacyWorldRenderer : WorldRenderer
 
             m_interpolationWallClipAlphaProgram.Bind();
             SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo, false);
+
+            if (WorldStatic.Sector3D)
+            {
+                GL.CullFace(TriangleFace.Front);
+                m_worldDataManager.RenderMiddle3D();
+                GL.CullFace(TriangleFace.Back);
+                m_worldDataManager.RenderMiddle3D();
+            }
+            
             m_worldDataManager.RenderTwoSidedMiddleWalls();
-            m_interpolationWallClipAlphaProgram.Unbind();
         }
         else
         {
-            InterpolationShader program = m_downscaleVanillaBuffer ? m_interpolationPlaneClipProgram : m_interpolationPlaneClipMrtProgram;
+            InterpolationShader program = m_downscaleVanillaBuffer ? 
+                (WorldStatic.Sector3D ? m_interpolationPlaneClipAlphaProgram : m_interpolationPlaneClipAlphaProgram) : m_interpolationPlaneClipMrtProgram;
             program.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(program, renderInfo, false);
             m_worldDataManager.RenderFlats();
-            program.Unbind();
         }
 
         if (m_renderStatic)
@@ -488,18 +505,26 @@ public class LegacyWorldRenderer : WorldRenderer
 
                 m_staticWallClipAlphaProgram.Bind();
                 SetStaticUniforms(m_staticWallClipAlphaProgram, renderInfo);
+
+                if (WorldStatic.Sector3D)
+                {                    
+                    GL.CullFace(TriangleFace.Front);
+                    m_geometryRenderer.RenderStaticMiddle3D();
+                    GL.CullFace(TriangleFace.Back);
+                    m_geometryRenderer.RenderStaticMiddle3D();
+                }
+                
                 m_geometryRenderer.RenderStaticTwoSidedWalls();
-                m_staticWallClipAlphaProgram.Unbind();
             }
             else
             {
-                StaticShader program = m_downscaleVanillaBuffer ? m_staticPlaneClipProgram : m_staticPlaneClipMrtProgram;
+                StaticShader program = m_downscaleVanillaBuffer ? 
+                    (WorldStatic.Sector3D ? m_staticPlaneClipAlphaProgram : m_staticPlaneClipProgram) : m_staticPlaneClipMrtProgram;
                 program.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 program.VertexGapClampUV(false);
                 SetStaticUniforms(program, renderInfo);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-                program.Unbind();
             }
         }
 
@@ -514,8 +539,8 @@ public class LegacyWorldRenderer : WorldRenderer
         var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Add) || 
             m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.ColorAdd);
-        var alphaWalls = m_worldDataManager.HasAlphaWalls();
-        if (!fuzzData && !alphaData && !alphaWalls)
+        var hasAlphaGeometry = m_worldDataManager.HasAlpha();
+        if (!fuzzData && !alphaData && !hasAlphaGeometry)
             return;
 
         m_oitFrameBuffer.StartRender();
@@ -548,20 +573,37 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationTransparentProgram.VertexGapClampUV(false);
         SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo, m_vanillaRender);
         GL.ActiveTexture(BindTextures.BoundTexture);
-        m_worldDataManager.RenderAlphaWalls();
+
+        if (hasAlphaGeometry)
+            m_worldDataManager.RenderAllAlpha();
 
         ResetBlendEquations();
         framebuffer.Bind();
 
         m_entityRenderer.RenderOitCompositePass(renderInfo);
 
-        if (alphaWalls)
+        if (hasAlphaGeometry)
         {
             m_interpolationCompositeProgram.Bind();
             m_interpolationCompositeProgram.VertexGapClampUV(false);
             SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo, m_vanillaRender);
             GL.ActiveTexture(BindTextures.BoundTexture);
-            m_worldDataManager.RenderAlphaWalls();
+
+            m_worldDataManager.Render(RenderDataStyle.Translucent);
+
+            if (m_worldDataManager.HasStyle(RenderDataStyle.Add))
+            {
+                SetBlendEquation(RenderDataStyle.Add);
+                m_worldDataManager.Render(RenderDataStyle.Add);
+            }
+
+            if (m_worldDataManager.HasStyle(RenderDataStyle.ColorAdd))
+            {
+                SetBlendEquation(RenderDataStyle.ColorAdd);
+                m_worldDataManager.Render(RenderDataStyle.ColorAdd);
+            }
+
+            SetBlendEquation(RenderDataStyle.Normal);
         }
 
         if (fuzzData)
@@ -570,7 +612,23 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.DepthMask(true);
     }
 
-    private static void ResetBlendEquations()
+    public static void SetBlendEquation(RenderDataStyle style)
+    {
+        switch(style)
+        {
+            case RenderDataStyle.Add:
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+                break;
+            case RenderDataStyle.ColorAdd:
+                GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+                break;
+            default:
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                break;
+        }
+    }
+
+    public static void ResetBlendEquations()
     {
         GL.BlendEquation(BlendEquationMode.FuncAdd);
         GL.Enable(EnableCap.Blend);
@@ -584,6 +642,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
         m_worldDataManager.RenderTwoSidedMiddleWalls();
 
+        if (WorldStatic.Sector3D)
+            m_worldDataManager.RenderMiddle3D();
+
         if (m_renderStatic)
         {
             m_staticProgram.Bind();
@@ -591,6 +652,9 @@ public class LegacyWorldRenderer : WorldRenderer
             SetStaticUniforms(m_staticProgram, renderInfo);
             m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_geometryRenderer.RenderStaticTwoSidedWalls();
+
+            if (WorldStatic.Sector3D)
+                m_geometryRenderer.RenderStaticMiddle3D();
         }
     }
 

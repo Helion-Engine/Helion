@@ -97,7 +97,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                 }
             }
         }
-        
+
 
     sightTraverseEndOfLoop:
         if (hitOneSidedLine)
