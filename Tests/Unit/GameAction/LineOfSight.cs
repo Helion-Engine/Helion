@@ -83,7 +83,7 @@ public class LineOfSight
     [Fact(DisplayName = "Line of sight obstructed by door")]
     public void LineOfSightDoorObstructed()
     {
-        GameActions.GetSector(World, 1).Ceiling.SetZ(0);
+        GameActions.GetSectorByTag(World, 3).Ceiling.SetZ(0);
         GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
         GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
         SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
@@ -95,7 +95,7 @@ public class LineOfSight
     [Fact(DisplayName = "Line of sight not obstructed by door")]
     public void LineOfSightDoorNotObstructed()
     {
-        var sector = GameActions.GetSector(World, 1);
+        var sector = GameActions.GetSectorByTag(World, 3);
         GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
         GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
         SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
@@ -181,7 +181,7 @@ public class LineOfSight
     public void LineOfSightDoorObstructed_ShortCheck()
     {
         World.SetLineOfSightDistance(LineOfSightDistanceTest);
-        GameActions.GetSector(World, 1).Ceiling.SetZ(0);
+        GameActions.GetSectorByTag(World, 3).Ceiling.SetZ(0);
         GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
         GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
         SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
@@ -195,7 +195,7 @@ public class LineOfSight
     public void LineOfSightDoorNotObstructed_ShortCheck()
     {
         World.SetLineOfSightDistance(LineOfSightDistanceTest);
-        var sector = GameActions.GetSector(World, 1);
+        var sector = GameActions.GetSectorByTag(World, 3);
         GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
         GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
         SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
@@ -256,7 +256,7 @@ public class LineOfSight
     {
         GameActions.SetEntityPosition(World, Player, new Vec2D(1664, -224));
         World.GetLineOfSightPlayer(SightThing3, false).Should().BeNull();
-        var sector = GameActions.GetSector(World, 9);
+        var sector = GameActions.GetSectorByTag(World, 2);
         sector.Floor.Z = 0;
         World.GetLineOfSightPlayer(SightThing3, false).Should().Be(Player);
     }
@@ -279,5 +279,30 @@ public class LineOfSight
         SightThing4.Sector.Should().Be(sector);
         SightThing4.Position.Z.Should().Be(-512);
         World.GetLineOfSightPlayer(SightThing4, false).Should().Be(Player);
+    }
+
+    [Fact(DisplayName = "Line of sight not obstructed by multiple ledges lower (los long check)")]
+    public void LineOfSightComplexLongCheckLower()
+    {
+        GameActions.SetEntityPosition(World, Player, new Vec2D(2496, 352));
+        var sightThing = GameActions.GetEntity(World, 5);
+        World.GetLineOfSightPlayer(sightThing, false).Should().Be(Player);
+    }
+
+    [Fact(DisplayName = "Line of sight obstructed by multiple ledges lower (los long check)")]
+    public void LineOfSightObstructedComplexLongCheckLower()
+    {
+        GameActions.SetEntityPosition(World, Player, new Vec2D(2208, 384));
+        Player.Position.Z = -8;
+        var sightThing = GameActions.GetEntity(World, 5);
+        World.GetLineOfSightPlayer(sightThing, false).Should().BeNull();
+    }
+
+    [Fact(DisplayName = "Line of sight not obstructed by multiple ledges higher (los long check)")]
+    public void LineOfSightComplexLongCheckHigher()
+    {
+        GameActions.SetEntityPosition(World, Player, new Vec2D(2472, 1408));
+        var sightThing = GameActions.GetEntity(World, 7);
+        World.GetLineOfSightPlayer(sightThing, false).Should().Be(Player);
     }
 }

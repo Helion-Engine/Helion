@@ -2560,11 +2560,11 @@ public abstract partial class WorldBase : IWorld
 
         if (WorldStatic.Sector3D || segLength <= m_losDistance)
         {
-            BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+            BlockmapTraverser.SightTraverse(seg, seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
                 return false;
 
-            var status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, 
+            var status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _,
                 out var crossedLine, out var onLine);
             if (!WorldStatic.Sector3D || status == TraversalPitchStatus.Blocked)
                 return status != TraversalPitchStatus.Blocked;
@@ -2582,7 +2582,7 @@ public abstract partial class WorldBase : IWorld
             ref var segStart = ref seg.Start;
             segStart.X += 1;
             segStart.Y += 1;
-            BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+            BlockmapTraverser.SightTraverse(seg, seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
                 return false;
 
@@ -2597,24 +2597,20 @@ public abstract partial class WorldBase : IWorld
 
         // A lot of LOS checks on large maps will short early. Check the first sorted set, and then rest if it passes.
         double segTime = m_losDistance / segLength;
-        seg = new Seg2D(start, seg.FromTime(segTime));
-        double sliceSegLength = m_losDistance;
-        BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+        var segSlice = new Seg2D(start, seg.FromTime(segTime));
+        BlockmapTraverser.SightTraverse(seg, segSlice, intersections, out hitOneSidedLine);
         if (hitOneSidedLine)
             return false;
 
-        if (GetBlockmapTraversalPitch(intersections, sightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out _, out _) == TraversalPitchStatus.Blocked)
+        if (GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out _, out _) == TraversalPitchStatus.Blocked)
             return false;
 
-        seg = new Seg2D(seg.End, end);
-        sliceSegLength = segLength - m_losDistance;
-        BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+        segSlice = new Seg2D(segSlice.End, end);
+        BlockmapTraverser.SightTraverse(seg, segSlice, intersections, out hitOneSidedLine);
         if (hitOneSidedLine)
             return false;
 
-        var slice = new Vec3D(sightPos.X + ((endSightPos.X - sightPos.X) * segTime), sightPos.Y + ((endSightPos.Y - sightPos.Y) * segTime),
-            sightPos.Z + ((endSightPos.Z - sightPos.Z) * segTime));
-        return GetBlockmapTraversalPitch(intersections, slice, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out _, out _) != TraversalPitchStatus.Blocked;
+        return GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topSlope, ref bottomSlope, out _, out _, out _, out _) != TraversalPitchStatus.Blocked;
     }
 
     private bool CheckLineOfSightPlane3D(Entity from, Entity to, Vec3D sightPos, Vec3D endSightPos, ref bool normalSolid)
