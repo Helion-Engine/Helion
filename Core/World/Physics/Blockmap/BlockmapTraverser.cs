@@ -52,12 +52,12 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
         }
     }
 
-    public void SightTraverse(in Seg2D seg, DynamicArray<BlockmapIntersect> intersections, out bool hitOneSidedLine)
+    public void SightTraverse(in Seg2D seg, in Seg2D traverseSeg, DynamicArray<BlockmapIntersect> intersections, out bool hitOneSidedLine)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         hitOneSidedLine = false;
         int length = 0;
-        var it = new BlockmapSegIterator(Blockmap, seg);
+        var it = new BlockmapSegIterator(Blockmap, traverseSeg);
         var arrayData = intersections.Data;
 
         while (true)

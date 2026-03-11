@@ -2230,7 +2230,7 @@ public abstract partial class WorldBase : IWorld
 
         if (segLength <= m_losDistance)
         {
-            BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+            BlockmapTraverser.SightTraverse(seg, seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
                 return false;
 
@@ -2239,24 +2239,20 @@ public abstract partial class WorldBase : IWorld
 
         // A lot of LOS checks on large maps will short early. Check the first sorted set, and then rest if it passes.
         double segTime = m_losDistance / segLength;
-        seg = new Seg2D(start, seg.FromTime(segTime));
-        double sliceSegLength = m_losDistance;
-        BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+        var segSlice = new Seg2D(start, seg.FromTime(segTime));
+        BlockmapTraverser.SightTraverse(seg, segSlice, intersections, out hitOneSidedLine);
         if (hitOneSidedLine)
             return false;
 
-        if (GetBlockmapTraversalPitch(intersections, sightPos, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
+        if (GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
             return false;
 
-        seg = new Seg2D(seg.End, end);
-        sliceSegLength = segLength - m_losDistance;
-        BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+        segSlice = new Seg2D(segSlice.End, end);
+        BlockmapTraverser.SightTraverse(seg, segSlice, intersections, out hitOneSidedLine);
         if (hitOneSidedLine)
             return false;
 
-        var slice = new Vec3D(sightPos.X + ((endSightPos.X - sightPos.X) * segTime), sightPos.Y + ((endSightPos.Y - sightPos.Y) * segTime),
-            sightPos.Z + ((endSightPos.Z - sightPos.Z) * segTime));
-        return GetBlockmapTraversalPitch(intersections, slice, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
+        return GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
     }
 
     private static bool TransferHeightsLineOfSightBlocked(Entity from, Entity to, TransferHeights heights)
