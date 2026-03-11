@@ -13,8 +13,10 @@
 - Fix ZDoom-style message centering when using SBARDEF
 - Fix intermission exitpic from MAPINFO not being set on transition. Fixes Eviternity II.
 - Fix software emulation discarding extra sprite pixels on the backside of upper textures.
+- Fix line of sight edge cases where monsters can't see the player.
 
 ## Misc:
 - Added option to disable stats showing in automap
 - Use more pixelated-looking TTF when generating ENDOOM
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
+- Correct brightmap option description that incorrectly described it didn't function with palette video mode.

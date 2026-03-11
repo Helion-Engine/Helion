@@ -91,7 +91,6 @@ public class ListedConfigSection : IOptionSection
         m_config.Render.Filter.Texture.OptionDisabled = paletteMode;
         m_config.Render.Anisotropy.OptionDisabled = paletteMode;
         m_config.Render.LightMode.OptionDisabled = paletteMode;
-        m_config.Render.Brightmaps.OptionDisabled = paletteMode;
         m_config.Render.EmulateInvulnerabilityColorMap.OptionDisabled = paletteMode;
         m_config.Render.DownScaleVanillaRenderSampleBuffer.OptionDisabled = m_config.Render.VanillaRender.Value == false;
 
