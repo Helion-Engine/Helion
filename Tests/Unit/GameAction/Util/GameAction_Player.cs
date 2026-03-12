@@ -40,7 +40,7 @@ namespace Helion.Tests.Unit.GameAction
             RunPlayerCommands(world, angle, [TickCommands.Right], runWhile, timeout, onTick, stopTicks: null, tickAngleTurn: null);
 
         public static void RunPlayerCommands(SinglePlayerWorld world, double angle, TickCommands[] commands, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null) =>
-            RunPlayerCommands(world, angle, commands, runWhile, timeout, onTick);
+            RunPlayerCommands(world, angle, commands, runWhile, timeout, onTick, null, null);
 
         public static void RunPlayerCommands(SinglePlayerWorld world, double angle, TickCommands[] commands, int stopTicks, Action? onTick = null) =>
             RunPlayerCommands(world, angle, commands, () => { return true; }, onTick: onTick, stopTicks: stopTicks);

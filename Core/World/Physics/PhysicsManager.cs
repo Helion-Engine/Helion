@@ -2167,7 +2167,7 @@ doneLinkToSectors:
                     entity.Velocity.Z = previousVelocity.Z + ((entity.Velocity.Z - previousVelocity.Z) * 0.125);
             }
 
-             entity.SetWaterSubmersionLevel();
+            entity.SetWaterSubmersionLevel();
         }
     }
 }
