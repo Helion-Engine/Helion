@@ -1,15 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Helion.Resources;
 using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.StatusBar;
+using Helion.Resources.Definitions.StatusBar.Enums;
+using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
-using Helion.World.Entities.Players;
-using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Entities.Players;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.World.StatusBar;
 
@@ -183,10 +184,14 @@ public static class StatusBarConditionResolver
             
             if (definition == null)
             {
-                if (entityName == "ComputerAreaMap") definition = composer.GetByName("AllMap");
-                else if (entityName == "InvulnerabilitySphere") definition = composer.GetByName("Invulnerability");
-                else if (entityName == "LightAmp") definition = composer.GetByName("LiteAmp");
-                else if (entityName == "RadSuit") definition = composer.GetByName("IronFeet");
+                if (entityName == "ComputerAreaMap")
+                    definition = composer.GetByName("AllMap");
+                else if (entityName == "InvulnerabilitySphere")
+                    definition = composer.GetByName("Invulnerability");
+                else if (entityName == "LightAmp")
+                    definition = composer.GetByName("LiteAmp");
+                else if (entityName == "RadSuit")
+                    definition = composer.GetByName("IronFeet");
             }
 
             Id24PickupLookup[pickupItemType] = definition;
@@ -254,11 +259,14 @@ public static class StatusBarConditionResolver
 
     private static bool CheckAmmoMatch(Player player, int param, EntityDefinitionComposer composer)
     {
-        if (player.Weapon == null) return false;
-        if (!TryGetId24AmmoType(composer, param, out var ammoDefFromParam)) return false;
-        string weaponAmmoName = player.Weapon.Definition.Properties.Weapons.AmmoType;
-        if (string.IsNullOrEmpty(weaponAmmoName)) return false; 
-        return ammoDefFromParam.Name.Equals(weaponAmmoName, StringComparison.OrdinalIgnoreCase);
+        if (player.Weapon == null)
+            return false;
+        if (!TryGetId24AmmoType(composer, param, out var ammoDefFromParam))
+            return false;
+        var weaponAmmoName = player.Weapon.Definition.Properties.Weapons.AmmoType;
+        if (string.IsNullOrEmpty(weaponAmmoName))
+            return false; 
+        return ammoDefFromParam.Name.EqualsIgnoreCase(weaponAmmoName);
     }
 
     private static bool CheckSlotOwned(Player player, int slot)
@@ -285,18 +293,17 @@ public static class StatusBarConditionResolver
         };
 
         if (pType.HasValue)
-        {
             return player.Inventory.IsPowerupActive(pType.Value);
-        }
 
         if (!TryGetId24PickupType(composer, param, out var def))
-        {
             return false;
-        }
 
-        if (player.Inventory.HasItem(def.Name)) return true;
-        if (player.ArmorDefinition != null && player.ArmorDefinition == def) return true;
-        if (player.Weapon != null && player.Weapon.Definition == def) return true;
+        if (player.Inventory.HasItem(def))
+            return true;
+        if (player.ArmorDefinition != null && player.ArmorDefinition.IsType(def.Name))
+            return true;
+        if (player.Weapon != null && player.Weapon.Definition == def)
+            return true;
 
         return false;
     }
@@ -307,7 +314,8 @@ public static class StatusBarConditionResolver
         if (gameConf?.Data?.Executable != null)
         {
             currentIndex = Array.IndexOf(GameConfConstants.ValidExecutables, gameConf.Data.Executable);
-            if (currentIndex == -1) return false;
+            if (currentIndex == -1)
+                return false;
         }
         return greaterEqual ? currentIndex >= param : currentIndex < param;
     }
@@ -315,16 +323,20 @@ public static class StatusBarConditionResolver
     private static bool CheckSessionType(IWorld world, int param, bool equals)
     {
         int currentType = 0; // Single Player
-        if (world.WorldType == WorldType.Deathmatch) currentType = 2;
-        else if (world.WorldType == WorldType.Cooperative) currentType = 1;
+        if (world.WorldType == WorldType.Deathmatch)
+            currentType = 2;
+        else if (world.WorldType == WorldType.Cooperative)
+            currentType = 1;
         return equals ? (currentType == param) : (currentType != param);
     }
 
     private static bool CheckGameMode(GameConfDefinition? gameConf, int param, bool equals)
     {
-        if (gameConf?.Data?.Mode == null) return false;
+        if (gameConf?.Data?.Mode == null)
+            return false;
         int currentIndex = Array.IndexOf(GameConfConstants.ValidModes, gameConf.Data.Mode);
-        if (currentIndex == -1) return false;
+        if (currentIndex == -1)
+            return false;
         return equals ? (currentIndex == param) : (currentIndex != param);
     }
 
@@ -334,35 +346,41 @@ public static class StatusBarConditionResolver
         return mode == param;
     }
     
-
     private static bool CheckAutomap(StatusBarContext context, int param)
     {
         bool visible = context.AutomapVisible;
-        if ((param & 0x01) != 0 && visible) return true;
-        if ((param & 0x04) != 0 && !visible) return true;
-        if ((param & 0x02) != 0 && visible) return true; 
+        if ((param & 0x01) != 0 && visible)
+            return true;
+        if ((param & 0x04) != 0 && !visible)
+            return true;
+        if ((param & 0x02) != 0 && visible)
+            return true; 
         return false;
     }
-    
+
     private static bool CheckHealthPercent(Player player, int param, bool greaterEqual)
     {
-        int percent = (int)((player.Health / 100.0f) * 100); 
+        int percent = (int)(player.Health / 100.0f * 100);
         return greaterEqual ? percent >= param : percent < param;
     }
 
     private static bool CheckArmorPercent(Player player, int param, bool greaterEqual)
     {
-        int max = 100;
-        if (player.Inventory.HasItem("BlueArmor")) max = 200; 
-        int percent = (int)((player.Armor / (float)max) * 100);
+        var max = 100;
+        if (player.ArmorProperties != null)
+            max = player.ArmorProperties.Armor.SaveAmount;
+
+        var percent = (int)(player.Armor / (float)max * 100);
         return greaterEqual ? percent >= param : percent < param;
     }
 
     private static bool CheckSelectedAmmo(Player player, int param, bool greaterEqual)
     {
-        if (player.Weapon == null) return false;
-        string ammoType = player.Weapon.Definition.Properties.Weapons.AmmoType;
-        if (string.IsNullOrEmpty(ammoType)) return false;
+        if (player.Weapon == null)
+            return false;
+        var ammoType = player.Weapon.Definition.Properties.Weapons.AmmoType;
+        if (string.IsNullOrEmpty(ammoType))
+            return false;
         
         int amount = player.Inventory.Amount(ammoType);
         return greaterEqual ? amount >= param : amount < param;
@@ -370,18 +388,22 @@ public static class StatusBarConditionResolver
 
     private static bool CheckSelectedAmmoPercent(IWorld world, Player player, bool hasBackPack, int param, bool greaterEqual)
     {
-        if (player.Weapon == null) return false;
-        string ammoType = player.Weapon.Definition.Properties.Weapons.AmmoType;
-        if (string.IsNullOrEmpty(ammoType)) return false;
+        if (player.Weapon == null)
+            return false;
+        var ammoType = player.Weapon.Definition.Properties.Weapons.AmmoType;
+        if (string.IsNullOrEmpty(ammoType))
+            return false;
 
         var def = world.EntityManager.DefinitionComposer.GetByName(ammoType);
-        if (def == null) return false;
+        if (def == null)
+            return false;
         
         int amount = player.Inventory.Amount(def);
         int max = GetMaxAmount(def, hasBackPack);
-        if (max == 0) return false;
+        if (max == 0)
+            return false;
 
-        int percent = (int)((amount / (float)max) * 100);
+        int percent = (int)(amount / (float)max * 100);
         return greaterEqual ? percent >= param : percent < param;
     }
 
@@ -458,17 +480,16 @@ public static class StatusBarConditionResolver
 
     private static bool CheckPatchEmpty(StatusBarContext context, string? patch, bool empty)
     {
-        if (string.IsNullOrEmpty(patch)) return empty;
-        bool hasImage = context.World.ArchiveCollection.ImageRetriever.Get(patch, ResourceNamespace.Global) != null;
+        if (string.IsNullOrEmpty(patch))
+            return empty;
+        var hasImage = context.World.ArchiveCollection.ImageRetriever.Get(patch, ResourceNamespace.Global) != null;
         return empty ? !hasImage : hasImage;
     }
 
     private static bool CheckStatPercent(int current, int total, int target, bool ge)
     {
         if (total <= 0)
-        {
             return ge ? 100 >= target : 100 < target;
-        }
 
         int pct = (current * 100) / total;
         return ge ? pct >= target : pct < target;
@@ -476,7 +497,8 @@ public static class StatusBarConditionResolver
 
     private static bool CheckPowerupDuration(Player player, PowerupType type, int seconds, bool ge)
     {
-        if (type == PowerupType.None) return false;
+        if (type == PowerupType.None)
+            return false;
 
         if (type == PowerupType.Strength || type == PowerupType.ComputerAreaMap)
         {
@@ -492,7 +514,8 @@ public static class StatusBarConditionResolver
 
     private static bool CheckPowerupPercent(Player player, PowerupType type, int targetPct, bool ge)
     {
-        if (type == PowerupType.None) return false;
+        if (type == PowerupType.None)
+            return false;
 
         if (type == PowerupType.Strength || type == PowerupType.ComputerAreaMap)
         {
@@ -501,7 +524,8 @@ public static class StatusBarConditionResolver
         }
 
         var p = player.Inventory.GetPowerup(type);
-        if (p == null) return ge ? 0 >= targetPct : 0 < targetPct;
+        if (p == null)
+            return ge ? 0 >= targetPct : 0 < targetPct;
 
         int maxTicks = type switch 
         {
