@@ -196,6 +196,10 @@ public interface IWorld : IDisposable
     Player? RespawnPlayer(Player player);
     int KillAllMonsters(int sectorTag);
     Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options);
+    void AddEntityScrollAccumulator(Entity entity, double x, double y);
+    void ClearEntityScrollAccumulator(Entity entity);
+    ScrollAccumulator GetEntityScrollAccumulator(Entity entity);
+    bool UseAverageScrollCarry();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

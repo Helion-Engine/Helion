@@ -11,6 +11,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Udmf;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Resources;
@@ -186,6 +187,7 @@ public abstract partial class WorldBase : IWorld
     private readonly IMap m_map;
     private readonly SpawnMulti m_spawnMulti;
     private readonly DynamicArray<SlopeSpan> m_visibleSpans = new(16);
+    private readonly bool m_averageScrollCarry;
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
@@ -195,6 +197,7 @@ public abstract partial class WorldBase : IWorld
 
     const int HighlightSize = 112;
     private readonly List<object> m_findObjects = [];
+    private readonly Dictionary<int, ScrollAccumulator> m_entityScrollAccumulators = [];
 
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionEntityAction;
@@ -235,6 +238,8 @@ public abstract partial class WorldBase : IWorld
         Geometry = geometry;
         CompatibilityMapDefinition = map.CompatibilityDefinition;
         MapType = map.MapType;
+        if (map is UdmfMap udmfMap)
+            m_averageScrollCarry = udmfMap.UdmfNamespace == UdmfNamespace.Doom;
         BspTree = Geometry.CompactBspTree;
 
         if (map.Reject != null && map.Reject.Length > 0)
@@ -4340,4 +4345,38 @@ public abstract partial class WorldBase : IWorld
 
         return entity;
     }
+
+    public void AddEntityScrollAccumulator(Entity entity, double x, double y)
+    {
+        if (x == 0 && y == 0)
+            return;
+
+        if (!m_entityScrollAccumulators.TryGetValue(entity.Index, out var accumulator))
+            accumulator = ScrollAccumulator.Zero;
+
+        accumulator.Speed.X += x;
+        accumulator.Speed.Y += y;
+
+        if (x != 0)
+            accumulator.Count.X++;
+        if (y != 0)
+            accumulator.Count.Y++;
+
+        m_entityScrollAccumulators[entity.Index] = accumulator;
+    }
+
+    public void ClearEntityScrollAccumulator(Entity entity)
+    {
+        m_entityScrollAccumulators[entity.Index] = ScrollAccumulator.Zero;
+    }
+
+    public ScrollAccumulator GetEntityScrollAccumulator(Entity entity)
+    {
+        if (m_entityScrollAccumulators.TryGetValue(entity.Index, out var accumulator))
+            return accumulator;
+
+        return ScrollAccumulator.Zero;
+    }
+
+    public bool UseAverageScrollCarry() => m_averageScrollCarry;
 }

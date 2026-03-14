@@ -1154,6 +1154,8 @@ public sealed class SpecialManager : ITickable, IDisposable
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             changeScroll = line.Front.Sector;
 
+        var carryOptions = m_world.UseAverageScrollCarry() ? ScrollPlaneOptions.AverageCarryVelocity : 0;
+
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
@@ -1162,7 +1164,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures, sectorPlane, speeds.ScrollSpeed.Value, changeScroll, flags));
 
             if (speeds.CarrySpeed.HasValue)
-                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.CarryAllObjects, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
+                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.CarryAllObjects | carryOptions, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
         }
     }
 
