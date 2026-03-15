@@ -14,6 +14,7 @@
 - Fix intermission exitpic from MAPINFO not being set on transition. Fixes Eviternity II.
 - Fix software emulation discarding extra sprite pixels on the backside of upper textures.
 - Fix line of sight edge cases where monsters can't see the player.
+- Fix nextmap/previousmap breaking on WADs with maps that exit to the same map
 
 ## Misc:
 - Added option to disable stats showing in automap
