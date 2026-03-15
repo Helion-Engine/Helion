@@ -14,6 +14,7 @@ defaultmap
 
 map MAP01 lookup "PHUSTR_1"
 {
+	levelnum = 1
 	titlepatch = "CWILV00"
 	next = "MAP02"
 	sky1 = "SKY1"
@@ -24,6 +25,7 @@ map MAP01 lookup "PHUSTR_1"
 
 map MAP02 lookup "PHUSTR_2"
 {
+	levelnum = 2
 	titlepatch = "CWILV01"
 	next = "MAP03"
 	sky1 = "SKY1"
@@ -34,6 +36,7 @@ map MAP02 lookup "PHUSTR_2"
 
 map MAP03 lookup "PHUSTR_3"
 {
+	levelnum = 3
 	titlepatch = "CWILV02"
 	next = "MAP04"
 	sky1 = "SKY1"
@@ -44,6 +47,7 @@ map MAP03 lookup "PHUSTR_3"
 
 map MAP04 lookup "PHUSTR_4"
 {
+	levelnum = 4
 	titlepatch = "CWILV03"
 	next = "MAP05"
 	sky1 = "SKY1"
@@ -54,6 +58,7 @@ map MAP04 lookup "PHUSTR_4"
 
 map MAP05 lookup "PHUSTR_5"
 {
+	levelnum = 5
 	titlepatch = "CWILV04"
 	next = "MAP06"
 	sky1 = "SKY1"
@@ -64,6 +69,7 @@ map MAP05 lookup "PHUSTR_5"
 
 map MAP06 lookup "PHUSTR_6"
 {
+	levelnum = 6
 	titlepatch = "CWILV05"
 	next = "MAP07"
 	sky1 = "SKY1"
@@ -75,6 +81,7 @@ map MAP06 lookup "PHUSTR_6"
 
 map MAP07 lookup "PHUSTR_7"
 {
+	levelnum = 7
 	titlepatch = "CWILV06"
 	next = "MAP08"
 	sky1 = "SKY1"
@@ -86,6 +93,7 @@ map MAP07 lookup "PHUSTR_7"
 
 map MAP08 lookup "PHUSTR_8"
 {
+	levelnum = 8
 	titlepatch = "CWILV07"
 	next = "MAP09"
 	sky1 = "SKY1"
@@ -96,6 +104,7 @@ map MAP08 lookup "PHUSTR_8"
 
 map MAP09 lookup "PHUSTR_9"
 {
+	levelnum = 9
 	titlepatch = "CWILV08"
 	next = "MAP10"
 	sky1 = "SKY1"
@@ -106,6 +115,7 @@ map MAP09 lookup "PHUSTR_9"
 
 map MAP10 lookup "PHUSTR_10"
 {
+	levelnum = 10
 	titlepatch = "CWILV09"
 	next = "MAP11"
 	sky1 = "SKY1"
@@ -116,6 +126,7 @@ map MAP10 lookup "PHUSTR_10"
 
 map MAP11 lookup "PHUSTR_11"
 {
+	levelnum = 11
 	titlepatch = "CWILV10"
 	next = "MAP12"
 	sky1 = "SKY1"
@@ -127,6 +138,7 @@ map MAP11 lookup "PHUSTR_11"
 
 map MAP12 lookup "PHUSTR_12"
 {
+	levelnum = 12
 	titlepatch = "CWILV11"
 	next = "MAP13"
 	sky1 = "SKY2"
@@ -137,6 +149,7 @@ map MAP12 lookup "PHUSTR_12"
 
 map MAP13 lookup "PHUSTR_13"
 {
+	levelnum = 13
 	titlepatch = "CWILV12"
 	next = "MAP14"
 	sky1 = "SKY2"
@@ -147,6 +160,7 @@ map MAP13 lookup "PHUSTR_13"
 
 map MAP14 lookup "PHUSTR_14"
 {
+	levelnum = 14
 	titlepatch = "CWILV13"
 	next = "MAP15"
 	sky1 = "SKY2"
@@ -157,6 +171,7 @@ map MAP14 lookup "PHUSTR_14"
 
 map MAP15 lookup "PHUSTR_15"
 {
+	levelnum = 15
 	titlepatch = "CWILV14"
 	next = "MAP16"
 	secretnext = "MAP31"
@@ -169,6 +184,7 @@ map MAP15 lookup "PHUSTR_15"
 
 map MAP16 lookup "PHUSTR_16"
 {
+	levelnum = 16
 	titlepatch = "CWILV15"
 	next = "MAP17"
 	sky1 = "SKY2"
@@ -179,6 +195,7 @@ map MAP16 lookup "PHUSTR_16"
 
 map MAP17 lookup "PHUSTR_17"
 {
+	levelnum = 17
 	titlepatch = "CWILV16"
 	next = "MAP18"
 	sky1 = "SKY2"
@@ -189,6 +206,7 @@ map MAP17 lookup "PHUSTR_17"
 
 map MAP18 lookup "PHUSTR_18"
 {
+	levelnum = 18
 	titlepatch = "CWILV17"
 	next = "MAP19"
 	sky1 = "SKY2"
@@ -199,6 +217,7 @@ map MAP18 lookup "PHUSTR_18"
 
 map MAP19 lookup "PHUSTR_19"
 {
+	levelnum = 19
 	titlepatch = "CWILV18"
 	next = "MAP20"
 	sky1 = "SKY2"
@@ -209,6 +228,7 @@ map MAP19 lookup "PHUSTR_19"
 
 map MAP20 lookup "PHUSTR_20"
 {
+	levelnum = 20
 	titlepatch = "CWILV19"
 	next = "MAP21"
 	sky1 = "SKY2"
@@ -220,6 +240,7 @@ map MAP20 lookup "PHUSTR_20"
 
 map MAP21 lookup "PHUSTR_21"
 {
+	levelnum = 21
 	titlepatch = "CWILV20"
 	next = "MAP22"
 	sky1 = "SKY3"
@@ -230,6 +251,7 @@ map MAP21 lookup "PHUSTR_21"
 
 map MAP22 lookup "PHUSTR_22"
 {
+	levelnum = 22
 	titlepatch = "CWILV21"
 	next = "MAP23"
 	sky1 = "SKY3"
@@ -240,6 +262,7 @@ map MAP22 lookup "PHUSTR_22"
 
 map MAP23 lookup "PHUSTR_23"
 {
+	levelnum = 23
 	titlepatch = "CWILV22"
 	next = "MAP24"
 	sky1 = "SKY3"
@@ -250,6 +273,7 @@ map MAP23 lookup "PHUSTR_23"
 
 map MAP24 lookup "PHUSTR_24"
 {
+	levelnum = 24
 	titlepatch = "CWILV23"
 	next = "MAP25"
 	sky1 = "SKY3"
@@ -260,6 +284,7 @@ map MAP24 lookup "PHUSTR_24"
 
 map MAP25 lookup "PHUSTR_25"
 {
+	levelnum = 25
 	titlepatch = "CWILV24"
 	next = "MAP26"
 	sky1 = "SKY3"
@@ -270,6 +295,7 @@ map MAP25 lookup "PHUSTR_25"
 
 map MAP26 lookup "PHUSTR_26"
 {
+	levelnum = 26
 	titlepatch = "CWILV25"
 	next = "MAP27"
 	sky1 = "SKY3"
@@ -280,6 +306,7 @@ map MAP26 lookup "PHUSTR_26"
 
 map MAP27 lookup "PHUSTR_27"
 {
+	levelnum = 27
 	titlepatch = "CWILV26"
 	next = "MAP28"
 	sky1 = "SKY3"
@@ -290,6 +317,7 @@ map MAP27 lookup "PHUSTR_27"
 
 map MAP28 lookup "PHUSTR_28"
 {
+	levelnum = 28
 	titlepatch = "CWILV27"
 	next = "MAP29"
 	sky1 = "SKY3"
@@ -300,6 +328,7 @@ map MAP28 lookup "PHUSTR_28"
 
 map MAP29 lookup "PHUSTR_29"
 {
+	levelnum = 29
 	titlepatch = "CWILV28"
 	next = "MAP30"
 	sky1 = "SKY3"
@@ -310,6 +339,7 @@ map MAP29 lookup "PHUSTR_29"
 
 map MAP30 lookup "PHUSTR_30"
 {
+	levelnum = 30
 	titlepatch = "CWILV29"
 	next = "EndGameC"
 	sky1 = "SKY3"
@@ -322,6 +352,7 @@ map MAP30 lookup "PHUSTR_30"
 
 map MAP31 lookup "PHUSTR_31"
 {
+	levelnum = 31
 	titlepatch = "CWILV30"
 	next = "MAP16"
 	secretnext = "MAP32"
@@ -334,6 +365,7 @@ map MAP31 lookup "PHUSTR_31"
 
 map MAP32 lookup "PHUSTR_32"
 {
+	levelnum = 32
 	titlepatch = "CWILV31"
 	next = "MAP16"
 	sky1 = "SKY3"
