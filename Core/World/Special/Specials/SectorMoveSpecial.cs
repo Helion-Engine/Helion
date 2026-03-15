@@ -302,9 +302,23 @@ public class SectorMoveSpecial : ISectorSpecial
 
     public virtual void ResetInterpolation()
     {
-        SectorPlane.PrevZ = SectorPlane.Z;
-        SectorPlane.LastRenderChangeGametick = m_world.Gametick;
-        SectorPlane.Sector.ResetInterpolationForPlane();
+        ResetPlaneInterpolation(SectorPlane);
+
+        if (WorldStatic.Sector3D)
+        {
+            for (int i = 0; i < Sector.TaggedSectors3D.Length; i++)
+            {
+                var sector = Sector.TaggedSectors3D[i].ControlSector;
+                ResetPlaneInterpolation(sector.GetSectorPlane(SectorPlane.Facing));
+            }
+        }
+    }
+
+    private void ResetPlaneInterpolation(SectorPlane plane)
+    {
+        plane.PrevZ = SectorPlane.Z;
+        plane.LastRenderChangeGametick = m_world.Gametick;
+        plane.Sector.ResetInterpolationForPlane();
     }
 
     private void CheckPlaySound()
@@ -355,7 +369,7 @@ public class SectorMoveSpecial : ISectorSpecial
     public virtual void FinalizeDestroy()
     {
         SectorPlane.SetSectorMoveChanged(m_world.Gametick);
-        SectorPlane.PrevZ = SectorPlane.Z;
+        ResetInterpolation();
     }
 
     public virtual void Free()
