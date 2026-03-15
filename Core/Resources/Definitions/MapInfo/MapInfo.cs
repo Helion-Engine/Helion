@@ -225,6 +225,14 @@ public class MapInfo
                     if (map.SecretNext != "")
                         mapStack.Push(map.SecretNext);
                 }
+                // if a map loops only to itself it ends the stack, so continue at the first map we haven't seen
+                if (mapStack.Count == 0 && m_orderedMaps.Count < m_maps.Count)
+                {
+                    // LevelNumber not necessarily set, so use MapName instead
+                    var nextMap = m_maps.OrderBy(x => x.MapName).FirstOrDefault(x => !m_orderedMaps.Contains(x));
+                    if (nextMap != null)
+                        mapStack.Push(nextMap.MapName);
+                }
             }
         }
 
