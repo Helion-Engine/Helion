@@ -515,6 +515,7 @@ public sealed class Sector3D
         WallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
         WallHeightsUnclipped = WallHeights;
         ClipBottomZ = ControlBottom.Z;
+        ClipPrevBottomZ = ControlBottom.Z;
 
         if (ParentSector.Sectors3D.Length == 0)
             return;
