@@ -147,6 +147,7 @@ public sealed class PhysicsManager
         entity.BlockingEntity = null;
         entity.BlockingBlockLineIndex = -1;
         entity.BlockingSectorPlane = null;
+        entity.BlockingSector3D = null;
         MoveXY(entity);
         MoveZ(entity);
         entity.Flags.ClearIgnoreDropOff();
@@ -709,8 +710,9 @@ public sealed class PhysicsManager
         }
     }
 
-    private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData tryMove, bool dropOff)
+    private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData tryMove, bool dropOff, out Sector3D? blockingSector3D)
     {
+        blockingSector3D = null;
         if (Line.BlocksEntity(entity, x, y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
             return LineBlock.BlockStopChecking;
 
@@ -753,12 +755,12 @@ public sealed class PhysicsManager
 
         if (WorldStatic.Sector3D)
         {
-            if (LineBlockSector3D(entity, tryMove, line.FrontSector))
+            if (LineBlockSector3D(entity, tryMove, line.FrontSector, ref blockingSector3D))
                 return LineBlock.BlockContinue;
 
             if (line.BackSector != null)
             {
-                if (LineBlockSector3D(entity, tryMove, line.BackSector))
+                if (LineBlockSector3D(entity, tryMove, line.BackSector, ref blockingSector3D))
                     return LineBlock.BlockContinue;
             }
         }
@@ -769,7 +771,7 @@ public sealed class PhysicsManager
         return LineBlock.BlockContinue;
     }
 
-    private bool LineBlockSector3D(Entity entity, TryMoveData tryMove, Sector sector)
+    private bool LineBlockSector3D(Entity entity, TryMoveData tryMove, Sector sector, ref Sector3D? blockingSector3D)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
@@ -779,7 +781,10 @@ public sealed class PhysicsManager
 
             var sectorEntity = sector3D.GetSectorEntity3D();
             if (BlocksEntityZ(entity, sectorEntity, tryMove, entity.OverlapsZ(sectorEntity), m_entityOpening))
+            {
+                blockingSector3D = sector3D;
                 return true;
+            }
         }
 
         return false;
@@ -1632,10 +1637,11 @@ doneLinkToSectors:
                     WorldStatic.CheckedLines[blockLine.LineId] = checkCounter;
                     if (blockLine.Segment.Intersects(boxMinX, boxMinY, boxMaxX, boxMaxY))
                     {
-                        var blockType = LineBlocksEntity(entity, x, y, ref blockLine, tryMove, true);
+                        var blockType = LineBlocksEntity(entity, x, y, ref blockLine, tryMove, true, out var blockingSector3D);
                         if (blockType != LineBlock.NoBlock)
                         {
                             entity.BlockingBlockLineIndex = i;
+                            entity.BlockingSector3D = blockingSector3D;
                             blockLineIndex = i;
                             tryMove.Success = false;
                             if (!entity.Flags.NoClip() && blockLine.HasSpecial)
@@ -1803,7 +1809,7 @@ doneLinkToSectors:
             {
                 ref var line = ref m_blockmap.BlockLines[i];             
                 if (cornerTracer.IntersectionExclusive(line.Segment, out double time) && time > 0 && time < 1 &&
-                    LineBlocksEntity(entity, entity.Position.X, entity.Position.Y, ref line, tryMove, false) != LineBlock.NoBlock &&
+                    LineBlocksEntity(entity, entity.Position.X, entity.Position.Y, ref line, tryMove, false, out _) != LineBlock.NoBlock &&
                     time < hitTime)
                 {
                     hit = true;
