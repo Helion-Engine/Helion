@@ -643,6 +643,8 @@ public partial class TextureManager : ITickable
         m_textureLookup[blackTexture.Name] = blackTexture;
         index++;
 
+        m_skyIndex = -1;
+
         flatIndexStart = index;
         var skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
         foreach (var flat in flatEntries)
