@@ -373,16 +373,7 @@ public sealed class PhysicsManager
             if (moveData.Crush != null && m_crushEntities.Length > 0)
                 CrushEntities(m_crushEntities, sector, moveData.Crush.Value);
 
-            for (int i = 0; i < m_sectorMoveEntitiesNoBlockMap.Length; i++)
-            {
-                var entity = m_sectorMoveEntitiesNoBlockMap.Data[i];
-                if (entity.Flags.Missile() &&
-                    ((moveType == SectorPlaneFace.Floor && sectorPlane.Z > entity.Position.Z) ||
-                    (moveType == SectorPlaneFace.Ceiling && sectorPlane.Z < entity.Position.Z + entity.GetClampHeight())))
-                {
-                    m_world.HandleEntityHit(entity, entity.Velocity, null);
-                }
-            }
+            CheckSectorMoveMissileClip(m_sectorMoveEntitiesNoBlockMap, sector, sectorPlane, moveType);
 
             m_clampIgnoreEntities.Clear();
             m_crushEntities.Clear();
@@ -406,6 +397,36 @@ public sealed class PhysicsManager
         }
 
         return status;
+    }
+
+    private void CheckSectorMoveMissileClip(DynamicArray<Entity> entities, Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType)
+    {
+        for (int i = 0; i < entities.Length; i++)
+        {
+            var entity = entities.Data[i];
+            if (!entity.Flags.Missile())
+                continue;
+
+            if (WorldStatic.Sector3D && sector.Sector3D != null)
+            {
+                var entityTopZ = entity.Position.Z + entity.GetClampHeight();
+                var entityBottomZ = entity.Position.Z;
+                if (entityBottomZ <= sector.Sector3D.ControlTop.Z && entityTopZ >= sector.Sector3D.ControlBottom.Z)
+                {
+                    entity.BlockingSectorPlane = sector.Sector3D.ControlSector.GetSectorPlane(moveType.Flip());
+                    entity.BlockingSector3D = sector.Sector3D;
+                    m_world.HandleEntityHit(entity, entity.Velocity, null);
+                }
+                continue;
+            }
+
+            if ((moveType == SectorPlaneFace.Floor && sectorPlane.Z > entity.Position.Z) ||
+                (moveType == SectorPlaneFace.Ceiling && sectorPlane.Z < entity.Position.Z + entity.GetClampHeight()))
+            {
+                entity.BlockingSectorPlane = sectorPlane;
+                m_world.HandleEntityHit(entity, entity.Velocity, null);
+            }
+        }
     }
 
     private SectorMoveStatus TestMoveSector3D(double speed, double destZ, double startZ, SectorMoveSpecial moveSpecial, Sector sector, SectorPlane sectorPlane, SectorPlaneFace face)
