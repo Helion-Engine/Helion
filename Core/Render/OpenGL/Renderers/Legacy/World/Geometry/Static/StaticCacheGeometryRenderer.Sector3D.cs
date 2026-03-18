@@ -52,10 +52,9 @@ public partial class StaticCacheGeometryRenderer
 
     private void AddSectorPlanes3D(Sector3D sector3D, SectorPlanes planes, bool update)
     {
-        if (!sector3D.ShouldRenderFlats)
-            return;
-
         planes &= sector3D.RenderPlanes;
+        if (!sector3D.ShouldRenderFlats || planes == SectorPlanes.None)
+            return;
 
         var saveTransfer = sector3D.ParentSector.TransferFloorLightSector;
         sector3D.ParentSector.TransferFloorLightSector = sector3D.ParentSector;
