@@ -3,7 +3,6 @@ using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
-using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
@@ -67,6 +66,17 @@ namespace Helion.Tests.Unit.GameAction
             throw new NullReferenceException();
         }
 
+        public static Entity GetEntityByTid(WorldBase world, int tid)
+        {
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+            {
+                if (entity.ThingId == tid)
+                    return entity;
+            }
+
+            throw new NullReferenceException();
+        }
+
         public static Entity? FindEntity(WorldBase world, string name)
         {
             for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
@@ -115,9 +125,11 @@ namespace Helion.Tests.Unit.GameAction
 
         public static readonly List<Entity> CreatedEntities = new();
 
-        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true, Action<Entity>? onCreated = null, bool initSpawn = false)
+        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true, Action<Entity>? onCreated = null, bool initSpawn = false, int tid = 0)
         {
-            var createdEntity = world.EntityManager.Create(name, pos, initSpawn: initSpawn);
+            var def = world.EntityManager.DefinitionComposer.GetByName(name);
+            def.Should().NotBeNull();
+            var createdEntity = world.EntityManager.Create(def, pos, 0, 0, tid, default, initSpawn: initSpawn);
             createdEntity.Should().NotBeNull();
             if (frozen)
                 createdEntity!.FrozenTics = int.MaxValue;

@@ -617,21 +617,27 @@ public class EntityManager : IDisposable
         SpawnLocations.AddPossibleSpawnLocation(entity);
 
         if (entity.ThingId != NoTid)
-        {
-            if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
-            {
-                entities.AddLast(entity);
-            }
-            else
-            {
-                var list = new LinkedList<Entity>();
-                list.AddLast(World.DataCache.GetLinkedListNodeEntity(entity));
-                TidToEntity.Add(entity.ThingId, list);
-            }
-        }
+            AddToThingLookup(entity, entity.ThingId);
+
+        if (entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
+            AddToThingLookup(entity, 0);
 
         if (entity.Flags.IsTeleportSpot())
             TeleportSpots.AddLast(entity);
+    }
+
+    private void AddToThingLookup(Entity entity, int thingId)
+    {
+        if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
+        {
+            entities.AddFirst(entity);
+        }
+        else
+        {
+            var list = new LinkedList<Entity>();
+            list.AddFirst(World.DataCache.GetLinkedListNodeEntity(entity));
+            TidToEntity.Add(thingId, list);
+        }
     }
 
     private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)

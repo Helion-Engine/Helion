@@ -229,13 +229,13 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    public bool AddActivatedLineSpecial(ZDoomLineSpecialType specialType, in SpecialArgs specialArgs, LineSpecialCompatibility? compat = null, bool resetActivation = true)
+    public bool AddActivatedLineSpecial(Entity activator, ZDoomLineSpecialType specialType, in SpecialArgs specialArgs, LineSpecialCompatibility? compat = null, bool resetActivation = true)
     {
         if (resetActivation)
             m_dummyLine.SetActivated(false);
         m_dummyLine.Args = specialArgs;
         m_dummyLine.Special.Set(specialType, LineActivationType.Tag, compat ?? LineSpecialCompatibility.Default);
-        return TryAddActivatedLineSpecial(new(ActivationContext.CrossLine, m_world.Player, m_dummyLine, true));
+        return TryAddActivatedLineSpecial(new(ActivationContext.CrossLine, activator, m_dummyLine, true));
     }
 
     public bool TryAddActivatedLineSpecial(in EntityActivateSpecial args)
@@ -1324,6 +1324,42 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.SectorSetColor:
                 return ActionSpecials.SectorSetColor(m_world, line.Args);
+
+            case ZDoomLineSpecialType.NoiseAlert:
+                return ActionSpecials.NoiseAlert(args.Entity, m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingActivate:
+                return ActionSpecials.ThingActivate(args.Entity, m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingDeActivate:
+                return ActionSpecials.ThingDeactivate(args.Entity, m_world, line.Args);
+
+            case ZDoomLineSpecialType.HealThing:
+                return ActionSpecials.HealThing(args.Entity, m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingHate:
+                return ActionSpecials.ThingHate(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ThingRaise:
+                return ActionSpecials.ThingRaise(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ThingStop:
+                return ActionSpecials.ThingStop(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ThingDamageTid:
+                return ActionSpecials.ThingDamageTid(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ThingMove:
+                return ActionSpecials.ThingMove(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ThrustThingZ:
+                return ActionSpecials.ThingThrustZ(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ThingChangeTid:
+                return ActionSpecials.ThingChangeTid(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ThingSetSpecial:
+                return ActionSpecials.ThingSetSpecial(args.Entity, world, line.Args);
         }
 
         return false;

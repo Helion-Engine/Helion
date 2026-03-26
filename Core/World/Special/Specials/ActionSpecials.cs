@@ -1,10 +1,10 @@
-﻿using Helion.Geometry.Vectors;
-using Helion.Maps.Components;
+﻿using Helion.Audio;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.World.Entities;
-using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
+using Helion.World.Physics;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
@@ -13,6 +13,26 @@ public static class ActionSpecials
 {
     const double SpeedFactor = 1 / 8.0;
     const int ProjectileOffsetZ = -31;
+
+    public static void ExitNormal(IWorld world, in SpecialArgs args)
+    {
+        world.ExitLevel(ExitLevelArgs.NextMap(flags: LevelChangeFlags.None, playerSpawnArg0: args.Arg0));
+    }
+
+    public static void ExitSecret(IWorld world, in SpecialArgs args)
+    {
+        world.ExitLevel(ExitLevelArgs.NextSecretMap(flags: LevelChangeFlags.None, playerSpawnArg0: args.Arg0));
+    }
+
+    public static void TeleportNewMap(IWorld world, in SpecialArgs args)
+    {
+        world.ExitLevel(ExitLevelArgs.SpecificMap(LevelChangeFlags.None, args.Arg0, args.Arg1, args.Arg2 > 0));
+    }
+
+    public static void TeleportEndGame(IWorld world)
+    {
+        world.ExitLevel(ExitLevelArgs.EndGame());
+    }
 
     public static bool ThingSpawn(IWorld world, in SpecialArgs args, bool teleportFog)
     {
@@ -41,7 +61,7 @@ public static class ActionSpecials
         if (entityDef == null)
             return false;
 
-        var teleportFog = args.Arg2 != 0;
+        var teleportFog = args.Arg2 == 0;
         var newTid = args.Arg3;
         var success = false;
         var spots = world.FindByTid(args.Arg0);
@@ -65,6 +85,7 @@ public static class ActionSpecials
         var spots = world.FindByTid(args.Arg0);
         var horizontalSpeed = args.Arg3 * SpeedFactor;
         var verticalSpeed = args.Arg4 * SpeedFactor;
+        var speedXY = new Vec2D(horizontalSpeed, horizontalSpeed);
 
         foreach (var spot in spots)
         {
@@ -73,7 +94,7 @@ public static class ActionSpecials
                 continue;
 
             entity.ThingId = newTid;
-            var xy = Vec2D.UnitCircle(angle) * new Vec2D(horizontalSpeed, horizontalSpeed);
+            var xy = Vec2D.UnitCircle(angle) * speedXY;
             entity.Velocity.X = xy.X;
             entity.Velocity.Y = xy.Y;
             entity.Velocity.Z = verticalSpeed;
@@ -164,26 +185,6 @@ public static class ActionSpecials
         return false;
     }
 
-    public static void ExitNormal(IWorld world, in SpecialArgs args)
-    {
-        world.ExitLevel(ExitLevelArgs.NextMap(flags: LevelChangeFlags.None, playerSpawnArg0: args.Arg0));
-    }
-
-    public static void ExitSecret(IWorld world, in SpecialArgs args)
-    {
-        world.ExitLevel(ExitLevelArgs.NextSecretMap(flags: LevelChangeFlags.None, playerSpawnArg0: args.Arg0));
-    }
-
-    public static void TeleportNewMap(IWorld world, in SpecialArgs args)
-    {
-        world.ExitLevel(ExitLevelArgs.SpecificMap(LevelChangeFlags.None, args.Arg0, args.Arg1, args.Arg2 > 0));
-    }
-
-    public static void TeleportEndGame(IWorld world)
-    {
-        world.ExitLevel(ExitLevelArgs.EndGame());
-    }
-
     public static bool SectorSetColor(IWorld world, in SpecialArgs args)
     {
         var colormap = world.ArchiveCollection.Definitions.GetLevelSectorColormap(new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3));
@@ -196,6 +197,195 @@ public static class ActionSpecials
         return true;
     }
 
+    public static bool NoiseAlert(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var target = GetActivator(activator, world, args.Arg0);
+        var source = GetActivator(activator, world, args.Arg1);
+        if (target != null && source != null)
+        {
+            world.NoiseAlert(target, source);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool ThingActivate(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        if (args.Arg0 == 0)
+        {
+            activator.Flags.ClearDormant();
+            return true;
+        }
+
+        var targets = GetActivatorOrEntities(activator, world, args.Arg0);
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+            target.Flags.ClearDormant();
+
+        return true;
+    }
+
+    public static bool ThingDeactivate(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        if (args.Arg0 == 0)
+        {
+            activator.Flags.SetDormant();
+            return true;
+        }
+
+        var targets = GetActivatorOrEntities(activator, world, args.Arg0);
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+            target.Flags.SetDormant();
+
+        return true;
+    }
+
+    public static bool HealThing(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var max = args.Arg1;
+        if (max == 0 || !activator.IsPlayer)
+        {
+            if (max == 0)
+                max = activator.Properties.Health;
+
+            activator.AddHealth(args.Arg0, max);
+            return true;
+        }
+        else
+        {
+            if (max == 1)
+                max = WorldStatic.MaxSoulsphere;
+
+            activator.AddHealth(args.Arg0, max);
+            return true;
+        }
+    }
+
+    private static EntityList GetActivatorOrEntities(Entity activator, IWorld world, int tid)
+    {
+        if (tid == 0)
+            return new EntityList(activator);
+
+        return new EntityList(world.FindByTid(tid));
+    }
+
+    public static bool ThingHate(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var sources = GetActivatorOrEntities(activator, world, args.Arg0);
+        var targets = GetActivatorOrEntities(activator, world, args.Arg1);
+
+        Entity? findTarget = null;
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+        {
+            if (!target.Flags.Shootable() || target.Flags.Dormant() || target.IsDead())
+                continue;
+
+            findTarget = target;
+            break;
+        }
+
+        if (findTarget == null)
+            return true;
+
+        for (var source = sources.Current(); source != null; source = sources.Advance())
+        {
+            if (!source.Definition.SeeState.HasValue || !source.Flags.Shootable() || source.IsDead() || source.IsPlayer)
+                continue;
+
+            source.SetTarget(findTarget);
+            source.SetSeeState();
+        }
+
+        return true;
+    }
+
+    public static bool ThingRaise(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var targets = world.FindByTid(args.Arg0);
+        for (var targetNode = targets.First; targetNode != null; targetNode = targetNode.Next)
+        {
+            var target = targetNode.Value;
+            if (target.IsDead())
+            {
+                WorldStatic.SoundManager.CreateSoundOn(target, "vile/raise", new SoundParams(target));
+                target.SetRaiseState();
+            }
+        }
+        return true;
+    }
+
+    public static bool ThingStop(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var targets = GetActivatorOrEntities(activator, world, args.Arg0);
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+            target.Velocity = Vec3D.Zero;
+        return true;
+    }
+
+    public static bool ThingDamageTid(Entity activator, IWorld world, in SpecialArgs args)
+    {
+
+        var targets = GetActivatorOrEntities(activator, world, args.Arg0);
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+            world.DamageEntity(target, activator, args.Arg1, DamageType.AlwaysApply, Thrust.None);
+        return true;
+    }
+
+    public static bool ThingMove(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var source = GetActivator(activator, world, args.Arg0);
+        var destination = GetActivator(activator, world, args.Arg1);
+
+        if (source == null || destination == null)
+            return true;
+
+        var flags = args.Arg2 == 0 ? TeleportFog.Source | TeleportFog.Dest : TeleportFog.None;
+        var teleport = new TeleportSpecial(new(default, source, world.Lines[0], default), world, 0, flags);
+        teleport.Teleport(destination);
+        return true;
+    }
+
+    public static bool ThingThrustZ(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var force = args.Arg1 / 4.0;
+        if (args.Arg2 != 0)
+            force = -force;
+        var set = args.Arg3 == 0;
+        var success = false;
+        var targets = GetActivatorOrEntities(activator, world, args.Arg0);
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+        {
+            if (set)
+                target.Velocity.Z = force;
+            else
+                target.Velocity.Z += force;
+            success = true;
+        }
+
+        return success;
+    }
+
+    public static bool ThingChangeTid(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var targets = GetActivatorOrEntities(activator, world, args.Arg0);
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+            target.ThingId = args.Arg1;
+        return true;
+    }
+
+    public static bool ThingSetSpecial(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var targets = GetActivatorOrEntities(activator, world, args.Arg0);
+        for (var target = targets.Current(); target != null; target = targets.Advance())
+        {
+            target.Special = (ZDoomLineSpecialType)args.Arg1;
+            target.Args.Arg0 = args.Arg2;
+            target.Args.Arg1 = args.Arg3;
+            target.Args.Arg2 = args.Arg4;
+        }
+        return true;
+    }
+
     private static Entity? GetActivator(Entity activator, IWorld world, int tid)
     {
         if (tid == 0)
@@ -203,7 +393,6 @@ public static class ActionSpecials
 
         return world.FindByTid(tid).First?.Value;
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static double FromByteAngle(int angle)
