@@ -631,6 +631,10 @@ public abstract partial class WorldBase : IWorld
 
         if (WorldStatic.CheckedLines.Length < Lines.Count)
             WorldStatic.CheckedLines = new int[Lines.Count];
+
+        var soulSphere = EntityManager.DefinitionComposer.GetByName("SoulSphere");
+        if (soulSphere != null)
+            WorldStatic.MaxSoulsphere = soulSphere.Properties.Inventory.MaxAmount;
     }
 
     private void VanillaSectorSound_OnChanged(object? sender, bool enabled) =>
@@ -2313,15 +2317,15 @@ public abstract partial class WorldBase : IWorld
 
         if (!shouldStay)
         {
-            ActivateEntitySpecial(item);
+            ActivateEntitySpecial(entity, item);
             EntityManager.Destroy(item);
         }
     }
 
-    private void ActivateEntitySpecial(Entity entity)
+    private void ActivateEntitySpecial(Entity activator, Entity entity)
     {
         if (entity.Special != ZDoomLineSpecialType.None)
-            SpecialManager.AddActivatedLineSpecial(entity.Special, entity.Args);
+            SpecialManager.AddActivatedLineSpecial(activator, entity.Special, entity.Args);
     }
 
     public virtual bool ShouldItemStay(Entity item)
@@ -2808,7 +2812,7 @@ public abstract partial class WorldBase : IWorld
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
         }
 
-        ActivateEntitySpecial(deathEntity);
+        ActivateEntitySpecial(deathSource ?? deathEntity, deathEntity);
     }
 
     private void CheckDropItem(Entity deathEntity)
@@ -2850,21 +2854,23 @@ public abstract partial class WorldBase : IWorld
         Entity? killer = null;
         if (deathSource != null)
         {
-            // If the player killed themself then don't display the obituary message
-            // There is probably a special string for this in multiplayer for later
             killer = deathSource.Owner() ?? deathSource;
             if (player == killer)
-                return;
-
-            // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
-            var obituarySource = killer;
-            if (killer.IsPlayer)
-                obituarySource = deathSource;
-
-            if (obituarySource == deathSource && obituarySource.Definition.Properties.HitObituary.Length > 0)
-                obituary = obituarySource.Definition.Properties.HitObituary;
+            {
+                obituary = "$OB_SUICIDE";
+            }
             else
-                obituary = obituarySource.Definition.Properties.Obituary;
+            {
+                // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
+                var obituarySource = killer;
+                if (killer.IsPlayer)
+                    obituarySource = deathSource;
+
+                if (obituarySource == deathSource && obituarySource.Definition.Properties.HitObituary.Length > 0)
+                    obituary = obituarySource.Definition.Properties.HitObituary;
+                else
+                    obituary = obituarySource.Definition.Properties.Obituary;
+            }
         }
 
         if (damageType == DamageType.Drowning)

@@ -532,6 +532,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public virtual void Tick()
     {
+        if (Flags.Dormant())
+            return;
+
         Flags.ClearTeleported();
 
         if (FrozenTics > 0)
@@ -585,6 +588,29 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         }
 
         RunDebugSanityChecks();
+    }
+
+    public bool AddHealth(int amount, int max)
+    {
+        if (IsDead())
+            return false;
+
+        if (amount < 0)
+        {
+            amount = max * -amount / 100;
+            if (Health < amount)
+            {
+                Health = amount;
+                return true;
+            }
+        }
+        else if (Health < max)
+        {
+            Health = Math.Min(Health + amount, max);
+            return true;
+        }
+
+        return false;
     }
 
     public void ForceGib() =>
@@ -1317,7 +1343,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public override string ToString()
     {
-        return $"Id:{Id} [{Definition}] [{Position}]";
+        return $"Id:{Id} [{Definition}] [{Position}] Tid:{ThingId}";
     }
 
     public double GetDistanceSquaredFrom(Entity listenerEntity)

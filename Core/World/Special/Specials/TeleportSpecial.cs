@@ -9,6 +9,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
 
@@ -74,11 +75,35 @@ public struct TeleportSpecial
         m_type = type;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Teleport(Entity teleportSpot)
+    {
+        return TeleportInternal(teleportSpot);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Teleport()
     {
+        return TeleportInternal(null);
+    }
+
+    private readonly bool TeleportInternal(Entity? teleportSpot)
+    {
         var entity = m_args.Entity;
-        if (!FindTeleportSpot(entity, out var pos, out double angle, out double offsetZ))
-            return false;
+
+        Vec3D pos;
+        double angle;
+        double offsetZ = 0;
+        if (teleportSpot != null)
+        {
+            angle = teleportSpot.AngleRadians;
+            pos = GetTeleportPosition(teleportSpot);
+        }
+        else
+        {
+            if (!FindTeleportSpot(entity, out pos, out angle, out offsetZ))
+                return false;
+        }
 
         if (WorldStatic.FinalDoomTeleport)
             pos.Z = entity.Position.Z;

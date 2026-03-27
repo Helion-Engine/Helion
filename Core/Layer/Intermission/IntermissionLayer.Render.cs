@@ -280,7 +280,7 @@ public partial class IntermissionLayer
         return $"{minutes}:{secondsStr}";
     }
 
-    void RenderTime(IHudRenderContext hud, int seconds, int rightOffsetX, int y)
+    static void RenderTime(IHudRenderContext hud, int seconds, int rightOffsetX, int y)
     {
         string levelTime = GetTimeString(seconds);
         int fontSize = hud.GetFontMaxHeight(MainFont);

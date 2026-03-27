@@ -575,6 +575,7 @@ OB_MPBFG_SPLASH = "%o couldn't hide from %k's BFG.";
 OB_RAILGUN = "%o was railed by %k.";
 OB_MPBFG_MBF = "%o was burned by %k's BFG.";
 OB_WATER = "%o can't swim.";
+OB_SUICIDE = "%o killed themself.";
 // Level names
 // Doom 1
 HUSTR_E1M1 = "Hangar";

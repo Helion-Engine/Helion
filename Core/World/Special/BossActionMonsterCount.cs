@@ -60,6 +60,6 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         if (specialType == ZDoomLineSpecialType.None)
             return;
 
-        m_world.SpecialManager.AddActivatedLineSpecial(specialType, specialArgs, compat);
+        m_world.SpecialManager.AddActivatedLineSpecial(m_world.Player, specialType, specialArgs, compat);
     }
 }
