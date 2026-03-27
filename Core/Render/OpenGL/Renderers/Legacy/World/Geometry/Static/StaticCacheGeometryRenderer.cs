@@ -1045,15 +1045,15 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
         if (WorldStatic.Sector3D && check3D)
         {
-            var face = plane.Facing.Flip();
+            var flippedFace = plane.Facing.Flip();
             for (int i = 0; i < sector.TaggedSectors3D.Length; i++)
             {
                 var sector3D = plane.Sector.TaggedSectors3D[i];
-                HandleSectorMoveComplete(world, plane.Sector, sector3D.FakeSector.GetSectorPlane(face), check3D: false);
+                HandleSectorMoveComplete(world, plane.Sector, sector3D.FakeSector.GetSectorPlane(flippedFace), check3D: false);
 
                 sector3D.ParentSector.Floor.SetSectorMoveChanged(m_world.Gametick);
                 sector3D.ParentSector.Ceiling.SetSectorMoveChanged(m_world.Gametick);
-                HandleSectorMoveComplete(world, sector3D.ParentSector, sector3D.ParentSector.GetSectorPlane(face), check3D: false);
+                HandleSectorMoveComplete(world, sector3D.ParentSector, sector3D.ParentSector.GetSectorPlane(flippedFace), check3D: false);
 
                 for (int j = 0; j < sector3D.ParentSector.Sectors3D.Length; j++)
                 {
@@ -1065,9 +1065,9 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 }
 
                 if (sector3D.FakeSectorFlipped != null)
-                    HandleSectorMoveComplete(world, plane.Sector, sector3D.FakeSectorFlipped.GetSectorPlane(face), check3D: false);
+                    HandleSectorMoveComplete(world, plane.Sector, sector3D.FakeSectorFlipped.GetSectorPlane(flippedFace), check3D: false);
 
-                AddSector3D(sector3D, face.ToSectorPlanes(), true);
+                AddSector3D(sector3D, plane.Facing.ToSectorPlanes(), true);
             }
         }
     }

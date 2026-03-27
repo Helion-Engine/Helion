@@ -1816,6 +1816,14 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
                 sectorSpecial = CreateElevatorToFloor(sector, line, line.Args.Arg1 * SpeedFactor);
                 return sectorSpecial != null;
+
+            case ZDoomLineSpecialType.FloorAndCeilingLowerByValue:
+                sectorSpecial = CreateElevatorByValue(sector, MoveDirection.Down, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);
+                return sectorSpecial != null;
+
+            case ZDoomLineSpecialType.FloorAndCeilingRaiseByValue:
+                sectorSpecial = CreateElevatorByValue(sector, MoveDirection.Up, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);
+                return sectorSpecial != null;
         }
 
         sectorSpecial = null;
@@ -1832,6 +1840,12 @@ public sealed class SpecialManager : ITickable, IDisposable
     private ElevatorSpecial? CreateElevatorToNearest(Sector sector, MoveDirection direction, double speed)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, direction == MoveDirection.Up ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor);
+        return new ElevatorSpecial(m_world, sector, destZ, speed, direction, PlatSound);
+    }
+
+    private ElevatorSpecial? CreateElevatorByValue(Sector sector, MoveDirection direction, double speed, double value)
+    {
+        var destZ = sector.Floor.Z + (direction == MoveDirection.Up ? value : -value);
         return new ElevatorSpecial(m_world, sector, destZ, speed, direction, PlatSound);
     }
 

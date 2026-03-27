@@ -109,6 +109,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public int BlockingBlockLineIndex;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
+    public Sector3D? BlockingSector3D;
 
     // Values that are modified from EntityProperties
     public int Threshold;
@@ -498,6 +499,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         BlockingBlockLineIndex = -1;
         BlockingEntity = null;
         BlockingSectorPlane = null;
+        BlockingSector3D = null;
     }
 
     public void UnlinkBlockMapBlocks()
@@ -1257,6 +1259,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         BlockingBlockLineIndex = -1;
         BlockingEntity = null;
         BlockingSectorPlane = null;
+        BlockingSector3D = null;
         Sector = Sector.Default;
         SubsectorId = 0;
         HighestFloorObject = Sector.Default;

@@ -9,6 +9,7 @@ episode map01
 
 map MAP01 lookup "HUSTR_1"
 {
+	levelnum = 1
 	titlepatch = "CWILV00"
 	next = "MAP02"
 	sky1 = "SKY1"
@@ -19,6 +20,7 @@ map MAP01 lookup "HUSTR_1"
 
 map MAP02 lookup "HUSTR_2"
 {
+	levelnum = 2
 	titlepatch = "CWILV01"
 	next = "MAP03"
 	sky1 = "SKY1"
@@ -29,6 +31,7 @@ map MAP02 lookup "HUSTR_2"
 
 map MAP03 lookup "HUSTR_3"
 {
+	levelnum = 3
 	titlepatch = "CWILV02"
 	next = "MAP04"
 	sky1 = "SKY1"
@@ -39,6 +42,7 @@ map MAP03 lookup "HUSTR_3"
 
 map MAP04 lookup "HUSTR_4"
 {
+	levelnum = 4
 	titlepatch = "CWILV03"
 	next = "MAP05"
 	sky1 = "SKY1"
@@ -49,6 +53,7 @@ map MAP04 lookup "HUSTR_4"
 
 map MAP05 lookup "HUSTR_5"
 {
+	levelnum = 5
 	titlepatch = "CWILV04"
 	next = "MAP06"
 	sky1 = "SKY1"
@@ -59,6 +64,7 @@ map MAP05 lookup "HUSTR_5"
 
 map MAP06 lookup "HUSTR_6"
 {
+	levelnum = 6
 	titlepatch = "CWILV05"
 	next = "MAP07"
 	sky1 = "SKY1"
@@ -71,6 +77,7 @@ map MAP06 lookup "HUSTR_6"
 
 map MAP07 lookup "HUSTR_7"
 {
+	levelnum = 7
 	titlepatch = "CWILV06"
 	next = "MAP08"
 	sky1 = "SKY1"
@@ -82,6 +89,7 @@ map MAP07 lookup "HUSTR_7"
 
 map MAP08 lookup "HUSTR_8"
 {
+	levelnum = 8
 	titlepatch = "CWILV07"
 	next = "MAP09"
 	sky1 = "SKY1"
@@ -92,6 +100,7 @@ map MAP08 lookup "HUSTR_8"
 
 map MAP09 lookup "HUSTR_9"
 {
+	levelnum = 9
 	titlepatch = "CWILV08"
 	next = "MAP10"
 	sky1 = "SKY1"
@@ -102,6 +111,7 @@ map MAP09 lookup "HUSTR_9"
 
 map MAP10 lookup "HUSTR_10"
 {
+	levelnum = 10
 	titlepatch = "CWILV09"
 	next = "MAP11"
 	sky1 = "SKY1"
@@ -112,6 +122,7 @@ map MAP10 lookup "HUSTR_10"
 
 map MAP11 lookup "HUSTR_11"
 {
+	levelnum = 11
 	titlepatch = "CWILV10"
 	next = "MAP12"
 	sky1 = "SKY1"
@@ -123,6 +134,7 @@ map MAP11 lookup "HUSTR_11"
 
 map MAP12 lookup "HUSTR_12"
 {
+	levelnum = 12
 	titlepatch = "CWILV11"
 	next = "MAP13"
 	sky1 = "SKY2"
@@ -133,6 +145,7 @@ map MAP12 lookup "HUSTR_12"
 
 map MAP13 lookup "HUSTR_13"
 {
+	levelnum = 13
 	titlepatch = "CWILV12"
 	next = "MAP14"
 	sky1 = "SKY2"
@@ -143,6 +156,7 @@ map MAP13 lookup "HUSTR_13"
 
 map MAP14 lookup "HUSTR_14"
 {
+	levelnum = 14
 	titlepatch = "CWILV13"
 	next = "MAP15"
 	sky1 = "SKY2"
@@ -153,6 +167,7 @@ map MAP14 lookup "HUSTR_14"
 
 map MAP15 lookup "HUSTR_15"
 {
+	levelnum = 15
 	titlepatch = "CWILV14"
 	next = "MAP16"
 	secretnext = "MAP31"
@@ -165,6 +180,7 @@ map MAP15 lookup "HUSTR_15"
 
 map MAP16 lookup "HUSTR_16"
 {
+	levelnum = 16
 	titlepatch = "CWILV15"
 	next = "MAP17"
 	sky1 = "SKY2"
@@ -175,6 +191,7 @@ map MAP16 lookup "HUSTR_16"
 
 map MAP17 lookup "HUSTR_17"
 {
+	levelnum = 17
 	titlepatch = "CWILV16"
 	next = "MAP18"
 	sky1 = "SKY2"
@@ -185,6 +202,7 @@ map MAP17 lookup "HUSTR_17"
 
 map MAP18 lookup "HUSTR_18"
 {
+	levelnum = 18
 	titlepatch = "CWILV17"
 	next = "MAP19"
 	sky1 = "SKY2"
@@ -195,6 +213,7 @@ map MAP18 lookup "HUSTR_18"
 
 map MAP19 lookup "HUSTR_19"
 {
+	levelnum = 19
 	titlepatch = "CWILV18"
 	next = "MAP20"
 	sky1 = "SKY2"
@@ -205,6 +224,7 @@ map MAP19 lookup "HUSTR_19"
 
 map MAP20 lookup "HUSTR_20"
 {
+	levelnum = 20
 	titlepatch = "CWILV19"
 	next = "MAP21"
 	sky1 = "SKY2"
@@ -216,6 +236,7 @@ map MAP20 lookup "HUSTR_20"
 
 map MAP21 lookup "HUSTR_21"
 {
+	levelnum = 21
 	titlepatch = "CWILV20"
 	next = "MAP22"
 	sky1 = "SKY3"
@@ -226,6 +247,7 @@ map MAP21 lookup "HUSTR_21"
 
 map MAP22 lookup "HUSTR_22"
 {
+	levelnum = 22
 	titlepatch = "CWILV21"
 	next = "MAP23"
 	sky1 = "SKY3"
@@ -236,6 +258,7 @@ map MAP22 lookup "HUSTR_22"
 
 map MAP23 lookup "HUSTR_23"
 {
+	levelnum = 23
 	titlepatch = "CWILV22"
 	next = "MAP24"
 	sky1 = "SKY3"
@@ -246,6 +269,7 @@ map MAP23 lookup "HUSTR_23"
 
 map MAP24 lookup "HUSTR_24"
 {
+	levelnum = 24
 	titlepatch = "CWILV23"
 	next = "MAP25"
 	sky1 = "SKY3"
@@ -256,6 +280,7 @@ map MAP24 lookup "HUSTR_24"
 
 map MAP25 lookup "HUSTR_25"
 {
+	levelnum = 25
 	titlepatch = "CWILV24"
 	next = "MAP26"
 	sky1 = "SKY3"
@@ -266,6 +291,7 @@ map MAP25 lookup "HUSTR_25"
 
 map MAP26 lookup "HUSTR_26"
 {
+	levelnum = 26
 	titlepatch = "CWILV25"
 	next = "MAP27"
 	sky1 = "SKY3"
@@ -276,6 +302,7 @@ map MAP26 lookup "HUSTR_26"
 
 map MAP27 lookup "HUSTR_27"
 {
+	levelnum = 27
 	titlepatch = "CWILV26"
 	next = "MAP28"
 	sky1 = "SKY3"
@@ -286,6 +313,7 @@ map MAP27 lookup "HUSTR_27"
 
 map MAP28 lookup "HUSTR_28"
 {
+	levelnum = 28
 	titlepatch = "CWILV27"
 	next = "MAP29"
 	sky1 = "SKY3"
@@ -296,6 +324,7 @@ map MAP28 lookup "HUSTR_28"
 
 map MAP29 lookup "HUSTR_29"
 {
+	levelnum = 29
 	titlepatch = "CWILV28"
 	next = "MAP30"
 	sky1 = "SKY3"
@@ -306,6 +335,7 @@ map MAP29 lookup "HUSTR_29"
 
 map MAP30 lookup "HUSTR_30"
 {
+	levelnum = 30
 	titlepatch = "CWILV29"
 	next = "EndGameC"
 	sky1 = "SKY3"
@@ -318,6 +348,7 @@ map MAP30 lookup "HUSTR_30"
 
 map MAP31 lookup "HUSTR_31"
 {
+	levelnum = 31
 	titlepatch = "CWILV30"
 	next = "MAP16"
 	secretnext = "MAP32"
@@ -330,6 +361,7 @@ map MAP31 lookup "HUSTR_31"
 
 map MAP32 lookup "HUSTR_32"
 {
+	levelnum = 32
 	titlepatch = "CWILV31"
 	next = "MAP16"
 	sky1 = "SKY3"
