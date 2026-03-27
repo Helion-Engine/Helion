@@ -6,4 +6,5 @@ public enum UdmfNamespace
     Doom,
     Dsda,
     ZDoom,
+    Helion
 }

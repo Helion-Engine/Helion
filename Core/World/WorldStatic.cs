@@ -1,8 +1,6 @@
-﻿using Helion.Geometry.Grids;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
-using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
@@ -57,6 +55,7 @@ public static class WorldStatic
     public static float CoverWallOffset;
     public static float DamageApplyMultiplier = 1;
     public static float DamageReceiveMultiplier = 1;
+    public static int MaxSoulsphere = 200;
 
     public static EntityDefinition DoomImpBall = EntityDefinition.Default;
     public static EntityDefinition ArachnotronPlasma = EntityDefinition.Default;
