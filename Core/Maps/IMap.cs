@@ -30,6 +30,7 @@ public interface IMap
     void ClearAllExceptThings();
     void ClearAll();
     void LoadData();
+    bool UseAverageScrollCarry();
 
     public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null, bool loadData = true)
     {

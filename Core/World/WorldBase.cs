@@ -11,7 +11,6 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Maps.Udmf;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Resources;
@@ -238,8 +237,7 @@ public abstract partial class WorldBase : IWorld
         Geometry = geometry;
         CompatibilityMapDefinition = map.CompatibilityDefinition;
         MapType = map.MapType;
-        if (map is UdmfMap udmfMap)
-            m_averageScrollCarry = udmfMap.UdmfNamespace == UdmfNamespace.Doom;
+        m_averageScrollCarry = map.UseAverageScrollCarry();
         BspTree = Geometry.CompactBspTree;
 
         if (map.Reject != null && map.Reject.Length > 0)
