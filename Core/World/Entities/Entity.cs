@@ -587,20 +587,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             Respawn = true;
         }
 
-        if (Flags.InScrollSector())
-        {
-            var accumulator = WorldStatic.World.GetEntityScrollAccumulator(this);
-
-            if (accumulator.Count.X != 0)
-                Velocity.X += accumulator.Speed.X / accumulator.Count.X;
-
-            if (accumulator.Count.Y != 0)
-                Velocity.Y += accumulator.Speed.Y / accumulator.Count.Y;
-
-            WorldStatic.World.ClearEntityScrollAccumulator(this);
-            Flags.ClearInScrollSector();
-        }
-
         RunDebugSanityChecks();
     }
 

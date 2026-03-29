@@ -12,6 +12,7 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -61,6 +62,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using static Helion.Dehacked.DehackedDefinition;
 using static Helion.Util.Assertion.Assert;
 
@@ -197,6 +199,7 @@ public abstract partial class WorldBase : IWorld
     const int HighlightSize = 112;
     private readonly List<object> m_findObjects = [];
     private readonly Dictionary<int, ScrollAccumulator> m_entityScrollAccumulators = [];
+    private readonly DynamicArray<Entity> m_scrollEntities = new(128);
 
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionEntityAction;
@@ -954,6 +957,7 @@ public abstract partial class WorldBase : IWorld
             TickPlayers();
             TickEntities();
             SpecialManager.Tick();
+            TickScrollers();
 
             if (WorldState != WorldState.Exit)
             {
@@ -978,10 +982,32 @@ public abstract partial class WorldBase : IWorld
         Profiler.World.Total.Stop();
     }
 
+    private void TickScrollers()
+    {
+        for (int i = 0; i < m_scrollEntities.Length; i++)
+        {
+            var entity = m_scrollEntities.Data[i];
+            ref var accumulator = ref CollectionsMarshal.GetValueRefOrAddDefault(m_entityScrollAccumulators, entity.Index, out var exists);
+            if (!exists)
+                continue;
+
+            if (accumulator.Count.X != 0)
+                entity.Velocity.X += accumulator.Speed.X / accumulator.Count.X;
+
+            if (accumulator.Count.Y != 0)
+                entity.Velocity.Y += accumulator.Speed.Y / accumulator.Count.Y;
+
+            accumulator = ScrollAccumulator.Zero;
+        }
+
+        m_entityScrollAccumulators.Clear();
+        m_scrollEntities.Clear();
+    }
+
     private void CreateAmbientSound(Entity entity, AmbientSoundInfo info)
     {
-        var attenution = info.Type == AmbientSoundType.Point ? Attenuation.Default : Attenuation.None;
-        SoundManager.CreateSoundOn(entity, info.LogicalSound, new(entity, info.Mode == AmbientSoundMode.Continuous, attenution, info.Volume, 
+        var attenuation = info.Type == AmbientSoundType.Point ? Attenuation.Default : Attenuation.None;
+        SoundManager.CreateSoundOn(entity, info.LogicalSound, new(entity, info.Mode == AmbientSoundMode.Continuous, attenuation, info.Volume, 
             attenuationFactor: info.Attenuation));
     }
 
@@ -4356,7 +4382,10 @@ public abstract partial class WorldBase : IWorld
             return;
 
         if (!m_entityScrollAccumulators.TryGetValue(entity.Index, out var accumulator))
+        {
+            m_scrollEntities.Add(entity);
             accumulator = ScrollAccumulator.Zero;
+        }
 
         accumulator.Speed.X += x;
         accumulator.Speed.Y += y;
@@ -4367,19 +4396,6 @@ public abstract partial class WorldBase : IWorld
             accumulator.Count.Y++;
 
         m_entityScrollAccumulators[entity.Index] = accumulator;
-    }
-
-    public void ClearEntityScrollAccumulator(Entity entity)
-    {
-        m_entityScrollAccumulators[entity.Index] = ScrollAccumulator.Zero;
-    }
-
-    public ScrollAccumulator GetEntityScrollAccumulator(Entity entity)
-    {
-        if (m_entityScrollAccumulators.TryGetValue(entity.Index, out var accumulator))
-            return accumulator;
-
-        return ScrollAccumulator.Zero;
     }
 
     public bool UseAverageScrollCarry() => m_averageScrollCarry;
