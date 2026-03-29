@@ -24,3 +24,4 @@
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
 - Correct brightmap option description that incorrectly described it didn't function with palette video mode.
 - Add suicide message.
+- Add average scrolling for things in multiple scroll sectors to match UZDoom for appropriate UDMF namespaces.
