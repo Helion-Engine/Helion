@@ -40,6 +40,7 @@ public class UdmfScrollFloorAverageCarry : IDisposable
     {
         var entity1 = GameActions.CreateEntity(World, "DoomImp", (-256, -96, 0));
         var entity2 = GameActions.CreateEntity(World, "DoomImp", (-256, -64, 0));
+        var entity3 = GameActions.CreateEntity(World, "DoomImp", (-64, -96, 0));
         GameActions.TickWorld(World, 70);
         entity1.Velocity.Y.Should().BeApproximately(7.99, 2);
         entity1.Velocity.X.Should().Be(0);
@@ -47,6 +48,9 @@ public class UdmfScrollFloorAverageCarry : IDisposable
         entity2.Velocity.Y.Should().BeApproximately(7.99, 2);
         entity2.Velocity.X.Should().Be(0);
         entity2.Velocity.Z.Should().Be(0);
+        entity3.Velocity.Y.Should().BeApproximately(5.99, 2);
+        entity3.Velocity.X.Should().Be(0);
+        entity3.Velocity.Z.Should().Be(0);
     }
 
     [Fact(DisplayName = "Scroll floor average different Y")]
