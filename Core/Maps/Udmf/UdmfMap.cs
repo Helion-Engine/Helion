@@ -58,6 +58,11 @@ public sealed class UdmfMap : IMap, IMapSpecials
 
     private static readonly DynamicArray<int> ParseIds = [];
 
+    public bool UseAverageScrollCarry()
+    {
+        return UdmfNamespace != UdmfNamespace.Doom && UdmfNamespace != UdmfNamespace.Dsda;
+    }
+
     public void ClearAllExceptThings()
     {
         Lines = [];
@@ -94,6 +99,7 @@ public sealed class UdmfMap : IMap, IMapSpecials
 
     public void Initialize(IWorld world)
     {
+        var carryOptions = UseAverageScrollCarry() ? ScrollPlaneOptions.AverageCarryVelocity : 0;
         foreach (var item in m_scrollSectors.Values)
         {
             if (!world.IsSectorIdValid(item.SectorId))
@@ -110,7 +116,7 @@ public sealed class UdmfMap : IMap, IMapSpecials
 
             flags &= ~UdmfScrollSectorFlags.Texture;
             if (flags != 0 && scrollSpeeds.CarrySpeed.HasValue)
-                world.SpecialManager.AddSpecial(new ScrollSpecial((ScrollPlaneOptions)flags, plane, scrollSpeeds.CarrySpeed.Value));
+                world.SpecialManager.AddSpecial(new ScrollSpecial((ScrollPlaneOptions)flags | carryOptions, plane, scrollSpeeds.CarrySpeed.Value));
         }
     }
 

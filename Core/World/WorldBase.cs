@@ -61,6 +61,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using static Helion.Dehacked.DehackedDefinition;
 using static Helion.Util.Assertion.Assert;
 
@@ -186,6 +187,7 @@ public abstract partial class WorldBase : IWorld
     private readonly IMap m_map;
     private readonly SpawnMulti m_spawnMulti;
     private readonly DynamicArray<SlopeSpan> m_visibleSpans = new(16);
+    private readonly bool m_averageScrollCarry;
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
@@ -195,6 +197,8 @@ public abstract partial class WorldBase : IWorld
 
     const int HighlightSize = 112;
     private readonly List<object> m_findObjects = [];
+    private readonly Dictionary<int, ScrollAccumulator> m_entityScrollAccumulators = [];
+    private readonly DynamicArray<Entity> m_scrollAccumulatorEntities = new(128);
 
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionEntityAction;
@@ -235,6 +239,7 @@ public abstract partial class WorldBase : IWorld
         Geometry = geometry;
         CompatibilityMapDefinition = map.CompatibilityDefinition;
         MapType = map.MapType;
+        m_averageScrollCarry = map.UseAverageScrollCarry();
         BspTree = Geometry.CompactBspTree;
 
         if (map.Reject != null && map.Reject.Length > 0)
@@ -951,6 +956,7 @@ public abstract partial class WorldBase : IWorld
             TickPlayers();
             TickEntities();
             SpecialManager.Tick();
+            TickScrollers();
 
             if (WorldState != WorldState.Exit)
             {
@@ -975,10 +981,32 @@ public abstract partial class WorldBase : IWorld
         Profiler.World.Total.Stop();
     }
 
+    private void TickScrollers()
+    {
+        for (int i = 0; i < m_scrollAccumulatorEntities.Length; i++)
+        {
+            var entity = m_scrollAccumulatorEntities.Data[i];
+            ref var accumulator = ref CollectionsMarshal.GetValueRefOrAddDefault(m_entityScrollAccumulators, entity.Index, out var exists);
+            if (!exists)
+                continue;
+
+            if (accumulator.Count.X != 0)
+                entity.Velocity.X += accumulator.Speed.X / accumulator.Count.X;
+
+            if (accumulator.Count.Y != 0)
+                entity.Velocity.Y += accumulator.Speed.Y / accumulator.Count.Y;
+
+            accumulator = ScrollAccumulator.Zero;
+        }
+
+        m_entityScrollAccumulators.Clear();
+        m_scrollAccumulatorEntities.Clear();
+    }
+
     private void CreateAmbientSound(Entity entity, AmbientSoundInfo info)
     {
-        var attenution = info.Type == AmbientSoundType.Point ? Attenuation.Default : Attenuation.None;
-        SoundManager.CreateSoundOn(entity, info.LogicalSound, new(entity, info.Mode == AmbientSoundMode.Continuous, attenution, info.Volume, 
+        var attenuation = info.Type == AmbientSoundType.Point ? Attenuation.Default : Attenuation.None;
+        SoundManager.CreateSoundOn(entity, info.LogicalSound, new(entity, info.Mode == AmbientSoundMode.Continuous, attenuation, info.Volume, 
             attenuationFactor: info.Attenuation));
     }
 
@@ -4346,4 +4374,28 @@ public abstract partial class WorldBase : IWorld
 
         return entity;
     }
+
+    public void AddEntityScrollAccumulator(Entity entity, double x, double y)
+    {
+        if (x == 0 && y == 0)
+            return;
+
+        if (!m_entityScrollAccumulators.TryGetValue(entity.Index, out var accumulator))
+        {
+            m_scrollAccumulatorEntities.Add(entity);
+            accumulator = ScrollAccumulator.Zero;
+        }
+
+        accumulator.Speed.X += x;
+        accumulator.Speed.Y += y;
+
+        if (x != 0)
+            accumulator.Count.X++;
+        if (y != 0)
+            accumulator.Count.Y++;
+
+        m_entityScrollAccumulators[entity.Index] = accumulator;
+    }
+
+    public bool UseAverageScrollCarry() => m_averageScrollCarry;
 }

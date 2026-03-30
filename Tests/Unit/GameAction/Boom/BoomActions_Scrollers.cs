@@ -115,7 +115,7 @@ public partial class BoomActions
         scrollSector.Floor.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
     }
 
-    [Fact(DisplayName = "Boom Action 252 Scroll floor and objects")]
+    [Fact(DisplayName = "Boom Action 253 Scroll floor and objects")]
     public void Action253()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 9);
@@ -125,6 +125,20 @@ public partial class BoomActions
         offset.Should().Be(new Vec2D(2, 0));
         barrel.Velocity.XY.Should().NotBe(Vec2D.Zero);
         scrollSector.Ceiling.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
+    }
+
+    [Fact(DisplayName = "Boom Action 253 Scroll floor and objects additive with multiple sectors")]
+    public void Action253Additive()
+    {
+        World.UseAverageScrollCarry().Should().BeFalse();
+        Player.Velocity = Vec3D.Zero;
+        GameActions.SetEntityPosition(World, Player, (0, 1536));
+        GameActions.TickWorld(World, 70);
+        Player.Velocity.X.Should().Be(0);
+        Player.Velocity.Y.Should().BeApproximately(6.56, 2);
+        Player.Velocity.Z.Should().Be(0);
+        GameActions.SetEntityOutOfBounds(World, Player);
+        Player.Velocity = Vec3D.Zero;
     }
 
     [Fact(DisplayName = "Boom Action 254 Scroll tagged wall")]

@@ -18,6 +18,7 @@ public enum ScrollPlaneOptions
     CarryStaticObjects = 2,
     CarryPlayers = 4,
     CarryMonsters = 8,
+    AverageCarryVelocity = 16,
     CarryAllObjects = CarryStaticObjects | CarryPlayers | CarryMonsters,
 }
 
@@ -365,8 +366,16 @@ public class ScrollSpecial : ISpecial
                 if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity() || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
-                entity.Velocity.X += x;
-                entity.Velocity.Y += y;
+                if ((m_options & ScrollPlaneOptions.AverageCarryVelocity) == 0)
+                {
+                    entity.Velocity.X += x;
+                    entity.Velocity.Y += y;
+                }
+                else
+                {
+                    WorldStatic.World.AddEntityScrollAccumulator(entity, x, y);
+                }
+
                 entity.Flags.SetIgnoreDropOff();
             }
         }

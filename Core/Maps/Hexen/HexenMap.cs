@@ -12,9 +12,7 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Util.Bytes;
-using Helion.World.Geometry.Lines;
 using NLog;
-using System;
 using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
@@ -39,6 +37,7 @@ public class HexenMap : IMap
     public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    public bool UseAverageScrollCarry() => true;
 
     private MapEntryCollection? m_map;
     private bool m_loaded;
