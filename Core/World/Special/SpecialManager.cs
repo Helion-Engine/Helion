@@ -1809,6 +1809,14 @@ public sealed class SpecialManager : ITickable, IDisposable
                 sectorSpecial = CreateLightChangeSpecial(sector, line.Args.Arg1);
                 return true;
 
+            case ZDoomLineSpecialType.LightRaiseByValue:
+                sectorSpecial = CreateLightAddSpecial(sector, line.Args.Arg1);
+                return true;
+
+            case ZDoomLineSpecialType.LightLowerByValue:
+                sectorSpecial = CreateLightAddSpecial(sector, -line.Args.Arg1);
+                return true;
+
             case ZDoomLineSpecialType.LightMinNeighbor:
                 sectorSpecial = CreateLightChangeSpecial(sector, sector.GetMinLightLevelNeighbor());
                 return true;
@@ -2047,6 +2055,12 @@ public sealed class SpecialManager : ITickable, IDisposable
     }
 
     private static int GetOtics(int value) => value * 35 / 8;
+
+    private ISpecial? CreateLightAddSpecial(Sector sector, int amount)
+    {
+        m_world.SetSectorLightLevel(sector, (short)(sector.LightLevel + amount));
+        return null;
+    }
 
     private ISpecial? CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
     {
