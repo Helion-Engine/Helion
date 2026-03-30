@@ -199,7 +199,7 @@ public abstract partial class WorldBase : IWorld
     const int HighlightSize = 112;
     private readonly List<object> m_findObjects = [];
     private readonly Dictionary<int, ScrollAccumulator> m_entityScrollAccumulators = [];
-    private readonly DynamicArray<Entity> m_scrollEntities = new(128);
+    private readonly DynamicArray<Entity> m_scrollAccumulatorEntities = new(128);
 
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionEntityAction;
@@ -984,9 +984,9 @@ public abstract partial class WorldBase : IWorld
 
     private void TickScrollers()
     {
-        for (int i = 0; i < m_scrollEntities.Length; i++)
+        for (int i = 0; i < m_scrollAccumulatorEntities.Length; i++)
         {
-            var entity = m_scrollEntities.Data[i];
+            var entity = m_scrollAccumulatorEntities.Data[i];
             ref var accumulator = ref CollectionsMarshal.GetValueRefOrAddDefault(m_entityScrollAccumulators, entity.Index, out var exists);
             if (!exists)
                 continue;
@@ -1001,7 +1001,7 @@ public abstract partial class WorldBase : IWorld
         }
 
         m_entityScrollAccumulators.Clear();
-        m_scrollEntities.Clear();
+        m_scrollAccumulatorEntities.Clear();
     }
 
     private void CreateAmbientSound(Entity entity, AmbientSoundInfo info)
