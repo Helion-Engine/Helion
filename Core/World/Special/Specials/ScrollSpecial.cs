@@ -374,7 +374,6 @@ public class ScrollSpecial : ISpecial
                 else
                 {
                     WorldStatic.World.AddEntityScrollAccumulator(entity, x, y);
-                    entity.Flags.SetInScrollSector();
                 }
 
                 entity.Flags.SetIgnoreDropOff();

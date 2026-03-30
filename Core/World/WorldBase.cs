@@ -12,7 +12,6 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -4383,7 +4382,7 @@ public abstract partial class WorldBase : IWorld
 
         if (!m_entityScrollAccumulators.TryGetValue(entity.Index, out var accumulator))
         {
-            m_scrollEntities.Add(entity);
+            m_scrollAccumulatorEntities.Add(entity);
             accumulator = ScrollAccumulator.Zero;
         }
 
