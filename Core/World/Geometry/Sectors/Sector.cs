@@ -363,6 +363,8 @@ public sealed class Sector : IFloorCeilingAnchor
                 sectorModel.SectorSpecialType = (int)SectorSpecialType;
             if ((DataChanges & SectorDataTypes.Friction) != 0)
                 sectorModel.Friction = Friction;
+            if ((DataChanges & SectorDataTypes.Gravity) != 0)
+                sectorModel.Gravity = Gravity;            
             if ((DataChanges & SectorDataTypes.Light) != 0)
             {
                 sectorModel.LightLevel = LightLevel;
@@ -392,8 +394,15 @@ public sealed class Sector : IFloorCeilingAnchor
                 if (Ceiling.RenderOffsets.Rotate != 0)
                     sectorModel.CeilingRotate = Floor.RenderOffsets.Rotate;
             }
+            if ((DataChanges & SectorDataTypes.Scale) != 0)
+            {
+                if (Floor.RenderOffsets.Scale != Vec2D.One)
+                    sectorModel.FloorScale = new Vector2D(Floor.RenderOffsets.Scale);
+                if (Ceiling.RenderOffsets.Scale != Vec2D.One)
+                    sectorModel.CeilingScale = new Vector2D(Ceiling.RenderOffsets.Scale);
+            }
 
-            sectorModel.Secret = Secret;
+                sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
         }
 
@@ -473,6 +482,8 @@ public sealed class Sector : IFloorCeilingAnchor
 
             if ((DataChanges & SectorDataTypes.Friction) != 0 && sectorModel.Friction.HasValue)
                 Friction = sectorModel.Friction.Value;
+            if ((DataChanges & SectorDataTypes.Gravity) != 0 && sectorModel.Gravity.HasValue)
+                Gravity = sectorModel.Gravity.Value;
 
             if (sectorModel.Secret.HasValue)
                 SetSecret(sectorModel.Secret.Value);
@@ -513,6 +524,11 @@ public sealed class Sector : IFloorCeilingAnchor
             Floor.RenderOffsets.Rotate = sectorModel.FloorRotate.Value;
         if (sectorModel.CeilingRotate.HasValue)
             Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
+
+        if (sectorModel.FloorScale.HasValue)
+            Floor.RenderOffsets.Scale = new Vec2D(sectorModel.FloorScale.Value.X, sectorModel.FloorScale.Value.Y);
+        if (sectorModel.CeilingScale.HasValue)
+            Ceiling.RenderOffsets.Scale = new Vec2D(sectorModel.CeilingScale.Value.X, sectorModel.CeilingScale.Value.Y);
 
         if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
         {

@@ -53,6 +53,7 @@ public interface IWorld : IDisposable
     event EventHandler<SectorPlane>? SectorMoveStart;
     event EventHandler<SectorPlane>? SectorMoveComplete;
     event EventHandler<SectorPlane>? SectorMove;
+    event EventHandler<SectorPlane>? SectorPlaneTransformed;
     event EventHandler<SideTextureEvent>? SideTextureChanged;
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
@@ -179,6 +180,9 @@ public interface IWorld : IDisposable
     void SetSectorKillEffect(Sector sector, InstantKillEffect effect);
     void SetSectorDamageSpecial(Sector sector, SectorDamageSpecial? special);
     void SetSectorColorMap(Sector sector, Colormap? colormap);
+    void SetSectorPlaneAngle(SectorPlane plane, double angleRadians);
+    void SetSectorPlaneScale(SectorPlane plane, Vec2D scale);
+    void SetSectorGravity(Sector sector, double gravity);
     void SetEntityPosition(Entity entity, Vec3D pos);
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);

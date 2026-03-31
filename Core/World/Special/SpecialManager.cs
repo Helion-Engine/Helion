@@ -1,7 +1,5 @@
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Graphics;
-using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -939,6 +937,12 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
+    private void SetSectorRotation(Sector sector, double floorAngle, double ceilingAngle)
+    {
+        m_world.SetSectorPlaneAngle(sector.Floor, floorAngle);
+        m_world.SetSectorPlaneAngle(sector.Ceiling, ceilingAngle);
+    }
+
     private void SetSectorPlaneOffsetAndRotation(Line line, bool offset, bool rotate)
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
@@ -1422,8 +1426,15 @@ public sealed class SpecialManager : ITickable, IDisposable
             }
             else
             {
-                if (CreateSectorTriggerSpecial(args, special, sector))
-                    success = true;
+                if (special.IsSectorFloorTrigger())
+                {
+                    if (CreateSectorTriggerSpecial(args, special, sector))
+                        success = true;
+                }
+                else if (special.IsSectorTransform())
+                {
+                    success = CreateSectorTransformSpecial(args, special, sector);
+                }
             }
         }
 
@@ -1569,10 +1580,46 @@ public sealed class SpecialManager : ITickable, IDisposable
         };
     }
 
+    private bool CreateSectorTransformSpecial(in EntityActivateSpecial args, LineSpecial special, Sector sector)
+    {
+        var line = args.ActivateLineSpecial;
+        switch (special.LineSpecialType)
+        {
+            case ZDoomLineSpecialType.SectorSetRotation:
+                SetSectorRotation(sector, MathHelper.ToRadians(line.Args.Arg1), MathHelper.ToRadians(line.Args.Arg2));
+                return true;
+
+            case ZDoomLineSpecialType.SectorSetFloorPanning:
+                SetSectorPlaneOffset(sector.Floor, line.Args.Arg1, line.Args.Arg2, line.Args.Arg3, line.Args.Arg4);
+                return true;
+
+            case ZDoomLineSpecialType.SectorSetCeilingPanning:
+                SetSectorPlaneOffset(sector.Ceiling, line.Args.Arg1, line.Args.Arg2, line.Args.Arg3, line.Args.Arg4);
+                return true;
+
+            case ZDoomLineSpecialType.SectorSetFloorScale:
+                SetSectorPlaneScale(sector.Floor, line.Args.Arg1, line.Args.Arg2, line.Args.Arg3, line.Args.Arg4);
+                return true;
+
+            case ZDoomLineSpecialType.SectorSetCeilingScale:
+                SetSectorPlaneScale(sector.Ceiling, line.Args.Arg1, line.Args.Arg2, line.Args.Arg3, line.Args.Arg4);
+                return true;
+
+            case ZDoomLineSpecialType.SectorSetGravity:
+                SetSectorGravity(sector, line.Args.Arg1, line.Args.Arg2);
+                return true;
+
+            case ZDoomLineSpecialType.SectorSetDamage:
+                SetSectorDamage(sector, line.Args.Arg1, line.Args.Arg2, line.Args.Arg3, line.Args.Arg4);
+                return true;
+        }
+
+        return false;
+    }
+
     private bool CreateSectorSpecial(in EntityActivateSpecial args, LineSpecial special, Sector sector)
     {
-        Line line = args.ActivateLineSpecial;
-
+        var line = args.ActivateLineSpecial;
         switch (special.LineSpecialType)
         {
             case ZDoomLineSpecialType.FloorDonut:
@@ -1872,6 +1919,53 @@ public sealed class SpecialManager : ITickable, IDisposable
 
         sectorSpecial = null;
         return false;
+    }
+
+    private void SetSectorGravity(Sector sector, int i, int frac)
+    {
+        m_world.SetSectorGravity(sector, i + frac * 0.01);
+    }
+
+    private void SetSectorPlaneOffset(SectorPlane plane, int uInt, int uFrac, int vInt, int vFrac)
+    {
+        var offset = new Vec2D(uInt + uFrac * 0.01, vInt + vFrac * 0.01);
+        m_world.SetSectorPlaneOffset(plane, offset);
+    }
+
+    private void SetSectorDamage(Sector sector, int amount, int mod, int damageInterval, int radSuitLeakChance)
+    {
+        // ZDoom nonsense when damageInterval <= 0
+        if (damageInterval <= 0)
+        {
+            if (amount < 20)
+            {
+                radSuitLeakChance = 0;
+                damageInterval = 32;
+            }
+            else if (amount < 50)
+            {
+                radSuitLeakChance = 5;
+                damageInterval = 32;
+            }
+            else
+            {
+                radSuitLeakChance = 256;
+                damageInterval = 1;
+            }
+        }
+
+        sector.SetDamageSpecial(new SectorDamageSpecial(m_world, sector, amount, radSuitLeakChance: radSuitLeakChance, damageInterval: damageInterval));
+    }
+
+    private void SetSectorPlaneScale(SectorPlane plane, int uInt, int uFrac, int vInt, int vFrac)
+    {
+        var x = uInt + uFrac * 0.01;
+        var y = vInt + vFrac * 0.01;
+        if (x != 0)
+            x = 1.0 / x;
+        if (y != 0)
+            y = 1.0 / y;        
+        m_world.SetSectorPlaneScale(plane, new(x, y));
     }
 
     private ElevatorSpecial? CreateElevatorToFloor(Sector sector, Line line, double speed)
