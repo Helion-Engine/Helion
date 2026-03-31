@@ -110,6 +110,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
+        m_world.SectorPlaneTransformed += World_SectorPlaneTransformed;
 
         m_geometryRenderer.SetInitRender();
 
@@ -177,6 +178,13 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 data.Vbo.UploadIfNeeded();
             }
         }
+    }
+
+    private void World_SectorPlaneTransformed(object? sender, SectorPlane plane)
+    {
+        WorldBase world = (WorldBase)sender!;
+        HandleSectorMoveStart(world, plane);
+        HandleSectorMoveComplete(world, plane.Sector, plane);
     }
 
     private void SetupCoverGeometry(IWorld world)
@@ -661,6 +669,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             m_world.SectorMoveComplete -= World_SectorMoveComplete;
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
+            m_world.SectorPlaneTransformed -= World_SectorPlaneTransformed;
             m_world = null!;
         }
 

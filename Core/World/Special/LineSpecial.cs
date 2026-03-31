@@ -1,5 +1,4 @@
 using Helion.Maps;
-using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -30,6 +29,7 @@ public class LineSpecial
     private bool m_sectorTrigger;
     private bool m_floorMove;
     private bool m_ceilingMove;
+    private bool m_sectorTransform;
     private LineActivationType m_lineActivationType;
 
     public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, LineSpecialCompatibility.Default)
@@ -54,6 +54,7 @@ public class LineSpecial
         m_sectorTrigger = SetSectorTriggerSpecial();
         m_floorMove = SetFloorMove();
         m_ceilingMove = SetCeilingMove();
+        m_sectorTransform = SetSectorTransform();
     }
 
     public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags, MapType mapType)
@@ -245,11 +246,9 @@ public class LineSpecial
     public bool IsSectorFloorTrigger() => m_sectorTrigger;
     public bool IsTransferLight() => LineSpecialType == ZDoomLineSpecialType.TransferFloorLight || LineSpecialType == ZDoomLineSpecialType.TransferCeilingLight;
     public bool IsFloorDonut() => LineSpecialType == ZDoomLineSpecialType.FloorDonut;
-    public bool IsStairBuild() =>  LineSpecialType == ZDoomLineSpecialType.StairsBuildUpDoom || LineSpecialType == ZDoomLineSpecialType.StairsBuildUpDoomCrush ||
-        LineSpecialType == ZDoomLineSpecialType.StairsGeneric || LineSpecialType == ZDoomLineSpecialType.BuildStairsDown || LineSpecialType == ZDoomLineSpecialType.BuildStairsDownSync ||
-        LineSpecialType == ZDoomLineSpecialType.BuildStairsUp || LineSpecialType == ZDoomLineSpecialType.BuildStairsUpSync;
+    public bool IsSectorTransform() => m_sectorTransform;
     public bool IsSectorSpecial() => IsSectorMove() || IsSectorLight() || IsSectorStopMove() ||
-        IsSectorStopLight() || IsSectorFloorTrigger();
+        IsSectorStopLight() || IsSectorFloorTrigger() || IsSectorTransform();
 
     public bool CanActivateDuringSectorMovement(in EntityActivateSpecial args, Sector sector)
     {
@@ -534,6 +533,23 @@ public class LineSpecial
 
             default:
                 break;
+        }
+
+        return false;
+    }
+
+    private bool SetSectorTransform()
+    {
+        switch (LineSpecialType)
+        {
+            case ZDoomLineSpecialType.SectorSetRotation:
+            case ZDoomLineSpecialType.SectorSetFloorPanning:
+            case ZDoomLineSpecialType.SectorSetCeilingPanning:
+            case ZDoomLineSpecialType.SectorSetFloorScale:
+            case ZDoomLineSpecialType.SectorSetCeilingScale:
+            case ZDoomLineSpecialType.SectorSetGravity:
+            case ZDoomLineSpecialType.SectorSetDamage:
+                return true;
         }
 
         return false;

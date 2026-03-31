@@ -95,6 +95,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<SectorPlane>? SectorMoveStart;
     public event EventHandler<SectorPlane>? SectorMoveComplete;
     public event EventHandler<SectorPlane>? SectorMove;
+    public event EventHandler<SectorPlane>? SectorPlaneTransformed;
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
@@ -4256,6 +4257,42 @@ public abstract partial class WorldBase : IWorld
             return;
         sector.SetColorMap(colormap);
         SectorColorMapChanged?.Invoke(this, sector);
+    }
+
+    public void SetSectorPlaneAngle(SectorPlane plane, double angleRadians)
+    {
+        if (plane.RenderOffsets.Rotate == angleRadians)
+            return;
+        plane.Sector.DataChanges |= SectorDataTypes.Rotate;
+        plane.RenderOffsets.Rotate = angleRadians;
+        SectorPlaneTransformed?.Invoke(this, plane);
+    }
+
+    public void SetSectorPlaneOffset(SectorPlane plane, Vec2D offset)
+    {
+        if (plane.RenderOffsets.Offset.X == offset.X && plane.RenderOffsets.Offset.Y == offset.Y)
+            return;
+        plane.Sector.DataChanges |= SectorDataTypes.Offset;
+        plane.RenderOffsets.Offset = offset;
+        plane.RenderOffsets.LastOffset = offset;
+        SectorPlaneTransformed?.Invoke(this, plane);
+    }
+
+    public void SetSectorPlaneScale(SectorPlane plane, Vec2D scale)
+    {
+        if (plane.RenderOffsets.Scale.X == scale.X && plane.RenderOffsets.Scale.Y == scale.Y)
+            return;
+        plane.Sector.DataChanges |= SectorDataTypes.Scale;
+        plane.RenderOffsets.Scale = scale;
+        SectorPlaneTransformed?.Invoke(this, plane);
+    }
+
+    public void SetSectorGravity(Sector sector, double gravity)
+    {
+        if (sector.Gravity == gravity)
+            return;
+        sector.DataChanges |= SectorDataTypes.Gravity;
+        sector.Gravity = gravity;
     }
 
     private bool EntityActivatedSpecial(in EntityActivateSpecial args) =>

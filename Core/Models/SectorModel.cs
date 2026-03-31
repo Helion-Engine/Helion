@@ -36,9 +36,12 @@ public struct SectorModel
     public string? TransferHeightsColormapMiddle;
     public string? TransferHeightsColormapLower;
     public double? Friction;
+    public double? Gravity;
     public SectorEffect? SectorEffect;
     public Vector2D? FloorOffset;
     public Vector2D? CeilingOffset;
     public double? FloorRotate;
     public double? CeilingRotate;
+    public Vector2D? FloorScale;
+    public Vector2D? CeilingScale;
 }

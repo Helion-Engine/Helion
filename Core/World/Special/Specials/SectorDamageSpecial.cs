@@ -18,6 +18,7 @@ public class SectorDamageSpecial
 
     public int Damage => m_damage;
     public int RadSuitLeakChance => m_radSuitLeakChance;
+    public int DamageInterval => m_damageInterval;
     public bool AlwaysDamage => m_alwaysDamage;
     public readonly InstantKillEffect InstantKillEffect;
 

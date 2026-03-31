@@ -21,4 +21,6 @@ public enum SectorDataTypes
     KillEffect = 4096,
     ColorMap = 8192,
     Rotate = 16384,
+    Scale = 32768,
+    Gravity = 65536,
 }
