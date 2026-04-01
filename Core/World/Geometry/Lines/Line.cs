@@ -36,10 +36,12 @@ public sealed class Line
     public float Alpha;
     public ZDoomKeyType LockNumber;
     public bool DataChanged => DataChanges > 0;
+    public bool BlockFlagsReset;
     public int BlockmapCount;
     public int PhysicsCount;
     public string? MusicChangeFront;
     public string? MusicChangeBack;
+    public LineBlockFlags InitialLineBlockFlags;
 
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
@@ -81,14 +83,18 @@ public sealed class Line
 
         m_length = -1;
         m_angle = double.MinValue;
+        InitialLineBlockFlags = flags.Blocking;
     }
 
     public void Reset()
     {
+        BlockFlagsReset = (DataChanges & LineDataTypes.BlockFlags) != 0;
+
         Alpha = 1;
         DataChanges = default;
         BlockmapCount = default;
         PhysicsCount = default;
+        Flags.Blocking = InitialLineBlockFlags;
 
         if (ObjectHealth != ObjectHealth.Default)
             ObjectHealth.Health = ObjectHealth.OriginalHealth;
@@ -136,6 +142,12 @@ public sealed class Line
         if ((DataChanges & LineDataTypes.Alpha) != 0)
             lineModel.Alpha = Alpha;
 
+        if ((DataChanges & LineDataTypes.BlockFlags) != 0)
+            lineModel.BlockFlags = Flags.Blocking;
+
+        if ((DataChanges & LineDataTypes.BlockSound) != 0)
+            lineModel.BlockSound = Flags.BlockSound;
+
         return lineModel;
     }
 
@@ -156,6 +168,12 @@ public sealed class Line
 
         if ((DataChanges & LineDataTypes.Alpha) != 0 && lineModel.Alpha.HasValue)
             Alpha = lineModel.Alpha.Value;
+
+        if ((DataChanges & LineDataTypes.BlockFlags) != 0 && lineModel.BlockFlags.HasValue)
+            Flags.Blocking = lineModel.BlockFlags.Value;
+
+        if ((DataChanges & LineDataTypes.BlockSound) != 0)
+            Flags.BlockSound = lineModel.BlockSound;
     }
 
     private static void ApplySideModel(IWorld world, Side side, SideModel sideModel)

@@ -57,7 +57,7 @@ public enum ZDoomLineSpecialType
     ScrollWall,
     Unused11,
     SectorChangeFlags,
-    Unused13,
+    LineSetBlocking,
     Unused14,
     Unused15,
     Unused16,

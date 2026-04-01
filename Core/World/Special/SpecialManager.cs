@@ -1258,7 +1258,10 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     private bool HandleDefault(in EntityActivateSpecial args, LineSpecial special, WorldBase world)
     {
-        Line line = args.ActivateLineSpecial;
+        var line = args.ActivateLineSpecial;
+
+        if (special.IsLineTransform())
+            return HandleLineTransform(args, special, world);
 
         switch (special.LineSpecialType)
         {
@@ -1366,6 +1369,27 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.ThingSetSpecial:
                 return ActionSpecials.ThingSetSpecial(args.Entity, world, line.Args);
+        }
+
+        return false;
+    }
+
+    private static bool HandleLineTransform(in EntityActivateSpecial args, LineSpecial special, WorldBase world)
+    {
+        var activatedLine = args.ActivateLineSpecial;
+        if (activatedLine.Args.Arg0 == 0)
+            return false;
+
+        var lines = world.FindByLineId(activatedLine.Args.Arg0);
+
+        foreach (var line in lines)
+        {
+            switch (special.LineSpecialType)
+            {
+                case ZDoomLineSpecialType.LineSetBlocking:
+                    world.SetLineBlockFlags(line.Id, (ZDoomLineBlockFlags)activatedLine.Args.Arg1, (ZDoomLineBlockFlags)activatedLine.Args.Arg2);
+                    return true;
+            }
         }
 
         return false;

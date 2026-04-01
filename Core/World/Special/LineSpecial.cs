@@ -30,6 +30,7 @@ public class LineSpecial
     private bool m_floorMove;
     private bool m_ceilingMove;
     private bool m_sectorTransform;
+    private bool m_lineTransform;
     private LineActivationType m_lineActivationType;
 
     public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, LineSpecialCompatibility.Default)
@@ -55,6 +56,18 @@ public class LineSpecial
         m_floorMove = SetFloorMove();
         m_ceilingMove = SetCeilingMove();
         m_sectorTransform = SetSectorTransform();
+        m_lineTransform = SetLineTransform();
+    }
+
+    private bool SetLineTransform()
+    {
+        switch (LineSpecialType)
+        {
+            case ZDoomLineSpecialType.LineSetBlocking:
+                return true;
+        }
+
+        return false;
     }
 
     public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags, MapType mapType)
@@ -247,6 +260,7 @@ public class LineSpecial
     public bool IsTransferLight() => LineSpecialType == ZDoomLineSpecialType.TransferFloorLight || LineSpecialType == ZDoomLineSpecialType.TransferCeilingLight;
     public bool IsFloorDonut() => LineSpecialType == ZDoomLineSpecialType.FloorDonut;
     public bool IsSectorTransform() => m_sectorTransform;
+    public bool IsLineTransform() => m_lineTransform;
     public bool IsSectorSpecial() => IsSectorMove() || IsSectorLight() || IsSectorStopMove() ||
         IsSectorStopLight() || IsSectorFloorTrigger() || IsSectorTransform();
 

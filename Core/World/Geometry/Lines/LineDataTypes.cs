@@ -10,5 +10,7 @@ public enum LineDataTypes
     Automap = 4,
     Args = 8,
     Alpha = 16,
-    EverActivated = 32
+    EverActivated = 32,
+    BlockFlags = 64,
+    BlockSound = 128
 }
