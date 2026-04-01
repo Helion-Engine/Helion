@@ -391,6 +391,9 @@ public abstract partial class WorldBase : IWorld
                 structLine.Flags &= ~StructLineFlags.SeenForAutomap;
                 structLine.Update(line);
                 m_explosionTraverseLines = m_explosionTraverseLines || line.ObjectHealth != ObjectHealth.Default;
+
+                if (line.BlockFlagsReset)
+                    SetLineBlockFlags(line, line.InitialLineBlockFlags);
             }
             return;
         }
@@ -3958,6 +3961,80 @@ public abstract partial class WorldBase : IWorld
         entity.UnlinkFromWorld();
         entity.Position = pos;
         Link(entity);
+    }
+
+    public void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags)
+    {
+        var updated = false;
+        var line = Lines[lineId];
+
+        if (setFlags != 0)
+            SetLineBlockFlags(line, setFlags, true, ref updated);
+
+        if (clearFlags != 0)
+            SetLineBlockFlags(line, clearFlags, false, ref updated);
+
+        if (updated)
+            SetLineBlockFlags(line, line.Flags.Blocking);
+    }
+
+    public void SetLineBlockFlags(Line line, in LineBlockFlags flags)
+    {
+        line.Flags.Blocking = flags;
+        line.DataChanges |= LineDataTypes.BlockFlags;
+        var it = Blockmap.CreateBoxIteration(line.Segment.Box);
+        for (int by = it.BlockStartY; by <= it.BlockEndY; by++)
+        {
+            for (int bx = it.BlockStartX; bx <= it.BlockEndX; bx++)
+            {
+                ref var block = ref Blockmap.Lines[by * it.Width + bx];
+                int count = block.BlockLineIndex + block.BlockLineCount;
+                for (int i = count - 1; i >= block.BlockLineIndex; i--)
+                {
+                    ref var blockLine = ref Blockmap.BlockLines[i];
+                    if (blockLine.LineId == line.Id)
+                        blockLine.BlockFlags = flags;
+                }
+            }
+        }
+    }
+
+    private static void SetLineBlockFlags(Line line, ZDoomLineBlockFlags flags, bool set, ref bool updated)
+    {
+        if (UpdateLineBlockRef(ref line.Flags.Blocking.LegacyImpassible, flags, ZDoomLineBlockFlags.Creatures, set, ref updated))
+        {
+            line.Flags.Blocking.Players = line.Flags.Blocking.LegacyImpassible;
+            line.Flags.Blocking.Monsters = line.Flags.Blocking.LegacyImpassible;
+        }
+
+        UpdateLineBlockRef(ref line.Flags.Blocking.Monsters, flags, ZDoomLineBlockFlags.Monsters, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.Players, flags, ZDoomLineBlockFlags.Players, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.FloatMonsters, flags, ZDoomLineBlockFlags.Floaters, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.Projectiles, flags, ZDoomLineBlockFlags.Projectiles, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.Everything, flags, ZDoomLineBlockFlags.Everything, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.Use, flags, ZDoomLineBlockFlags.Use, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.Sight, flags, ZDoomLineBlockFlags.Sight, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.Hitscan, flags, ZDoomLineBlockFlags.HitScan, set, ref updated);
+        UpdateLineBlockRef(ref line.Flags.Blocking.LandMonsters, flags, ZDoomLineBlockFlags.LandMonsters, set, ref updated);
+
+        if ((flags & ZDoomLineBlockFlags.Sound) != 0)
+        {
+            line.Flags.BlockSound = set;
+            line.DataChanges |= LineDataTypes.BlockSound;
+        }
+    }
+
+    private static bool UpdateLineBlockRef(ref bool lineBlockProperty, ZDoomLineBlockFlags flags, ZDoomLineBlockFlags value, bool set, ref bool updated)
+    {
+        var flag = flags & value;
+        if (flag == value)
+        {
+            updated = true;
+            lineBlockProperty = set;
+            return true;
+        }
+
+        return false;
     }
 
     private static void SetTracerAngle(Entity entity, double threshold, double maxTurnAngle)

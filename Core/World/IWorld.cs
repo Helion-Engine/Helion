@@ -4,6 +4,7 @@ using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -184,6 +185,8 @@ public interface IWorld : IDisposable
     void SetSectorPlaneScale(SectorPlane plane, Vec2D scale);
     void SetSectorGravity(Sector sector, double gravity);
     void SetEntityPosition(Entity entity, Vec3D pos);
+    void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags);
+    void SetLineBlockFlags(Line line, in LineBlockFlags flags);
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();

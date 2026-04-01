@@ -113,7 +113,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Field of view.")]
     [OptionMenu(OptionSectionType.Render, "Field Of View", spacer:true, sliderMin: 60.0, sliderMax: 120.0, sliderStep: .5)]
-    public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
+    public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 400));
 
     [ConfigInfo("Max render distance.")]
     [OptionMenu(OptionSectionType.Render, "Max Rendering Distance", sliderMin: 0.0, sliderMax: int.MaxValue, sliderStep: 100)]
