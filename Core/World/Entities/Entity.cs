@@ -135,6 +135,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public double ClosetChaseSpeed = DefaultClosetChaseSpeed;
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
+    public bool IsMapSpot => Definition.EditorId == (int)EditorId.MapSpot;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();

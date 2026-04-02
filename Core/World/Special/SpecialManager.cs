@@ -1266,14 +1266,26 @@ public sealed class SpecialManager : ITickable, IDisposable
         switch (special.LineSpecialType)
         {
             case ZDoomLineSpecialType.Teleport:
-                return new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)).Teleport();
+                return new TeleportSpecial(args.Entity, args.ActivateLineSpecial, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)).Teleport();
 
             case ZDoomLineSpecialType.TeleportNoFog:
-                return new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
-                    (TeleportType)line.Args.Arg1, line.Args.Arg3 == 1).Teleport();
+                return new TeleportSpecial(args.Entity, args.ActivateLineSpecial, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
+                    (TeleportType)line.Args.Arg1, line.Args.Arg3 == 1 ? TeleportOptions.KeepHeight : TeleportOptions.None).Teleport();
+
+            case ZDoomLineSpecialType.TeleportOther:
+                return ActionSpecials.TeleportOther(world, line.Args);
 
             case ZDoomLineSpecialType.TeleportLine:
-                return new TeleportSpecial(args, world, line.Args.Arg1, TeleportFog.None, TeleportType.BoomFixed, line.Args.Arg2 != 0).Teleport();
+                return new TeleportSpecial(args.Entity, args.ActivateLineSpecial, world, line.Args.Arg1, TeleportFog.None, TeleportType.BoomFixed, line.Args.Arg2 != 0).Teleport();
+
+            case ZDoomLineSpecialType.TeleportNoStop:
+                return new TeleportSpecial(args.Entity, args.ActivateLineSpecial, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial), options: TeleportOptions.KeepMomentum).Teleport();
+
+            case ZDoomLineSpecialType.TeleportGroup:
+                return ActionSpecials.TeleportGroup(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.TeleportInSector:
+                return ActionSpecials.TeleportInSector(world, line.Args);
 
             case ZDoomLineSpecialType.ExitNormal:
                 ActionSpecials.ExitNormal(m_world, args.ActivateLineSpecial.Args);

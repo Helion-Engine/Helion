@@ -7,7 +7,6 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Physics;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -21,25 +20,35 @@ public enum TeleportFog
     Dest = 2
 }
 
+public enum TeleportOptions
+{
+    None = 0,
+    KeepHeight = 1,
+    KeepMomentum = 2,
+    MapSpot = 4
+}
+
 public struct TeleportSpecial
 {
     public const int TeleportFreezeTicks = 18;
 
-    private readonly EntityActivateSpecial m_args;
+    private readonly Entity m_entity;
+    private readonly Line? m_sourceLine;
     private readonly IWorld m_world;
     private readonly int m_tid;
     private readonly int m_tag;
     private readonly int m_lineId;
     private readonly bool m_teleportLineReverse;
-    private readonly bool m_keepHeight;
     private readonly TeleportFog m_fogFlags;
     private readonly TeleportType m_type;
+    private readonly TeleportOptions m_options;
 
     public static TeleportFog GetTeleportFog(Line line)
     {
         switch (line.Special.LineSpecialType)
         {
             case ZDoomLineSpecialType.Teleport:
+            case ZDoomLineSpecialType.TeleportNoStop:
                 if (line.Args.Arg2 == 0)
                     return TeleportFog.Source | TeleportFog.Dest;
                 else
@@ -49,10 +58,11 @@ public struct TeleportSpecial
         return TeleportFog.None;
     }
 
-    public TeleportSpecial(in EntityActivateSpecial args, IWorld world, int tid, int tag, TeleportFog flags,
-        TeleportType type = TeleportType.Doom, bool keepHeight = false)
+    public TeleportSpecial(Entity entity, Line? sourceLine, IWorld world, int tid, int tag, TeleportFog flags,
+        TeleportType type = TeleportType.Doom, TeleportOptions options = TeleportOptions.None)
     {
-        m_args = args;
+        m_entity = entity;
+        m_sourceLine = sourceLine;
         m_world = world;
         m_tid = tid;
         m_tag = tag;
@@ -60,13 +70,14 @@ public struct TeleportSpecial
             m_tag = -1;
         m_fogFlags = flags;
         m_type = type;
-        m_keepHeight = keepHeight;
+        m_options = options;
     }
 
-    public TeleportSpecial(in EntityActivateSpecial args, IWorld world, int lineId, TeleportFog flags,
+    public TeleportSpecial(Entity entity, Line sourceLine, IWorld world, int lineId, TeleportFog flags,
         TeleportType type = TeleportType.Doom, bool reverseLine = false)
     {
-        m_args = args;
+        m_entity = entity;
+        m_sourceLine = sourceLine;
         m_world = world;
         m_tag = -1;
         m_lineId = lineId;
@@ -89,8 +100,6 @@ public struct TeleportSpecial
 
     private readonly bool TeleportInternal(Entity? teleportSpot)
     {
-        var entity = m_args.Entity;
-
         Vec3D pos;
         double angle;
         double offsetZ = 0;
@@ -101,25 +110,25 @@ public struct TeleportSpecial
         }
         else
         {
-            if (!FindTeleportSpot(entity, out pos, out angle, out offsetZ))
+            if (!FindTeleportSpot(m_entity, out pos, out angle, out offsetZ))
                 return false;
         }
 
         if (WorldStatic.FinalDoomTeleport)
-            pos.Z = entity.Position.Z;
+            pos.Z = m_entity.Position.Z;
 
-        if (m_keepHeight)
-            offsetZ = entity.Position.Z - entity.Sector.Floor.Z;
+        if ((m_options & TeleportOptions.KeepHeight) != 0)
+            offsetZ = m_entity.Position.Z - m_entity.Sector.Floor.Z;
 
-        var isMonsterCloset = (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
-        var oldPosition = entity.Position;
-        if (Teleport(entity, pos, angle, offsetZ))
+        var isMonsterCloset = (m_entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
+        var oldPosition = m_entity.Position;
+        if (Teleport(m_entity, pos, angle, offsetZ))
         {
             if (!isMonsterCloset && (m_fogFlags & TeleportFog.Source) != 0)
                 m_world.CreateTeleportFog(oldPosition);
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
-                m_world.CreateTeleportFog(entity);
+                m_world.CreateTeleportFog(m_entity);
 
             return true;
         }
@@ -144,19 +153,21 @@ public struct TeleportSpecial
         if (m_type == TeleportType.Doom)
         {
             // Adding 1 to account for the decrement being handled in base entity class. Doom would do this only for players and because player logic ran first it would be one behind.
-            if (entity.IsPlayer)
+            if (entity.IsPlayer && (m_options & TeleportOptions.KeepMomentum) == 0)
+            {
                 entity.FrozenTics = TeleportFreezeTicks + 1;
-            entity.Velocity = Vec3D.Zero;
-            entity.AngleRadians = teleportAngle;
+                entity.Velocity = Vec3D.Zero;
+            }
 
+            entity.AngleRadians = teleportAngle;
             player?.PitchRadians = 0;
         }
         else if (m_type == TeleportType.BoomCompat || m_type == TeleportType.BoomFixed)
         {
-            var sourceLine = m_args.ActivateLineSpecial;
+            var sourceLine = m_sourceLine;
 
             // Only use these calculations for Teleporting to a sector with teleport thing. For line teleport using the angle given.
-            if (m_lineId == Line.NoLineId)
+            if (m_lineId == Line.NoLineId && sourceLine != null)
             {
                 if (m_type == TeleportType.BoomFixed)
                     entity.AngleRadians = teleportAngle + entity.AngleRadians - sourceLine.Segment.Start.Angle(sourceLine.Segment.End) - MathHelper.HalfPi;
@@ -226,15 +237,14 @@ public struct TeleportSpecial
         if (m_tid == EntityManager.NoTid && m_tag == -1 && m_lineId == Line.NoLineId)
             return false;
 
-        if (m_lineId != Line.NoLineId)
+        if (m_lineId != Line.NoLineId && m_sourceLine != null)
         {
-            var sourceLine = m_args.ActivateLineSpecial;
             foreach (Line line in m_world.FindByLineId(m_lineId))
             {
-                if (line.Id == sourceLine.Id || line.Back == null)
+                if (line.Id == m_sourceLine.Id || line.Back == null)
                     continue;
 
-                var lineAngle = line.GetAngle() - sourceLine.GetAngle();
+                var lineAngle = line.GetAngle() - m_sourceLine.GetAngle();
                 if (!m_teleportLineReverse)
                     lineAngle += MathHelper.Pi;
 
@@ -242,7 +252,7 @@ public struct TeleportSpecial
 
                 var teleportEntityPos = teleportEntity.Position.XY;
                 // Exit position is proportional to the position on the source teleport line
-                var time = sourceLine.Segment.ToTime(teleportEntityPos);
+                var time = m_sourceLine.Segment.ToTime(teleportEntityPos);
                 var destTime = m_teleportLineReverse ? time : 1.0 - time;
                 var destLinePos = line.Segment.FromTime(destTime);
                 var destZ = GetTeleportLineZ(teleportEntity, line, destLinePos, out _);
@@ -251,7 +261,7 @@ public struct TeleportSpecial
                 // Closets can rely on this exact behavior (Remanence MAP01)
                 if (teleportEntity.PlayerObj != null && !teleportEntity.PlayerObj.IsVooDooDoll)
                 {
-                    var sourcePos = sourceLine.Segment.FromTime(time);
+                    var sourcePos = m_sourceLine.Segment.FromTime(time);
                     var distance = teleportEntityPos.Distance(sourcePos);
                     var distanceAngle = sourcePos.Angle(teleportEntityPos);
                     var unit = Vec2D.UnitCircle(lineAngle + distanceAngle);
@@ -265,7 +275,7 @@ public struct TeleportSpecial
                     teleportEntity.Position.Z = saveZ;
                 }
 
-                GetTeleportLineZ(teleportEntity, sourceLine, teleportEntityPos, out offsetZ);
+                GetTeleportLineZ(teleportEntity, m_sourceLine, teleportEntityPos, out offsetZ);
                 pos = destLinePos.To3D(destZ);
                 return true;
             }
@@ -289,12 +299,14 @@ public struct TeleportSpecial
         else if (m_tag == -1)
         {
             foreach (Entity entity in m_world.FindByTid(m_tid))
-                if (entity.Flags.IsTeleportSpot())
+            {
+                if (entity.Flags.IsTeleportSpot() || ((m_options & TeleportOptions.MapSpot) != 0) && entity.IsMapSpot)
                 {
                     pos = GetTeleportPosition(entity);
                     angle = entity.AngleRadians;
                     return true;
                 }
+            }
         }
         else
         {

@@ -156,7 +156,7 @@ public enum ZDoomLineSpecialType
     Unused47,
     Unused48,
     Unused49,
-    Unused50,
+    TeleportNoStop,
     Unused51,
     Unused52,
     Unused53,
