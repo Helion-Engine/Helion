@@ -14,11 +14,11 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
 
     private readonly IRandom m_random;
 
-    public LightFlickerDoomSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel)
+    public LightFlickerDoomSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel, short maxLightLevel)
          : base(world, sector)
     {
         m_random = random;
-        MaxBright = sector.LightLevel;
+        MaxBright = maxLightLevel;
         MinBright = minLightLevel;
     }
 
