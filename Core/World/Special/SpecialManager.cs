@@ -366,8 +366,6 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private readonly SectorMoveSpecial m_dummySpecial = new();
-
     private void TickDestroyedMoveSpecials()
     {
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
@@ -382,7 +380,8 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
             ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
-            var moveSpecial = sectorSpecial as SectorMoveSpecial ?? m_dummySpecial;
+            if (sectorSpecial is not SectorMoveSpecial moveSpecial)
+                continue;
 
             if (!sectorSpecial.MultiSector)
             {
@@ -1880,6 +1879,10 @@ public sealed class SpecialManager : ITickable, IDisposable
                 sectorSpecial = CreateLightChangeSpecial(sector, line.Args.Arg1);
                 return true;
 
+            case ZDoomLineSpecialType.LightFadeToValue:
+                sectorSpecial = CreateLightChangeSpecial(sector, line.Args.Arg1, line.Args.Arg2);
+                return true;
+
             case ZDoomLineSpecialType.LightRaiseByValue:
                 sectorSpecial = CreateLightAddSpecial(sector, line.Args.Arg1);
                 return true;
@@ -2180,10 +2183,10 @@ public sealed class SpecialManager : ITickable, IDisposable
         return null;
     }
 
-    private ISpecial? CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
+    private LightChangeSpecial? CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
     {
         if (fadeTics > 0)
-            m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
+            return m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
 
         m_world.SetSectorLightLevel(sector, (short)lightLevel);
         return null;
