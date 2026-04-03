@@ -1,6 +1,5 @@
 using Helion.Models;
 using Helion.World.Geometry.Sectors;
-using System;
 
 namespace Helion.World.Special.Specials;
 
@@ -20,22 +19,10 @@ public class LightChangeSpecial : SectorSpecialBase
     public LightChangeSpecial(IWorld world, Sector sector, in LightChangeSpecialModel model)
         : base(world, sector)
     {
-        // Flag new vs legacy model
-        if (model.SectorId < 0)
-        {
-            m_fadeTicks = model.Step;
-            m_fadeTickEnd = model.Light;
-            m_lightLevelStart = model.Min;
-            m_lightLevelEnd = model.Max;
-        }
-        else
-        {
-            var targetLightLevel = model.Light;
-            m_lightLevelStart = model.Min;
-            m_lightLevelEnd = model.Max;
-            m_fadeTickEnd = (model.Max - model.Min) / model.Step;
-            m_fadeTicks = Math.Abs(sector.LightLevel - targetLightLevel) / model.Step;
-        }
+        m_fadeTicks = model.Ticks;
+        m_fadeTickEnd = model.TickEnd;
+        m_lightLevelStart = model.LightStart;
+        m_lightLevelEnd = model.LightEnd;
     }
 
     public void Set(IWorld world, Sector sector, short lightLevel, int fadeTics)
@@ -45,6 +32,7 @@ public class LightChangeSpecial : SectorSpecialBase
 
         m_lightLevelStart = sector.LightLevel;
         m_lightLevelEnd = lightLevel;
+        m_fadeTicks = 0;
         m_fadeTickEnd = fadeTics;
     }
 
@@ -52,11 +40,11 @@ public class LightChangeSpecial : SectorSpecialBase
     {
         return new()
         {
-            SectorId = -Sector.Id,
-            Step = m_fadeTicks,
-            Light = m_fadeTickEnd,
-            Min = m_lightLevelStart,
-            Max = m_lightLevelEnd,
+            SectorId = Sector.Id,
+            Ticks = m_fadeTicks,
+            TickEnd = m_fadeTickEnd,
+            LightStart = m_lightLevelStart,
+            LightEnd = m_lightLevelEnd,
         };
     }
 

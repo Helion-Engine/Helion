@@ -58,4 +58,24 @@ public class UdmfLightSpecials
         GameActions.ActivateLine(World, Player, 20, ActivationContext.UseLine).Should().BeTrue();
         sector.LightLevel.Should().Be(69);
     }
+
+    [Fact(DisplayName = "Light set to value")]
+    public void LightFadeToValue()
+    {
+        var sector = GameActions.GetSectorByTag(World, 4);
+        sector.LightLevel.Should().Be(255);
+        GameActions.ActivateLine(World, Player, 28, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 10);
+        sector.LightLevel.Should().Be(250);
+        GameActions.TickWorld(World, 10);
+        sector.LightLevel.Should().Be(245);
+        GameActions.TickWorld(World, 330);
+        sector.LightLevel.Should().Be(64);
+        GameActions.TickWorld(World, 35);
+        sector.LightLevel.Should().Be(64);
+
+        GameActions.ActivateLine(World, Player, 28, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 35);
+        sector.LightLevel.Should().Be(64);
+    }
 }

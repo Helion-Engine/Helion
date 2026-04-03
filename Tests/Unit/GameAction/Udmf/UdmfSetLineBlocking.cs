@@ -21,6 +21,7 @@ public class UdmfSetLineBlocking : IDisposable
     public UdmfSetLineBlocking()
     {
         World = WorldAllocator.LoadMap("Resources/udmflinesetblocking.zip", "udmflinesetblocking.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        NoBlocking = new();
     }
 
     public void Dispose()
