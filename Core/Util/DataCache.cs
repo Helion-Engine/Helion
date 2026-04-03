@@ -438,6 +438,18 @@ public class DataCache
         return new LightChangeSpecial(world, sector, lightLevel, fadeTics);
     }
 
+    public LightChangeSpecial GetLightChangeSpecial(IWorld world, Sector sector, short lightLevelMin, short lightLevelMax, int fadeTics)
+    {
+        if (m_lightChanges.Length > 0)
+        {
+            var spec = m_lightChanges.RemoveLast();
+            spec.Set(world, sector, lightLevelMin, lightLevelMax, fadeTics);
+            return spec;
+        }
+
+        return new LightChangeSpecial(world, sector, lightLevelMin, lightLevelMax, fadeTics);
+    }
+
     public void FreeLightChangeSpecial(LightChangeSpecial special)
     {
         special.World = null!;

@@ -11,6 +11,7 @@ public struct LightChangeSpecialModel : ISpecialModel
     public int LightEnd { get; set; }
     public int Ticks { get; set; }
     public int TickEnd { get; set; }
+    public bool Cycle { get; set;  }
 
     public readonly ISpecial? ToWorldSpecial(IWorld world)
     {
