@@ -19,12 +19,12 @@ public class LightStrobeSpecial : SectorSpecialBase
 
     public override bool OverrideEquals => true;
 
-    public LightStrobeSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
+    public LightStrobeSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel, short maxLightLevel, int brightTics, int darkTics, bool sync)
          : base(world, sector)
     {
         m_brightTics = brightTics;
         m_darkTics = darkTics;
-        m_maxBright = sector.LightLevel;
+        m_maxBright = maxLightLevel;
         m_minBright = minLightLevel;
 
         if (m_minBright == m_maxBright)

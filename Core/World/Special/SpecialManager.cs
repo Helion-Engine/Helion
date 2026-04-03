@@ -366,8 +366,6 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private readonly SectorMoveSpecial m_dummySpecial = new();
-
     private void TickDestroyedMoveSpecials()
     {
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
@@ -382,7 +380,8 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
             ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
-            var moveSpecial = sectorSpecial as SectorMoveSpecial ?? m_dummySpecial;
+            if (sectorSpecial is not SectorMoveSpecial moveSpecial)
+                continue;
 
             if (!sectorSpecial.MultiSector)
             {
@@ -1177,19 +1176,19 @@ public sealed class SpecialManager : ITickable, IDisposable
         switch (sector.SectorSpecialType)
         {
             case ZDoomSectorSpecialType.LightFlickerDoom:
-                AddSpecial(new LightFlickerDoomSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor()));
+                AddSpecial(new LightFlickerDoomSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), sector.LightLevel));
                 break;
 
             case ZDoomSectorSpecialType.LightStrobeFastDoom:
-                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, false));
+                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), sector.LightLevel, VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, false));
                 break;
 
             case ZDoomSectorSpecialType.LightStrobeSlowDoom:
-                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
+                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), sector.LightLevel, VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
                 break;
 
             case ZDoomSectorSpecialType.LightStrobeHurtDoom:
-                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
+                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), sector.LightLevel, VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, false));
                 break;
 
             case ZDoomSectorSpecialType.LightGlow:
@@ -1197,11 +1196,11 @@ public sealed class SpecialManager : ITickable, IDisposable
                 break;
 
             case ZDoomSectorSpecialType.LightStrobeSlowSync:
-                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, true));
+                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), sector.LightLevel, VanillaConstants.BrightTime, VanillaConstants.SlowDarkTime, true));
                 break;
 
             case ZDoomSectorSpecialType.LightStrobeFastSync:
-                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, true));
+                AddSpecial(new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), sector.LightLevel, VanillaConstants.BrightTime, VanillaConstants.FastDarkTime, true));
                 break;
 
             case ZDoomSectorSpecialType.SectorDoorClose30Seconds:
@@ -1892,12 +1891,32 @@ public sealed class SpecialManager : ITickable, IDisposable
                 sectorSpecial = CreateLightChangeSpecial(sector, line.Args.Arg1);
                 return true;
 
+            case ZDoomLineSpecialType.LightFadeToValue:
+                sectorSpecial = CreateLightChangeSpecial(sector, line.Args.Arg1, line.Args.Arg2);
+                return true;
+
             case ZDoomLineSpecialType.LightRaiseByValue:
                 sectorSpecial = CreateLightAddSpecial(sector, line.Args.Arg1);
                 return true;
 
             case ZDoomLineSpecialType.LightLowerByValue:
                 sectorSpecial = CreateLightAddSpecial(sector, -line.Args.Arg1);
+                return true;
+
+            case ZDoomLineSpecialType.LightGlow:
+                sectorSpecial = CreateLightChangeSpecial(sector, line.Args.Arg2, line.Args.Arg1, line.Args.Arg3);
+                return true;
+
+            case ZDoomLineSpecialType.LightFlicker:
+                sectorSpecial = new LightFlickerDoomSpecial(m_world, sector, m_world.Random, (short)line.Args.Arg2, (short)line.Args.Arg1);
+                return true;
+
+            case ZDoomLineSpecialType.LightStrobe:
+                sectorSpecial = new LightStrobeSpecial(m_world, sector, m_world.Random, (short)line.Args.Arg2, (short)line.Args.Arg1, line.Args.Arg3, line.Args.Arg4, false);
+                return true;
+
+            case ZDoomLineSpecialType.LightStrobeDoom:
+                sectorSpecial = new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), sector.LightLevel, line.Args.Arg1, line.Args.Arg2, false);
                 return true;
 
             case ZDoomLineSpecialType.LightMinNeighbor:
@@ -1918,10 +1937,6 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.DoorWaitClose:
                 sectorSpecial = AddDelayedSpecial(CreateDoorCloseSpecial(sector, line.Args.Arg1 * SpeedFactor), line.Args.Arg2);
-                return true;
-
-            case ZDoomLineSpecialType.LightStrobeDoom:
-                sectorSpecial = new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), line.Args.Arg1, line.Args.Arg2, false);
                 return true;
 
             case ZDoomLineSpecialType.PlatUpByValue:
@@ -2192,13 +2207,18 @@ public sealed class SpecialManager : ITickable, IDisposable
         return null;
     }
 
-    private ISpecial? CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
+    private LightChangeSpecial? CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
     {
         if (fadeTics > 0)
-            m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
+            return m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
 
         m_world.SetSectorLightLevel(sector, (short)lightLevel);
         return null;
+    }
+
+    private LightChangeSpecial? CreateLightChangeSpecial(Sector sector, int minLightLevel, int maxLightLevel, int ticks)
+    {
+        return m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)minLightLevel, (short)maxLightLevel, ticks);
     }
 
     private SectorMoveSpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)

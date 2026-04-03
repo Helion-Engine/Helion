@@ -1,15 +1,15 @@
 using Helion.Models;
-using Helion.Util;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials;
 
 public class LightChangeSpecial : SectorSpecialBase
 {
-    private short m_lightLevel;
-    private int m_step;
-    private int m_min;
-    private int m_max;
+    private int m_lightLevelStart;
+    private int m_lightLevelEnd;
+    private int m_fadeTicks;
+    private int m_fadeTickEnd;
+    private bool m_cycle;
 
     public LightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)
         : base(world, sector)
@@ -17,37 +17,46 @@ public class LightChangeSpecial : SectorSpecialBase
         Set(world, sector, lightLevel, fadeTics);
     }
 
+    public LightChangeSpecial(IWorld world, Sector sector, short lightLevelMin, short lightLevelMax, int fadeTics)
+        : base(world, sector)
+    {
+        Set(world, sector, lightLevelMin, lightLevelMax, fadeTics, true);
+    }
+
     public LightChangeSpecial(IWorld world, Sector sector, in LightChangeSpecialModel model)
         : base(world, sector)
     {
-        m_lightLevel = model.Light;
-        m_step = model.Step;
-        m_min = model.Min;
-        m_max = model.Max;
+        m_fadeTicks = model.Ticks;
+        m_fadeTickEnd = model.TickEnd;
+        m_lightLevelStart = model.LightStart;
+        m_lightLevelEnd = model.LightEnd;
+        m_cycle = model.Cycle;
     }
 
     public void Set(IWorld world, Sector sector, short lightLevel, int fadeTics)
     {
+        Set(world, sector, sector.LightLevel, lightLevel, fadeTics, false);
+    }
+
+    public void Set(IWorld world, Sector sector, short lightLevelStart, short lightLevelEnd, int fadeTics)
+    {
+        Set(world, sector, lightLevelStart, lightLevelEnd, fadeTics, true);
+    }
+
+    private void Set(IWorld world, Sector sector, short lightLevelStart, short lightLevelEnd, int fadeTics, bool cycle)
+    {
         World = world;
         Sector = sector;
 
-        m_lightLevel = lightLevel;
+        // UZDoom forces to the highest brightness
+        if (cycle && lightLevelStart < lightLevelEnd)
+            (lightLevelStart, lightLevelEnd) = (lightLevelEnd, lightLevelStart);
 
-        if (fadeTics > 0)
-            m_step = (m_lightLevel - Sector.LightLevel) / fadeTics;
-        else
-            m_step = m_lightLevel - Sector.LightLevel;
-
-        if (m_step < 0)
-        {
-            m_min = m_lightLevel;
-            m_max = sector.LightLevel;
-        }
-        else
-        {
-            m_min = sector.LightLevel;
-            m_max = m_lightLevel;
-        }
+        m_lightLevelStart = lightLevelStart;
+        m_lightLevelEnd = lightLevelEnd;
+        m_fadeTicks = 0;
+        m_fadeTickEnd = fadeTics;
+        m_cycle = cycle;
     }
 
     public LightChangeSpecialModel ToSpecialModel()
@@ -55,20 +64,28 @@ public class LightChangeSpecial : SectorSpecialBase
         return new()
         {
             SectorId = Sector.Id,
-            Light = m_lightLevel,
-            Step = m_step,
-            Min = m_min,
-            Max = m_max,
+            Ticks = m_fadeTicks,
+            TickEnd = m_fadeTickEnd,
+            LightStart = m_lightLevelStart,
+            LightEnd = m_lightLevelEnd,
+            Cycle = m_cycle
         };
     }
 
     public override SpecialTickStatus Tick()
     {
-        int set = MathHelper.Clamp(Sector.LightLevel + m_step, m_min, m_max);
-        World.SetSectorLightLevel(Sector, (short)set);
+        m_fadeTicks++;
+        var lightLevel = ((m_lightLevelEnd - m_lightLevelStart) * m_fadeTicks) / m_fadeTickEnd + m_lightLevelStart;
+        World.SetSectorLightLevel(Sector, (short)lightLevel);
 
-        if (set == m_lightLevel)
-            return SpecialTickStatus.Destroy;
+        if (m_fadeTicks == m_fadeTickEnd)
+        {
+            if (!m_cycle)
+                return SpecialTickStatus.Destroy;
+
+            (m_lightLevelStart, m_lightLevelEnd) = (m_lightLevelEnd, m_lightLevelStart);
+            m_fadeTicks = 0;
+        }
 
         return SpecialTickStatus.Continue;
     }
