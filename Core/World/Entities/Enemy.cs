@@ -54,7 +54,7 @@ public partial class Entity
         {
             if (Flags.Ambush())
             {
-                // Ambush enemies will set target based on SoundTarget reguardless of FOV.
+                // Ambush enemies will set target based on SoundTarget regardless of FOV.
                 if (WorldStatic.World.CheckLineOfSight(this, soundTarget))
                     newTarget = soundTarget;
             }
