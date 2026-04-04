@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Physics;
 using System.Runtime.CompilerServices;
@@ -13,6 +14,8 @@ public static class ActionSpecials
 {
     const double SpeedFactor = 1 / 8.0;
     const int ProjectileOffsetZ = -31;
+
+    private static readonly DynamicArray<int> EntitiesByIndex = new(64);
 
     public static void ExitNormal(IWorld world, in SpecialArgs args)
     {
@@ -261,14 +264,6 @@ public static class ActionSpecials
         }
     }
 
-    private static EntityList GetActivatorOrEntities(Entity activator, IWorld world, int tid)
-    {
-        if (tid == 0)
-            return new EntityList(activator);
-
-        return new EntityList(world.FindByTid(tid));
-    }
-
     public static bool ThingHate(Entity activator, IWorld world, in SpecialArgs args)
     {
         var sources = GetActivatorOrEntities(activator, world, args.Arg0);
@@ -340,7 +335,7 @@ public static class ActionSpecials
             return true;
 
         var flags = args.Arg2 == 0 ? TeleportFog.Source | TeleportFog.Dest : TeleportFog.None;
-        var teleport = new TeleportSpecial(new(default, source, world.Lines[0], default), world, 0, flags);
+        var teleport = new TeleportSpecial(source, null, world, 0, 0, flags);
         teleport.Teleport(destination);
         return true;
     }
@@ -384,6 +379,146 @@ public static class ActionSpecials
             target.Args.Arg2 = args.Arg4;
         }
         return true;
+    }
+
+    public static bool TeleportOther(IWorld world, in SpecialArgs args)
+    {
+        var sourceTid = args.Arg0;
+        var targetTid = args.Arg1;
+        var fog = args.Arg2 == 0 ? TeleportFog.None : TeleportFog.Source | TeleportFog.Dest;
+
+        if (sourceTid == 0 || targetTid == 0)
+            return false;
+
+        return TeleportOther(world, sourceTid, targetTid, fog);
+    }
+
+    public static bool TeleportOther(IWorld world, int sourceTid, int targetTid, TeleportFog fog)
+    {
+        if (sourceTid == 0 || targetTid == 0)
+            return false;
+
+        var success = false;
+
+        var teleportEntities = GetEntities(world, sourceTid);
+        for (var entity = teleportEntities.Current(); entity != null; entity = teleportEntities.Advance())
+        {
+            var teleport = new TeleportSpecial(entity, null, world, targetTid, 0, fog, options: TeleportOptions.MapSpot);
+            success |= teleport.Teleport();
+        }
+
+        return success;
+    }
+
+    public static bool TeleportInSector(IWorld world, in SpecialArgs args)
+    {
+        return TeleportInSector(world, args.Arg0, args.Arg1, args.Arg2, args.Arg3 == 0 ? TeleportFog.None : TeleportFog.Source | TeleportFog.Dest, args.Arg4);
+    }
+
+    public static bool TeleportInSector(IWorld world, int tag, int sourceTid, int targetTid, TeleportFog fog, int groupTid)
+    {
+        var sources = GetEntities(world, sourceTid);
+        var source = sources.Current();
+        if (source == null)
+            return false;
+
+        var targets = GetEntities(world, targetTid, Constants.TeleportDest);
+        var target = targets.Current();
+        if (target == null)
+            return false;
+
+        var success = false;
+        var sectors = world.FindBySectorTag(tag);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+
+            // Teleport will modify the sector Entities linked list. Use a temporary storage array
+            EntitiesByIndex.Clear();
+            for (var entityNode = sector.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.Flags.NoBlockmap())
+                    continue;
+                EntitiesByIndex.Add(entityNode.Value.Index);
+            }
+
+            for (int j = 0; j < EntitiesByIndex.Length; j++)
+            {
+                var entity = world.DataCache.Entities[EntitiesByIndex[j]];
+                if (groupTid == 0 || entity.ThingId == groupTid)
+                    success |= DoTeleportGroup(world, entity, source, target, fog);
+            }
+        }
+
+        return success;
+    }
+
+    public static bool TeleportGroup(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var sources = GetEntities(world, args.Arg1);
+        var source = sources.Current();
+        var fog = args.Arg4 == 0 ? TeleportFog.None : TeleportFog.Source | TeleportFog.Dest;
+        if (source == null)
+            return TeleportOther(world, args.Arg1, args.Arg2, fog);
+
+        var targets = GetEntities(world, args.Arg2, Constants.TeleportDest);
+        var target = targets.Current();
+        if (target == null)
+            return false;
+
+        var success = false;
+        if (args.Arg0 == 0)
+        {
+            success = DoTeleportGroup(world, activator, source, target, fog);
+        }
+        else
+        {
+            var teleportEntities = GetEntities(world, args.Arg0);
+            for (var teleportEntity = teleportEntities.Current(); teleportEntity != null; teleportEntity = teleportEntities.Advance())
+                success |= DoTeleportGroup(world, teleportEntity, source, target, fog);
+        }
+
+        if (success && args.Arg3 != 0)
+        {
+            var teleport = new TeleportSpecial(source, null, world, 0, 0, fog);
+            teleport.Teleport(target);
+        }
+
+        return success;
+    }
+
+    private static bool DoTeleportGroup(IWorld world, Entity entity, Entity source, Entity teleportSpot, TeleportFog fog)
+    {
+        var angle = teleportSpot.AngleRadians - source.AngleRadians;
+        var diff = entity.Position.XY - source.Position.XY;
+        var teleportPosXY = Vec2D.Rotate(diff.X, diff.Y, angle);
+        var teleportPos = new Vec3D(teleportSpot.Position.X + teleportPosXY.X, teleportSpot.Position.Y + teleportPosXY.Y, teleportSpot.Position.Z);
+        var save = teleportSpot.Position;
+        teleportSpot.Position = teleportPos;
+
+        var teleport = new TeleportSpecial(entity, null, world, 0, 0, fog);
+        var success = teleport.Teleport(teleportSpot);
+
+        teleportSpot.Position = save;
+        return success;
+    }
+
+    private static EntityList GetActivatorOrEntities(Entity activator, IWorld world, int tid)
+    {
+        if (tid == 0)
+            return new EntityList(activator);
+
+        return new EntityList(world.FindByTid(tid));
+    }
+
+    private static EntityList GetEntities(IWorld world, int tid)
+    {
+        return new EntityList(world.FindByTid(tid));
+    }
+
+    private static EntityList GetEntities(IWorld world, int tid, string className)
+    {
+        return new EntityList(world.FindByTid(tid), className);
     }
 
     private static Entity? GetActivator(Entity activator, IWorld world, int tid)

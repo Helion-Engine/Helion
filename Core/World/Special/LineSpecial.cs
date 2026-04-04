@@ -330,6 +330,9 @@ public class LineSpecial
             case ZDoomLineSpecialType.Teleport:
             case ZDoomLineSpecialType.TeleportNoFog:
             case ZDoomLineSpecialType.TeleportLine:
+            case ZDoomLineSpecialType.TeleportOther:
+            case ZDoomLineSpecialType.TeleportGroup:
+            case ZDoomLineSpecialType.TeleportInSector:
                 return true;
 
             default:

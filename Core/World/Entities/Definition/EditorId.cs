@@ -13,6 +13,7 @@
         TeleportLanding = 14,
         PointPusher = 5001,
         PointPuller,
+        MapSpot = 9001,
         MapMarker = 9040,
         AmbientSoundStart = 14001,
         AmbientSoundEnd = 14065,
