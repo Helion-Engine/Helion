@@ -62,6 +62,9 @@ public partial class Entity
             {
                 newTarget = soundTarget;
             }
+
+            if (newTarget != null && IsFriend(newTarget))
+                newTarget = GetNewTarget(allAround);
         }
         else
         {
