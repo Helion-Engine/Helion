@@ -1,4 +1,5 @@
 ﻿using Helion.World.Entities;
+using System;
 using System.Collections.Generic;
 
 namespace Helion.World.Special.Specials;
@@ -8,11 +9,22 @@ internal ref struct EntityList
     private readonly LinkedList<Entity>? Entities;
     private LinkedListNode<Entity>? CurrentNode;
     private Entity? Entity;
+    private string? ClassName;
+
+
 
     public EntityList(LinkedList<Entity> entities)
     {
         Entities = entities;
         CurrentNode = entities.First;
+    }
+
+    public EntityList(LinkedList<Entity> entities, string className)
+    {
+        Entities = entities;
+        CurrentNode = entities.First;
+        ClassName = className;
+        SetToValidClassNode(ClassName);
     }
 
     public EntityList(Entity entity)
@@ -40,6 +52,16 @@ internal ref struct EntityList
             return null;
 
         CurrentNode = CurrentNode.Next;
+
+        if (ClassName != null)
+            SetToValidClassNode(ClassName);
+
         return CurrentNode?.Value;
+    }
+
+    private void SetToValidClassNode(string className)
+    {
+        while (CurrentNode != null && !CurrentNode.Value.Definition.IsType(className))
+            CurrentNode = CurrentNode.Next;
     }
 }

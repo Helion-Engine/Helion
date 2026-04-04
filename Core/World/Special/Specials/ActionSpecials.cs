@@ -422,7 +422,7 @@ public static class ActionSpecials
         if (source == null)
             return false;
 
-        var targets = GetEntities(world, targetTid);
+        var targets = GetEntities(world, targetTid, Constants.TeleportDest);
         var target = targets.Current();
         if (target == null)
             return false;
@@ -433,7 +433,7 @@ public static class ActionSpecials
         {
             var sector = sectors[i];
 
-            // Teleport will modify the linked list. Use a temporary storage array
+            // Teleport will modify the sector Entities linked list. Use a temporary storage array
             EntitiesByIndex.Clear();
             for (var entityNode = sector.Entities.Head; entityNode != null; entityNode = entityNode.Next)
             {
@@ -461,7 +461,7 @@ public static class ActionSpecials
         if (source == null)
             return TeleportOther(world, args.Arg1, args.Arg2, fog);
 
-        var targets = GetEntities(world, args.Arg2);
+        var targets = GetEntities(world, args.Arg2, Constants.TeleportDest);
         var target = targets.Current();
         if (target == null)
             return false;
@@ -489,7 +489,7 @@ public static class ActionSpecials
 
     private static bool DoTeleportGroup(IWorld world, Entity entity, Entity source, Entity teleportSpot, TeleportFog fog)
     {
-        var angle = entity.AngleRadians - source.AngleRadians;
+        var angle = teleportSpot.AngleRadians - source.AngleRadians;
         var diff = entity.Position.XY - source.Position.XY;
         var teleportPosXY = Vec2D.Rotate(diff.X, diff.Y, angle);
         var teleportPos = new Vec3D(teleportSpot.Position.X + teleportPosXY.X, teleportSpot.Position.Y + teleportPosXY.Y, teleportSpot.Position.Z);
@@ -514,6 +514,11 @@ public static class ActionSpecials
     private static EntityList GetEntities(IWorld world, int tid)
     {
         return new EntityList(world.FindByTid(tid));
+    }
+
+    private static EntityList GetEntities(IWorld world, int tid, string className)
+    {
+        return new EntityList(world.FindByTid(tid), className);
     }
 
     private static Entity? GetActivator(Entity activator, IWorld world, int tid)

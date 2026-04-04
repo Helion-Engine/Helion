@@ -300,7 +300,7 @@ public struct TeleportSpecial
         {
             foreach (Entity entity in m_world.FindByTid(m_tid))
             {
-                if (entity.Flags.IsTeleportSpot() || ((m_options & TeleportOptions.MapSpot) != 0) && entity.IsMapSpot)
+                if (entity.Flags.IsTeleportSpot() || ((m_options & TeleportOptions.MapSpot) != 0) && entity.Definition.Type == EntityType.MapSpot)
                 {
                     pos = GetTeleportPosition(entity);
                     angle = entity.AngleRadians;
