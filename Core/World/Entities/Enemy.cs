@@ -49,13 +49,12 @@ public partial class Entity
 
         Flags.ClearAttacking();
         Entity? newTarget = null;
-        var previousTarget = Target();
         var soundTarget = Sector.SoundTarget.Get();
-        if (soundTarget != previousTarget && ((soundTarget != null && ValidEnemyTarget(soundTarget)) || (soundTarget != null && IsFriend(soundTarget))))
+        if ((soundTarget != null && ValidEnemyTarget(soundTarget)) || (soundTarget != null && IsFriend(soundTarget)))
         {
             if (Flags.Ambush())
             {
-                // Ambush enemies will set target based on SoundTarget regardless of FOV.
+                // Ambush enemies will set target based on SoundTarget reguardless of FOV.
                 if (WorldStatic.World.CheckLineOfSight(this, soundTarget))
                     newTarget = soundTarget;
             }
@@ -73,6 +72,7 @@ public partial class Entity
         {
             if (Flags.Friendly())
             {
+                var previousTarget = Target();
                 SetTarget(newTarget);
                 if (newTarget != null && newTarget.IsPlayer && newTarget != previousTarget && Definition.MissileState.HasValue)
                 {
