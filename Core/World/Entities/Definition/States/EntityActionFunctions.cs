@@ -2421,7 +2421,7 @@ public static class EntityActionFunctions
         WorldStatic.SoundManager.CreateSoundOn(entity, "skeleton/swing", new SoundParams(entity));
     }
 
-    private static void A_SkullAttack(Entity entity)
+    public static void A_SkullAttack(Entity entity)
     {
         var target = entity.Target();
         if (target == null)
