@@ -1474,12 +1474,16 @@ public abstract partial class WorldBase : IWorld
             {
                 if (line.HasSpecial)
                 {
-                    if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, openFloorZ, openCeilingZ))                    
-                        continue;                    
+                    if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, openFloorZ, openCeilingZ))
+                        continue;
 
                     activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, entity.Position.X, entity.Position.Y) || activateSuccess;
 
-                    if (activateSuccess && !line.Flags.PassThrough)
+                    // Likely not intentional but the ML_PASSUSE flag in boom skipped the opening block check...
+                    if (line.Flags.PassThrough)
+                        continue;
+
+                    if (activateSuccess)
                         break;
                 }
             }
