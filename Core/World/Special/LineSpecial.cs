@@ -382,8 +382,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.LiftDownValueTimes8:
             case ZDoomLineSpecialType.LiftUpWaitDownStay:
             case ZDoomLineSpecialType.PlatUpByValue:
-            case ZDoomLineSpecialType.FloorLowerNow:
-            case ZDoomLineSpecialType.FloorRaiseNow:
+            case ZDoomLineSpecialType.FloorLowerInstant:
+            case ZDoomLineSpecialType.FloorRaiseInstant:
             case ZDoomLineSpecialType.FloorMoveToValueTimes8:
             case ZDoomLineSpecialType.CeilingMoveToValueTimes8:
             case ZDoomLineSpecialType.PillarBuildCrush:
@@ -430,6 +430,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.PlatDownWaitUpStayLip:
             case ZDoomLineSpecialType.FloorMoveToValue:
             case ZDoomLineSpecialType.CeilingMoveToValue:
+            case ZDoomLineSpecialType.CeilingRaiseInstant:
+            case ZDoomLineSpecialType.CeilingLowerInstant:
                 return true;
 
             default:
@@ -463,8 +465,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.LiftDownValueTimes8:
             case ZDoomLineSpecialType.LiftUpWaitDownStay:
             case ZDoomLineSpecialType.PlatUpByValue:
-            case ZDoomLineSpecialType.FloorLowerNow:
-            case ZDoomLineSpecialType.FloorRaiseNow:
+            case ZDoomLineSpecialType.FloorLowerInstant:
+            case ZDoomLineSpecialType.FloorRaiseInstant:
             case ZDoomLineSpecialType.FloorMoveToValueTimes8:
             case ZDoomLineSpecialType.PillarBuildCrush:
             case ZDoomLineSpecialType.FloorAndCeilingLowerByValue:
@@ -531,6 +533,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.ElevatorLowerToNearest:
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
             case ZDoomLineSpecialType.GenericCrusher:
+            case ZDoomLineSpecialType.CeilingLowerInstant:
+            case ZDoomLineSpecialType.CeilingRaiseInstant:
                 return true;
 
             default:

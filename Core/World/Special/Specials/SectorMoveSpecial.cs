@@ -291,7 +291,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private bool CheckInstantMove(double destZ)
     {
-        return Math.Abs(destZ - SectorPlane.PrevZ) > Math.Abs(MoveSpeed);
+        return Math.Abs(destZ - SectorPlane.PrevZ) > Math.Abs(MoveSpeed) || Math.Abs(MoveSpeed) == SectorMoveData.InstantToggleSpeed;
     }
 
     private void StopMovementSound()
