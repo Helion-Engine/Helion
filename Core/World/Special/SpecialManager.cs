@@ -1966,6 +1966,22 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.FloorAndCeilingRaiseByValue:
                 sectorSpecial = CreateElevatorByValue(sector, MoveDirection.Up, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);
                 return sectorSpecial != null;
+
+            case ZDoomLineSpecialType.FloorLowerInstant:
+                sectorSpecial = CreateInstantMove(sector, sector.Floor, MoveDirection.Down, -line.Args.Arg2 * 8);
+                return true;
+
+            case ZDoomLineSpecialType.FloorRaiseInstant:
+                sectorSpecial = CreateInstantMove(sector, sector.Floor, MoveDirection.Up, line.Args.Arg2 * 8);
+                return true;
+
+            case ZDoomLineSpecialType.CeilingLowerInstant:
+                sectorSpecial = CreateInstantMove(sector, sector.Ceiling, MoveDirection.Down, -line.Args.Arg2 * 8);
+                return true;
+
+            case ZDoomLineSpecialType.CeilingRaiseInstant:
+                sectorSpecial = CreateInstantMove(sector, sector.Ceiling, MoveDirection.Up, line.Args.Arg2 * 8);
+                return true;
         }
 
         sectorSpecial = null;
@@ -2067,6 +2083,12 @@ public sealed class SpecialManager : ITickable, IDisposable
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Ceiling);
         return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneFace.Floor, MoveDirection.Up,
             MoveRepetition.PerpetualPause, SectorMoveData.InstantToggleSpeed, 0, flags: SectorMoveFlags.EntityBlockMovement), new SectorSoundData());
+    }
+
+    private SectorMoveSpecial CreateInstantMove(Sector sector, SectorPlane plane, MoveDirection direction, int amount)
+    {
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, plane.Z, plane.Z + amount,
+            new SectorMoveData(plane.Facing, direction, MoveRepetition.None, SectorMoveData.InstantToggleSpeed, 0), new SectorSoundData());
     }
 
     private bool CreateFloorAndCeilingLowerRaise(Sector sector, double floorSpeed, double ceilingSpeed, int boomEmulation)
