@@ -15,6 +15,7 @@
 - Fix thing specials activated on death to correctly target the killer thing.
 - Fix friendly monsters not targeting enemies.
 - Fix line pass through flag to not check line blocking to match boom behavior (fixes Tele-Direct MAP11 elevator).
+- Fix intermission font character width setting. (fixes Tele-Direct intermission font numbers).
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
