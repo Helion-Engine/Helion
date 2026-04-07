@@ -267,19 +267,23 @@ public class DefinitionEntries
         else if (!ConfigCompatibility.PreferDehacked && hasBoth)
             m_parseDehacked = false;
 
-        if (archive.AnyEntryByName("ZMAPINFO"))
+        var ZMapInfo = archive.AnyEntryByName("ZMAPINFO");
+        if(ZMapInfo)
             m_parseLegacyMapInfo = false;
 
         // Prioritize UMAPINFO when SKYDEFS is present since MAPINFO can conflict with SKYDEFS.
         bool skyDefs = archive.AnyEntryByName("SKYDEFS");
-        bool umapInfo = archive.AnyEntryByName("UMAPINFO");
-        if (umapInfo && skyDefs)
+        bool UMapInfo = archive.AnyEntryByName("UMAPINFO");
+        if (UMapInfo && skyDefs)
         {
             m_parseZDoomMapInfo = false;
             m_parseLegacyMapInfo = false;
         }
 
-        foreach (Entry entry in archive.Entries)
+        if (UMapInfo && !ZMapInfo)
+            m_parseZDoomMapInfo = false;
+
+        foreach (var entry in archive.Entries)
         {
             if (m_entryNameToAction.TryGetValue(entry.Path.Name, out var action))
                 action(entry);
