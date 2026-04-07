@@ -187,7 +187,6 @@ public class DefinitionEntries
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);
     private void ParseSBarDef(string text) => StatusBarDefinition.Parse(text);
-    private void ParseUniversalMapInfo(string text) => MapInfoDefinition.ParseUniversalMapInfo(m_archiveCollection.IWadInfo.IWadBaseType, text);
     private void ParseGldefs(Entry entry) => GldefsDefinition.Parse(entry, m_archiveCollection.IWadInfo.IWadBaseType);
 
     private void ParseZMapInfo(string text)
@@ -196,6 +195,14 @@ public class DefinitionEntries
             return;
 
         MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
+    }
+
+    private void ParseUniversalMapInfo(string text)
+    {
+        if (m_parseZDoomMapInfo)
+            return;
+
+        MapInfoDefinition.ParseUniversalMapInfo(m_archiveCollection.IWadInfo.IWadBaseType, text);
     }
 
     private void ParseMapInfo(string text)
