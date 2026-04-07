@@ -367,6 +367,7 @@ font IntermissionFont
     space = 14;
     align = top;
     useOffset = true;
+    fixedWidthNumber = "0";
     characters
     {
         "-" WIMINUS;
