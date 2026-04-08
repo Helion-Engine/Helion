@@ -1862,7 +1862,7 @@ public abstract partial class WorldBase : IWorld
                     if (IsSkyClipOneSided(line.FrontSector, floorZ, ceilingZ, intersect))
                         break;
 
-                    GetSectorPlaneIntersection(start, end, line.FrontSector, floorZ, ceilingZ, ref intersect);
+                    GetSectorPlaneIntersection(start, end, line.FrontSector, floorZ, ceilingZ, intersect.Z, ref intersect);
                     hitSector = line.FrontSector;
                     returnValue = bi;
                     hitValues3D.ClearHit();
@@ -1911,7 +1911,7 @@ public abstract partial class WorldBase : IWorld
                 // Check standard blocking
                 if (intersect.Z < floorZ || intersect.Z > ceilingZ)
                 {
-                    GetSectorPlaneIntersection(start, end, front, floorZ, ceilingZ, ref intersect);
+                    GetSectorPlaneIntersection(start, end, front, floorZ, ceilingZ, intersect.Z, ref intersect);
                     hitSector = front;
                     returnValue = bi;
                     hitValues3D.ClearHit();
@@ -1982,7 +1982,7 @@ public abstract partial class WorldBase : IWorld
             {
                 returnValue = null;
             }
-            else if (noCrossCheck)
+            else if (noCrossCheck && GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, end.Z, ref intersect))
             {
                 returnValue = new();
                 hitSector = shooter.Sector;
@@ -2015,11 +2015,10 @@ public abstract partial class WorldBase : IWorld
                 }
             }
         }
-        else if (noCrossCheck && returnValue == null)
+        else if (noCrossCheck && returnValue == null && GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, end.Z, ref intersect))
         {
             hitSector = shooter.Sector;
-            returnValue = new();
-            GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, ref intersect);
+            returnValue = new();        
         }
 
         // Apply deferred 3D hit if it was the closest and we didn't find a concrete blocker
@@ -3597,18 +3596,22 @@ public abstract partial class WorldBase : IWorld
         return false;
     }
 
-    private static void GetSectorPlaneIntersection(in Vec3D start, in Vec3D end, Sector sector, double floorZ, double ceilingZ, ref Vec3D intersect)
+    private static bool GetSectorPlaneIntersection(in Vec3D start, in Vec3D end, Sector sector, double floorZ, double ceilingZ, double z, ref Vec3D intersect)
     {
-        if (intersect.Z <= floorZ)
+        if (z <= floorZ)
         {
             sector.Floor.Plane.Intersects(start, end, ref intersect);
             intersect.Z = sector.ToFloorZ(intersect);
+            return true;
         }
-        else if (intersect.Z >= ceilingZ)
+        else if (z >= ceilingZ)
         {
             sector.Ceiling.Plane.Intersects(start, end, ref intersect);
             intersect.Z = sector.ToCeilingZ(intersect) - Constants.CeilingPlaneOffset;
+            return true;
         }
+
+        return false;
     }
 
     private static void GetOrderedSectors(in BlockLine line, in Vec3D start, out Sector front, out Sector back)
