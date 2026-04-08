@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
@@ -88,6 +89,32 @@ public class Sector3D_HitScan : IDisposable
         data.Intersect.X.Should().BeApproximately(340.78, 2);
         data.Intersect.Y.Should().BeApproximately(-128, 2);
         data.Intersect.Z.Should().BeApproximately(0, 2);
+    }
+
+    [Fact(DisplayName = "Hit scan hits nothing when no line is cross and no plane valid intersection 3D")]
+    public void HitScanNoLineCrossShort3D()
+    {
+        Player.AngleRadians = GameActions.GetAngle(Bearing.East);
+        Player.PitchRadians = MathHelper.ToRadians(0);
+        GameActions.SetEntityPosition(World, Player, (320, -128, 0));
+        // Make the distance very short. This will not hit any lines and forces the code to do plane intersection tests which should not pass.
+        var data = GameActions.FireHitScanTest(World, Player, distance: 32);
+        data.HitSector.Should().BeNull();
+        data.HitLine.Should().BeNull();
+    }
+
+    [Fact(DisplayName = "Hit scan hits nothing when no line is cross and no plane valid intersection")]
+    public void HitScanNoLineCrossShort()
+    {
+        WorldStatic.Sector3D = false;
+        Player.AngleRadians = GameActions.GetAngle(Bearing.East);
+        Player.PitchRadians = MathHelper.ToRadians(0);
+        GameActions.SetEntityPosition(World, Player, (320, -128, 0));
+        // Make the distance very short. This will not hit any lines and forces the code to do plane intersection tests which should not pass.
+        var data = GameActions.FireHitScanTest(World, Player, distance: 32);
+        data.HitSector.Should().BeNull();
+        data.HitLine.Should().BeNull();
+        WorldStatic.Sector3D = true;
     }
 
     [Fact(DisplayName = "Hit scan hits ceiling plane with no lines crossed")]

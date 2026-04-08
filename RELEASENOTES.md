@@ -18,6 +18,7 @@
 - Fix line pass through flag to not check line blocking to match boom behavior (fixes Tele-Direct MAP11 elevator).
 - Fix intermission font character width setting. (fixes Tele-Direct intermission font numbers).
 - Fix parsing both UMAPINFO and ZMAPINFO when present. ZMAPINFO takes priority. (fixes Crematomania MAP30 endgame).
+- Fix chainsaw/punch always using zero pitch when autoaim is on and there nothing to aim at.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
