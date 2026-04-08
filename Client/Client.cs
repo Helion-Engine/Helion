@@ -716,6 +716,8 @@ public partial class Client : IDisposable, IInputManagement
                 new MusicPlayer(pathsManager, config.Audio, archiveCollection);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer, Log);
 
+            Log.Info($"Read config {configPath}");
+
             using Client client = new(commandLineArgs, pathsManager, config, console, audioPlayer, archiveCollection);
             client.Run();
         }
