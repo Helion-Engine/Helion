@@ -34,6 +34,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public partial class GeometryRenderer : IDisposable
 {
+    public delegate void RenderCoverWallAction(Side side, Span<DynamicVertex> vertices, WallLocation location, bool oneSided);
+
     private const double MaxSky = 16384;
     private static readonly Sector DefaultSector = CreateDefault();
     private static readonly GLLegacyTexture TestTexture = new(0, "TEST", default, default, default, default, default);
@@ -53,7 +55,7 @@ public partial class GeometryRenderer : IDisposable
     private readonly MidTextureHack m_midTextureHack = new();
     private readonly SectorPlane m_fakeFloor = new(SectorPlaneFace.Floor, 0, 0, 0);
     private readonly SectorPlane m_fakeCeiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
-    private readonly Action<Side, Span<DynamicVertex>, WallLocation> m_renderCoverWallAction;
+    private readonly RenderCoverWallAction m_renderCoverWallAction;
     private double m_tickFraction;
     private bool m_floorChanged;
     private bool m_ceilingChanged;
@@ -771,7 +773,7 @@ public partial class GeometryRenderer : IDisposable
             var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
             renderData.Vbo.Add(data);
             if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
-                m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location);
+                m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
         }
         vertices = data;
     }
@@ -902,8 +904,10 @@ public partial class GeometryRenderer : IDisposable
     }
 
     public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, Span<DynamicVertex> midTexVertices,
-        SideTexture visibleTextures, Action<Side, Span<DynamicVertex>, WallLocation> render)
+        SideTexture visibleTextures, RenderCoverWallAction render)
     {
+        // Check if this middle wall should clip to floor/ceiling.
+        // If not then project the cover walls from the floor/ceiling to block sprites from rendering to match software behavior.
         var clipPlanes = GetMidTexClipPlanes(side, facingSector, otherSector, out var opening, out var prevOpening);
         if (
             ((visibleTextures & SideTexture.Lower) == 0 || (side.FloodTextures & SideTexture.Lower) != 0) &&
@@ -920,7 +924,7 @@ public partial class GeometryRenderer : IDisposable
             }
 
             CoverWallUtil.SetCoverWallVertices(side, m_wallVertices, 0, WallLocation.Lower);
-            render(side, m_wallVertices, WallLocation.Lower);
+            render(side, m_wallVertices, WallLocation.Lower, true);
         }
 
         if (
@@ -938,7 +942,7 @@ public partial class GeometryRenderer : IDisposable
             }
 
             CoverWallUtil.SetCoverWallVertices(side, m_wallVertices, 0, WallLocation.Upper);
-            render(side, m_wallVertices, WallLocation.Upper);
+            render(side, m_wallVertices, WallLocation.Upper, true);
         }
     }
 
@@ -1250,7 +1254,7 @@ public partial class GeometryRenderer : IDisposable
             return;
 
         var vertices = RenderTwoSidedUpperOrLowerRaw(location, facingSide, facingSector, otherSector, isFrontSide);
-        m_worldDataManager.AddCoverWallVertices(facingSide, vertices, location);
+        m_worldDataManager.AddCoverWallVertices(facingSide, vertices, location, location == WallLocation.Middle);
     }
 
     // Renders vertices for upper/lower. No checking for skies, flood fill etc.
