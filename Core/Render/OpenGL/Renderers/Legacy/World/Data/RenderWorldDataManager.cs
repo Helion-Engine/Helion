@@ -30,7 +30,7 @@ public sealed class RenderWorldDataManager : IDisposable
         return renderDataList.Add(texture, program, brightmapTexture);
     }
 
-    public void AddCoverWallVertices(Side side, Span<DynamicVertex> vertices, WallLocation location)
+    public void AddCoverWallVertices(Side side, Span<DynamicVertex> vertices, WallLocation location, bool oneSided)
     {
         if (m_coverWalls == null || !BufferCoverWalls)
             return;

@@ -47,7 +47,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
     private readonly List<Sector> m_initMoveSectors = [];
-    private readonly Action<Side, Span<DynamicVertex>, WallLocation> m_renderCoverWallAction;
+    private readonly GeometryRenderer.RenderCoverWallAction m_renderCoverWallAction;
 
     private readonly Dictionary<CoverKey, StaticGeometryData> m_coverWallLookup = [];
     private readonly Dictionary<CoverKey, StaticGeometryData> m_coverFlatLookup = [];
@@ -432,7 +432,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             if (m_vanillaRender && result.SkyVertices != null)
             {
                 var sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Upper, side, facingSector, otherSector, isFrontSide);
-                AddOrUpdateCoverWall(side, sideVertices, WallLocation.Upper);
+                AddOrUpdateCoverWall(side, sideVertices, WallLocation.Upper, false);
             }
         }
 
@@ -462,7 +462,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             if (m_vanillaRender && result.SkyVertices != null)
             {
                 var sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, side, facingSector, otherSector, isFrontSide);
-                AddOrUpdateCoverWall(side, sideVertices, WallLocation.Lower);
+                AddOrUpdateCoverWall(side, sideVertices, WallLocation.Lower, false);
             }
         }
 
@@ -599,7 +599,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
         var type = GetWallType(side, wall);
         if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
-            AddOrUpdateCoverWall(side, sideVertices, wall.Location);
+            AddOrUpdateCoverWall(side, sideVertices, wall.Location, wall.Location == WallLocation.Middle);
 
         if (wall.TextureHandle <= Constants.NullCompatibilityTextureIndex)
             return;
@@ -1177,7 +1177,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     {
         var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
         if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
-            AddOrUpdateCoverWall(side, vertices, wall.Location);
+            AddOrUpdateCoverWall(side, vertices, wall.Location, wall.Location == WallLocation.Middle);
 
         if (textureHandle <= Constants.NullCompatibilityTextureIndex)
             return;
@@ -1204,12 +1204,12 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         staticGeometry.GeometryData.Vbo.Data.Length = Math.Max(staticGeometry.GeometryData.Vbo.Data.Length, startIndex + vertices.Length);
     }
 
-    private void AddOrUpdateCoverWall(Side side, Span<DynamicVertex> sideVertices, WallLocation location)
+    private void AddOrUpdateCoverWall(Side side, Span<DynamicVertex> sideVertices, WallLocation location, bool oneSided)
     {
         if (m_coverWallGeometry == null || m_coverWallGeometryOneSided == null)
             return;
 
-        var useGeometry = location == WallLocation.Middle && side.PartnerSide == null ? m_coverWallGeometryOneSided : m_coverWallGeometry;
+        var useGeometry = oneSided ? m_coverWallGeometryOneSided : m_coverWallGeometry;
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
         var vbo = useGeometry.Vbo;
         var key = CoverKey.MakeCoverWallKey(side.Id, location);
