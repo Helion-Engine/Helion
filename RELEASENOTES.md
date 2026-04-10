@@ -26,3 +26,4 @@
 - Add suicide message.
 - Add average scrolling for things in multiple scroll sectors to match UZDoom for appropriate UDMF namespaces.
 - Log config file path to console.
+- Add color to mark player special trigger lines in automap.

@@ -126,6 +126,10 @@ public class AutomapLineColors(bool overlay): ConfigElement<AutomapLineColors>
     [ConfigInfo("Alt marker color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Marker Color Alt")]
     public readonly ConfigValue<Vec3I> AltMakerColor = new((0xAD, 0xD8, 0xE6), ClampColor);
+
+    [ConfigInfo("Alt marker color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Special Trigger")]
+    public readonly ConfigValue<Vec3I> SpecialTriggerColor = new(overlay ? (0xC0, 0xC0, 0xC0) : (0x40, 0x40, 0xFF), ClampColor);
 }
 
 public class ConfigHud: ConfigElement<ConfigHud>
