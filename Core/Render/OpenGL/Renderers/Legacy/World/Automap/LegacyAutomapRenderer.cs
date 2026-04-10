@@ -60,6 +60,7 @@ public class LegacyAutomapRenderer : IDisposable
     private Color m_unseenWallColor;
     private Color m_teleportLineColor;
     private Color m_exitLineColor;
+    private Color m_specialLineColor;
 
     private Color m_playerColor;
     private Color m_thingColor;
@@ -86,6 +87,7 @@ public class LegacyAutomapRenderer : IDisposable
         m_deadMonsterColor = new(colors.DeadMonsterColor.Value);
         m_markerColor = new(colors.MakerColor.Value);
         m_markerColorAlt = new(colors.AltMakerColor.Value);
+        m_specialLineColor = new(colors.SpecialTriggerColor.Value);
         m_keyImageColor = automap.ImageKeyColor;
     }
 
@@ -369,6 +371,12 @@ public class LegacyAutomapRenderer : IDisposable
             if (!allMap && !specialColor && line.BackFloorPlane != null && line.BackCeilingPlane != null &&
                 line.FrontFloorPlane.Z == line.BackFloorPlane.Z && line.FrontCeilingPlane.Z == line.BackCeilingPlane.Z)
                 continue;
+
+            if (!markedLine && line.HasPlayerTriggerSpecial && !line.Secret)
+            {
+                AddLine(m_specialLineColor, start, end);
+                continue;
+            }
 
             AddLine(color, start, end);
         }
