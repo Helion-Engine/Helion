@@ -900,7 +900,7 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             Sector other = frontSector == sector ? backSector : frontSector;
-            if (line.BlockSound)
+            if (line.BlockSound())
             {
                 // Has to cross two block sound lines to stop. This is how it was designed.
                 if (block == 0)

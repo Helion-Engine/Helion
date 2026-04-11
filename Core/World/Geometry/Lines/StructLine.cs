@@ -3,6 +3,7 @@ using Helion.Maps.Specials;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -14,7 +15,9 @@ public enum StructLineFlags
     SeenForAutomap = 4,
     MarkAutomap = 8,
     HasSpecial = 16,
-    HasPlayerTriggerSpecial = 32
+    HasPlayerTriggerSpecial = 32,
+    IsTeleportSpecial = 64,
+    IsExitSpecial = 128
 }
 
 public record struct StructLine
@@ -32,11 +35,20 @@ public record struct StructLine
     public StructLineFlags Flags;
     public LineAutomapFlags AutomapFlags;
 
-    public readonly bool BlockSound => (Flags & StructLineFlags.BlockSound) != 0;
-    public readonly bool Secret => (Flags & StructLineFlags.Secret) != 0;
-    public readonly bool SeenForAutomap => (Flags & StructLineFlags.SeenForAutomap) != 0;
-    public readonly bool MarkAutomap => (Flags & StructLineFlags.MarkAutomap) != 0;
-    public readonly bool HasPlayerTriggerSpecial => (Flags & StructLineFlags.HasPlayerTriggerSpecial) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool BlockSound() => (Flags & StructLineFlags.BlockSound) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Secret() => (Flags & StructLineFlags.Secret) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool SeenForAutomap() => (Flags & StructLineFlags.SeenForAutomap) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool MarkAutomap() => (Flags & StructLineFlags.MarkAutomap) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool HasPlayerTriggerSpecial() => (Flags & StructLineFlags.HasPlayerTriggerSpecial) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool IsTeleportSpecial() => (Flags & StructLineFlags.IsTeleportSpecial) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool IsExitSpecial() => (Flags & StructLineFlags.IsExitSpecial) != 0;
 
     public StructLine(Line line)
     {
@@ -66,6 +78,10 @@ public record struct StructLine
             Flags |= StructLineFlags.HasSpecial;
             if ((line.Flags.Activations & LineActivations.Player) != 0)
                 Flags |= StructLineFlags.HasPlayerTriggerSpecial;
+            if (line.Special.IsTeleport())
+                Flags |= StructLineFlags.IsTeleportSpecial;
+            if (line.Special.IsExitSpecial())
+                Flags |= StructLineFlags.IsExitSpecial;
         }
 
         AutomapFlags = line.Flags.Automap;
