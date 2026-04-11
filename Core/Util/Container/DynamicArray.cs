@@ -192,7 +192,7 @@ public class DynamicArray<T> : IList<T>
 
     public T RemoveLast()
     {
-        Precondition(Length > 0, "Count must be great than zero");
+        Precondition(Length > 0, "Count must be greater than zero");
         T data = Data[Length - 1];
         Length--;
         return data;
