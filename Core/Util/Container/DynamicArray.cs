@@ -192,21 +192,28 @@ public class DynamicArray<T> : IList<T>
 
     public T RemoveLast()
     {
-        if (Length == 0)
-            throw new InvalidOperationException("No data to remove.");
+        Precondition(Length > 0, "Count must be greater than zero");
         T data = Data[Length - 1];
         Length--;
         return data;
     }
 
+    public void RemoveRange(int index, int count)
+    {
+        Precondition(count > 0, "Count must be great than zero");
+        if (index != Length -1 || count > 1)
+            Array.Copy(Data, index + count, Data, index, Length - index - count);
+        Length -= count;
+    }
+
     public void Sort()
     {
-        Array.Sort<T>(Data, 0, Length, null);
+        Array.Sort(Data, 0, Length, null);
     }
 
     public void Sort(int index, int length)
     {
-        Array.Sort<T>(Data, index, length, null);
+        Array.Sort(Data, index, length, null);
     }
 
     public void Sort(Comparison<T> comparison)
@@ -284,8 +291,7 @@ public class DynamicArray<T> : IList<T>
 
     public void Insert(int index, T item)
     {
-        EnsureCapacity(Capacity + 1);
-
+        EnsureCapacity(Length + 1);
         if (index < Length)
             Array.Copy(Data, index, Data, index + 1, Length - index);
         

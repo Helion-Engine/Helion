@@ -213,7 +213,7 @@ public partial class WorldBase
         {
             Line line = Lines[i];
             ref StructLine structLine = ref StructLines.Data[i];
-            if (structLine.SeenForAutomap)
+            if (structLine.SeenForAutomap())
                 line.DataChanges |= LineDataTypes.Automap;
 
             if (!line.DataChanged)

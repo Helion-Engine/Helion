@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World.ViewClipping;
@@ -5,7 +6,7 @@ namespace Helion.Render.OpenGL.Shared.World.ViewClipping;
 /// <summary>
 /// Represents a range of start and end diamond angles.
 /// </summary>
-public struct ClipSpan
+public readonly struct ClipSpan
 {
     /// <summary>
     /// The starting angle.
@@ -37,7 +38,8 @@ public struct ClipSpan
     /// </summary>
     /// <param name="angle">The angle to check.</param>
     /// <returns>True if it is, false if not.</returns>
-    public bool Contains(uint angle) => angle >= StartAngle && angle <= EndAngle;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Contains(uint angle) => angle >= StartAngle && angle <= EndAngle;
 
     /// <summary>
     /// Checks if the range formed by the first and second angle are in the
@@ -47,5 +49,6 @@ public struct ClipSpan
     /// <param name="firstAngle">The first angle.</param>
     /// <param name="secondAngle">The second angle.</param>
     /// <returns>True if both are in this span, false otherwise.</returns>
-    public bool Contains(uint firstAngle, uint secondAngle) => Contains(firstAngle) && Contains(secondAngle);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Contains(uint firstAngle, uint secondAngle) => Contains(firstAngle) && Contains(secondAngle);
 }

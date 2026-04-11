@@ -81,12 +81,53 @@ public class DynamicArrayTest
         CompareArrays(array, 1, -5, 4);
         array.Capacity.Should().Be(capacity);
         array.Length.Should().Be(0);
+    }
 
-        // No more elements, RemoveLast should throw
-        Action a = () => array.RemoveLast();
-        a.Should().Throw<InvalidOperationException>();
-        array.Capacity.Should().Be(capacity);
-        array.Length.Should().Be(0);
+    [Fact(DisplayName = "Remove range")]
+    public void RemoveRange()
+    {
+        DynamicArray<int> array = new(16);
+        for (int i = 0; i < 16; i++)
+            array.Add(i);
+
+        array.Length.Should().Be(16);
+        array.RemoveRange(4, 3);
+        array.Length.Should().Be(13);
+
+        for (int i = 0; i < 4; i++)
+            array[i].Should().Be(i);
+
+        for (int i = 4; i < 13; i++)
+            array[i].Should().Be(i + 3);
+
+        array.RemoveRange(0, 10);
+        array.Length.Should().Be(3);
+
+        for (int i = 0; i < 3; i++)
+            array[i].Should().Be(i + 13);
+
+        array.RemoveRange(array.Length - 1, 1);
+        array.Length.Should().Be(2);
+        for (int i = 0; i < 2; i++)
+            array[i].Should().Be(i + 13);
+    }
+
+    [Fact(DisplayName = "Remove at")]
+    public void RemoveAt()
+    {
+        DynamicArray<int> array = new(4);
+        for (int i = 0; i < 4; i++)
+            array.Add(i);
+
+        array.Length.Should().Be(4);
+        array.RemoveAt(1);
+        CompareArrays(array, [0, 2, 3]);
+
+        array.RemoveAt(array.Length - 1);
+        CompareArrays(array, [0, 1]);
+
+        array.RemoveAt(0);
+        CompareArrays(array, [1]);
     }
 
     private static bool CompareArrays(DynamicArray<int> x, params int[] y)

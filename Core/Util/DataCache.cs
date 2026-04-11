@@ -12,7 +12,6 @@ using Helion.Models;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
-using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.Common.Enums;
 using Helion.World.Special.Specials;
 using Helion.World;
@@ -50,7 +49,6 @@ public class DataCache
     private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
-    private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new(DefaultLength);
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
     private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new(256);
@@ -74,9 +72,6 @@ public class DataCache
             m_consoleMessages.Add(new ConsoleMessage());
             m_consoleMessageNodes.Add(new LinkedListNode<ConsoleMessage>(null!));
         }
-
-        for (int i = 0; i < DefaultLength; i++)
-            m_clipSpans.Add(new LinkedListNode<ClipSpan>(default));
 
         // Index zero is reserved for null
         for (int i = 1; i < Entities.Length; i++)
@@ -353,23 +348,6 @@ public class DataCache
         data.Texture = null!;
         data.Vertices.Clear();
         m_hudDrawBufferData.Add(data);
-    }
-    
-    public LinkedListNode<ClipSpan> GetClipSpan(ClipSpan clipSpan)
-    {
-        if (m_clipSpans.Length > 0)
-        {
-            var node = m_clipSpans.RemoveLast();
-            node.Value = clipSpan;
-            return node;
-        }
-
-        return new LinkedListNode<ClipSpan>(clipSpan);
-    }
-
-    public void FreeClipSpan(LinkedListNode<ClipSpan> clipSpan)
-    {
-        m_clipSpans.Add(clipSpan);
     }
    
     public LinkedListNode<ISpecial> GetSpecialNode(ISpecial special)

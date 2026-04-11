@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace Helion.World.Impl.SinglePlayer;
 
-public class AutomapMarker(ArchiveCollection archiveCollection)
+public class AutomapMarker
 {
     private readonly struct PlayerPosition(Vec3D position, Vec3D viewDirection, double angleRadians, double pitchRadians)
     {
@@ -34,7 +34,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
     private BitArray m_hitLines = new(0);
     private readonly Stopwatch m_stopwatch = new();
-    private readonly ViewClipper m_viewClipper = new(archiveCollection.DataCache);
+    private readonly ViewClipper m_viewClipper = new();
     private readonly RenderInfo m_renderInfo = new();
     private readonly OldCamera m_camera = new(default, default, 0, 0);
     private readonly Entity m_dummyEntity = new();
@@ -200,9 +200,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
                     continue;
 
-                if (line.BackCeilingPlane == null)
-                    m_viewClipper.AddLine(smallerAngle, largerAngle);
-                else if (RenderBlock.IsBlocked(world, edge, ref line))
+                if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, edge, ref line))
                     m_viewClipper.AddLine(smallerAngle, largerAngle);
 
                 if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)

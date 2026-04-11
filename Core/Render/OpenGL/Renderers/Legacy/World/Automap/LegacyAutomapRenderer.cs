@@ -37,8 +37,6 @@ public class LegacyAutomapRenderer : IDisposable
     private readonly DynamicArray<vec2> m_points = [];
     private readonly AutomapColorPoints m_colorPoints = new();
     private readonly AutomapColorPoints m_highlightColorPoints = new();
-    private readonly HashSet<int> m_teleportLines = [];
-    private readonly HashSet<int> m_exitLines = [];
     private readonly List<Color> m_transferColors = [];
     private readonly DynamicArray<Entity> m_mapMarkers = [];
 
@@ -177,17 +175,6 @@ public class LegacyAutomapRenderer : IDisposable
 
     public void UpdateTo(IWorld world)
     {
-        m_teleportLines.Clear();
-        m_exitLines.Clear();
-
-        foreach (var line in world.Lines)
-        {
-            if (line.Special.IsTeleport())
-                m_teleportLines.Add(line.Id);
-            if (line.Special.IsExitSpecial())
-                m_exitLines.Add(line.Id);
-        }
-
         foreach (var lockDef in m_archiveCollection.Definitions.LockDefinitions.LockDefs)
         {
             m_keysByNumber[lockDef.KeyNumber] = new(lockDef.MapColor, lockDef.KeyImageColor);
@@ -352,7 +339,7 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
 
             bool markedLine = IsLineMarked(ref line, markSecrets, markFlood, checkMarkedSectors);
-            if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.AutomapFlags.NeverDraw))
+            if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap() || line.AutomapFlags.NeverDraw))
                 continue;
 
             if (!markedLine && line.LockKey != -1)
@@ -361,42 +348,22 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
             }
 
-            if (line.BackSector == null || line.Secret || line.AutomapFlags.AlwaysDraw)
+            if (line.BackSector == null || line.Secret() || line.AutomapFlags.AlwaysDraw)
             {
-                AddLine(GetOneSidedColor(ref line, forceDraw, markedLine), start, end);
+                AddLine(GetLineColor(ref line, m_wallColor, m_unseenWallColor, forceDraw, markedLine, allMap, out _), start, end);
                 continue;
             }
 
-            var color = GetTwoSidedColor(ref line, forceDraw, markedLine, out var specialColor);
+            var color = GetLineColor(ref line, m_twoSidedWallColor, m_unseenWallColor, forceDraw, markedLine, allMap, out var specialColor);
             if (!allMap && !specialColor && line.BackFloorPlane != null && line.BackCeilingPlane != null &&
                 line.FrontFloorPlane.Z == line.BackFloorPlane.Z && line.FrontCeilingPlane.Z == line.BackCeilingPlane.Z)
                 continue;
-
-            if (!markedLine && line.HasPlayerTriggerSpecial && !line.Secret)
-            {
-                AddLine(m_specialLineColor, start, end);
-                continue;
-            }
 
             AddLine(color, start, end);
         }
     }
 
-    private Color GetOneSidedColor(ref StructLine line, bool forceDraw, bool marked)
-    {
-        if (marked)
-            return GetMarkedColor();
-
-        if (line.SeenForAutomap || forceDraw)
-            if (m_exitLines.Contains(line.Id))
-                return m_exitLineColor;
-            else
-                return m_wallColor;
-
-        return m_unseenWallColor;
-    }
-
-    private Color GetTwoSidedColor(ref StructLine line, bool forceDraw, bool marked, out bool specialColor)
+    private Color GetLineColor(ref StructLine line, Color seenColor, Color unseenColor, bool forceDraw, bool marked, bool allMap, out bool specialColor)
     {
         specialColor = false;
 
@@ -406,30 +373,34 @@ public class LegacyAutomapRenderer : IDisposable
             return GetMarkedColor();
         }
 
-        if (line.SeenForAutomap || forceDraw)
+        if (line.SeenForAutomap() || forceDraw || allMap)
         {
-            if (m_teleportLines.Contains(line.Id))
+            if (line.IsTeleportSpecial())
             {
                 specialColor = true;
                 return m_teleportLineColor;
             }
-            if (m_exitLines.Contains(line.Id))
+
+            if (line.IsExitSpecial())
             {
                 specialColor = true;
                 return m_exitLineColor;
             }
 
-            return m_twoSidedWallColor;
+            if (line.HasPlayerTriggerSpecial() && !line.Secret())
+                return m_specialLineColor;
+
+            return line.SeenForAutomap() ? seenColor : unseenColor;
         }
 
-        return m_unseenWallColor;
+        return unseenColor;
     }
 
     private Color GetMarkedColor() => m_flashTime ? m_markerColor : m_markerColorAlt;
 
     private static bool IsLineMarked(ref StructLine line, bool markSecrets, bool markFlood, bool checkMarkedSectors)
     {
-        if (line.MarkAutomap)
+        if (line.MarkAutomap())
             return true;
 
         if (!checkMarkedSectors)
@@ -463,16 +434,18 @@ public class LegacyAutomapRenderer : IDisposable
 
     void AddKeyLine(Color color, Vec2D start, Vec2D end)
     {
-        DynamicArray<vec2> array = m_highlightColorPoints.GetPoints(color);
-        array.Add(new vec2((float)start.X, (float)start.Y));
-        array.Add(new vec2((float)end.X, (float)end.Y));
+        var array = m_highlightColorPoints.GetPoints(color);
+        array.EnsureCapacity(array.Length + 2);
+        array.AddUnsafe(new vec2((float)start.X, (float)start.Y));
+        array.AddUnsafe(new vec2((float)end.X, (float)end.Y));
     }
 
     void AddLine(Color color, Vec2D start, Vec2D end)
     {
-        DynamicArray<vec2> array = m_colorPoints.GetPoints(color);
-        array.Add(new vec2((float)start.X, (float)start.Y));
-        array.Add(new vec2((float)end.X, (float)end.Y));
+        var array = m_colorPoints.GetPoints(color);
+        array.EnsureCapacity(array.Length + 2);
+        array.AddUnsafe(new vec2((float)start.X, (float)start.Y));
+        array.AddUnsafe(new vec2((float)end.X, (float)end.Y));
     }
 
     private void DrawEntity(Entity? entity, float interpolateFrac, float scaleMultiplier = 1)
@@ -572,8 +545,9 @@ public class LegacyAutomapRenderer : IDisposable
     private DynamicArray<vec2> AddColorPoints(Color color)
     {
         var array = m_colorPoints.GetPoints(color);
+        array.EnsureCapacity(array.Length + m_points.Length);
         for (int i = 0; i < m_points.Length; i++)
-            array.Add(m_points[i]);
+            array.AddUnsafe(m_points[i]);
         return array;
     }
 
@@ -605,8 +579,9 @@ public class LegacyAutomapRenderer : IDisposable
     {
         vec4 s = transform * new vec4(startX, startY, 0, 1);
         vec4 e = transform * new vec4(endX, endY, 0, 1);
-        m_points.Add(s.xy);
-        m_points.Add(e.xy);
+        m_points.EnsureCapacity(m_points.Length + 2);
+        m_points.AddUnsafe(s.xy);
+        m_points.AddUnsafe(e.xy);
     }
 
     private void TransferLineDataIntoBuffer(AutomapColorPoints colorPoints, List<ColorRange> vboRanges, out Box2F box2F)
@@ -624,7 +599,7 @@ public class LegacyAutomapRenderer : IDisposable
         for (int i = 0; i < m_transferColors.Count; i++)
         {
             var color = m_transferColors[i];
-            DynamicArray<vec2> lines = colorPoints.GetPoints(m_transferColors[i]);
+            var lines = colorPoints.GetPoints(m_transferColors[i]);
             if (lines.Length == 0)
                 continue;
 

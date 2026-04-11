@@ -34,7 +34,7 @@ public class SinglePlayerWorld : WorldBase
     private static bool SoundsCached;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly CheatType[] ChaseCameraCheats = [CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings];
-    private readonly AutomapMarker m_automapMarker;
+    private readonly AutomapMarker m_automapMarker = new();
     private readonly Dictionary<string, byte[]> m_musicLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<int> m_renderDistanceOverrideTags = [];
     private bool m_chaseCamMode;
@@ -147,7 +147,6 @@ public class SinglePlayerWorld : WorldBase
 
         config.Render.MaxDistance.ResetToUserValue();
 
-        m_automapMarker = new AutomapMarker(ArchiveCollection);
         CacheSounds();
         CacheMusic();
     }

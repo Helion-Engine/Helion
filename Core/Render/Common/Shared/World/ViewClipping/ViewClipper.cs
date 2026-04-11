@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.Util.Extensions;
+using Helion.Util.Container;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World.ViewClipping;
@@ -28,20 +29,14 @@ public class ViewClipper
     private const uint PiAngle = uint.MaxValue / 2;
     private const double RadiansToDiamondAngleFactor = uint.MaxValue / MathHelper.TwoPi;
 
-    private readonly LinkedList<ClipSpan> m_nodes = new();
-    private readonly DataCache m_dataCache;
+    private DynamicArray<ClipSpan> m_spans = new DynamicArray<ClipSpan>(256);
 
     /// <summary>
     /// The center point from which we will clip from.
     /// </summary>
     public Vec2D Center { private get; set; } = Vec2D.Zero;
 
-    public IEnumerable<ClipSpan> Elements => m_nodes;
-
-    public ViewClipper(DataCache dataCache)
-    {
-        m_dataCache = dataCache;
-    }
+    public IEnumerable<ClipSpan> Elements => m_spans.Data.Take(m_spans.Length);
 
     /// <summary>
     /// Takes two positions and finds the diamond angle that exists from
@@ -127,15 +122,7 @@ public class ViewClipper
     /// </remarks>
     public void Clear()
     {
-        LinkedListNode<ClipSpan>? node = m_nodes.First;
-        LinkedListNode<ClipSpan>? nextNode;
-        while (node != null)
-        {
-            nextNode = node.Next;
-            m_dataCache.FreeClipSpan(node);
-            m_nodes.Remove(node);
-            node = nextNode;
-        }
+        m_spans.Clear();
     }
 
     /// <summary>
@@ -180,7 +167,7 @@ public class ViewClipper
     /// <returns>True if they are in a range, false if not.</returns>
     public bool InsideAnyRange(in Vec2D first, in Vec2D second)
     {
-        if (m_nodes.Count == 0)
+        if (m_spans.Length == 0)
             return false;
 
         var smallerAngle = ToDiamondAngle(Center, first);
@@ -254,16 +241,14 @@ public class ViewClipper
     {
         // TODO: If endAngle > uint.MaxValue / 2, search backwards?
 
-        LinkedListNode<ClipSpan>? node = m_nodes.First;
-        while (node != null)
+        for (int i = 0; i < m_spans.Length; i++)
         {
-            if (node.Value.Contains(startAngle, endAngle))
+            ref var span = ref m_spans.Data[i];
+            if (span.Contains(startAngle, endAngle))
                 return true;
 
-            if (endAngle < node.Value.StartAngle)
+            if (endAngle < span.StartAngle)
                 return false;
-
-            node = node.Next;
         }
 
         return false;
@@ -279,8 +264,8 @@ public class ViewClipper
     {
         Precondition(startAngle <= endAngle, "Range must have the start angle being before the end angle");
 
-        LinkedListNode<ClipSpan> startNode = FindOrMakeStartNode(startAngle, endAngle);
-        MergeUntil(startNode, endAngle);
+        int startIndex = FindOrMakeStartNode(startAngle, endAngle);
+        MergeUntil(startIndex, endAngle);
     }
 
     /// <summary>
@@ -298,42 +283,40 @@ public class ViewClipper
     /// existing node that was expanded to hold the start angle, or a new
     /// node that was allocated for it, or a node that already spanned the
     /// start angle.</returns>
-    private LinkedListNode<ClipSpan> FindOrMakeStartNode(uint startAngle, uint endAngle)
+    private int FindOrMakeStartNode(uint startAngle, uint endAngle)
     {
-        if (m_nodes.Empty())
+        if (m_spans.Length == 0)
         {
-            var newNode = m_dataCache.GetClipSpan(new ClipSpan(startAngle, endAngle));
-            m_nodes.AddLast(newNode);
-            return newNode;
+            m_spans.AddUnsafe(new ClipSpan(startAngle, endAngle));
+            return 0;
         }
 
-        LinkedListNode<ClipSpan>? startNode = FindNodeJustAfterOrIncluding(startAngle);
+        int index = FindIndexJustAfterOrIncluding(startAngle);
 
         // If all the nodes end before the starting point, add a new one
         // onto the end.
-        if (startNode == null)
+        if (index == m_spans.Length)
         {
-            var newNode = m_dataCache.GetClipSpan(new ClipSpan(startAngle, endAngle));
-            m_nodes.AddLast(newNode);
-            return newNode;
+            m_spans.Add(new ClipSpan(startAngle, endAngle));
+            return m_spans.Length - 1;
         }
 
-        if (startNode.Value.Contains(startAngle))
-            return startNode;
+        // startAngle falls inside this span — no insertion needed
+        if (m_spans[index].Contains(startAngle))
+            return index;
 
         // If we're in between a gap, we'll make a new node.
-        if (startNode.Value.StartAngle > endAngle)
+        if (m_spans[index].StartAngle > endAngle)
         {
-            var newNode = m_dataCache.GetClipSpan(new ClipSpan(startAngle, endAngle));
-            m_nodes.AddBefore(startNode, newNode);
-            return newNode;
+            m_spans.Insert(index, new ClipSpan(startAngle, endAngle));
+            return index;
         }
 
         // We can extend the starting node backwards without worrying about
         // creating an overlap, since `startNode` would have been that node
         // instead if such a node existed.
-        startNode.Value = new ClipSpan(startAngle, startNode.Value.EndAngle);
-        return startNode;
+        m_spans[index] = new ClipSpan(startAngle, m_spans[index].EndAngle);
+        return index;
     }
 
     /// <summary>
@@ -345,19 +328,19 @@ public class ViewClipper
     /// <returns>Either the node that includes or is after the start angle,
     /// or null if there are no nodes that satisfy this criterion (implying
     /// that the start angle is after the end of every span).</returns>
-    private LinkedListNode<ClipSpan>? FindNodeJustAfterOrIncluding(uint startAngle)
+    private int FindIndexJustAfterOrIncluding(uint startAngle)
     {
-        LinkedListNode<ClipSpan>? node = m_nodes.First;
-
-        while (node != null)
+        // Binary search
+        int min = 0;
+        int max = m_spans.Length - 1;
+        while (min <= max)
         {
-            if (node.Value.Contains(startAngle) || node.Value.StartAngle >= startAngle)
-                break;
-
-            node = node.Next;
+            var mid = (min + max) / 2;
+            if (m_spans.Data[mid].EndAngle < startAngle)
+                min = mid + 1;
+            else max = mid - 1;
         }
-
-        return node;
+        return min;
     }
 
     /// <summary>
@@ -369,38 +352,38 @@ public class ViewClipper
     /// <param name="startNode">The node we should start at and fuse with
     /// everything afterwards that is before or including endAngle.</param>
     /// <param name="endAngle">The ending angle of the span to add.</param>
-    private void MergeUntil(LinkedListNode<ClipSpan> startNode, uint endAngle)
+    private void MergeUntil(int startIndex, uint endAngle)
     {
         // If we start and end inside the same node, then we're done and
         // have no merging to do.
-        if (endAngle <= startNode.Value.EndAngle)
+        if (endAngle <= m_spans[startIndex].EndAngle)
             return;
 
-        uint lastSeenNodeEndAngle = startNode.Value.EndAngle;
-        LinkedListNode<ClipSpan>? current = startNode.Next;
+        uint lastSeenEndAngle = m_spans[startIndex].EndAngle;
+        int removeIndex = startIndex + 1;
+        int removeCount = 0;
 
-        while (current != null)
+        for (int i = startIndex + 1; i < m_spans.Length; i++)
         {
-            ClipSpan clipSpan = current.Value;
+            ref var span = ref m_spans.Data[i];
 
             // If the next node starts after our ending point, we're done.
-            if (endAngle < clipSpan.StartAngle)
+            if (endAngle < span.StartAngle)
                 break;
 
-            lastSeenNodeEndAngle = clipSpan.EndAngle;
-
-            LinkedListNode<ClipSpan>? next = current.Next;
-            m_nodes.Remove(current);
-            m_dataCache.FreeClipSpan(current);
-            current = next;
+            lastSeenEndAngle = span.EndAngle;
+            removeCount++;
 
             // We do this last because we need to make sure we unlink the
             // node as we will be extending the starting node onwards.
-            if (clipSpan.Contains(endAngle))
+            if (span.Contains(endAngle))
                 break;
         }
 
-        uint newEndingAngle = Math.Max(endAngle, lastSeenNodeEndAngle);
-        startNode.Value = new ClipSpan(startNode.Value.StartAngle, newEndingAngle);
+        if (removeCount > 0)
+            m_spans.RemoveRange(removeIndex, removeCount);
+
+        uint newEndAngle = Math.Max(endAngle, lastSeenEndAngle);
+        m_spans[startIndex] = new ClipSpan(m_spans[startIndex].StartAngle, newEndAngle);
     }
 }
