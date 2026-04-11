@@ -83,6 +83,8 @@ public static class Constants
 
     public const string MusicChanger = "MusicChanger";
     public const string AmbientSound = "AmbientSound";
+    public const string TeleportDest = "TeleportDest";
+    public const string MapSpot = "MapSpot";
 
     public const string DefaultSkyTextureName = "SKY1";
 

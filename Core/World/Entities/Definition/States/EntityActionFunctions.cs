@@ -2053,8 +2053,9 @@ public static class EntityActionFunctions
         double range = Constants.EntityMeleeDistance + 1;
         double angle = player.AngleRadians + (WorldStatic.Random.NextDiff() * Constants.MeleeAngle / 255);
         double pitch = player.PitchRadians;
-        if (WorldStatic.World.Config.Game.AutoAim)
-            WorldStatic.World.GetAutoAimEntity(entity, player.HitscanAttackPos, player.AngleRadians, range, out pitch, out _);
+        if (WorldStatic.World.Config.Game.AutoAim && WorldStatic.World.GetAutoAimEntity(entity, player.HitscanAttackPos, player.AngleRadians, range, out var autoAimPitch, out _))
+            pitch = autoAimPitch;
+
         // Doom added + 1 so the bulletpuff would include the spark state
         Entity? hitEntity = WorldStatic.World.FireHitscan(entity, angle, pitch, range, damage);
         if (hitEntity == null)
@@ -2421,7 +2422,7 @@ public static class EntityActionFunctions
         WorldStatic.SoundManager.CreateSoundOn(entity, "skeleton/swing", new SoundParams(entity));
     }
 
-    private static void A_SkullAttack(Entity entity)
+    public static void A_SkullAttack(Entity entity)
     {
         var target = entity.Target();
         if (target == null)
@@ -3484,8 +3485,9 @@ public static class EntityActionFunctions
 
         double angle = player.AngleRadians + (WorldStatic.Random.NextDiff() * Constants.MeleeAngle / 255);
         double pitch = player.PitchRadians;
-        if (WorldStatic.World.Config.Game.AutoAim)
-            WorldStatic.World.GetAutoAimEntity(player, player.HitscanAttackPos, player.AngleRadians, range, out pitch, out _);
+        if (WorldStatic.World.Config.Game.AutoAim && WorldStatic.World.GetAutoAimEntity(player, player.HitscanAttackPos, player.AngleRadians, range, out var autoAimPitch, out _))
+            pitch = autoAimPitch;
+            
         Entity? hitEntity = WorldStatic.World.FireHitscan(player, angle, pitch, range, (int)damage);
         if (hitEntity == null)
             return;

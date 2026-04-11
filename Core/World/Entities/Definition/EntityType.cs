@@ -6,5 +6,7 @@ public enum EntityType
     BulletPuff,
     Blood,
     AmbientSound,
-    MusicChanger
+    MusicChanger,
+    MapSpot,
+    TeleporDest
 }

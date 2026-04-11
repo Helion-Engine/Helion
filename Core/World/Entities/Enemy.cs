@@ -49,9 +49,8 @@ public partial class Entity
 
         Flags.ClearAttacking();
         Entity? newTarget = null;
-        var previousTarget = Target();
         var soundTarget = Sector.SoundTarget.Get();
-        if (soundTarget != previousTarget && ((soundTarget != null && ValidEnemyTarget(soundTarget)) || (soundTarget != null && IsFriend(soundTarget))))
+        if ((soundTarget != null && ValidEnemyTarget(soundTarget)) || (soundTarget != null && IsFriend(soundTarget)))
         {
             if (Flags.Ambush())
             {
@@ -63,6 +62,9 @@ public partial class Entity
             {
                 newTarget = soundTarget;
             }
+
+            if (newTarget != null && IsFriend(newTarget))
+                newTarget = GetNewTarget(allAround);
         }
         else
         {
@@ -73,6 +75,7 @@ public partial class Entity
         {
             if (Flags.Friendly())
             {
+                var previousTarget = Target();
                 SetTarget(newTarget);
                 if (newTarget != null && newTarget.IsPlayer && newTarget != previousTarget && Definition.MissileState.HasValue)
                 {

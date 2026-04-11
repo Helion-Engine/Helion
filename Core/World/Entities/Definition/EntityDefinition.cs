@@ -15,7 +15,9 @@ public class EntityDefinition
         { "BulletPuff", EntityType.BulletPuff },
         { "Blood", EntityType.Blood },
         { Constants.AmbientSound, EntityType.AmbientSound },
-        { Constants.MusicChanger, EntityType.MusicChanger }
+        { Constants.MusicChanger, EntityType.MusicChanger },
+        { Constants.MapSpot, EntityType.MapSpot },
+        { Constants.TeleportDest, EntityType.TeleporDest }
     };
 
     public static readonly EntityDefinition Default = new(-1, "DEFAULT-NULL", null, []);

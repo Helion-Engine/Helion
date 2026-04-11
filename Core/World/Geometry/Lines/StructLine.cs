@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Segments;
+using Helion.Maps.Specials;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
 using System;
@@ -12,7 +13,8 @@ public enum StructLineFlags
     Secret = 2,
     SeenForAutomap = 4,
     MarkAutomap = 8,
-    HasSpecial = 16
+    HasSpecial = 16,
+    HasPlayerTriggerSpecial = 32
 }
 
 public record struct StructLine
@@ -34,6 +36,7 @@ public record struct StructLine
     public readonly bool Secret => (Flags & StructLineFlags.Secret) != 0;
     public readonly bool SeenForAutomap => (Flags & StructLineFlags.SeenForAutomap) != 0;
     public readonly bool MarkAutomap => (Flags & StructLineFlags.MarkAutomap) != 0;
+    public readonly bool HasPlayerTriggerSpecial => (Flags & StructLineFlags.HasPlayerTriggerSpecial) != 0;
 
     public StructLine(Line line)
     {
@@ -59,7 +62,11 @@ public record struct StructLine
             LockKey = -1;
 
         if (line.HasSpecial)
+        {
             Flags |= StructLineFlags.HasSpecial;
+            if ((line.Flags.Activations & LineActivations.Player) != 0)
+                Flags |= StructLineFlags.HasPlayerTriggerSpecial;
+        }
 
         AutomapFlags = line.Flags.Automap;
     }
