@@ -48,16 +48,10 @@ public static class ModelVerification
 
     private static bool VerifyFileOrder(ArchiveCollection archiveCollection, GameFilesModel filesModel, Logger? log)
     {
-        if (archiveCollection.Archives.Count() != filesModel.Files.Count)
-            return false;
-
-        var archiveEnumerator = archiveCollection.Archives.GetEnumerator();
+        var archives = archiveCollection.Archives.Where(x => x.ExtractedFrom == null).ToArray();
         for (int i = 0; i < filesModel.Files.Count; i++)
         {
-            if (!archiveEnumerator.MoveNext())
-                break;
-
-            var archive = archiveEnumerator.Current;
+            var archive = archives[i];
             var file = filesModel.Files[i];
 
             if (!archive.MD5.Equals(file.MD5, StringComparison.Ordinal))

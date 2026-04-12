@@ -27,3 +27,4 @@
 - Add average scrolling for things in multiple scroll sectors to match UZDoom for appropriate UDMF namespaces.
 - Log config file path to console.
 - Add color to mark player special trigger lines in automap.
+- Verify file order in saves and include more detail on why a save is incompatible with the loaded files.

@@ -258,16 +258,19 @@ public class SaveGameManager
 
         // sort compatible saves first
         if (x.VerificationResult != y.VerificationResult)
-        {
-            if (x.VerificationResult == SaveVerificationResult.Success)
-                return -1;
-            if (y.VerificationResult == SaveVerificationResult.Success)
-                return 1;
-            return 0;
-        }
+            return GetSortPriority(x.VerificationResult).CompareTo(GetSortPriority(y.VerificationResult));
 
         // then by most recent first
         return y.Model.Date.CompareTo(x.Model.Date);
 
     }
+
+    private static int GetSortPriority(SaveVerificationResult result) => result switch
+    {
+        SaveVerificationResult.Success => 0,
+        SaveVerificationResult.IncorrectOrder => 1,
+        SaveVerificationResult.DifferentFiles => 2,
+        SaveVerificationResult.DifferentIwad => 3,
+        _ => 4
+    };
 }
