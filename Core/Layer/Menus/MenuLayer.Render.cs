@@ -13,6 +13,7 @@ using Helion.Render.Common.Textures;
 using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.World.Util;
 using System;
 using System.Collections.Generic;
 using static Helion.Render.Common.RenderDimensions;
@@ -242,7 +243,7 @@ public partial class MenuLayer
     {
         bool isTypingTarget = isSelected && saveMenu.IsTypingName;
 
-        string fontName = (saveRowComponent.IsCompatible || isTypingTarget) ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        string fontName = (saveRowComponent.VerificationResult == SaveVerificationResult.Success || isTypingTarget) ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
         int fontSize = hud.GetFontMaxHeight(fontName) - 2;
         int menuRowWidth = GetSaveRowWidth(detailsEnabled);
 
@@ -325,14 +326,14 @@ public partial class MenuLayer
         if (m_saveGameSummary == null)
             return;
 
-        string fontName = m_saveGameSummary.IsCompatible ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        string fontName = m_saveGameSummary.VerificationResult == SaveVerificationResult.Success ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
         const float ImageAspect = 4 / 3f;
 
         bool wideScreen = SaveMenuWide(hud);
         int textSize = wideScreen ? 6 : 4;
         int boxWidth = wideScreen ? 128 : 80;
         int thumbnailHeight = (int)(boxWidth / ImageAspect * 0.8f);
-        int boxHeight = thumbnailHeight + textSize * (m_saveGameSummary.IsCompatible ? 5 : 7) + 3;
+        int boxHeight = thumbnailHeight + textSize * (m_saveGameSummary.VerificationResult == SaveVerificationResult.Success ? 5 : 7) + 3;
 
         var centerOffset = GetSaveMenuOffset(hud);
         hud.LineWrap(m_saveGameSummary.MapName, fontName, textSize, boxWidth - 4, m_lineWrapLines, 
@@ -380,10 +381,21 @@ public partial class MenuLayer
             hud.Text(str, fontName, textSize, offset, out area);
             offset += (0, area.Height);
         }
-        if (!m_saveGameSummary.IsCompatible)
+        if (m_saveGameSummary.VerificationResult != SaveVerificationResult.Success)
         {
             offset += (0, area.Height);
-            hud.Text("WADS differ", fontName, textSize, offset, out area);
+            hud.Text(GetResultString(m_saveGameSummary.VerificationResult), fontName, textSize, offset, out area);
         }
+    }
+
+    private static string GetResultString(SaveVerificationResult result)
+    {
+        return result switch
+        {
+            SaveVerificationResult.DifferentIwad => "Different IWADs",
+            SaveVerificationResult.DifferentFiles => "Different WADs",
+            SaveVerificationResult.IncorrectOrder => "Incorrect WAD order",
+            _ => "Invalid save",
+        };
     }
 }

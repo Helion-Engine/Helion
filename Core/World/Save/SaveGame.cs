@@ -5,6 +5,7 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.SerializationContexts;
 using Helion.Util.Streams;
+using Helion.World.Util;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
@@ -38,7 +39,7 @@ public class SaveGame
     /// <summary>
     /// Whether the save is compatible with the currently loaded WADs.
     /// </summary>
-    public bool? IsCompatible;
+    public SaveVerificationResult VerificationResult;
 
     public SaveGame(string saveDir, string filename, SaveGameModel model)
     {

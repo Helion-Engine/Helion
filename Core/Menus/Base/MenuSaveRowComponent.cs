@@ -1,4 +1,5 @@
 using Helion.World.Save;
+using Helion.World.Util;
 using System;
 
 namespace Helion.Menus.Base;
@@ -7,7 +8,7 @@ public class MenuSaveRowComponent(
     string text,
     string mapName,
     bool isAutoOrQuickSave,
-    bool isCompatible,
+    SaveVerificationResult verificationResult,
     Func<Menu?>? action = null,
     Func<Menu?>? deleteAction = null,
     SaveGame? saveGame = null) : IMenuComponent
@@ -18,5 +19,5 @@ public class MenuSaveRowComponent(
     public Func<Menu?>? DeleteAction { get; } = deleteAction;
     public SaveGame? SaveGame { get; } = saveGame;
     public bool IsAutoOrQuickSave { get; } = isAutoOrQuickSave;
-    public bool IsCompatible { get; } = isCompatible;
+    public SaveVerificationResult VerificationResult { get; } = verificationResult;
 }
