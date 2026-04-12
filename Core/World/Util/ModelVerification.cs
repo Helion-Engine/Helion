@@ -2,33 +2,70 @@ using Helion.Models;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
 using NLog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace Helion.World.Util;
 
+public enum SaveVerificationResult
+{
+    Unknown,
+    Success,
+    DifferentIwad,
+    DifferentFiles,
+    IncorrectOrder
+}
+
 public static class ModelVerification
 {
-    public static bool VerifyModelFiles(GameFilesModel filesModel, ArchiveCollection archiveCollection, Logger? log)
+    public static SaveVerificationResult VerifyModelFiles(GameFilesModel filesModel, ArchiveCollection archiveCollection, Logger? log)
     {
         if (!VerifyFileModel(archiveCollection, filesModel.IWad, log))
-            return false;
+            return SaveVerificationResult.DifferentIwad;
 
         var fileArchives = archiveCollection.Archives.Where(x => x.ExtractedFrom == null).ToList();
         if (fileArchives.Count != filesModel.Files.Count)
         {
             if (log == null)
-                return false;
+                return SaveVerificationResult.DifferentFiles;
 
             log.Info($"Save file has {filesModel.Files.Count} but {fileArchives.Count} files are loaded.");
             LogExtraLoadedArchives(filesModel, log, fileArchives);
             LogMissingFiles(filesModel, log, fileArchives);
-            return false;
+            return SaveVerificationResult.DifferentFiles;
         }
 
         if (filesModel.Files.Any(x => !VerifyFileModel(archiveCollection, x, log)))
+            return SaveVerificationResult.DifferentFiles;
+
+        if (!VerifyFileOrder(archiveCollection, filesModel, log))
+            return SaveVerificationResult.IncorrectOrder;
+
+        return SaveVerificationResult.Success;
+    }
+
+    private static bool VerifyFileOrder(ArchiveCollection archiveCollection, GameFilesModel filesModel, Logger? log)
+    {
+        if (archiveCollection.Archives.Count() != filesModel.Files.Count)
             return false;
+
+        var archiveEnumerator = archiveCollection.Archives.GetEnumerator();
+        for (int i = 0; i < filesModel.Files.Count; i++)
+        {
+            if (!archiveEnumerator.MoveNext())
+                break;
+
+            var archive = archiveEnumerator.Current;
+            var file = filesModel.Files[i];
+
+            if (!archive.MD5.Equals(file.MD5, StringComparison.Ordinal))
+            {
+                log?.Error($"File '{file.FileName}' at incorrect order for save. Order must be: {string.Join(", ", filesModel.Files.Select(x => x.FileName))}");
+                return false;
+            }
+        }
 
         return true;
     }
@@ -37,7 +74,7 @@ public static class ModelVerification
     {
         foreach (var archive in fileArchives)
         {
-            if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5, System.StringComparison.Ordinal)))
+            if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5, StringComparison.Ordinal)))
                 continue;
             log.Error($"Loaded '{Path.GetFileName(archive.FullPath)}' that is not part of this save.");
         }
@@ -47,7 +84,7 @@ public static class ModelVerification
     {
         foreach (var file in filesModel.Files)
         {
-            if (fileArchives.Any(x => x.MD5.Equals(file.MD5, System.StringComparison.Ordinal)))
+            if (fileArchives.Any(x => x.MD5.Equals(file.MD5, StringComparison.Ordinal)))
                 continue;
             log.Error($"Required archive '{file.FileName}' for this save is not loaded.");
         }
@@ -74,7 +111,7 @@ public static class ModelVerification
             return true;
         }
 
-        if (!fileModel.MD5.Equals(archive.MD5, System.StringComparison.Ordinal))
+        if (!fileModel.MD5.Equals(archive.MD5, StringComparison.Ordinal))
         {
             log?.Error($"Required archive {fileModel.FileName} did not match MD5 for save game.");
             log?.Error($"Save MD5: {fileModel.MD5} - Loaded MD5: {archive.MD5}");

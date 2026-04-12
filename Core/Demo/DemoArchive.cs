@@ -77,7 +77,7 @@ public static class DemoArchive
                 return false;
 
             // TODO the error log messages are sort of specific to save games
-            if (!ModelVerification.VerifyModelFiles(demoModel.GameFiles, archiveCollection, Log))
+            if (ModelVerification.VerifyModelFiles(demoModel.GameFiles, archiveCollection, Log) != SaveVerificationResult.Success)
                 return false;
 
             binaryDemoFile = TempFileManager.GetFile();

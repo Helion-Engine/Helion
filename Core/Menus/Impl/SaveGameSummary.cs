@@ -3,6 +3,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Util.Extensions;
 using Helion.World.Save;
+using Helion.World.Util;
 using System;
 
 namespace Helion.Menus.Impl;
@@ -21,7 +22,7 @@ public class SaveGameSummary(SaveGame saveGame)
                 $"Secrets: {saveGame.Model.SaveGameStats.SecretCount} / {saveGame.Model.SaveGameStats.TotalSecrets}",
                 $"Elapsed: {TimeSpan.FromSeconds(saveGame.Model.SaveGameStats.LevelTime / 35)}"
             ];
-    public readonly bool IsCompatible = saveGame.IsCompatible == true;
+    public SaveVerificationResult VerificationResult => saveGame.VerificationResult;
     private readonly Image? m_saveGameImage = saveGame.GetSaveGameImage();
 
     public IRenderableTextureHandle? UpdateSaveGameTexture(IHudRenderContext hud)

@@ -95,9 +95,9 @@ public class SaveGameManager
         var saves = ReadSaveGameFiles();
         foreach (var save in saves)
         {
-            save.IsCompatible = CheckIfSaveModelCompatible(save.Model);
+            save.VerificationResult = CheckIfSaveModelCompatible(save.Model);
             m_currentSaves.Add(save);
-            if (save.IsCompatible == true)
+            if (save.VerificationResult == SaveVerificationResult.Success)
                 m_matchingSaves.Add(save);
         }
         m_currentSavesLoaded = true;
@@ -128,7 +128,7 @@ public class SaveGameManager
         m_saveArgs = new(world, worldModel, title, GetSaveDir(), filename, screenshotGenerator, image);
         var saveEvent = await Task.Run(m_saveFunc);
 
-        saveEvent.SaveGame.IsCompatible = true;
+        saveEvent.SaveGame.VerificationResult = SaveVerificationResult.Success;
         AddOrUpdateSaveGame(saveEvent.SaveGame);
         GameSaved?.Invoke(this, saveEvent);
         m_saving = false;
@@ -141,7 +141,7 @@ public class SaveGameManager
     private void AddOrUpdateSaveGame(SaveGame newSaveGame)
     {
         AddOrUpdateSaveGame(newSaveGame, m_currentSaves);
-        if (newSaveGame.IsCompatible == true)
+        if (newSaveGame.VerificationResult == SaveVerificationResult.Success)
             AddOrUpdateSaveGame(newSaveGame, m_matchingSaves);
     }
 
@@ -181,9 +181,12 @@ public class SaveGameManager
         return existingSave;
     }
 
-    private bool CheckIfSaveModelCompatible(SaveGameModel? model)
+    private SaveVerificationResult CheckIfSaveModelCompatible(SaveGameModel? model)
     {
-        return model != null && ModelVerification.VerifyModelFiles(model.Files, m_archiveCollection, null);
+        if (model == null)
+            return SaveVerificationResult.Unknown;
+
+        return ModelVerification.VerifyModelFiles(model.Files, m_archiveCollection, null);
     }
 
     /// <summary>
@@ -254,8 +257,14 @@ public class SaveGameManager
             return -1;
 
         // sort compatible saves first
-        if (x.IsCompatible != y.IsCompatible)
-            return x.IsCompatible == true ? -1 : 1;
+        if (x.VerificationResult != y.VerificationResult)
+        {
+            if (x.VerificationResult == SaveVerificationResult.Success)
+                return -1;
+            if (y.VerificationResult == SaveVerificationResult.Success)
+                return 1;
+            return 0;
+        }
 
         // then by most recent first
         return y.Model.Date.CompareTo(x.Model.Date);

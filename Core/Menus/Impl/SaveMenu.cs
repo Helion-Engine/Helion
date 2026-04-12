@@ -13,6 +13,7 @@ using Helion.Window;
 using Helion.Window.Input;
 using Helion.World;
 using Helion.World.Save;
+using Helion.World.Util;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -150,7 +151,7 @@ public class SaveMenu : Menu
             // show empty slot on page 1
             if (m_currentPage == 1)
             {
-                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false, true);
+                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false, SaveVerificationResult.Success);
                 saveRowComponent.Action = CreateNewSaveGame(() => saveRowComponent.Text);
                 newComponents.Add(saveRowComponent);
             }
@@ -158,7 +159,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string mapName = save.Model?.MapName ?? UnknownSavedGameName;
-                MenuSaveRowComponent saveRow = new(displayName, mapName, save.Type != SaveGameType.Default, save.IsCompatible == true,
+                MenuSaveRowComponent saveRow = new(displayName, mapName, save.Type != SaveGameType.Default, save.VerificationResult,
                     null, CreateDeleteCommand(save), save);
                 saveRow.Action = new Func<Menu?>(UpdateSaveGame(save, new(() => saveRow.Text)));
                 return saveRow;
@@ -187,7 +188,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default, save.IsCompatible == true,
+                return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default, save.VerificationResult,
                     LoadFile(fileName), CreateDeleteCommand(save), save);
             });
             newComponents.AddRange(saveRowComponents);
@@ -272,7 +273,7 @@ public class SaveMenu : Menu
             {
                 if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft)) // Load
                 {
-                    if (!savedGameRow.IsCompatible)
+                    if (savedGameRow.VerificationResult != SaveVerificationResult.Success)
                     {
                         m_confirmIncompatibleSave = savedGameRow;
                         var confirm = new MessageMenu(Window, Config, Console, SoundManager, ArchiveCollection,
