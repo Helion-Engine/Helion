@@ -234,7 +234,7 @@ public partial class Renderer : IDisposable
         if (!(ShaderVars.PaletteColorMode || ShaderVars.EmulateInvulnerabilityColorMap))
             return;
 
-        var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
+        var colorMapData = ColorMapBuffer.CreateRgba(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
         m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
 
         m_colorMapBuffer.Map(data =>

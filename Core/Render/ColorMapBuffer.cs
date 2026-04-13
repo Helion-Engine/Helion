@@ -1,14 +1,15 @@
 ﻿using Helion.Graphics.Palettes;
+using Helion.Render.OpenGL.Textures;
 using System.Collections.Generic;
 
 namespace Helion.Render;
 
 public static class ColorMapBuffer
 {
-    const int LayerSize = Colormap.NumColors * Colormap.NumLayers * 4;
+    const int LayerSize = Colormap.NumColors * Colormap.NumLayers * GLBufferTextureStorage<float>.FourComponentLength;
     const int ColorMapSize = LayerSize * Palette.NumPalettes;
 
-    public static float[] Create(Palette palette, List<Colormap> colormaps)
+    public static float[] CreateRgba(Palette palette, List<Colormap> colormaps)
     {
         float[] buffer = new float[ColorMapSize * colormaps.Count];
 

@@ -172,7 +172,7 @@ public partial class Renderer
         if (alloc || m_lineHeightsBuffer == null)
         {
             m_lineHeightsBuffer?.Dispose();
-            m_lineHeightsBufferData = new float[world.Lines.Count * 4];
+            m_lineHeightsBufferData = new float[world.Lines.Count * GLBufferTextureStorage<float>.FourComponentLength];
             m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
 
             m_lineHeightsBuffer.Map(data =>
@@ -291,7 +291,7 @@ public partial class Renderer
             for (int i = 0; i < world.StructLines.Length; i++)
             {
                 ref var line = ref world.StructLines.Data[i];
-                int index = i * 4;
+                int index = i * GLBufferTextureStorage<float>.FourComponentLength;
                 buffer[index] = (float)line.Segment.Start.X;
                 buffer[index + 1] = (float)line.Segment.Start.Y;
                 buffer[index + 2] = (float)line.Segment.End.X;
@@ -310,7 +310,7 @@ public partial class Renderer
             floorZ = Math.Max(floorZ, (float)line.BackFloorPlane.Z);
         }
 
-        var index = lineId * 4;
+        var index = lineId * GLBufferTextureStorage<float>.FourComponentLength;
         buffer[index] = prevFloorZ;
         buffer[index + 1] = floorZ;
 
