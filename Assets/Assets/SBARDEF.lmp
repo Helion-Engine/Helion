@@ -1202,14 +1202,7 @@
                             }
                           ],
                           "children": [],
-                          "patch": "PSTRA0",
-                          "crop": {
-                            "width": 10,
-                            "height": 10,
-                            "left": 9,
-                            "top": 3,
-                            "center": false
-                          }
+                          "patch": "HEL-BERS"
                         }
                       },
                       {
