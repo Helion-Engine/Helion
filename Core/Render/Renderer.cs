@@ -235,7 +235,7 @@ public partial class Renderer : IDisposable
             return;
 
         var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
-        m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
+        m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
 
         m_colorMapBuffer.Map(data =>
         {

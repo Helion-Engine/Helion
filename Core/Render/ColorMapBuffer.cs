@@ -5,7 +5,7 @@ namespace Helion.Render;
 
 public static class ColorMapBuffer
 {
-    const int LayerSize = Colormap.NumColors * Colormap.NumLayers * 3;
+    const int LayerSize = Colormap.NumColors * Colormap.NumLayers * 4;
     const int ColorMapSize = LayerSize * Palette.NumPalettes;
 
     public static float[] Create(Palette palette, List<Colormap> colormaps)
@@ -37,6 +37,7 @@ public static class ColorMapBuffer
                     buffer[offset++] = color.R / 255f;
                     buffer[offset++] = color.G / 255f;
                     buffer[offset++] = color.B / 255f;
+                    offset++;
                 }
             }
         }
