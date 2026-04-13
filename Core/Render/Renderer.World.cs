@@ -172,8 +172,8 @@ public partial class Renderer
         if (alloc || m_lineHeightsBuffer == null)
         {
             m_lineHeightsBuffer?.Dispose();
-            m_lineHeightsBufferData = new float[world.Lines.Count * 3];
-            m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
+            m_lineHeightsBufferData = new float[world.Lines.Count * GLBufferTextureStorage<float>.FourComponentLength];
+            m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
 
             m_lineHeightsBuffer.Map(data =>
             {
@@ -201,17 +201,16 @@ public partial class Renderer
 
     private unsafe void SetSectorColorMapsBuffer(IWorld world, bool alloc)
     {
-        bool usePalette = false;
         if (alloc || m_sectorColorMapsBuffer == null)
         {
             // First index will always map to default colormap
             int sectorBufferCount = (world.Sectors.Count + 1) * LightBuffer.BufferSize;
             // PaletteColorMode is index to colormap, true color will be RGB mix
-            int size = usePalette ? 1 : 3;
+            int size = 4;
             var sectorBuffer = new float[sectorBufferCount * size];
 
             m_sectorColorMapsBuffer?.Dispose();
-            m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, usePalette ? SizedInternalFormat.R32f : SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
+            m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
         }
 
         if (alloc)
@@ -219,26 +218,22 @@ public partial class Renderer
             m_sectorColorMapsBuffer.Map(data =>
             {
                 float* colorMapBuffer = (float*)data.ToPointer();
-                InitSectorColorMap(world, colorMapBuffer, usePalette);
+                InitSectorColorMap(world, colorMapBuffer);
             });
         }
         else
         {
             var mappedBuffer = m_sectorColorMapsBuffer.GetMappedBufferAndBind();
             float* colorMapBuffer = mappedBuffer.MappedMemoryPtr;
-            InitSectorColorMap(world, colorMapBuffer, usePalette);
+            InitSectorColorMap(world, colorMapBuffer);
             m_sectorColorMapsBuffer.Unbind();
         }
     }
 
-    private static unsafe void InitSectorColorMap(IWorld world, float* colorMapBuffer, bool usePalette)
+    private static unsafe void InitSectorColorMap(IWorld world, float* colorMapBuffer)
     {
-        if (!usePalette)
-        {
-            Vec3F* color = (Vec3F*)&colorMapBuffer[0];
-            *color = Vec3F.One;
-        }
-
+        *(Vec3F*)&colorMapBuffer[0] = Vec3F.One;
+        
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
@@ -250,7 +245,7 @@ public partial class Renderer
     {
         int index = (sector.Id + 1) * LightBuffer.BufferSize;
 
-        const int VectorSize = 3;
+        const int VectorSize = 4;
         var setColor = GetSectorSetColor(colormap);
 
         *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = setColor;
@@ -296,7 +291,7 @@ public partial class Renderer
             for (int i = 0; i < world.StructLines.Length; i++)
             {
                 ref var line = ref world.StructLines.Data[i];
-                int index = i * 4;
+                int index = i * GLBufferTextureStorage<float>.FourComponentLength;
                 buffer[index] = (float)line.Segment.Start.X;
                 buffer[index + 1] = (float)line.Segment.Start.Y;
                 buffer[index + 2] = (float)line.Segment.End.X;
@@ -315,7 +310,7 @@ public partial class Renderer
             floorZ = Math.Max(floorZ, (float)line.BackFloorPlane.Z);
         }
 
-        var index = lineId * 3;
+        var index = lineId * GLBufferTextureStorage<float>.FourComponentLength;
         buffer[index] = prevFloorZ;
         buffer[index + 1] = floorZ;
 
