@@ -2,6 +2,7 @@
 using Helion.Util.Assertion;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Xml.Linq;
 
 namespace Helion.Render.OpenGL.Textures;
 
@@ -24,13 +25,9 @@ public class GLBufferTextureStorage<T> where T : struct
     private static bool AssertFormat(SizedInternalFormat format)
     {
         var stringFormat = format.ToString("g");
-        if (!stringFormat.StartsWith("Rgb", StringComparison.Ordinal))
-            return true;
-
-        if (!stringFormat.StartsWith("Rgba", StringComparison.Ordinal))
-            return false;
-
-        return true;
+        var isThreeComponent = stringFormat.StartsWith("Rgb", StringComparison.Ordinal) &&
+                               !stringFormat.StartsWith("Rgba", StringComparison.Ordinal);
+        return !isThreeComponent;
     }
 
     public GLMappedBuffer<T> GetMappedBufferAndBind()
