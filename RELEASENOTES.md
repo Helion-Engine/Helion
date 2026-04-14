@@ -20,6 +20,7 @@
 - Fix parsing both UMAPINFO and ZMAPINFO when present. ZMAPINFO takes priority. (fixes Crematomania MAP30 endgame).
 - Fix chainsaw/punch always using zero pitch when autoaim is on and there nothing to aim at.
 - Fix issue with software emulation that would cause issues with sprites rendering over lowers when a two-sided middle wall was set on the opposite side.
+- Fix lite amp goggles/render.fullbright not increasing the light level when using palette color with true color overlays disabled.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
@@ -29,3 +30,4 @@
 - Add color to mark player special trigger lines in automap.
 - Verify file order in saves and include more detail on why a save is incompatible with the loaded files.
 - Update TBOs that use RGB32F to use RGBA32F for 3.3 cards that were never updated to support ARB_texture_buffer_object_rgb32.
+- Use colormap index one for lite amp goggles instead of zero to match original doom behavior.
