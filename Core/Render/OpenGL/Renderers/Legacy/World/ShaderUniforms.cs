@@ -14,7 +14,7 @@ public struct ShaderUniforms(
     float timeFrac,
     bool drawInvulnerability,
     float mix,
-    int extraLight,
+    int extraLightOrColorMapIndex,
     float distanceOffset,
     ColorMixUniforms colorMix,
     float fuzzDiv,
@@ -31,7 +31,7 @@ public struct ShaderUniforms(
     public float TimeFrac = timeFrac;
     public float Mix = mix;
     public bool DrawInvulnerability = drawInvulnerability;
-    public int ExtraLight = extraLight;
+    public int ExtraLightOrColorMapIndex = extraLightOrColorMapIndex;
     public float DistanceOffset = distanceOffset;
     public ColorMixUniforms ColorMix = colorMix;
     public float FuzzDiv = fuzzDiv;

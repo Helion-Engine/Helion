@@ -117,8 +117,7 @@ public class FragFunction
             ${EntityColorMapFrag}
             int usePalette = paletteIndex;
             int lightLevelOffset = (lightColorIndex * 256);
-            lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability)));
-            lightLevelOffset = int(mix(lightLevelOffset, 0, float(lightLevelMix)));"
+            lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability)));"
             .Replace("${EntityColorMapFrag}", ctx == ColorMapFetchContext.Entity ?
                 // if useColormap is not default(0) then override with the uniform colormap. This overrides translations with boom colormaps etc.
                 @"useColormap = int(mix(useColormap, colorMapTranslationFrag, float(useColormap == 0)));"

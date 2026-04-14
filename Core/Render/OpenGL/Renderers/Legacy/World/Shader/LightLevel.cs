@@ -46,7 +46,8 @@ int lightNum = int(lightLevel / 8);
 int startMap = (30 - lightNum) * 2;
 float lightIndex = min(2560 / abs(dist), 47);
 float lightColor = clamp((startMap - lightIndex / 2) - extraLight, 0, 31);
-int lightColorIndex = int(lightColor);
+// Directly set the index when extraLight < 0 to the absolute value
+int lightColorIndex = int(mix(lightColor, abs(extraLight) - 1, float(extraLight < 0)));
 "
 + (ShaderVars.PaletteColorMode ? "" :
 @"

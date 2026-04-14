@@ -543,6 +543,9 @@ public partial class WorldLayer
             lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
         }
 
+        if (Player.HasLightAmp())
+            colorMapIndex = Constants.ColorMapIndex.LightAmp;
+
         var camera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
         var colorMixUniforms = Renderer.GetColorMix(Player, camera);
         var colorMix = colorMixUniforms.Global;
