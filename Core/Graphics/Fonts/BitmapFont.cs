@@ -30,25 +30,20 @@ public static class BitmapFont
 
         try
         {
-            Dictionary<char, Image> charImages = GetCharacterImages(definition, archiveCollection,
+            var charImages = GetCharacterImages(definition, archiveCollection,
                 out int maxHeight, out int? numberFixedWidth, out ImageType imageType);
 
             if (charImages.Empty())
                 return null;
 
             AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
+
             var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, numberFixedWidth, imageType, upscalingFactor);
 
             // SmallGrayscaleFont has colors applied and needs to be full color to support different colors.
-            if (definition.Grayscale)
+            // Upscaling a bitmapped font will add interpolated colors that may not fit the palette.
+            if (definition.Grayscale || upscalingFactor > 1)
             {
-                image.ConvertToGrayscale(definition.GrayscaleNormalization);
-                image.DisableIndexedUpload();
-            }
-
-            if (upscalingFactor > 1)
-            {
-                // Upscaling a bitmapped font will add interpolated colors that may not fit the palette.
                 image.DisableIndexedUpload();
             }
 
@@ -163,8 +158,16 @@ public static class BitmapFont
         Dimension atlasDimension = (width, maxHeight);
         Image atlas = new(width, maxHeight, upscalingFactor > 1 ? ImageType.Argb : imageType);
 
-        foreach ((char c, Image image) in charImages)
+        foreach (var item in charImages)
         {
+            var c = item.Key;
+            var image = item.Value;
+            if (definition.Grayscale)
+            {
+                image = image.Copy();
+                image.ConvertToGrayscale(true);
+            }
+
             var charImage = upscalingFactor != 1
                 ? image.GetUpscaled(upscalingFactor)
                 : image;

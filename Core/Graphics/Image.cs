@@ -6,6 +6,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
@@ -81,6 +82,22 @@ public class Image
 
         UploadType = ImageType;
         m_indices ??= [];
+    }
+
+    private Image(uint[] pixels, byte[] indices, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ImageType uploadType)
+    {
+        m_pixels = pixels;
+        m_indices = indices;
+        Dimension = dimension;
+        ImageType = imageType;
+        Offset = offset;
+        Namespace = ns;
+        UploadType = uploadType;
+    }
+
+    public Image Copy()
+    {
+        return new Image([.. m_pixels], [.. m_indices], Dimension, ImageType, Offset, Namespace, UploadType);
     }
 
     public void SetPixels(uint[] pixels, Dimension dimension)

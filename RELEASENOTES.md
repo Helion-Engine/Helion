@@ -22,6 +22,7 @@
 - Fix issue with software emulation that would cause issues with sprites rendering over lowers when a two-sided middle wall was set on the opposite side.
 - Fix lite amp goggles/render.fullbright not increasing the light level when using palette color with true color overlays disabled.
 - Fix sprites being generated and duplicated at runtime in true color.
+- Fix font coloring that was rendering dark in menus (fixes Antaresian Reliquary colored font rendering).
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
