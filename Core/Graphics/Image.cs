@@ -2,11 +2,9 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
-using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
