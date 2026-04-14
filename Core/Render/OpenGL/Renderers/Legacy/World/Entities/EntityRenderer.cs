@@ -382,7 +382,7 @@ public sealed class EntityRenderer : IDisposable
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
-        program.ExtraLight(renderInfo.Uniforms.ExtraLight);
+        program.ExtraLight(renderInfo.Uniforms.ExtraLightOrColorMapIndex);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
         program.Mvp(renderInfo.Uniforms.Mvp);

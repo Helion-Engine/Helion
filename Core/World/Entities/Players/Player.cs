@@ -142,6 +142,8 @@ public class Player : Entity
         return false;
     }
 
+    public bool HasLightAmp() => Inventory.GetPowerup(PowerupType.LightAmp) != null;
+
     public bool DrawInvulnerableColorMap() => Inventory.PowerupEffectColorMap != null && Inventory.PowerupEffectColorMap.DrawPowerupEffect;
     public int GetExtraLightRender() => WorldStatic.World.Config.Render.ExtraLight + (ExtraLight * Constants.ExtraLightFactor);
 

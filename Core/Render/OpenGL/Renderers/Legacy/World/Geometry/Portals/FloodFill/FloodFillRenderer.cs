@@ -349,7 +349,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
         program.TimeFrac(renderInfo.TickFraction);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
-        program.ExtraLight(renderInfo.Uniforms.ExtraLight);
+        program.ExtraLight(renderInfo.Uniforms.ExtraLightOrColorMapIndex);
         program.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         program.ColorMix(renderInfo.Uniforms.ColorMix.Global);
         program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);

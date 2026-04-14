@@ -294,7 +294,7 @@ public partial class Renderer : IDisposable
     public static ShaderUniforms GetShaderUniforms(IConfig config, RenderInfo renderInfo)
     {
         bool drawInvulnerability = false;
-        int extraLight = 0;
+        int extraLightOrColorMapIndex = 0;
         float mix = 0.0f;
         var colorMix = GetColorMix(renderInfo.ViewerEntity, renderInfo.Camera);
         PaletteIndex paletteIndex = PaletteIndex.Normal;
@@ -303,21 +303,29 @@ public partial class Renderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
         {
             var player = renderInfo.ViewerEntity.PlayerObj;
+            extraLightOrColorMapIndex = player.GetExtraLightRender();
+
             if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
-                mix = 1.0f;
+            {
+                extraLightOrColorMapIndex = GetFixedColorMapIndex(Constants.ColorMapIndex.FullBright);
+                mix = 1.0f;            
+            }
+
             if (player.DrawInvulnerableColorMap())
                 drawInvulnerability = true;
-
-            extraLight = player.GetExtraLightRender();
 
             if (ShaderVars.PaletteColorMode)
             {
                 colorMapUniforms = GetColorMapUniforms(renderInfo.ViewerEntity, renderInfo.Camera);
 
                 if (!config.Window.PaletteTrueColorOverlay)
-                {
-                    mix = 0.0f;
                     paletteIndex = PaletteUtil.GetPalette(config, player);
+
+                // Force to use 1st colormap to match original fixedcolormap behavior
+                if (player.HasLightAmp())
+                {
+                    mix = 0;
+                    extraLightOrColorMapIndex = GetFixedColorMapIndex(Constants.ColorMapIndex.LightAmp);
                 }
             }
         }
@@ -332,7 +340,7 @@ public partial class Renderer : IDisposable
             GetTimeFrac(),
             drawInvulnerability,
             mix,
-            extraLight,
+            extraLightOrColorMapIndex,
             GetDistanceOffset(renderInfo),
             colorMix,
             GetFuzzDiv(renderInfo.Config, renderInfo.Viewport),
@@ -343,6 +351,11 @@ public partial class Renderer : IDisposable
             maxDistance,
             config.Render.Brightmaps,
             GetDownScaleAmount(config, renderInfo));
+    }
+
+    public static int GetFixedColorMapIndex(int index)
+    {
+        return -index - 1;
     }
 
     public static bool GetNativeLetterBoxes(IConfig config, Dimension renderDimension, out Box2I left, out Box2I right)

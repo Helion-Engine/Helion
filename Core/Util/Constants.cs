@@ -351,6 +351,12 @@ public static class Constants
         public const int ColorMapCount = 32;
     }
 
+    public static class ColorMapIndex
+    {
+        public const int FullBright = 0;
+        public const int LightAmp = 1;
+    }
+
     public const double Epsilon = 0.00001;
     public const double EntityShootDistance = 2048.0;
     public const double EntityMeleeDistance = 64.0;
