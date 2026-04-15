@@ -240,7 +240,7 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            float leftU  = clamp(flipUOut[0], 0, 1);
+            float leftU = clamp(flipUOut[0], 0, 1);
             float rightU = 1 - clamp(flipUOut[0], 0, 1);
 
             vec3 pos = gl_in[0].gl_Position.xyz;
@@ -248,8 +248,8 @@ public class EntityProgram : RenderProgram
             pos.z += offsetZOut[0];
 
             ivec2 textureDim = textureSize(boundTexture, 0);
-            vec3 posMoveDir  = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
-            vec3 offsetXY    = vec3(posMoveDir.xy * offsetXYOut[0], 0);
+            vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
+            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
 
             vec3 minPos = pos - offsetXY;
             vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;
@@ -275,7 +275,7 @@ public class EntityProgram : RenderProgram
             maxPosFrag = maxPos;
             zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
 
-            lightLevelFrag  = lightLevelOut[0];
+            lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
