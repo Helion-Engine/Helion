@@ -23,6 +23,7 @@ using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
 using System.Globalization;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
+using Helion.Util.Extensions;
 
 namespace Helion.Dehacked;
 
@@ -1681,10 +1682,20 @@ public class DehackedApplier
     {
         foreach (var sprite in dehacked.BexSprites)
         {
-            if (sprite.Index == null)
+            if (sprite.Index != null)
+            {
+                m_newSpriteLookup[sprite.Index.Value] = sprite.EntryName;
+                continue;
+            }
+
+            if (sprite.Mnemonic == null)
                 continue;
 
-            m_newSpriteLookup[sprite.Index.Value] = sprite.EntryName;
+            foreach (var item in m_newSpriteLookup)
+            {
+                if (item.Value.EqualsIgnoreCase(sprite.Mnemonic))
+                    m_newSpriteLookup[item.Key] = sprite.EntryName;
+            }
         }
     }
 
