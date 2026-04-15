@@ -210,7 +210,7 @@ public partial class TextureManager
 
     private Texture? MapSkyTexture(string textureName, Id24SkyDefinition skyDefinition, Definitions.MapInfo.MapInfoDef mapInfo)
     {
-        var texture = GetTexture(textureName, ResourceNamespace.Textures);
+        var texture = GetSkyTexture(textureName);
         if (texture.Index == Constants.NoTextureIndex)
         {
             Log.Error($"Could not find texture {textureName} for sky {textureName}");
