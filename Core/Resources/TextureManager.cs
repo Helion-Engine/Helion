@@ -184,7 +184,7 @@ public partial class TextureManager : ITickable
         if (m_defaultSkyTexture != null)
             return m_defaultSkyTexture;
 
-        m_defaultSkyTexture = GetTexture(SkyTextureName, ResourceNamespace.Global);
+        m_defaultSkyTexture = GetSkyTexture(SkyTextureName);
         if (m_defaultSkyTexture.Image == null)
             LoadTextureImage(m_defaultSkyTexture.Index);
 
@@ -258,6 +258,15 @@ public partial class TextureManager : ITickable
     {
         texture = GetTexture(name, resourceNamespace);
         return texture.Index == Constants.NoTextureIndex;
+    }
+
+    public Texture GetSkyTexture(string name)
+    {
+        var texture = GetTexture(name, ResourceNamespace.Global);
+        if (texture.Index != Constants.NoTextureIndex)
+            return texture;
+
+        return GetTexture(name, ResourceNamespace.Graphics);
     }
 
     /// <summary>

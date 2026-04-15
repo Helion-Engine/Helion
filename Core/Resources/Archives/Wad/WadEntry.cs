@@ -31,4 +31,9 @@ public class WadEntry : Entry
     {
         File.WriteAllBytes(path, ReadData());
     }
+
+    public override string ToString()
+    {
+        return Path.Name;
+    }
 }
