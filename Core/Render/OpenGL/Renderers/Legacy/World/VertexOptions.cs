@@ -41,6 +41,13 @@ public static class VertexOptions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe float EntityColorMapAndRenderIndex(int colorMapIndex, int renderIndex)
+    {
+        int packed = colorMapIndex << 16 | renderIndex;
+        return *(float*)&packed;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe float EntityXYZ(int offsetXY, int offsetZ)
     {
         // Shift negative bit for mask to get absolute value and sign bit to remove branches

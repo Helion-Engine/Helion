@@ -179,9 +179,9 @@ public class LegacyWorldRenderer : WorldRenderer
                 if (m_renderStatic)
                     RenderSides(world, index);
 
-                m_entityRenderer.ClearRenderPositions();
+                int renderIndex = 0;
                 for (var entity = world.RenderBlockmap.HeadRenderEntities[index]; entity != null; entity = entity.RenderBlockNext)
-                    RenderEntity(world, entity);
+                    RenderEntity(world, entity, renderIndex++);
             }
         }
 
@@ -256,7 +256,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.SetBufferCoverWall(true);
     }
 
-    void RenderEntity(IWorld world, Entity entity)
+    void RenderEntity(IWorld world, Entity entity, int renderIndex)
     {
         if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible() || entity.Flags.NoSector() || entity == m_viewerEntity || entity.Properties.RenderStyle == RenderStyle.None)
             return;
@@ -276,7 +276,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return;
 
         entity.LastRenderGametick = world.Gametick;
-        m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated);     
+        m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated, renderIndex);     
     }
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)

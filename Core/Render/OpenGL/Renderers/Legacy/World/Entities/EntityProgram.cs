@@ -155,6 +155,7 @@ public class EntityProgram : RenderProgram
         out float positionZOut;
         out float offsetZOut;
         out float offsetXYOut;
+        out float renderIndexOut;
         out vec3 sectorColorMapIndexOut;
 
         uniform float timeFrac;
@@ -169,6 +170,10 @@ public class EntityProgram : RenderProgram
             lightLevelOut = (intOptions >> 10) & 0xFF;
             colorMapTranslationOut = (intOptions >> 18);
 
+            intOptions = floatBitsToInt(sectorIndex);
+            int sectorIndex = intOptions >> 16;
+            int renderIndex = intOptions & 0xFFFF;
+
             intOptions = floatBitsToInt(offsetXYZ);
             offsetXYOut = (intOptions >> 16) & 0x3FFF;
             offsetZOut = intOptions & 0x3FFF;
@@ -176,8 +181,9 @@ public class EntityProgram : RenderProgram
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
             offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
             offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
+            renderIndexOut = renderIndex;
 
-            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, int(sectorIndex)).rgb;
+            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, sectorIndex).rgb;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }
@@ -198,6 +204,7 @@ public class EntityProgram : RenderProgram
         in float positionZOut[];
         in float offsetZOut[];
         in float offsetXYOut[];
+        in float renderIndexOut[];
         ${SectorColorMapVar}
 
         out vec2 uvFrag;
@@ -233,15 +240,17 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            float leftU = clamp(flipUOut[0], 0, 1);
+            float leftU  = clamp(flipUOut[0], 0, 1);
             float rightU = 1 - clamp(flipUOut[0], 0, 1);
 
             vec3 pos = gl_in[0].gl_Position.xyz;
             zPosFrag = pos.z;
             pos.z += offsetZOut[0];
+
             ivec2 textureDim = textureSize(boundTexture, 0);
-            vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
-            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
+            vec3 posMoveDir  = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
+            vec3 offsetXY    = vec3(posMoveDir.xy * offsetXYOut[0], 0);
+
             vec3 minPos = pos - offsetXY;
             vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;
 
@@ -264,45 +273,66 @@ public class EntityProgram : RenderProgram
             centerPosFrag = pos;
             minPosFrag = minPos;
             maxPosFrag = maxPos;
-            zPosDepthFrag = (mvp * vec4(centerPosFrag.x, centerPosFrag.y, centerPosFrag.z, 1)).${Depth};
+            zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
 
-            lightLevelFrag = lightLevelOut[0];
+            lightLevelFrag  = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
 
-            gl_Position = glPosMin;
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).${Depth};
+            // Push depth biased by the base times the renderIndex to prevent z-fighting
+            float depthBias = float(renderIndexOut[0]) * ${DepthBiasBase};
+
+            vec4 clip;
+            clip = glPosMin;
+            ${AdjustSpriteVertexClip}
+            gl_Position = clip;
+            dist = (mvpNoPitch * vec4(minPos, 1.0)).${Depth};
             uvFrag = vec2(leftU, 1);
             depthFrag = gl_Position.${Depth};
             EmitVertex();
 
-            gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
-            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).${Depth};
+            clip = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1.0);
+            ${AdjustSpriteVertexClip}
+            gl_Position = clip;
+            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
             uvFrag = vec2(rightU, 1);
             depthFrag = gl_Position.${Depth};
             EmitVertex();
 
-            gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).${Depth};
+            clip = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1.0);
+            ${AdjustSpriteVertexClip}
+            gl_Position = clip;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
             uvFrag = vec2(leftU, 0);
             depthFrag = gl_Position.${Depth};
             EmitVertex();
 
-            gl_Position = glPosMax;
-            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).${Depth};
+            clip = glPosMax;
+            ${AdjustSpriteVertexClip}
+            gl_Position = clip;
+            dist = (mvpNoPitch * vec4(maxPos, 1.0)).${Depth};
             uvFrag = vec2(rightU, 0);
             depthFrag = gl_Position.${Depth};
             EmitVertex();
-    
+
             EndPrimitive();
         }  
     "
     .Replace("${SectorColorMapVar}", false ? "in int sectorColorMapIndexOut[];" : "in vec3 sectorColorMapIndexOut[];")
     .Replace("${SectorColorMapFrag}", false ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
     .Replace("${Depth}", ShaderVars.Depth)
-    .Replace("${BoxDefines}", BoxDefines);
+    .Replace("${BoxDefines}", BoxDefines)
+    .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "1e-5" : "4e-5")
+    .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip());
+
+    private static string AdjustSpriteVertexClip()
+    {
+        if (ShaderVars.ReversedZ)
+            return "clip.z += (depthBias * (clip.z / clip.w)) * clip.w;";
+        return "clip.z -= (depthBias * (1 - (clip.z / clip.w * 0.5 + 0.5))) * clip.w;";
+    }
 
     protected override string? FragmentShader() => @"
         #version 330

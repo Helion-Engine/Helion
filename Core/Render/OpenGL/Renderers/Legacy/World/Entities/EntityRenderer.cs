@@ -16,7 +16,6 @@ using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
@@ -34,8 +33,6 @@ public sealed class EntityRenderer : IDisposable
     private readonly EntityCompositeProgram m_programComposite = new();
     private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
-    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DComparer());
-    private readonly HashSet<SpritePosKey> m_spriteRenderPositions = new(1024);
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
     private readonly ArchiveCollection m_archiveCollection;
@@ -44,7 +41,6 @@ public sealed class EntityRenderer : IDisposable
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
-    private bool m_spriteZCheck;
     private bool m_vanillaRender;
     private bool m_healthBars;
     private bool m_attackIndicator;
@@ -64,7 +60,6 @@ public sealed class EntityRenderer : IDisposable
         m_dataManager = new(m_program, textureManager.BlackTexture);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
-        m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_vanillaRender = m_config.Render.VanillaRender;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
@@ -89,23 +84,14 @@ public sealed class EntityRenderer : IDisposable
     public void Clear(IWorld world)
     {
         m_dataManager.Clear();
-        m_renderPositions.Clear();
-        m_spriteRenderPositions.Clear();
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
-        m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
         m_healthBars = m_config.Render.HealthBar.Enable;
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
         m_brightMaps = m_config.Render.Brightmaps;
-    }
-
-    public void ClearRenderPositions()
-    {
-        m_renderPositions.Clear();
-        m_spriteRenderPositions.Clear();
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -174,9 +160,7 @@ public sealed class EntityRenderer : IDisposable
         return m_textureManager.GetSpriteRotation(spriteDefinition, frame, rotation, colorMapIndex);
     }
 
-    const double NudgeFactor = 0.0001;
-
-    public void RenderEntity(Entity entity, in Vec2D position)
+    public void RenderEntity(Entity entity, in Vec2D position, int renderIndex)
     {        
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
@@ -206,27 +190,6 @@ public sealed class EntityRenderer : IDisposable
             uint viewAngle = ViewClipper.ToDiamondAngle(position, entityPos);
             uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
             rotation = CalculateRotation(viewAngle, entityAngle);
-        }
-        
-        if (m_spriteZCheck)
-        {
-            var spritePosKey = new SpritePosKey(entityPos, spriteIndex);
-            if (m_spriteRenderPositions.Add(spritePosKey))
-            {
-                ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(m_renderPositions, entityPos, out var exists);
-                if (exists)
-                {
-                    var nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
-                    var angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
-                    nudgeAmount.X = Math.Cos(angle) * nudge;
-                    nudgeAmount.Y = Math.Sin(angle) * nudge;
-                    count++;
-                }
-                else
-                {
-                    count = 1;
-                }
-            }
         }
 
         var colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
@@ -312,7 +275,8 @@ public sealed class EntityRenderer : IDisposable
         vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, flipU, colorMapIndex, lightLevel);
-        vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor);
+        vertex.ColorMapIndex = VertexOptions.EntityColorMapAndRenderIndex(
+            Renderer.GetColorMapBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
