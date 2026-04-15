@@ -151,10 +151,6 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Fuzz Amount", sliderMin: 0, sliderMax: 5.0, sliderStep: .1)]
     public readonly ConfigValue<double> FuzzAmount = new(1);
 
-    [ConfigInfo("Prevent sprites from overlapping and Z-fighting.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting Check")]
-    public readonly ConfigValue<bool> SpriteZCheck = new(true);
-
     [ConfigInfo("Enable sprite transparency.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Transparency")]
     public readonly ConfigValue<bool> SpriteTransparency = new(true);
