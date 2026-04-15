@@ -171,7 +171,7 @@ public class EntityProgram : RenderProgram
             colorMapTranslationOut = (intOptions >> 18);
 
             intOptions = floatBitsToInt(sectorIndex);
-            int sectorIndex = intOptions >> 16;
+            int sectorIndexInt = intOptions >> 16;
             int renderIndex = intOptions & 0xFFFF;
 
             intOptions = floatBitsToInt(offsetXYZ);
@@ -183,7 +183,7 @@ public class EntityProgram : RenderProgram
             offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
             renderIndexOut = renderIndex;
 
-            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, sectorIndex).rgb;
+            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, sectorIndexInt).rgb;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }
