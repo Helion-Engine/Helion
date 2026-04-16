@@ -275,7 +275,7 @@ public sealed class EntityRenderer : IDisposable
         vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, flipU, colorMapIndex, lightLevel);
-        vertex.ColorMapIndex = VertexOptions.EntityColorMapAndRenderIndex(
+        vertex.ColorMapAndRenderIndex = VertexOptions.EntityColorMapAndRenderIndex(
             Renderer.GetColorMapBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)

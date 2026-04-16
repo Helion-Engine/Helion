@@ -145,7 +145,7 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in float options;
         layout(location = 2) in vec3 prevPos;
         layout(location = 3) in float offsetXYZ;
-        layout(location = 4) in float sectorIndex;
+        layout(location = 4) in float colorMapAndRenderIndex;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -170,7 +170,7 @@ public class EntityProgram : RenderProgram
             lightLevelOut = (intOptions >> 10) & 0xFF;
             colorMapTranslationOut = (intOptions >> 18);
 
-            intOptions = floatBitsToInt(sectorIndex);
+            intOptions = floatBitsToInt(colorMapAndRenderIndex);
             int sectorIndexInt = intOptions >> 16;
             int renderIndex = intOptions & 0xFFFF;
 
@@ -324,7 +324,7 @@ public class EntityProgram : RenderProgram
     .Replace("${SectorColorMapFrag}", false ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
     .Replace("${Depth}", ShaderVars.Depth)
     .Replace("${BoxDefines}", BoxDefines)
-    .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "1e-5" : "4e-5")
+    .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
     .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip());
 
     private static string AdjustSpriteVertexClip()
