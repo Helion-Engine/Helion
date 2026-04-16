@@ -1947,6 +1947,9 @@ public static class EntityActionFunctions
                 entity.PlayerObj.Refire = true;
                 entity.PlayerObj.Weapon?.SetFireState();
                 entity.PlayerObj.SetFireState();
+                
+                if (entity.PlayerObj.Weapon != null && !entity.PlayerObj.Weapon.Definition.Flags.WeaponNoAlert())
+                    WorldStatic.World.NoiseAlert(entity, entity);
             }
             else
             {
