@@ -163,16 +163,16 @@ public static class BitmapFont
             var c = item.Key;
             var image = item.Value;
 
+            if (definition.Grayscale)
+            {
+                image = image.Copy();
+                image.ConvertToGrayscale(true);
+            }
+
             var charImage = upscalingFactor != 1
                 ? image.GetUpscaled(upscalingFactor)
                 : image;
             atlasOffsetX += padding;
-
-            if (definition.Grayscale)
-            {
-                charImage = image.Copy();
-                charImage.ConvertToGrayscale(true);
-            }
 
             int? numberWidth = numberFixedWidth != null && NumberChars.Contains(c)
                 ? numberFixedWidth * upscalingFactor
