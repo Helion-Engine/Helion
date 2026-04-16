@@ -11,20 +11,24 @@
 
     public class TextScreen
     {
-        private int m_height;
-        private int m_width;
+        private int m_rows;
+        private int m_columns;
 
         private Color[] m_backgroundColors;
         private Color[] m_foregroundColors;
-        private char[] m_characters;
+        private byte[] m_ansiCharacters;
+        private char[] m_unicodeCharacters;
         private bool[] m_blink;
         private Font m_font;
         private int m_pixelHeight;
         private int m_glyphWidth;
         private int m_glyphHeight;
+        private int m_actualGlyphWidth;
 
         // This value indicates whether there are any blinking characters in this text screen
         public readonly bool HasBlink;
+
+        private readonly char FULLBLOCK = (char)0x2588;
 
         /// <summary>
         /// Represents a screen full of double-byte (color plus character) characters, similar to an 80x25 console text buffer
@@ -42,39 +46,41 @@
                 throw new Exception("Text screen data must contain at least (height * width * 2) bytes");
             }
 
-            m_height = rows;
-            m_width = columns;
+            m_rows = rows;
+            m_columns = columns;
             m_pixelHeight = pixelHeight;
 
             m_backgroundColors = new Color[rows * columns];
             m_foregroundColors = new Color[rows * columns];
-            m_characters = new char[rows * columns];
+            m_unicodeCharacters = new char[rows * columns];
+            m_ansiCharacters = new byte[rows * columns];
             m_blink = new bool[rows * columns];
 
             for (int index = 0; index < rows * columns; index++)
             {
-                byte textByte = screenData[index * 2];
+                // See https://en.wikipedia.org/wiki/VGA_text_mode
+                // The first byte in each pair is a standard text character (convert to Unicode to use TTF fonts)
+                m_ansiCharacters[index] = screenData[index * 2];
+                m_unicodeCharacters[index] = Convert.ToChar(Conversions.UnicodeByteMappings[screenData[index * 2]]);
+
+                // The second byte in each pair follows this format:
+                // Bytes 0-3: Foreground color
+                // Bytes 4-6: Background color
+                // Byte 7: Blink enable
                 byte colorByte = screenData[index * 2 + 1];
-
-                byte blink = (byte)(colorByte >> 7);
-                Color backColor = Conversions.TextColors[(byte)((byte)(colorByte << 1) >> 5)]; // Bits 4-6 (discard 7)
-                Color foreColor = Conversions.TextColors[(byte)((byte)(colorByte << 4) >> 4)]; // Bits 0-3              
-
-                m_characters[index] = Convert.ToChar(Conversions.UnicodeByteMappings[textByte]);
-                m_foregroundColors[index] = foreColor;
-                m_backgroundColors[index] = backColor;
-                m_blink[index] = blink != 0;
-
-                HasBlink |= (blink != 0);
+                m_foregroundColors[index] = Conversions.TextColors[(byte)((byte)(colorByte << 4) >> 4)];
+                m_backgroundColors[index] = Conversions.TextColors[(byte)((byte)(colorByte << 1) >> 5)];
+                HasBlink |= m_blink[index] = (byte)(colorByte >> 7) != 0;
             }
 
             using (MemoryStream fontDataStream = new MemoryStream(fontData))
             {
                 FontCollection fontCollection = new();
                 FontFamily consoleFontFamily = fontCollection.Add(fontDataStream, CultureInfo.InvariantCulture);
-                m_glyphHeight = pixelHeight / m_height;
+                m_glyphHeight = pixelHeight / m_rows;
                 m_glyphWidth = m_glyphHeight / 2;  // Assume use of 8x16 style fonts
                 m_font = consoleFontFamily.CreateFont(m_glyphHeight); // Use whatever pixel value fits all the lines   
+                m_actualGlyphWidth = (int)TextMeasurer.MeasureSize($"{FULLBLOCK}", new TextOptions(m_font)).Width;
             }
         }
 
@@ -85,21 +91,21 @@
         /// <returns>A rendering of this text buffer</returns>
         public Graphics.Image GenerateImage(bool blinkOn)
         {
-            float xOffset = 0, yOffset = 0;
-            using (Image<Argb32> bitmap = new Image<Argb32>(m_glyphWidth * m_width, m_pixelHeight))
+            int xOffset = 0, yOffset = 0;
+            using (Image<Argb32> bitmap = new Image<Argb32>(m_glyphWidth * m_columns, m_pixelHeight))
             {
                 bitmap.Mutate(ctx =>
                 {
-                    int index = 0;
-                    for (int row = 0; row < m_height; row++)
+                    int charIndex = 0;
+                    for (int row = 0; row < m_rows; row++)
                     {
                         xOffset = 0;
-                        for (int column = 0; column < m_width; column++)
+                        for (int column = 0; column < m_columns; column++)
                         {
-                            Color foregroundColor = m_foregroundColors[index];
-                            Color backgroundColor = m_backgroundColors[index];
-                            char textCharacter = m_characters[index];
-                            bool characterBlinking = m_blink[index];
+                            Color foregroundColor = m_foregroundColors[charIndex];
+                            Color backgroundColor = m_backgroundColors[charIndex];
+                            char textCharacter = m_unicodeCharacters[charIndex];
+                            bool characterBlinking = m_blink[charIndex];
 
                             ctx.FillPolygon(
                                 backgroundColor,
@@ -112,9 +118,20 @@
                             {
                                 ctx.DrawText($"{textCharacter}", m_font, foregroundColor, new PointF() { X = xOffset, Y = yOffset });
                             }
-                            xOffset += m_glyphWidth;
 
-                            index++;
+                            // Special case: extend "box drawing" characters C0-DF rightward.
+                            // This emulates VGA "line graphics enable" mode.
+                            if ((0xC0 <= m_ansiCharacters[charIndex]) && (m_ansiCharacters[charIndex] <= 0xDF))
+                            {
+                                Rectangle sourceRectangle = new(xOffset + m_actualGlyphWidth - 1, yOffset, 1, m_glyphHeight);
+                                for (int fillColumn = xOffset + m_actualGlyphWidth; fillColumn < xOffset + m_glyphWidth; fillColumn++)
+                                {
+                                    ctx.DrawImage(bitmap, new Point(fillColumn, yOffset), sourceRectangle, 1.0f);
+                                }
+                            }
+
+                            xOffset += m_glyphWidth;
+                            charIndex++;
                         }
                         yOffset += m_glyphHeight;
                     }
