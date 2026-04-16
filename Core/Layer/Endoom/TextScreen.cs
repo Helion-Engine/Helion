@@ -11,8 +11,8 @@
 
     public class TextScreen
     {
-        private int m_height;
-        private int m_width;
+        private int m_rows;
+        private int m_columns;
 
         private Color[] m_backgroundColors;
         private Color[] m_foregroundColors;
@@ -42,8 +42,8 @@
                 throw new Exception("Text screen data must contain at least (height * width * 2) bytes");
             }
 
-            m_height = rows;
-            m_width = columns;
+            m_rows = rows;
+            m_columns = columns;
             m_pixelHeight = pixelHeight;
 
             m_backgroundColors = new Color[rows * columns];
@@ -53,26 +53,25 @@
 
             for (int index = 0; index < rows * columns; index++)
             {
-                byte textByte = screenData[index * 2];
+                // See https://en.wikipedia.org/wiki/VGA_text_mode
+                // The first byte in each pair is a standard text character (convert to Unicode to use TTF fonts)
+                m_characters[index] = Convert.ToChar(Conversions.UnicodeByteMappings[screenData[index * 2]]);
+
+                // The second byte in each pair follows this format:
+                // Bytes 0-3: Foreground color
+                // Bytes 4-6: Background color
+                // Byte 7: Blink enable
                 byte colorByte = screenData[index * 2 + 1];
-
-                byte blink = (byte)(colorByte >> 7);
-                Color backColor = Conversions.TextColors[(byte)((byte)(colorByte << 1) >> 5)]; // Bits 4-6 (discard 7)
-                Color foreColor = Conversions.TextColors[(byte)((byte)(colorByte << 4) >> 4)]; // Bits 0-3              
-
-                m_characters[index] = Convert.ToChar(Conversions.UnicodeByteMappings[textByte]);
-                m_foregroundColors[index] = foreColor;
-                m_backgroundColors[index] = backColor;
-                m_blink[index] = blink != 0;
-
-                HasBlink |= (blink != 0);
+                m_foregroundColors[index] = Conversions.TextColors[(byte)((byte)(colorByte << 4) >> 4)];
+                m_backgroundColors[index] = Conversions.TextColors[(byte)((byte)(colorByte << 1) >> 5)];
+                HasBlink |= m_blink[index] = (byte)(colorByte >> 7) != 0;
             }
 
             using (MemoryStream fontDataStream = new MemoryStream(fontData))
             {
                 FontCollection fontCollection = new();
                 FontFamily consoleFontFamily = fontCollection.Add(fontDataStream, CultureInfo.InvariantCulture);
-                m_glyphHeight = pixelHeight / m_height;
+                m_glyphHeight = pixelHeight / m_rows;
                 m_glyphWidth = m_glyphHeight / 2;  // Assume use of 8x16 style fonts
                 m_font = consoleFontFamily.CreateFont(m_glyphHeight); // Use whatever pixel value fits all the lines   
             }
@@ -86,15 +85,15 @@
         public Graphics.Image GenerateImage(bool blinkOn)
         {
             float xOffset = 0, yOffset = 0;
-            using (Image<Argb32> bitmap = new Image<Argb32>(m_glyphWidth * m_width, m_pixelHeight))
+            using (Image<Argb32> bitmap = new Image<Argb32>(m_glyphWidth * m_columns, m_pixelHeight))
             {
                 bitmap.Mutate(ctx =>
                 {
                     int index = 0;
-                    for (int row = 0; row < m_height; row++)
+                    for (int row = 0; row < m_rows; row++)
                     {
                         xOffset = 0;
-                        for (int column = 0; column < m_width; column++)
+                        for (int column = 0; column < m_columns; column++)
                         {
                             Color foregroundColor = m_foregroundColors[index];
                             Color backgroundColor = m_backgroundColors[index];
