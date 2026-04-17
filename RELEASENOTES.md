@@ -10,6 +10,7 @@
 - Added Line_SetBlocking
 - Added TeleportGroup and TeleportInSector
 - Added Floor_LowerInstant, Floor_RaiseInstant, Ceiling_LowerInstant, Ceiling_RaiseInstant
+- Added feature to show enemy's health in crosshair when targeted
 
 ## Bug Fixes:
 - Fix nextmap/previousmap breaking on WADs with maps that exit to the same map.

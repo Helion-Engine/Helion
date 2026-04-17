@@ -160,6 +160,10 @@ public class ConfigHud: ConfigElement<ConfigHud>
     [OptionMenu(OptionSectionType.Hud, "Crosshair Health Indicator")]
     public readonly ConfigValue<bool> CrosshairHealthIndicator = new(false);
 
+    [ConfigInfo("Use crosshair target health indicator.  Crosshair gets redder as the target loses health.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair Target Health Indicator")]
+    public readonly ConfigValue<bool> CrosshairTargetHealthIndicator = new(false);
+
     [ConfigInfo("Crosshair transparency.")]
     [OptionMenu(OptionSectionType.Hud, "Crosshair Transparency", sliderMin: 0, sliderMax: 1.0, sliderStep: .05)]
     public readonly ConfigValue<double> CrosshairTransparency = new(0.5, ClampNormalized);
