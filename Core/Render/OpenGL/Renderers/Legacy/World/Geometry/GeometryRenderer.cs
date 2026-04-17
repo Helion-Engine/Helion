@@ -373,6 +373,18 @@ public partial class GeometryRenderer : IDisposable
     public void RenderWallClipPortals(RenderInfo renderInfo) =>
         Portals.RenderWallClip(renderInfo);
 
+    public bool HasStaticAlphaGeometry() =>
+        m_staticCacheGeometryRenderer.HasAlphaGeometry();
+
+    public bool HasStaticStyle(RenderDataStyle style) =>
+        m_staticCacheGeometryRenderer.HasStyle(style);
+
+    public void RenderAllStaticAlpha() =>
+        m_staticCacheGeometryRenderer.RenderAllAlpha();
+
+    public void RenderStaticStyle(RenderDataStyle style) =>
+        m_staticCacheGeometryRenderer.Render(style.ToGeometryType());
+
     public void RenderSector(Sector sector, in Vec3D viewPosition, in Vec3D prevViewPosition)
     {
         m_buffer = true;

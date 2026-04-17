@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
@@ -178,6 +179,19 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 data.Vbo.UploadIfNeeded();
             }
         }
+    }
+
+    public bool HasAlphaGeometry() =>
+        HasStyle(RenderDataStyle.Translucent) || HasStyle(RenderDataStyle.ColorAdd) || HasStyle(RenderDataStyle.Add);
+
+    public bool HasStyle(RenderDataStyle style) =>
+        m_geometry.GetGeometry(style.ToGeometryType()).Count > 0;
+
+    public void RenderAllAlpha()
+    {
+        Render(GeometryType.Translucent);
+        Render(GeometryType.TranslucentAdd);
+        Render(GeometryType.TranslucentColorAdd);
     }
 
     private void World_SectorPlaneTransformed(object? sender, SectorPlane plane)
@@ -614,6 +628,9 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         if (wall.Location == WallLocation.Middle3D)
             return GeometryType.Middle3D;
 
+        if (wall.Location == WallLocation.Middle && side.Line.Alpha < 1)
+            return GeometryType.Translucent;
+
         return wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
     }
 
@@ -714,10 +731,17 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void AddSectorPlane(Sector sectorForSubsectors, SectorPlaneFace face, bool floor, bool update = false, 
-        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false, bool isSector3D = false)
+        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false, Sector3D? sector3D = null)
     {
         if ((floor && sectorForSubsectors.Floor.NoRender) || (!floor && sectorForSubsectors.Ceiling.NoRender))
             return;
+
+        var style = RenderDataStyle.Normal;
+        if (sector3D != null && (sector3D.Alpha < 1 || sector3D.RenderDataStyle != RenderDataStyle.Normal))
+        {
+            if (style == RenderDataStyle.Normal)
+                style = RenderDataStyle.Translucent;
+        }
 
         renderSector ??= sectorForSubsectors.GetRenderSector(TransferHeightView.Middle);
         lightLevelSector ??= renderSector;
@@ -727,7 +751,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         var plane = face == SectorPlaneFace.Floor ? sectorForSubsectors.Floor : sectorForSubsectors.Ceiling;
         geometryPlane ??= plane;
         m_geometryRenderer.RenderSectorFlats(sectorForSubsectors, renderPlane, geometryPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
-            lightLevelSector: lightLevelSector, allowAlpha: allowAlpha);
+            lightLevelSector: lightLevelSector, allowAlpha: allowAlpha, style: style);
 
         AddSkyGeometry(null, WallLocation.None, geometryPlane, renderedSkyVertices, sectorForSubsectors, update);
 
@@ -747,8 +771,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var geometryType = GeometryType.Flat;
-
+        var geometryType = style.ToGeometryType();
         var vertices = GetTextureVertices(geometryType, textureHandle, true);
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, true, out var geometryData))
         {
@@ -771,6 +794,9 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
     public void RenderFlats() => 
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
+
+    public void Render(GeometryType type) =>
+        RenderGeometry(m_geometry.GetGeometry(type));
 
     public void RenderCoverWalls() =>
         RenderCoverInternal(m_coverWallGeometry);

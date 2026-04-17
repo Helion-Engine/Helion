@@ -27,6 +27,8 @@ public class StaticShader : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
     private readonly int m_useBrightmapsLocation;
+    private readonly int m_accumTextureLocation;
+    private readonly int m_accumCountTextureLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -48,6 +50,8 @@ public class StaticShader : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
+        m_accumTextureLocation = Uniforms.GetLocation("accum");
+        m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -55,6 +59,8 @@ public class StaticShader : RenderProgram
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
     public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
+    public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
+    public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
 
     public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
@@ -176,8 +182,20 @@ public class StaticShader : RenderProgram
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
+            ${OitVariables}
 
             void main() {
+                // TODO should only be for OIT passes?
+                float colorClamp = 1;
+                //if (checkPlaneClip == 1) {
+                //    ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
+                //    float wallClipDepth = texelFetch(wallClipTexture, sampleCoords, 0).a;
+                //    float planeClipDepth = texelFetch(planeClipTexture, sampleCoords, 0).g;
+                //    // This is for alpha walls and vanilla rendering
+                //    // There is no depth buffer at this point so sample the plane clip texture to discard
+                //    if (wallClipDepth <= depthFrag || planeClipDepth <= depthFrag)
+                //        discard;
+                //}
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}
@@ -186,11 +204,30 @@ public class StaticShader : RenderProgram
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
         .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps, oitOptions: GetOitOptions()))
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+        .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
+        .Replace("${OutTargets}", GetOutTargets(planeClip))
         .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
-        .Replace("${OutTargets}", PlaneClip.GetOutTargets(planeClip))
         .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip));
+    }
+
+    private OitOptions GetOitOptions()
+    {
+        if (this is StaticTransparentShader)
+            return OitOptions.OitTransparentPass;
+        if (this is StaticCompositeShader)
+            return OitOptions.OitCompositePass;
+        return OitOptions.None;
+    }
+
+    private string GetOutTargets(bool planeClip)
+    {
+        var options = GetOitOptions();
+        if (options == OitOptions.OitTransparentPass)
+            return "";
+
+        return PlaneClip.GetOutTargets(planeClip);
     }
 }

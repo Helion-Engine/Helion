@@ -46,6 +46,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly StaticPlaneClipShaderMrt m_staticPlaneClipMrtProgram = new();
     private readonly StaticWallClipShader m_staticWallClipProgram = new();
     private readonly StaticWallClipAlphaShader m_staticWallClipAlphaProgram = new();
+    private readonly StaticTransparentShader m_staticTransparentProgram = new();
+    private readonly StaticCompositeShader m_staticCompositeProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -539,8 +541,9 @@ public class LegacyWorldRenderer : WorldRenderer
         var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Add) || 
             m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.ColorAdd);
-        var hasAlphaGeometry = m_worldDataManager.HasAlpha();
-        if (!fuzzData && !alphaData && !hasAlphaGeometry)
+        var hasDynamicAlphaGeometry = m_worldDataManager.HasAlpha();
+        var hasStaticAlphaGeometry = m_geometryRenderer.HasStaticAlphaGeometry();
+        if (!fuzzData && !alphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
 
         m_oitFrameBuffer.StartRender();
@@ -574,15 +577,23 @@ public class LegacyWorldRenderer : WorldRenderer
         SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo, m_vanillaRender);
         GL.ActiveTexture(BindTextures.BoundTexture);
 
-        if (hasAlphaGeometry)
+        if (hasDynamicAlphaGeometry)
             m_worldDataManager.RenderAllAlpha();
+
+        m_staticTransparentProgram.Bind();
+        m_staticTransparentProgram.VertexGapClampUV(false);
+        SetStaticUniforms(m_staticProgram, renderInfo);
+        GL.ActiveTexture(BindTextures.BoundTexture);
+
+        if (hasStaticAlphaGeometry)
+            m_geometryRenderer.RenderAllStaticAlpha();
 
         ResetBlendEquations();
         framebuffer.Bind();
 
         m_entityRenderer.RenderOitCompositePass(renderInfo);
 
-        if (hasAlphaGeometry)
+        if (hasDynamicAlphaGeometry)
         {
             m_interpolationCompositeProgram.Bind();
             m_interpolationCompositeProgram.VertexGapClampUV(false);
@@ -601,6 +612,30 @@ public class LegacyWorldRenderer : WorldRenderer
             {
                 SetBlendEquation(RenderDataStyle.ColorAdd);
                 m_worldDataManager.Render(RenderDataStyle.ColorAdd);
+            }
+
+            SetBlendEquation(RenderDataStyle.Normal);
+        }
+
+        if (hasStaticAlphaGeometry)
+        {
+            m_staticCompositeProgram.Bind();
+            m_staticCompositeProgram.VertexGapClampUV(false);
+            SetStaticUniforms(m_staticCompositeProgram, renderInfo);
+            GL.ActiveTexture(BindTextures.BoundTexture);
+
+            m_geometryRenderer.RenderStaticStyle(RenderDataStyle.Translucent);
+
+            if (m_geometryRenderer.HasStaticStyle(RenderDataStyle.Add))
+            {
+                SetBlendEquation(RenderDataStyle.Add);
+                m_geometryRenderer.RenderStaticStyle(RenderDataStyle.Add);
+            }
+
+            if (m_worldDataManager.HasStyle(RenderDataStyle.ColorAdd))
+            {
+                SetBlendEquation(RenderDataStyle.ColorAdd);
+                m_geometryRenderer.RenderStaticStyle(RenderDataStyle.ColorAdd);
             }
 
             SetBlendEquation(RenderDataStyle.Normal);
@@ -776,6 +811,12 @@ public class LegacyWorldRenderer : WorldRenderer
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+
+        if (program is StaticCompositeShader)
+        {
+            program.AccumTexture(BindTextures.AccumTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);
+        }
     }
 
     private void ReleaseUnmanagedResources()
