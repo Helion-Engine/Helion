@@ -737,10 +737,12 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             return;
 
         var style = RenderDataStyle.Normal;
+        var alpha = 1f;
         if (sector3D != null && (sector3D.Alpha < 1 || sector3D.RenderDataStyle != RenderDataStyle.Normal))
         {
             if (style == RenderDataStyle.Normal)
                 style = RenderDataStyle.Translucent;
+            alpha = sector3D.Alpha;
         }
 
         renderSector ??= sectorForSubsectors.GetRenderSector(TransferHeightView.Middle);
@@ -751,7 +753,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         var plane = face == SectorPlaneFace.Floor ? sectorForSubsectors.Floor : sectorForSubsectors.Ceiling;
         geometryPlane ??= plane;
         m_geometryRenderer.RenderSectorFlats(sectorForSubsectors, renderPlane, geometryPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
-            lightLevelSector: lightLevelSector, allowAlpha: allowAlpha, style: style);
+            lightLevelSector: lightLevelSector, allowAlpha: allowAlpha, alpha: alpha, style: style);
 
         AddSkyGeometry(null, WallLocation.None, geometryPlane, renderedSkyVertices, sectorForSubsectors, update);
 

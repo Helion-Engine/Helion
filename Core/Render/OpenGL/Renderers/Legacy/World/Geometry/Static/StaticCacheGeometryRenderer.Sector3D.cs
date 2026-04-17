@@ -32,6 +32,11 @@ public partial class StaticCacheGeometryRenderer
         //    return;
         //}
 
+        if (sector3D.ParentSectorId == 58)
+        {
+            int lol = 1;
+        }
+
         AddSectorPlanes3D(sector3D, planes, update);
 
         if (!sector3D.ShouldRenderWalls)
