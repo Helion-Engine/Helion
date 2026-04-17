@@ -24,11 +24,11 @@ using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.World;
+using Helion.World.Entities;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
-using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
@@ -658,22 +658,26 @@ public partial class WorldLayer
         int Length = (int)(5 * m_scale * m_config.Hud.CrosshairScale.Value);
 
         Color color;
-        bool target = Player.CrosshairTarget.Get() != null;
-        bool shouldShrink = m_config.Hud.CrosshairTargetShrink.Value && target;
+        var target = Player.CrosshairTarget.Get();
+        bool hasTarget = target != null;
+        bool shouldShrink = m_config.Hud.CrosshairTargetShrink.Value && hasTarget;
         int crosshairLength = shouldShrink ? (int)(Length * 0.8f) : Length;
 
         if (m_config.Hud.CrosshairHealthIndicator.Value)
         {
             // If the crosshair color and crosshair target color are not the same, then the player clearly wants it to change color
             // if we've detected a target.  Else, render a health indicator using hue angle (240 is blue, 120 green, 0 red).
-            color = target && m_config.Hud.CrosshairColor != m_config.Hud.CrosshairTargetColor
+            color = hasTarget && m_config.Hud.CrosshairColor != m_config.Hud.CrosshairTargetColor
                 ? ToColor(m_config.Hud.CrosshairTargetColor.Value)
-                : Color.FromHSV((int)(Math.Clamp(Player.Health, 0, 200) * 1.2f), 100, 100);
+                : GetPlayerHealthColor(Player);                
         }
         else
         {
-            color = target ? ToColor(m_config.Hud.CrosshairTargetColor.Value) : ToColor(m_config.Hud.CrosshairColor);
+            color = hasTarget ? ToColor(m_config.Hud.CrosshairTargetColor.Value) : ToColor(m_config.Hud.CrosshairColor);
         }
+
+        if (m_config.Hud.CrosshairTargetHealthIndicator.Value && target != null)
+            color = GetEnemyTargetColor(target);
 
         int totalCrosshairLength = crosshairLength * 2;
         if (Width == 1)
@@ -723,6 +727,19 @@ public partial class WorldLayer
                 hud.FillBox((center.X, center.Y, center.X + totalCrosshairLength, center.Y + totalCrosshairLength), color, alpha: alpha);
                 break;
         }
+    }
+
+    private static Color GetPlayerHealthColor(Player player)
+    {
+        return Color.FromHSV((int)(Math.Clamp(player.Health, 0, 200) * 1.2f), 100, 100);
+    }
+
+    private static Color GetEnemyTargetColor(Entity entity)
+    {
+        var normalizedHealth = Math.Clamp(entity.Health / (float)entity.Properties.Health, 0f, 1f);
+        // Scale health so that lower health enemies can show red
+        var scale = MathF.Pow(normalizedHealth, 0.4f);
+        return Color.FromHSV((int)(normalizedHealth * 120f * scale), 100, 100);
     }
 
     private static Color ToColor(CrossColor c) => c switch
