@@ -24,7 +24,8 @@
 - Fix sprites being generated and duplicated at runtime in true color.
 - Fix font coloring that was rendering dark in menus (fixes Antaresian Reliquary colored font rendering).
 - Fix sky texture not working when it's not in the texture namespace.
-- Right-extend "block" characters in ENDOOM to emulate VGA "line graphics enable" mode
+- Right-extend "block" characters in ENDOOM to emulate VGA "line graphics enable" mode.
+- Fix A_Refire not calling noise alert.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.

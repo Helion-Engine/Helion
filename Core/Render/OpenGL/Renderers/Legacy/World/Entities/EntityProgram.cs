@@ -145,18 +145,18 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in float options;
         layout(location = 2) in vec3 prevPos;
         layout(location = 3) in float offsetXYZ;
-        layout(location = 4) in float sectorIndex;
+        layout(location = 4) in float colorMapAndRenderIndex;
 
-        out float lightLevelOut;
-        out float alphaOut;
-        out float fuzzOut;
-        out float flipUOut;
-        out float colorMapTranslationOut;
-        out float positionZOut;
-        out float offsetZOut;
-        out float offsetXYOut;
-        out float renderIndexOut;
-        out vec3 sectorColorMapIndexOut;
+        flat out float lightLevelOut;
+        flat out float alphaOut;
+        flat out float fuzzOut;
+        flat out float flipUOut;
+        flat out float colorMapTranslationOut;
+        flat out float positionZOut;
+        flat out float offsetZOut;
+        flat out float offsetXYOut;
+        flat out float renderIndexOut;
+        flat out vec3 sectorColorMapIndexOut;
 
         uniform float timeFrac;
         uniform samplerBuffer sectorColormapTexture;
@@ -170,7 +170,7 @@ public class EntityProgram : RenderProgram
             lightLevelOut = (intOptions >> 10) & 0xFF;
             colorMapTranslationOut = (intOptions >> 18);
 
-            intOptions = floatBitsToInt(sectorIndex);
+            intOptions = floatBitsToInt(colorMapAndRenderIndex);
             int sectorIndexInt = intOptions >> 16;
             int renderIndex = intOptions & 0xFFFF;
 
@@ -196,16 +196,16 @@ public class EntityProgram : RenderProgram
         layout(points) in;
         layout(triangle_strip, max_vertices = 4) out;
 
-        in float lightLevelOut[];
-        in float alphaOut[];
-        in float fuzzOut[];
-        in float flipUOut[];
-        in float colorMapTranslationOut[];
-        in float positionZOut[];
-        in float offsetZOut[];
-        in float offsetXYOut[];
-        in float renderIndexOut[];
-        ${SectorColorMapVar}
+        flat in float lightLevelOut[];
+        flat in float alphaOut[];
+        flat in float fuzzOut[];
+        flat in float flipUOut[];
+        flat in float colorMapTranslationOut[];
+        flat in float positionZOut[];
+        flat in float offsetZOut[];
+        flat in float offsetXYOut[];
+        flat in float renderIndexOut[];
+        flat in vec3 sectorColorMapIndexOut[];
 
         out vec2 uvFrag;
         out float dist;
@@ -221,8 +221,8 @@ public class EntityProgram : RenderProgram
         flat out vec3 centerPosFrag;
         flat out vec3 minPosFrag;
         flat out vec3 maxPosFrag;
+        flat out vec3 sectorColorMapIndexFrag;
         out float depthFrag;
-        ${SectorColorMapFrag}
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
@@ -320,11 +320,9 @@ public class EntityProgram : RenderProgram
             EndPrimitive();
         }  
     "
-    .Replace("${SectorColorMapVar}", false ? "in int sectorColorMapIndexOut[];" : "in vec3 sectorColorMapIndexOut[];")
-    .Replace("${SectorColorMapFrag}", false ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
     .Replace("${Depth}", ShaderVars.Depth)
     .Replace("${BoxDefines}", BoxDefines)
-    .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "1e-5" : "4e-5")
+    .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
     .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip());
 
     private static string AdjustSpriteVertexClip()
