@@ -78,6 +78,23 @@ public static class PlaneClip
         .Replace("${DiscardNegativeMapId}", GetDiscardNegativeMapId(discardNegativeMapId));
     }
 
+    public static string GetTransparentDiscard(OitOptions options)
+    {
+        if (options == OitOptions.None)
+            return "";
+
+        return @"
+            if (checkPlaneClip == 1) {
+                ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
+                float wallClipDepth = texelFetch(wallClipTexture, sampleCoords, 0).a;
+                float planeClipDepth = texelFetch(planeClipTexture, sampleCoords, 0).g;
+                // This is for alpha walls and vanilla rendering
+                // There is no depth buffer at this point so sample the plane clip texture to discard
+                if (wallClipDepth <= depthFrag || planeClipDepth <= depthFrag)
+                    discard;
+            }";
+    }
+
     private static string GetDiscardNegativeMapId(bool discard)
     {
         if (!discard)

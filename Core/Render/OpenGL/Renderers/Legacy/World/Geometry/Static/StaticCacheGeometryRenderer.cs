@@ -1216,7 +1216,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null, Sector3D? sector3D = null)
     {
         var geometryType = side != null && wall != null ? GetWallType(side, wall, sector3D) : GeometryType.Flat;
-        if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
+        if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall && (sector3D == null || sector3D.RenderDataStyle == RenderDataStyle.Normal))
             AddOrUpdateCoverWall(side, vertices, wall.Location, wall.Location == WallLocation.Middle);
 
         if (textureHandle <= Constants.NullCompatibilityTextureIndex)
