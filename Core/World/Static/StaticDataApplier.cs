@@ -132,7 +132,7 @@ public class StaticDataApplier
 
     private static bool ShouldLink(Sector sector, SectorDynamic sectorDynamic)
     {
-        return sector.BlockmapNodes.Length == 0 && (sectorDynamic & (SectorDynamic.Movement | SectorDynamic.Scroll | SectorDynamic.Alpha)) != 0;
+        return sector.BlockmapNodes.Length == 0 && (sectorDynamic & (SectorDynamic.Movement | SectorDynamic.Scroll)) != 0;
     }
 
     private static void SetSectorTransferHeights(Sector sector)

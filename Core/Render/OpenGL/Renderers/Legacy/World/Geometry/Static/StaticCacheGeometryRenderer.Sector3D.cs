@@ -14,7 +14,7 @@ public partial class StaticCacheGeometryRenderer
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedLowerSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedUpperSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
-    private readonly Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? m_renderSectorWallVertices3D;
+    private readonly Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>, Sector3D?>? m_renderSectorWallVertices3D;
 
     private void AddSectors3D(Sector sector, bool update)
     {
@@ -24,19 +24,6 @@ public partial class StaticCacheGeometryRenderer
 
     private void AddSector3D(Sector3D sector3D, SectorPlanes planes, bool update)
     {
-        //if (sector3D.Alpha < 1f || sector3D.RenderDataStyle != RenderDataStyle.Normal)
-        //{
-        //    sector3D.FakeSector.Floor.Dynamic |= SectorDynamic.Alpha;
-        //    sector3D.FakeSector.Ceiling.Dynamic |= SectorDynamic.Alpha;
-        //    m_world.RenderBlockmap.LinkDynamic(m_world, sector3D);
-        //    return;
-        //}
-
-        if (sector3D.ParentSectorId == 58)
-        {
-            int lol = 1;
-        }
-
         AddSectorPlanes3D(sector3D, planes, update);
 
         if (!sector3D.ShouldRenderWalls)
@@ -91,8 +78,8 @@ public partial class StaticCacheGeometryRenderer
         sector3D.ParentSector.TransferFloorLightSector = saveTransfer;
     }
 
-    private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
+    private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices, Sector3D? sector3D)
     {
-        UpdateVertices(ref wall.Static, wall.TextureHandle, vertices, null, side, wall, true, texture);
+        UpdateVertices(ref wall.Static, wall.TextureHandle, vertices, null, side, wall, true, texture, sector3D);
     }
 }

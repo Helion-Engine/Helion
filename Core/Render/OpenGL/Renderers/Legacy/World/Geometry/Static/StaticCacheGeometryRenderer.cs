@@ -404,7 +404,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         bool ceilingDynamic = (side.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0;
         bool upper = !(ceilingDynamic && side.IsDynamic);
         bool lower = !(floorDynamic && side.IsDynamic);
-        bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic) && (side.Dynamic & SectorDynamic.Alpha) == 0; // Middle with alpha is drawn separately through dynamic rendering.
+        bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic);
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
@@ -623,13 +623,21 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         AddVertices(vertices, sideVertices);
     }
 
-    private static GeometryType GetWallType(Side side, Wall wall)
+    private static GeometryType GetWallType(Side side, Wall wall, Sector3D? sector3D = null)
     {
-        if (wall.Location == WallLocation.Middle3D)
-            return GeometryType.Middle3D;
+        if (sector3D != null)
+        {
+            if (sector3D.RenderDataStyle != RenderDataStyle.Normal)
+                return sector3D.RenderDataStyle.ToGeometryType();
+            if (sector3D.Alpha < 1)
+                return GeometryType.Translucent;
+        }
 
         if (wall.Location == WallLocation.Middle && side.Line.Alpha < 1)
             return GeometryType.Translucent;
+
+        if (wall.Location == WallLocation.Middle3D)
+            return GeometryType.Middle3D;
 
         return wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
     }
@@ -1201,9 +1209,9 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void UpdateVertices(ref StaticGeometryData staticGeometry, int textureHandle, Span<DynamicVertex> vertices,
-        SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null)
+        SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null, Sector3D? sector3D = null)
     {
-        var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
+        var geometryType = side != null && wall != null ? GetWallType(side, wall, sector3D) : GeometryType.Flat;
         if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, vertices, wall.Location, wall.Location == WallLocation.Middle);
 

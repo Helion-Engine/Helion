@@ -10,5 +10,4 @@ public enum SectorDynamic
     TransferHeights = 2,
     Scroll = 4,
     ScrollY = 8,
-    Alpha = 16
 }
