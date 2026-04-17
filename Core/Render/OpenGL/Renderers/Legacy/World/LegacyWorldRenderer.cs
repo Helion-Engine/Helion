@@ -799,6 +799,8 @@ public class LegacyWorldRenderer : WorldRenderer
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
         program.BrightmapTexture(BindTextures.BrightmapTexture);
+        program.PlaneClipTexture(BindTextures.PlaneClipTexture);
+        program.WallClipTexture(BindTextures.WallClipTexture);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
@@ -811,11 +813,18 @@ public class LegacyWorldRenderer : WorldRenderer
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
+        program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
 
         if (program is StaticCompositeShader)
         {
             program.AccumTexture(BindTextures.AccumTexture);
-            program.AccumCountTextre(BindTextures.AccumCountTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);            
+        }
+
+        if (program is StaticCompositeShader || program is StaticTransparentShader)
+        {
+            program.CheckPlaneClip(true);
         }
     }
 

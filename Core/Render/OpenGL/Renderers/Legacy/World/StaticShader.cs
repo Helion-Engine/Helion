@@ -29,6 +29,11 @@ public class StaticShader : RenderProgram
     private readonly int m_useBrightmapsLocation;
     private readonly int m_accumTextureLocation;
     private readonly int m_accumCountTextureLocation;
+    private readonly int m_planeClipTextureLocation;
+    private readonly int m_checkPlaneClipLocation;
+    private readonly int m_wallClipTextureLocation;
+    private readonly int m_downScaleAmountLocation;
+    private readonly int m_screenBoundsLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -52,6 +57,11 @@ public class StaticShader : RenderProgram
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_accumTextureLocation = Uniforms.GetLocation("accum");
         m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
+        m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
+        m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
+        m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
+        m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
+        m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -61,6 +71,8 @@ public class StaticShader : RenderProgram
     public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
     public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
     public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
+    public void PlaneClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_planeClipTextureLocation);
+    public void WallClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_wallClipTextureLocation);
 
     public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
@@ -75,6 +87,9 @@ public class StaticShader : RenderProgram
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
+    public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
+    public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
+    public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -179,6 +194,11 @@ public class StaticShader : RenderProgram
             uniform int paletteIndex;
             uniform int colormapIndex;
             uniform int useBrightmaps;
+            uniform sampler2D planeClipTexture;
+            uniform sampler2D wallClipTexture;
+            uniform int checkPlaneClip;
+            uniform float downScaleAmount;
+            uniform ivec2 screenBounds;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
@@ -187,15 +207,15 @@ public class StaticShader : RenderProgram
             void main() {
                 // TODO should only be for OIT passes?
                 float colorClamp = 1;
-                //if (checkPlaneClip == 1) {
-                //    ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
-                //    float wallClipDepth = texelFetch(wallClipTexture, sampleCoords, 0).a;
-                //    float planeClipDepth = texelFetch(planeClipTexture, sampleCoords, 0).g;
-                //    // This is for alpha walls and vanilla rendering
-                //    // There is no depth buffer at this point so sample the plane clip texture to discard
-                //    if (wallClipDepth <= depthFrag || planeClipDepth <= depthFrag)
-                //        discard;
-                //}
+                if (checkPlaneClip == 1) {
+                    ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
+                    float wallClipDepth = texelFetch(wallClipTexture, sampleCoords, 0).a;
+                    float planeClipDepth = texelFetch(planeClipTexture, sampleCoords, 0).g;
+                    // This is for alpha walls and vanilla rendering
+                    // There is no depth buffer at this point so sample the plane clip texture to discard
+                    if (wallClipDepth <= depthFrag || planeClipDepth <= depthFrag)
+                        discard;
+                }
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}
