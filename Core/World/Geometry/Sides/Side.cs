@@ -1,6 +1,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -62,6 +63,7 @@ public sealed class Side
     public SectorPlanes MidTextureFlood;
     public SideFlags Flags;
     public float Alpha = 1f;
+    public RenderDataStyle RenderDataStyle;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
         : this(id, offset, upper, middle, lower, sector, 0, false, false, false, false)

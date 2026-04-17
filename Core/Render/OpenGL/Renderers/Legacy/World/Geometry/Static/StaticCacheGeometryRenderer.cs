@@ -625,7 +625,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
     private static GeometryType GetWallType(Side side, Wall wall, Sector3D? sector3D = null)
     {
-        if (sector3D != null)
+        if (sector3D != null && (wall.Location == WallLocation.Middle3D || wall.Location == WallLocation.Middle))
         {
             if (sector3D.RenderDataStyle != RenderDataStyle.Normal)
                 return sector3D.RenderDataStyle.ToGeometryType();
@@ -633,8 +633,12 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 return GeometryType.Translucent;
         }
 
-        if (wall.Location == WallLocation.Middle && side.Line.Alpha < 1)
+        if (wall.Location == WallLocation.Middle && (side.Line.Alpha < 1 || side.RenderDataStyle != RenderDataStyle.Normal))
+        {
+            if (side.RenderDataStyle != RenderDataStyle.Normal)
+                return side.RenderDataStyle.ToGeometryType();
             return GeometryType.Translucent;
+        }
 
         if (wall.Location == WallLocation.Middle3D)
             return GeometryType.Middle3D;
