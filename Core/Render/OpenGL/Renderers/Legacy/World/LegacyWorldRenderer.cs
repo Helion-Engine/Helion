@@ -538,21 +538,22 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
-        var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Add) || 
-            m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.ColorAdd);
+        var hasEntityFuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
+        var hasEntityAlphaData = m_entityRenderer.HasAlphaToRender();
         var hasDynamicAlphaGeometry = m_worldDataManager.HasAlphaToRender();
         var hasStaticAlphaGeometry = m_geometryRenderer.StaticRenderer.HasAlphaToRender();
-        if (!fuzzData && !alphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
+        if (!hasEntityFuzzData && !hasEntityAlphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
 
         m_oitFrameBuffer.StartRender();
         GL.DepthMask(false);
-        m_entityRenderer.RenderOitTransparentPass(renderInfo);
+
+        if (hasEntityAlphaData || hasEntityFuzzData)
+            m_entityRenderer.RenderOitTransparentPass(renderInfo);
 
         m_oitFrameBuffer.BindTextures(BindTextures.AccumTexture, BindTextures.AccumCountTexture, BindTextures.FuzzTexture, BindTextures.OpaqueTexture, framebuffer);
 
-        if (fuzzData)
+        if (hasEntityFuzzData)
         {
             if (m_postProcessingEffects)
             {
@@ -593,8 +594,12 @@ public class LegacyWorldRenderer : WorldRenderer
         ResetBlendEquations();
         framebuffer.Bind();
 
-        m_entityRenderer.StartRenderOitCompositePass(renderInfo);
-        RenderCompositeStyles(m_entityRenderer);
+        if (hasEntityAlphaData || hasEntityFuzzData)
+        {
+            m_entityRenderer.StartRenderOitCompositePass(renderInfo);
+            RenderCompositeStyles(m_entityRenderer);
+        }
+
         SetBlendEquation(RenderDataStyle.Normal);
 
         if (hasDynamicAlphaGeometry)
@@ -617,7 +622,7 @@ public class LegacyWorldRenderer : WorldRenderer
             SetBlendEquation(RenderDataStyle.Normal);
         }
 
-        if (fuzzData)
+        if (hasEntityFuzzData)
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
 
         GL.DepthMask(true);
