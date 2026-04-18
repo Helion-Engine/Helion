@@ -35,7 +35,6 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationShader m_interpolationProgram = new("Main");
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
-    private readonly InterpolationPlaneClipShader m_interpolationPlaneClipProgram = new();
     private readonly InterpolationPlaneClipAlphaShader m_interpolationPlaneClipAlphaProgram = new();
     private readonly InterpolationPlaneClipShaderMrt m_interpolationPlaneClipMrtProgram = new();
     private readonly InterpolationWallClipShader m_interpolationWallClipShader = new();
