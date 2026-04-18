@@ -27,6 +27,13 @@ public class StaticShader : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
     private readonly int m_useBrightmapsLocation;
+    private readonly int m_accumTextureLocation;
+    private readonly int m_accumCountTextureLocation;
+    private readonly int m_planeClipTextureLocation;
+    private readonly int m_checkPlaneClipLocation;
+    private readonly int m_wallClipTextureLocation;
+    private readonly int m_downScaleAmountLocation;
+    private readonly int m_screenBoundsLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -48,6 +55,13 @@ public class StaticShader : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
+        m_accumTextureLocation = Uniforms.GetLocation("accum");
+        m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
+        m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
+        m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
+        m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
+        m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
+        m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -55,6 +69,10 @@ public class StaticShader : RenderProgram
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
     public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
+    public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
+    public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
+    public void PlaneClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_planeClipTextureLocation);
+    public void WallClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_wallClipTextureLocation);
 
     public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
@@ -69,6 +87,9 @@ public class StaticShader : RenderProgram
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
+    public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
+    public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
+    public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -173,11 +194,19 @@ public class StaticShader : RenderProgram
             uniform int paletteIndex;
             uniform int colormapIndex;
             uniform int useBrightmaps;
+            uniform sampler2D planeClipTexture;
+            uniform sampler2D wallClipTexture;
+            uniform int checkPlaneClip;
+            uniform float downScaleAmount;
+            uniform ivec2 screenBounds;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
+            ${OitVariables}
 
             void main() {
+                float colorClamp = 1;
+                ${TransparentDiscard}
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}
@@ -186,11 +215,31 @@ public class StaticShader : RenderProgram
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
         .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps, oitOptions: GetOitOptions()))
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+        .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
+        .Replace("${OutTargets}", GetOutTargets(planeClip))
         .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
-        .Replace("${OutTargets}", PlaneClip.GetOutTargets(planeClip))
-        .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip));
+        .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip))
+        .Replace("${TransparentDiscard}", PlaneClip.GetTransparentDiscard(GetOitOptions()));
+    }
+
+    private OitOptions GetOitOptions()
+    {
+        if (this is StaticTransparentShader)
+            return OitOptions.OitTransparentPass;
+        if (this is StaticCompositeShader)
+            return OitOptions.OitCompositePass;
+        return OitOptions.None;
+    }
+
+    private string GetOutTargets(bool planeClip)
+    {
+        var options = GetOitOptions();
+        if (options == OitOptions.OitTransparentPass)
+            return "";
+
+        return PlaneClip.GetOutTargets(planeClip);
     }
 }

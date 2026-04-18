@@ -475,14 +475,14 @@ public class Sector3D_Walls
         prevOffset.Y.Should().Be(slice.Offset.Y);
     }
 
-    private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
+    private void RenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices, Sector3D? sector3D)
     {
         var slice = m_slices[m_sliceIndex++];
         wallSector.Ceiling.Z.Should().Be(slice.TopZ);
         wallSector.Floor.Z.Should().Be(slice.BottomZ);
     }
 
-    private void EmptyRenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
+    private void EmptyRenderSectorWallVertices3D(Side side, Wall wall, Sector wallSector, GLLegacyTexture? texture, Span<DynamicVertex> vertices, Sector3D? sector3D)
     {
 
     }

@@ -44,16 +44,6 @@ public class StaticDataApplier
     {
         CheckFloodFill(world, line);
 
-        if (line.Back != null && line.Alpha < 1)
-        {
-            line.Front.Dynamic |= SectorDynamic.Alpha;
-            line.Back.Dynamic |= SectorDynamic.Alpha;
-            world.RenderBlockmap.LinkDynamicSide(line.Front);
-            if (line.Front.Sector != line.Back.Sector)
-                world.RenderBlockmap.LinkDynamicSide(line.Back);
-            return;
-        }
-
         if (line.Front.ScrollData != null)
         {
             line.Front.Dynamic |= SectorDynamic.Scroll;
@@ -132,7 +122,7 @@ public class StaticDataApplier
 
     private static bool ShouldLink(Sector sector, SectorDynamic sectorDynamic)
     {
-        return sector.BlockmapNodes.Length == 0 && (sectorDynamic & (SectorDynamic.Movement | SectorDynamic.Scroll | SectorDynamic.Alpha)) != 0;
+        return sector.BlockmapNodes.Length == 0 && (sectorDynamic & (SectorDynamic.Movement | SectorDynamic.Scroll)) != 0;
     }
 
     private static void SetSectorTransferHeights(Sector sector)

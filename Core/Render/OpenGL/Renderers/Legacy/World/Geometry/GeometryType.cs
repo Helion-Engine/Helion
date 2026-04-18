@@ -17,6 +17,15 @@ public enum GeometryType
     Count
 }
 
+public static class GeometryTypeExtensions
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool NeedsCoverWall(this GeometryType style)
+    {
+        return (int)style < (int)GeometryType.Fuzzy && style != GeometryType.TwoSidedMiddleWall;
+    }
+}
+
 public static class RenderDataStyleExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

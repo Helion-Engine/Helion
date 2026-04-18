@@ -213,16 +213,7 @@ public class InterpolationShader : RenderProgram
 
             void main() {
                 float colorClamp = 1;
-                if (checkPlaneClip == 1) {
-                    ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
-                    float wallClipDepth = texelFetch(wallClipTexture, sampleCoords, 0).a;
-                    float planeClipDepth = texelFetch(planeClipTexture, sampleCoords, 0).g;
-                    // This is for alpha walls and vanilla rendering
-                    // There is no depth buffer at this point so sample the plane clip texture to discard
-                    if (wallClipDepth <= depthFrag || planeClipDepth <= depthFrag)
-                        discard;
-                }
-
+                ${TransparentDiscard}
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}
@@ -237,7 +228,8 @@ public class InterpolationShader : RenderProgram
         .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
         .Replace("${OutTargets}", GetOutTargets(planeClip))
         .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
-        .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip));
+        .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip))
+        .Replace("${TransparentDiscard}", PlaneClip.GetTransparentDiscard(GetOitOptions()));
     }
 
     private OitOptions GetOitOptions()

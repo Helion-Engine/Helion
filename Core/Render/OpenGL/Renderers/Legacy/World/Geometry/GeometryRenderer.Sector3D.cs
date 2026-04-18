@@ -1,5 +1,4 @@
-﻿using Helion.Geometry.Planes;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -48,7 +47,7 @@ public partial class GeometryRenderer
     }
 
     public void RenderSectorLine3D(Sector3D sector3D, int lineIndex, bool renderFront, bool renderBack,
-        Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
+        Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>, Sector3D?>? renderVertices)
     {
         var sectorLine = sector3D.FakeSector.Lines[lineIndex];
         var parentSectorLine = sector3D.ParentSector.Lines[lineIndex];
@@ -65,7 +64,7 @@ public partial class GeometryRenderer
     }
 
     private void RenderSide3D(Sector3D sector3D, Side useSide, Side? parentSide, Side? oppositeParentSide,
-        Sector wallSector, bool isFront, Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>>? renderVertices)
+        Sector wallSector, bool isFront, Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>, Sector3D?>? renderVertices)
     {
         if (parentSide == null || !sector3D.CalculateWallHeights(parentSide, out var newWallHeights))
             return;
@@ -93,7 +92,7 @@ public partial class GeometryRenderer
             wallHeights3D: newWallHeights, style: sector3D.RenderDataStyle);
 
         if (result.Vertices.Length > 0 && renderVertices != null)
-            renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices);
+            renderVertices(useSide, useSide.Middle, wallSector, result.Texture, result.Vertices, sector3D);
     }
 
     private Span<SectorPlane3D> MergePlanes(SectorPlane3D[] a, SectorPlane3D[] b, Sector3D ignorePlane)

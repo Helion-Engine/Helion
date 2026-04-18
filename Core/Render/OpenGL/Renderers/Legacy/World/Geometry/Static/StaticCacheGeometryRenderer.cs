@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
@@ -26,7 +27,7 @@ using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
-public partial class StaticCacheGeometryRenderer : IDisposable
+public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposable
 {
     const int WallVertices = 6;
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
@@ -178,6 +179,16 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 data.Vbo.UploadIfNeeded();
             }
         }
+    }
+
+    public override void Render(RenderDataStyle style)
+    {
+        Render(style.ToGeometryType());
+    }
+
+    public override bool HasStyleToRender(RenderDataStyle style)
+    {
+        return m_geometry.GetGeometry(style.ToGeometryType()).Count > 0;
     }
 
     private void World_SectorPlaneTransformed(object? sender, SectorPlane plane)
@@ -390,7 +401,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         bool ceilingDynamic = (side.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0;
         bool upper = !(ceilingDynamic && side.IsDynamic);
         bool lower = !(floorDynamic && side.IsDynamic);
-        bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic) && (side.Dynamic & SectorDynamic.Alpha) == 0; // Middle with alpha is drawn separately through dynamic rendering.
+        bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic);
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
@@ -418,7 +429,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 result.SkyVertices = result.SkyVertices2;
             }
 
-            SetSideVertices(side, side.Upper, update, result.Vertices, upperVisible, true);
+            SetSideVertices(side, side.Upper, update, result.Vertices, upperVisible, true, null);
             // Sky hack and skyVertices2 are done from the facingSector, otherwise use the otherSector like normal.
             // Required for id24 flat mapping using different floor/ceiling textures.
             AddSkyGeometry(side, WallLocation.Upper, null, result.SkyVertices, skyHack || result.SkyVertices2 != null ? facingSector : otherSector, update);
@@ -450,7 +461,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 result = new(sideVertices, skyVertices, null);
             }
 
-            SetSideVertices(side, side.Lower, update, result.Vertices, lowerVisible, true);
+            SetSideVertices(side, side.Lower, update, result.Vertices, lowerVisible, true, null);
             AddSkyGeometry(side, WallLocation.Lower, null, result.SkyVertices, otherSector, update);
 
             if (!update && result.SkyVertices == null)
@@ -479,7 +490,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
                 result = new(sideVertices, null, null);
             }
 
-            SetSideVertices(side, side.Middle, update, result.Vertices, true, repeatY: side.Flags.WrapMidTex);
+            SetSideVertices(side, side.Middle, update, result.Vertices, true, repeatY: side.Flags.WrapMidTex, null);
 
             var sideVisibility = SideTexture.None;
             if (upperVisible)
@@ -586,7 +597,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void SetSideVertices(Side side, Wall wall, bool update, Span<DynamicVertex> sideVertices, bool visible, bool repeatY)
+    private void SetSideVertices(Side side, Wall wall, bool update, Span<DynamicVertex> sideVertices, bool visible, bool repeatY, Sector3D? sector3D)
     {
         if (sideVertices.Length == 0 || !visible)
             return;
@@ -597,8 +608,8 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var type = GetWallType(side, wall);
-        if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
+        var type = GetWallType(side, wall, sector3D);
+        if (m_vanillaRender && type.NeedsCoverWall())
             AddOrUpdateCoverWall(side, sideVertices, wall.Location, wall.Location == WallLocation.Middle);
 
         if (wall.TextureHandle <= Constants.NullCompatibilityTextureIndex)
@@ -609,8 +620,23 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         AddVertices(vertices, sideVertices);
     }
 
-    private static GeometryType GetWallType(Side side, Wall wall)
+    private static GeometryType GetWallType(Side side, Wall wall, Sector3D? sector3D)
     {
+        if (sector3D != null && (wall.Location == WallLocation.Middle3D || wall.Location == WallLocation.Middle))
+        {
+            if (sector3D.RenderDataStyle != RenderDataStyle.Normal)
+                return sector3D.RenderDataStyle.ToGeometryType();
+            if (sector3D.Alpha < 1)
+                return GeometryType.Translucent;
+        }
+
+        if (wall.Location == WallLocation.Middle && (side.Line.Alpha < 1 || side.RenderDataStyle != RenderDataStyle.Normal))
+        {
+            if (side.RenderDataStyle != RenderDataStyle.Normal)
+                return side.RenderDataStyle.ToGeometryType();
+            return GeometryType.Translucent;
+        }
+
         if (wall.Location == WallLocation.Middle3D)
             return GeometryType.Middle3D;
 
@@ -714,10 +740,20 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void AddSectorPlane(Sector sectorForSubsectors, SectorPlaneFace face, bool floor, bool update = false, 
-        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false, bool isSector3D = false)
+        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false, Sector3D? sector3D = null)
     {
         if ((floor && sectorForSubsectors.Floor.NoRender) || (!floor && sectorForSubsectors.Ceiling.NoRender))
             return;
+
+        var style = RenderDataStyle.Normal;
+        var alpha = 1f;
+        if (sector3D != null && (sector3D.Alpha < 1 || sector3D.RenderDataStyle != RenderDataStyle.Normal))
+        {
+            style = sector3D.RenderDataStyle;
+            if (style == RenderDataStyle.Normal)
+                style = RenderDataStyle.Translucent;
+            alpha = sector3D.Alpha;
+        }
 
         renderSector ??= sectorForSubsectors.GetRenderSector(TransferHeightView.Middle);
         lightLevelSector ??= renderSector;
@@ -727,7 +763,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         var plane = face == SectorPlaneFace.Floor ? sectorForSubsectors.Floor : sectorForSubsectors.Ceiling;
         geometryPlane ??= plane;
         m_geometryRenderer.RenderSectorFlats(sectorForSubsectors, renderPlane, geometryPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
-            lightLevelSector: lightLevelSector, allowAlpha: allowAlpha);
+            lightLevelSector: lightLevelSector, allowAlpha: allowAlpha, alpha: alpha, style: style);
 
         AddSkyGeometry(null, WallLocation.None, geometryPlane, renderedSkyVertices, sectorForSubsectors, update);
 
@@ -747,8 +783,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var geometryType = GeometryType.Flat;
-
+        var geometryType = style.ToGeometryType();
         var vertices = GetTextureVertices(geometryType, textureHandle, true);
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, true, out var geometryData))
         {
@@ -771,6 +806,9 @@ public partial class StaticCacheGeometryRenderer : IDisposable
 
     public void RenderFlats() => 
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
+
+    public void Render(GeometryType type) =>
+        RenderGeometry(m_geometry.GetGeometry(type));
 
     public void RenderCoverWalls() =>
         RenderCoverInternal(m_coverWallGeometry);
@@ -809,6 +847,8 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < geometry.Count; i++)
         {
             var data = geometry[i];
+            if (data.Vbo.Count == 0)
+                continue;
 
             GL.ActiveTexture(BindTextures.BoundTexture);
             bool isNullCompatTex = data.TextureHandle <= Constants.NullCompatibilityTextureIndex;
@@ -1173,10 +1213,10 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void UpdateVertices(ref StaticGeometryData staticGeometry, int textureHandle, Span<DynamicVertex> vertices,
-        SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null)
+        SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null, Sector3D? sector3D = null)
     {
-        var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
-        if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
+        var geometryType = side != null && wall != null ? GetWallType(side, wall, sector3D) : GeometryType.Flat;
+        if (side != null && wall != null && geometryType.NeedsCoverWall())
             AddOrUpdateCoverWall(side, vertices, wall.Location, wall.Location == WallLocation.Middle);
 
         if (textureHandle <= Constants.NullCompatibilityTextureIndex)
@@ -1191,7 +1231,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
          
         if (staticGeometry.GeometryData == null)
         {
-            AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat, texture);
+            AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat, texture, sector3D);
             return;
         }
 
@@ -1271,19 +1311,20 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddNewGeometry(int textureHandle, Span<DynamicVertex> vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null)
+    private void AddNewGeometry(int textureHandle, Span<DynamicVertex> vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat, 
+        GLLegacyTexture? texture, Sector3D? sector3D)
     {
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
             if (plane != null)
             {
                 plane.Static = existing.Value;
-                UpdateVertices(ref plane.Static, textureHandle, vertices, plane, side, wall, repeat);
+                UpdateVertices(ref plane.Static, textureHandle, vertices, plane, side, wall, repeat, texture, sector3D);
             }
             else if (wall != null)
             {
                 wall.Static = existing.Value;
-                UpdateVertices(ref wall.Static, textureHandle, vertices, plane, side, wall, repeat);
+                UpdateVertices(ref wall.Static, textureHandle, vertices, plane, side, wall, repeat, texture, sector3D);
             }
 
             return;
@@ -1292,7 +1333,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         // This texture exists, append to the vbo
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeat, out GeometryData? data))
         {
-            SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
+            SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat, sector3D);
             AddVertices(data.Vbo.Data, vertices);
             // TODO this causes the entire vbo to be uploaded when we could use sub-buffer
             data.Vbo.SetNotUploaded();
@@ -1300,16 +1341,16 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         }
 
         data = AllocateGeometryData(geometryType, textureHandle, repeat, overrideTexture: texture);
-        SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
+        SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat, sector3D);
         AddVertices(data.Vbo.Data, vertices);
         data.Vbo.SetNotUploaded();
     }
 
-    private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, Span<DynamicVertex> vertices, bool repeat)
+    private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, Span<DynamicVertex> vertices, bool repeat, Sector3D? sector3D)
     {
         if (side != null && wall != null)
         {
-            SetSideData(ref wall.Static, GetWallType(side, wall), textureHandle, geometryData.Vbo.Count, vertices.Length, repeat, geometryData);
+            SetSideData(ref wall.Static, GetWallType(side, wall, sector3D), textureHandle, geometryData.Vbo.Count, vertices.Length, repeat, geometryData);
             return;
         }
 

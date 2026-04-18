@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
-public sealed class EntityRenderer : IDisposable
+public sealed class EntityRenderer : StyleRendererBase, IDisposable
 {
     const int MinBarWidth = 20;
     const int MaxBarWidth = 80;
@@ -74,6 +74,16 @@ public sealed class EntityRenderer : IDisposable
     public bool HasDataToRenderByStyle(RenderDataStyle style) => m_dataManager.HasDataToRenderByStyle(style);
 
     public void HealthBarMode(bool set) => m_program.HealthBarMode(set);
+
+    public override bool HasStyleToRender(RenderDataStyle style)
+    {
+        return m_dataManager.HasDataToRenderByStyle(style);
+    }
+
+    public override void Render(RenderDataStyle style)
+    {
+        m_dataManager.RenderByRenderStyle(style, PrimitiveType.Points);
+    }
 
     public void UpdateTo(IWorld world)
     {
@@ -435,27 +445,11 @@ public sealed class EntityRenderer : IDisposable
         m_programTransparent.Unbind();
     }
 
-    public void RenderOitCompositePass(RenderInfo renderInfo)
+    public void StartRenderOitCompositePass(RenderInfo renderInfo)
     {
         m_programComposite.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
-
-        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.Add))
-        {
-            LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.Add);
-            m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
-        }
-
-        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.ColorAdd))
-        {
-            LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.ColorAdd);
-            m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
-        }
-
-        LegacyWorldRenderer.SetBlendEquation(RenderDataStyle.Normal);
-        m_programComposite.Unbind();
     }
 
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)

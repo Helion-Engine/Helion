@@ -38,3 +38,4 @@
 - Update TBOs that use RGB32F to use RGBA32F for 3.3 cards that were never updated to support ARB_texture_buffer_object_rgb32.
 - Use colormap index one for lite amp goggles instead of zero to match original doom behavior.
 - Removed sprite overlap code from CPU and use sprite detph bias on GPU instead to fix z-fighting.
+- Add support for transparent rendering in static shader.

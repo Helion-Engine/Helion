@@ -7,7 +7,7 @@ using Helion.World.Geometry.Walls;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
-public sealed class RenderWorldDataManager : IDisposable
+public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
 {
     private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup = new(() => new RenderWorldDataList());
     private RenderWorldData? m_coverWalls;
@@ -77,11 +77,6 @@ public sealed class RenderWorldDataManager : IDisposable
         return HasGeometryType(GeometryType.Translucent) || HasGeometryType(GeometryType.TranslucentAdd) || HasGeometryType(GeometryType.TranslucentColorAdd);
     }
 
-    public bool HasStyle(RenderDataStyle style)
-    {
-        return m_lookup.Get(style.ToGeometryType()).RenderData.Count > 0;
-    }
-
     public bool HasGeometryType(GeometryType type)
     {
         return m_lookup.Get(type).RenderData.Count > 0;
@@ -97,21 +92,19 @@ public sealed class RenderWorldDataManager : IDisposable
         m_coverWalls?.Draw();
     }
 
-    public void RenderAllAlpha()
-    {
-        Render(GeometryType.Translucent);
-        Render(GeometryType.TranslucentAdd);
-        Render(GeometryType.TranslucentColorAdd);
-    }
-
     public void Render(GeometryType type)
     {
         m_lookup.Get(type).Draw();
     }
 
-    public void Render(RenderDataStyle style)
+    public override void Render(RenderDataStyle style)
     {
         m_lookup.Get(style.ToGeometryType()).Draw();
+    }
+
+    public override bool HasStyleToRender(RenderDataStyle style)
+    {
+        return m_lookup.Get(style.ToGeometryType()).HasDataToRender();
     }
 
     public void Dispose()
