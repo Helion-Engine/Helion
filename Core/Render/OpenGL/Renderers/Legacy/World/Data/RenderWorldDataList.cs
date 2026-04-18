@@ -1,5 +1,6 @@
 ﻿using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Util.Container;
 using System;
 using System.Collections.Generic;
 
@@ -9,6 +10,8 @@ public class RenderWorldDataList
 {
     public List<RenderWorldData> RenderData = [];
     private RenderWorldData?[] m_allRenderData = new RenderWorldData?[1024];
+    private readonly DynamicArray<RenderWorldData> m_dataToRender = new();
+    private int m_renderCount;
 
     public RenderWorldData Add(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
     {
@@ -19,26 +22,38 @@ public class RenderWorldDataList
             Array.Copy(original, m_allRenderData, original.Length);
         }
 
-        RenderWorldData? data = m_allRenderData[texture.TextureId];
-        if (data != null)
-            return data;
+        var data = m_allRenderData[texture.TextureId];
+        if (data == null)
+        {
+            data = new(texture, program, brightmapTexture);
+            m_allRenderData[texture.TextureId] = data;
+            RenderData.Add(data);
+        }
 
-        RenderWorldData newData = new(texture, program, brightmapTexture);
-        m_allRenderData[texture.TextureId] = newData;
-        RenderData.Add(newData);
-        return newData;
+        if (data.RenderCount != m_renderCount)
+        {
+            m_dataToRender.Add(data);
+            data.RenderCount = m_renderCount;
+        }
+
+        return data;
     }
+
+    public bool HasDataToRender() => m_dataToRender.Length > 0;
 
     public void Draw()
     {
-        for (int i = 0; i < RenderData.Count; i++)
-            RenderData[i].Draw();
+        for (int i = 0; i < m_dataToRender.Count; i++)
+            m_dataToRender[i].Draw();
     }
 
     public void Clear()
     {
-        for (int i = 0; i < RenderData.Count; i++)
-            RenderData[i].Clear();
+        for (int i = 0; i < m_dataToRender.Count; i++)
+            m_dataToRender[i].Clear();
+        m_dataToRender.Clear();
+
+        m_renderCount++;
     }
 
     public void ReleaseUnmanagedResources()

@@ -1,5 +1,4 @@
-﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
-using Helion.Render.OpenGL.Texture.Legacy;
+﻿using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;

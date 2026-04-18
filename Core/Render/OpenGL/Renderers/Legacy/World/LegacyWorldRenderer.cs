@@ -242,7 +242,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (sides == null)
             return;
 
-        // DynamicSides are either scrolling textures or alpha, neither should setup cover walls.
+        // DynamicSides are scrolling textures and should not setup cover walls.
         m_geometryRenderer.SetBufferCoverWall(false);
         for (int i = 0; i < sides.Length; i++)
         {
@@ -541,10 +541,12 @@ public class LegacyWorldRenderer : WorldRenderer
         var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Add) || 
             m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.ColorAdd);
-        var hasDynamicAlphaGeometry = m_worldDataManager.HasAlpha();
-        var hasStaticAlphaGeometry = m_geometryRenderer.HasStaticAlphaGeometry();
+        var hasDynamicAlphaGeometry = m_worldDataManager.HasAlphaToRender();
+        var hasStaticAlphaGeometry = m_geometryRenderer.StaticRenderer.HasAlphaToRender();
         if (!fuzzData && !alphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
+
+        hasDynamicAlphaGeometry = false;
 
         m_oitFrameBuffer.StartRender();
         GL.DepthMask(false);
@@ -587,13 +589,15 @@ public class LegacyWorldRenderer : WorldRenderer
             m_staticTransparentProgram.VertexGapClampUV(false);
             SetStaticUniforms(m_staticTransparentProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
-            m_geometryRenderer.RenderAllStaticAlpha();
+            m_geometryRenderer.StaticRenderer.RenderAllAlpha();
         }
 
         ResetBlendEquations();
         framebuffer.Bind();
 
-        m_entityRenderer.RenderOitCompositePass(renderInfo);
+        m_entityRenderer.StartRenderOitCompositePass(renderInfo);
+        RenderCompositeStyles(m_entityRenderer);
+        SetBlendEquation(RenderDataStyle.Normal);
 
         if (hasDynamicAlphaGeometry)
         {
@@ -601,21 +605,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_interpolationCompositeProgram.VertexGapClampUV(false);
             SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
-
-            m_worldDataManager.Render(RenderDataStyle.Translucent);
-
-            if (m_worldDataManager.HasStyle(RenderDataStyle.Add))
-            {
-                SetBlendEquation(RenderDataStyle.Add);
-                m_worldDataManager.Render(RenderDataStyle.Add);
-            }
-
-            if (m_worldDataManager.HasStyle(RenderDataStyle.ColorAdd))
-            {
-                SetBlendEquation(RenderDataStyle.ColorAdd);
-                m_worldDataManager.Render(RenderDataStyle.ColorAdd);
-            }
-
+            RenderCompositeStyles(m_worldDataManager);
             SetBlendEquation(RenderDataStyle.Normal);
         }
 
@@ -625,21 +615,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_staticCompositeProgram.VertexGapClampUV(false);
             SetStaticUniforms(m_staticCompositeProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
-
-            m_geometryRenderer.RenderStaticStyle(RenderDataStyle.Translucent);
-
-            if (m_geometryRenderer.HasStaticStyle(RenderDataStyle.Add))
-            {
-                SetBlendEquation(RenderDataStyle.Add);
-                m_geometryRenderer.RenderStaticStyle(RenderDataStyle.Add);
-            }
-
-            if (m_worldDataManager.HasStyle(RenderDataStyle.ColorAdd))
-            {
-                SetBlendEquation(RenderDataStyle.ColorAdd);
-                m_geometryRenderer.RenderStaticStyle(RenderDataStyle.ColorAdd);
-            }
-
+            RenderCompositeStyles(m_geometryRenderer.StaticRenderer);
             SetBlendEquation(RenderDataStyle.Normal);
         }
 
@@ -647,6 +623,23 @@ public class LegacyWorldRenderer : WorldRenderer
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
 
         GL.DepthMask(true);
+    }
+
+    private static void RenderCompositeStyles(IStyleRenderer styleRenderer)
+    {
+        styleRenderer.Render(RenderDataStyle.Translucent);
+
+        if (styleRenderer.HasStyleToRender(RenderDataStyle.Add))
+        {
+            SetBlendEquation(RenderDataStyle.Add);
+            styleRenderer.Render(RenderDataStyle.Add);
+        }
+
+        if (styleRenderer.HasStyleToRender(RenderDataStyle.ColorAdd))
+        {
+            SetBlendEquation(RenderDataStyle.ColorAdd);
+            styleRenderer.Render(RenderDataStyle.ColorAdd);
+        }
     }
 
     public static void SetBlendEquation(RenderDataStyle style)

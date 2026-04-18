@@ -95,6 +95,7 @@ public partial class GeometryRenderer : IDisposable
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
+    public StaticCacheGeometryRenderer StaticRenderer => m_staticCacheGeometryRenderer;
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
         RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, bool unitTest = false)
@@ -372,15 +373,6 @@ public partial class GeometryRenderer : IDisposable
 
     public void RenderWallClipPortals(RenderInfo renderInfo) =>
         Portals.RenderWallClip(renderInfo);
-
-    public bool HasStaticAlphaGeometry() =>
-        m_staticCacheGeometryRenderer.HasAlphaGeometry();
-
-    public bool HasStaticStyle(RenderDataStyle style) =>
-        m_staticCacheGeometryRenderer.HasStyle(style);
-
-    public void RenderAllStaticAlpha() =>
-        m_staticCacheGeometryRenderer.RenderAllAlpha();
 
     public void RenderStaticStyle(RenderDataStyle style) =>
         m_staticCacheGeometryRenderer.Render(style.ToGeometryType());
@@ -1073,7 +1065,6 @@ public partial class GeometryRenderer : IDisposable
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
         GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(lowerWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
 
         SectorPlane top = otherSector.Floor;
         SectorPlane bottom = facingSector.Floor;
@@ -1120,7 +1111,10 @@ public partial class GeometryRenderer : IDisposable
             }
 
             if (m_buffer)
+            {
+                var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
                 renderData.Vbo.Add(data);
+            }
             vertices = data;
             skyVertices = null;
         }
@@ -1170,7 +1164,6 @@ public partial class GeometryRenderer : IDisposable
         WallVertices wall = default;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);
         GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(upperWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
 
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
@@ -1237,7 +1230,10 @@ public partial class GeometryRenderer : IDisposable
             }
 
             if (m_buffer)
+            {
+                var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
                 renderData.Vbo.Add(data);
+            }
             vertices = data;
             skyVertices = null;
         }
@@ -1366,8 +1362,6 @@ public partial class GeometryRenderer : IDisposable
         DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
         var geometryType = alpha < 1 ? GeometryType.Translucent : GeometryType.TwoSidedMiddleWall;
 
-        var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
-
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
             lightLevelSector ??= facingSector;
@@ -1411,7 +1405,10 @@ public partial class GeometryRenderer : IDisposable
 
         // See RenderOneSided() for an ASCII image of why we do this.
         if (m_buffer)
+        {
+            var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
             renderData.Vbo.Add(data);
+        }
         vertices = data;
     }
 
@@ -1570,7 +1567,6 @@ public partial class GeometryRenderer : IDisposable
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(textureHandle);
 
         var geometryType = GetGeometryType(style, GeometryType.Flat);
-        var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
         var flatChanged = FlatChanged(renderPlane);
         var sector = subsectors[0].Sector;
         int id = geometryPlane.Sector.Id;
@@ -1666,6 +1662,7 @@ public partial class GeometryRenderer : IDisposable
             vertices = lookupData;
             if (m_buffer)
             {
+                var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
                 renderData.Vbo.Add(lookupData);
                 // Don't need to clip floor on lower view and ceiling on upper view
                 if (sector.TransferHeights != null

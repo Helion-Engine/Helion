@@ -6,15 +6,24 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 public enum GeometryType
 {
     Wall,
-    TwoSidedMiddleWall,
     Middle3D,
     Flat,
+    TwoSidedMiddleWall,
 
     Fuzzy,
     Translucent,
     TranslucentAdd,
     TranslucentColorAdd,
     Count
+}
+
+public static class GeometryTypeExtensions
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool NeedsCoverWall(this GeometryType style)
+    {
+        return (int)style < (int)GeometryType.TwoSidedMiddleWall;
+    }
 }
 
 public static class RenderDataStyleExtensions

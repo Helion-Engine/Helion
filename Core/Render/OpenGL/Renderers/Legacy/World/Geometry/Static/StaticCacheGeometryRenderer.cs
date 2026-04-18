@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
-public partial class StaticCacheGeometryRenderer : IDisposable
+public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposable
 {
     const int WallVertices = 6;
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
@@ -181,17 +181,14 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    public bool HasAlphaGeometry() =>
-        HasStyle(RenderDataStyle.Translucent) || HasStyle(RenderDataStyle.ColorAdd) || HasStyle(RenderDataStyle.Add);
-
-    public bool HasStyle(RenderDataStyle style) =>
-        m_geometry.GetGeometry(style.ToGeometryType()).Count > 0;
-
-    public void RenderAllAlpha()
+    public override void Render(RenderDataStyle style)
     {
-        Render(GeometryType.Translucent);
-        Render(GeometryType.TranslucentAdd);
-        Render(GeometryType.TranslucentColorAdd);
+        Render(style.ToGeometryType());
+    }
+
+    public override bool HasStyleToRender(RenderDataStyle style)
+    {
+        return m_geometry.GetGeometry(style.ToGeometryType()).Count > 0;
     }
 
     private void World_SectorPlaneTransformed(object? sender, SectorPlane plane)
@@ -612,7 +609,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         }
 
         var type = GetWallType(side, wall);
-        if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
+        if (m_vanillaRender && type.NeedsCoverWall())
             AddOrUpdateCoverWall(side, sideVertices, wall.Location, wall.Location == WallLocation.Middle);
 
         if (wall.TextureHandle <= Constants.NullCompatibilityTextureIndex)
@@ -849,6 +846,8 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < geometry.Count; i++)
         {
             var data = geometry[i];
+            if (data.Vbo.Count == 0)
+                continue;
 
             GL.ActiveTexture(BindTextures.BoundTexture);
             bool isNullCompatTex = data.TextureHandle <= Constants.NullCompatibilityTextureIndex;
