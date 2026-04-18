@@ -749,6 +749,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         var alpha = 1f;
         if (sector3D != null && (sector3D.Alpha < 1 || sector3D.RenderDataStyle != RenderDataStyle.Normal))
         {
+            style = sector3D.RenderDataStyle;
             if (style == RenderDataStyle.Normal)
                 style = RenderDataStyle.Translucent;
             alpha = sector3D.Alpha;
@@ -1215,7 +1216,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null, Sector3D? sector3D = null)
     {
         var geometryType = side != null && wall != null ? GetWallType(side, wall, sector3D) : GeometryType.Flat;
-        if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall && (sector3D == null || sector3D.RenderDataStyle == RenderDataStyle.Normal))
+        if (side != null && wall != null && geometryType.NeedsCoverWall())
             AddOrUpdateCoverWall(side, vertices, wall.Location, wall.Location == WallLocation.Middle);
 
         if (textureHandle <= Constants.NullCompatibilityTextureIndex)
