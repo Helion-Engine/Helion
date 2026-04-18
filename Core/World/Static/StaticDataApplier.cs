@@ -44,16 +44,6 @@ public class StaticDataApplier
     {
         CheckFloodFill(world, line);
 
-        //if (line.Back != null && line.Alpha < 1)
-        //{
-        //    line.Front.Dynamic |= SectorDynamic.Alpha;
-        //    line.Back.Dynamic |= SectorDynamic.Alpha;
-        //    world.RenderBlockmap.LinkDynamicSide(line.Front);
-        //    if (line.Front.Sector != line.Back.Sector)
-        //        world.RenderBlockmap.LinkDynamicSide(line.Back);
-        //    return;
-        //}
-
         if (line.Front.ScrollData != null)
         {
             line.Front.Dynamic |= SectorDynamic.Scroll;
