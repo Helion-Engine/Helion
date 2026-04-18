@@ -43,13 +43,13 @@ public class RenderWorldDataList
 
     public void Draw()
     {
-        for (int i = 0; i < m_dataToRender.Count; i++)
+        for (int i = 0; i < m_dataToRender.Length; i++)
             m_dataToRender[i].Draw();
     }
 
     public void Clear()
     {
-        for (int i = 0; i < m_dataToRender.Count; i++)
+        for (int i = 0; i < m_dataToRender.Length; i++)
             m_dataToRender[i].Clear();
         m_dataToRender.Clear();
 
