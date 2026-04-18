@@ -546,8 +546,6 @@ public class LegacyWorldRenderer : WorldRenderer
         if (!fuzzData && !alphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
 
-        hasDynamicAlphaGeometry = false;
-
         m_oitFrameBuffer.StartRender();
         GL.DepthMask(false);
         m_entityRenderer.RenderOitTransparentPass(renderInfo);
