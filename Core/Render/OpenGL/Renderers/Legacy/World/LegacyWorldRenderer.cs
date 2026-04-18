@@ -535,7 +535,7 @@ public class LegacyWorldRenderer : WorldRenderer
         ResetBlendEquations();
     }
 
-    private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer)
+    private void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
         var hasEntityFuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var hasEntityAlphaData = m_entityRenderer.HasAlphaToRender();
