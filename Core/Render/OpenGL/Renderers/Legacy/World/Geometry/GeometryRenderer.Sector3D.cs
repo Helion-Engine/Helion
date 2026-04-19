@@ -197,6 +197,7 @@ public partial class GeometryRenderer
         m_fakeSide.ScrollData = m_fakeSideScrollData;
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Location = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location;
+        m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Current).Y = 0;
         m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Previous).Y = 0;
 
         m_fakeWall.Offset.X = offset.X;
@@ -235,6 +236,11 @@ public partial class GeometryRenderer
                 continue;
             }
 
+            m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
+            m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;
+
+            SetSectorToSlice(m_sliceSector, plane3D.Plane, nextPlane3D.Plane, wallHeights3D);
+
             if (renderThrough && plane3D.Sector3D != anchorSector3D && plane3D.Sector3D?.IsSolid == true &&
                 plane3D.Face == PlaneFace3D.Top && nextPlane3D.Face == PlaneFace3D.Bottom)
             {
@@ -243,18 +249,13 @@ public partial class GeometryRenderer
                     anchorZ = nextPlane3D.GetZ();
                     prevAnchorZ = nextPlane3D.GetPrevZ();
                 }
-                SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
+
+                if (m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
+                    SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
+
                 continue;
             }
-            else
-            {
-                ResetWallOffset(m_fakeSide, m_fakeWall);
-            }
 
-            m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
-            m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;
-
-            SetSectorToSlice(m_sliceSector, plane3D.Plane, nextPlane3D.Plane, wallHeights3D);
             args.LightSector = nextPlane3D.LightSector;
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
@@ -378,13 +379,6 @@ public partial class GeometryRenderer
         }
 
         return side.Line.Flags.Unpegged.Lower ? side.Sector.Floor : side.Sector.Ceiling;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ResetWallOffset(Side side, Wall wall)
-    {
-        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Current).Y = 0;
-        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
