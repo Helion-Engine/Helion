@@ -932,13 +932,15 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         HandleSectorMoveStart(world, plane);
     }
 
-    private bool HandleSectorMoveStart(WorldBase world, SectorPlane plane, bool check3D = true, bool checkMovement = true)
+    private bool HandleSectorMoveStart(WorldBase world, SectorPlane plane, bool check3D = true, bool checkMovement = true, bool handlePlane = true)
     {
         if (checkMovement && (plane.Dynamic & SectorDynamic.Movement) != 0)
             return false;
 
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, plane.Facing.ToSectorPlanes(), SectorDynamic.Movement);
-        ClearGeometryVertices(plane.Static);
+
+        if (handlePlane)
+            ClearGeometryVertices(plane.Static);
 
         if (m_vanillaRender && m_coverFlatLookup.TryGetValue(CoverKey.MakeFlatKey(plane.Sector.Id, plane.Facing), out var coverGeometry))
             ClearGeometryVertices(coverGeometry);
@@ -953,7 +955,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             {
                 var sector3D = plane.Sector.TaggedSectors3D[i];
                 var startSuccess = HandleSectorMoveStart(world, sector3D.FakeSector.GetSectorPlane(face), check3D: false);
-                HandleSectorMoveStart(world, sector3D.ParentSector.GetSectorPlane(face), check3D: false);
+
+                HandleSectorMoveStart(world, sector3D.ParentSector.GetSectorPlane(face), check3D: false, handlePlane: false);
 
                 // This can also affect rendering of 3D sectors in this parent sector.
                 for (int j = 0; j < sector3D.ParentSector.Sectors3D.Length; j++)
@@ -1073,7 +1076,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         HandleSectorMoveComplete(world, plane.Sector, plane);
     }
 
-    private void HandleSectorMoveComplete(WorldBase world, Sector sector, SectorPlane plane, bool check3D = true)
+    private void HandleSectorMoveComplete(WorldBase world, Sector sector, SectorPlane plane, bool check3D = true, bool handlePlane = true)
     {
         StaticDataApplier.ClearSectorDynamicMovement(world, plane);
 
@@ -1092,7 +1095,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         else
             m_geometryRenderer.SetRenderCeiling(plane);
 
-        AddSectorPlane(sector, plane.Facing, floor, true);
+        if (handlePlane)
+            AddSectorPlane(sector, plane.Facing, floor, true);
+
         HandleSectorMoveCompleteForLines(world, sector, !check3D);
 
         if (WorldStatic.Sector3D && check3D)
@@ -1107,9 +1112,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
                 HandleSectorMoveComplete(world, plane.Sector, sector3D.FakeSector.GetSectorPlane(flippedFace), check3D: false);
 
-                sector3D.ParentSector.Floor.SetSectorMoveChanged(m_world.Gametick);
-                sector3D.ParentSector.Ceiling.SetSectorMoveChanged(m_world.Gametick);
-                HandleSectorMoveComplete(world, sector3D.ParentSector, sector3D.ParentSector.GetSectorPlane(flippedFace), check3D: false);
+                if (handlePlane)
+                    HandleSectorMoveComplete(world, sector3D.ParentSector, sector3D.ParentSector.GetSectorPlane(flippedFace), check3D: false, handlePlane: false);
 
                 for (int j = 0; j < sector3D.ParentSector.Sectors3D.Length; j++)
                 {
