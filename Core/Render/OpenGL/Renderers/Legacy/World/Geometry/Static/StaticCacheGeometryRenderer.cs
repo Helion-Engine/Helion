@@ -932,9 +932,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         HandleSectorMoveStart(world, plane);
     }
 
-    private void HandleSectorMoveStart(WorldBase world, SectorPlane plane, bool check3D = true)
+    private void HandleSectorMoveStart(WorldBase world, SectorPlane plane, bool check3D = true, bool checkMovement = true)
     {
-        if ((plane.Dynamic & SectorDynamic.Movement) != 0)
+        if (checkMovement && (plane.Dynamic & SectorDynamic.Movement) != 0)
             return;
 
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, plane.Facing.ToSectorPlanes(), SectorDynamic.Movement);
@@ -965,8 +965,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                     HandleSectorMoveStart3D(world, parentSector3D);
                 }
 
+                // Need to ignore the movement check since it's flagged off the same plane.
                 if (sector3D.FakeSectorFlipped != null)
-                    HandleSectorMoveStart(world, sector3D.FakeSectorFlipped.GetSectorPlane(face), check3D: false);
+                    HandleSectorMoveStart(world, sector3D.FakeSectorFlipped.GetSectorPlane(face), check3D: false, checkMovement: false);
             }
         }
     }
