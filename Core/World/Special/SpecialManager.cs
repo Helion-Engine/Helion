@@ -106,22 +106,23 @@ public sealed class SpecialManager : ITickable, IDisposable
     public void Clear()
     {
         foreach (var special in m_specials)
-        {
-            if (special is SectorMoveSpecial moveSpecial)
-                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
-            else if (special is LightChangeSpecial lightSpecial)
-                m_dataCache.FreeLightChangeSpecial(lightSpecial);
-        }
+            FreeSpecial(special);
+
         foreach (var special in m_destroyedMoveSpecials)
-        {
-            if (special is SectorMoveSpecial moveSpecial)
-                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
-            else if (special is LightChangeSpecial lightSpecial)
-                m_dataCache.FreeLightChangeSpecial(lightSpecial);
-        }
+            FreeSpecial(special);
 
         m_specials.Clear();
         m_destroyedMoveSpecials.Clear();
+    }
+
+    private void FreeSpecial(ISpecial special)
+    {
+        if (special.GetType() == typeof(SectorMoveSpecial))
+            m_dataCache.FreeSectorMoveSpecial((SectorMoveSpecial)special);
+        else if (special.GetType() == typeof(LightChangeSpecial))
+            m_dataCache.FreeLightChangeSpecial((LightChangeSpecial)special);
+        else if (special.GetType() == typeof(SwitchChangeSpecial))
+            m_dataCache.FreeSwitchChangeSpecial((SwitchChangeSpecial)special);
     }
 
     public void Dispose()
@@ -152,7 +153,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             else if (special is StairSpecial stair)
                 data.StairSpecials.Add(stair.ToStairSpecialModel());
             else if (special is ElevatorSpecial elevator)
-                data.ElevatorSpecials.Add(elevator.ToSpecialModel());
+                data.ElevatorSpecials.Add(elevator.ToSpecialElevatorModel());
             else if (special is SwitchChangeSpecial switchChange)
                 data.SwitchSpecials.Add(switchChange.ToSpecialModel());
             else if (special is SectorMoveSpecial move)
@@ -259,7 +260,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 RemoveSpecial(switchSpecial);
             switchSpecial = m_dataCache.GetSwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
             if (switchSpecial.Tick() == SpecialTickStatus.Destroy)
-                m_dataCache.FreeSwitchChangeSpecial(switchSpecial);
+                FreeSpecial(switchSpecial);
             else
                 AddSpecial(switchSpecial);
         }
@@ -334,7 +335,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 var nextNode = node.Next;
                 if (node.Value is SwitchChangeSpecial switchSpecial && node.Value.Tick() == SpecialTickStatus.Destroy)
                 {
-                    m_dataCache.FreeSwitchChangeSpecial(switchSpecial);
+                    FreeSpecial(switchSpecial);
                     RemoveSpecialNode(node);
                 }
 
@@ -358,7 +359,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                     RemoveSpecialNode(node);
 
                     if (special is SwitchChangeSpecial switchSpecial)
-                        m_dataCache.FreeSwitchChangeSpecial(switchSpecial);
+                        FreeSpecial(switchSpecial);
                 }
 
                 node = nextNode;
@@ -370,23 +371,23 @@ public sealed class SpecialManager : ITickable, IDisposable
     {
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
-            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            var sectorSpecial = m_destroyedMoveSpecials[i];
             sectorSpecial.FinalizeDestroy();
-            if (sectorSpecial is LightChangeSpecial lightChange)
-                m_world.DataCache.FreeLightChangeSpecial(lightChange);
+            if (sectorSpecial.GetType() == typeof(LightChangeSpecial))
+                FreeSpecial(sectorSpecial);
         }
 
         // Only invoke after all specials have been destroyed on this tick. Otherwise interpolation values can be off
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
-            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            var sectorSpecial = m_destroyedMoveSpecials[i];
             if (sectorSpecial is not SectorMoveSpecial moveSpecial)
                 continue;
 
             if (!sectorSpecial.MultiSector)
             {
                 SectorSpecialDestroyed?.Invoke(this, moveSpecial);
-                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
+                FreeSpecial(moveSpecial);
                 continue;
             }
 

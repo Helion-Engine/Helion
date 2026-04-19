@@ -7,18 +7,17 @@ using System.Collections.Generic;
 
 namespace Helion.World.Special.Specials;
 
-public class ElevatorSpecial : ISectorSpecial
+public class ElevatorSpecial : SectorMoveSpecial
 {
     private readonly SectorMoveSpecial m_firstMove;
     private readonly SectorMoveSpecial m_secondMove;
 
-    public Sector Sector { get; set; }
-    public bool IsPaused => false;
+    public override bool IsPaused => false;
 
-    public bool OverrideEquals => true;
+    public override bool OverrideEquals => true;
 
-    public virtual bool MultiSector => true;
-    public virtual void GetSectors(List<(Sector, SectorPlane)> data)
+    public override bool MultiSector => true;
+    public override void GetSectors(List<(Sector, SectorPlane)> data)
     {
         data.Add((m_firstMove.Sector, m_firstMove.SectorPlane));
         data.Add((m_secondMove.Sector, m_secondMove.SectorPlane));
@@ -58,7 +57,7 @@ public class ElevatorSpecial : ISectorSpecial
         m_secondMove = secondMove;
     }
 
-    public SpecialTickStatus Tick()
+    public override SpecialTickStatus Tick()
     {
         m_firstMove.Tick();
         if (m_firstMove.MoveStatus == SectorMoveStatus.Blocked)
@@ -69,39 +68,39 @@ public class ElevatorSpecial : ISectorSpecial
         return SpecialTickStatus.Continue;
     }
 
-    public void ResetInterpolation()
+    public override void ResetInterpolation()
     {
         m_firstMove.ResetInterpolation();
         m_secondMove.ResetInterpolation();
     }
 
-    public void FinalizeDestroy()
+    public override void FinalizeDestroy()
     {
         m_firstMove.FinalizeDestroy();
         m_secondMove.FinalizeDestroy();
     }
 
-    public void Free()
+    public override void Free()
     {
 
     }
 
-    public void Pause()
-    {
-        // Not required
-    }
-
-    public void Resume()
+    public override void Pause()
     {
         // Not required
     }
 
-    public bool Use(Entity entity)
+    public override void Resume()
+    {
+        // Not required
+    }
+
+    public override bool Use(Entity entity)
     {
         return false;
     }
 
-    public ElevatorSpecialModel ToSpecialModel()
+    public ElevatorSpecialModel ToSpecialElevatorModel()
     {
         return new()
         {
