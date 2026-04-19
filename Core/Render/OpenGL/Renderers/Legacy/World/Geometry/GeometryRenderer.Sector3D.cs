@@ -246,6 +246,10 @@ public partial class GeometryRenderer
                 SetWallOffset(m_fakeSide, m_fakeWall, offsetY, nextPlane3D.Plane, anchorZ, prevAnchorZ);
                 continue;
             }
+            else
+            {
+                ResetWallOffset(m_fakeSide, m_fakeWall);
+            }
 
             m_sliceSector.Ceiling.LastRenderChangeGametick = plane3D.ControlPlane.LastRenderChangeGametick;
             m_sliceSector.Floor.LastRenderChangeGametick = nextPlane3D.ControlPlane.LastRenderChangeGametick;
@@ -377,7 +381,14 @@ public partial class GeometryRenderer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe void SetWallOffset(Side side, Wall wall, float saveOffsetY, SectorPlane top, double anchorZ, double prevAnchorZ)
+    private static void ResetWallOffset(Side side, Wall wall)
+    {
+        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Current).Y = 0;
+        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SetWallOffset(Side side, Wall wall, float saveOffsetY, SectorPlane top, double anchorZ, double prevAnchorZ)
     {
         // Use scrolling data for offset since normal wall offsets can't interpolate
         side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Current).Y = saveOffsetY + (float)(anchorZ - top.Z);
