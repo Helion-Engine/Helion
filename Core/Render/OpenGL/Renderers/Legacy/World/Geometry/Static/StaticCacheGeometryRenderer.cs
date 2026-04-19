@@ -1126,6 +1126,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         sector3D.FakeSector.Floor.SetSectorMoveChanged(world.Gametick);
         sector3D.FakeSector.Ceiling.SetSectorMoveChanged(world.Gametick);
         HandleSectorMoveComplete(world, sector3D.FakeSector, sector3D.FakeSector.Floor, check3D: false);
+        HandleSectorMoveComplete(world, sector3D.FakeSector, sector3D.FakeSector.Ceiling, check3D: false);
     }
 
     private void HandleSectorMoveCompleteForLines(WorldBase world, Sector sector, bool checkOpposingSector3D)
