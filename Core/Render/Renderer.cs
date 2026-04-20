@@ -538,6 +538,7 @@ public partial class Renderer : IDisposable
         m_worldFramebuffer.Bind();
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
+        BindSectorFadeBuffer();
         BindLightBuffer();
         BindMapDataBuffer();
         BindLineHeightsBuffer();
@@ -623,6 +624,11 @@ public partial class Renderer : IDisposable
     private void BindSectorColorMapBuffer()
     {
         m_sectorColorMapsBuffer?.BindTexture(BindTextures.SectorColormap);
+    }
+
+    private void BindSectorFadeBuffer()
+    {
+        m_sectorFadeBuffer?.BindTexture(BindTextures.SectorFade);
     }
 
     private void BindLightBuffer()
@@ -977,6 +983,7 @@ public partial class Renderer : IDisposable
         m_automapRenderer.Dispose();
         m_lightBufferStorage?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
+        m_sectorFadeBuffer?.Dispose();
         m_transitionRenderer?.Dispose();
         m_mapDataBuffer?.Dispose();
         m_lineHeightsBuffer?.Dispose();

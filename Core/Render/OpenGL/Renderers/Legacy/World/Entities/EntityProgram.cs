@@ -13,6 +13,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_brightmapTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
+    private readonly int m_sectorFadeTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
     private readonly int m_hasInvulnerabilityLocation;
@@ -55,6 +56,7 @@ public class EntityProgram : RenderProgram
         m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
+        m_sectorFadeTextureLocation = Uniforms.GetLocation("sectorFadeTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
@@ -96,6 +98,7 @@ public class EntityProgram : RenderProgram
     public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void SectorFadeTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorFadeTextureLocation);
     public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
     public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
     public void FuzzTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_fuzzTextureLocation);
@@ -160,6 +163,7 @@ public class EntityProgram : RenderProgram
 
         uniform float timeFrac;
         uniform samplerBuffer sectorColormapTexture;
+        uniform samplerBuffer sectorFadeTexture;
 
         void main()
         {
@@ -362,6 +366,7 @@ public class EntityProgram : RenderProgram
         uniform sampler2D boundTexture;
         uniform sampler2D brightmapTexture;
         uniform samplerBuffer colormapTexture;
+        uniform samplerBuffer sectorFadeTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
         uniform vec3 colorMix;

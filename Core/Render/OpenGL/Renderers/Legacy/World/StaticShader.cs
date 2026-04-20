@@ -13,6 +13,7 @@ public class StaticShader : RenderProgram
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
+    private readonly int m_sectorFadeTextureLocation;
     private readonly int m_brightmapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
@@ -41,6 +42,7 @@ public class StaticShader : RenderProgram
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
+        m_sectorFadeTextureLocation = Uniforms.GetLocation("sectorFadeTexture");
         m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
@@ -68,9 +70,10 @@ public class StaticShader : RenderProgram
     public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void SectorFadeTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorFadeTextureLocation);
     public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
     public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
-    public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
+    public void AccumCountTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
     public void PlaneClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_planeClipTextureLocation);
     public void WallClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_wallClipTextureLocation);
 

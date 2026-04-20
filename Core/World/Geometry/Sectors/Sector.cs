@@ -98,6 +98,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public Sector TransferCeilingLightSector;
     public Sector SetTransferFloorLightSector;
     public Sector SetTransferCeilingLightSector;
+    public Vec4F FadeColor;
 
 #if DEBUG
     public SectorDamageSpecial? SectorDamageSpecial { get; private set; }

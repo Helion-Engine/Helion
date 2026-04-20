@@ -30,6 +30,7 @@ public partial class Renderer
 
     private GLBufferTextureStorage<byte>? m_lightBufferStorage;
     private GLBufferTextureStorage<float>? m_sectorColorMapsBuffer;
+    private GLBufferTextureStorage<float>? m_sectorFadeBuffer;
     private GLBufferTextureStorage<float>? m_colorMapBuffer;
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
@@ -114,6 +115,7 @@ public partial class Renderer
         SetMapDataBuffer(world, alloc);
         SetLightDataBuffer(world, alloc);
         SetSectorColorMapsBuffer(world, alloc);
+        SetSectorFadeBuffer(world, alloc);
         SetLineHeights(world, alloc);
     }
 
@@ -230,6 +232,37 @@ public partial class Renderer
         }
     }
 
+    private unsafe void SetSectorFadeBuffer(IWorld world, bool alloc)
+    {
+        if (alloc || m_sectorFadeBuffer == null)
+        {
+            // First index will always map to default colormap
+            int sectorBufferCount = (world.Sectors.Count + 1) * LightBuffer.BufferSize;
+            // PaletteColorMode is index to colormap, true color will be RGB mix
+            int size = 4;
+            var sectorBuffer = new float[sectorBufferCount * size];
+
+            m_sectorFadeBuffer?.Dispose();
+            m_sectorFadeBuffer = new("Sector fade", sectorBuffer, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
+        }
+
+        if (alloc)
+        {
+            m_sectorFadeBuffer.Map(data =>
+            {
+                float* fadeBuffer = (float*)data.ToPointer();
+                InitSectorFadeBuffer(world, fadeBuffer);
+            });
+        }
+        else
+        {
+            var mappedBuffer = m_sectorFadeBuffer.GetMappedBufferAndBind();
+            float* fadeBuffer = mappedBuffer.MappedMemoryPtr;
+            InitSectorFadeBuffer(world, fadeBuffer);
+            m_sectorFadeBuffer.Unbind();
+        }
+    }
+
     private static unsafe void InitSectorColorMap(IWorld world, float* colorMapBuffer)
     {
         *(Vec3F*)&colorMapBuffer[0] = Vec3F.One;
@@ -238,6 +271,24 @@ public partial class Renderer
         {
             var sector = world.Sectors[i];
             SetSectorColorMap(colorMapBuffer, sector, sector.Colormap);
+        }
+    }
+
+    private static unsafe void InitSectorFadeBuffer(IWorld world, float* fadeBuffer)
+    {
+        *(Vec3F*)&fadeBuffer[0] = Vec3F.Zero;
+
+        for (int i = 0; i < world.Sectors.Count; i++)
+        {
+            var sector = world.Sectors[i];
+            int index = (sector.Id + 1) * LightBuffer.BufferSize;
+            const int VectorSize = 4;
+
+            var fadeColor = sector.FadeColor;
+
+            *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = fadeColor;
+            *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = fadeColor;
+            *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * VectorSize] = fadeColor;
         }
     }
 

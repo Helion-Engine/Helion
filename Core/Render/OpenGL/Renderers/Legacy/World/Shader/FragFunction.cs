@@ -209,6 +209,10 @@ public class FragFunction
             // If b channel is -1 then r channel is colormap index. if b channel is >= 0 then the rgb values are a true color mix.
             // This is to support Sector_SetColor to have true color mixes when still using palette color mode.
             + "fragColor.rgb *= mix(vec3(1), min(sectorColorMapIndexFrag, 1), float(sectorColorMapIndexFrag.b >= 0));"
+            + @"
+                float fogDensity = (1.0 - (lightLevelFrag / 255.0)) * 0.004047;
+                float fogFactor = (1.0 - exp(-fogDensity * dist)) * sectorFadeColorFrag.a;
+                fragColor.rgb = mix(fragColor.rgb, sectorFadeColorFrag.rgb, clamp(fogFactor, 0.0, 1.0));"
             + InvulnerabilityFragColor
             + GammaCorrection()
             + postProcess
