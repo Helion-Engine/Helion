@@ -78,7 +78,7 @@ public class UdmfGeometryBuilder
                 DamageInterval = mapSector.DamageInterval == 0 ? SectorDamageSpecial.DefaultDamageInterval : mapSector.DamageInterval,
                 MoreTags = mapSector.MoreTags,
                 LightColor = new(mapSector.LightColor),
-                FadeColor = GetNormalizedFadeColor(mapSector.FadeColor),
+                FadeColor = new(mapSector.FadeColor),
             };
 
             if (mapSector.DamageAmount != 0)
@@ -89,12 +89,6 @@ public class UdmfGeometryBuilder
 
             builder.Sectors.Add(sector);
         }
-    }
-
-    private static Vec4F GetNormalizedFadeColor(uint lightColor)
-    {
-        var color = new Graphics.Color(lightColor);
-        return new Vec4F(color.R / 255f, color.G / 255f, color.B / 255f, lightColor == 0 ? 0 : 1);
     }
 
     private static void GetSectorSpecial(UdmfSector mapSector, bool needsTranslation, out ZDoomSectorSpecialType sectorSpecial, out SectorData sectorData)

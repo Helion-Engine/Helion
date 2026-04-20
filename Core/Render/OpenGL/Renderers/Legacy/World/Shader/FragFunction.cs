@@ -210,8 +210,7 @@ public class FragFunction
             // This is to support Sector_SetColor to have true color mixes when still using palette color mode.
             + "fragColor.rgb *= mix(vec3(1), min(sectorColorMapIndexFrag, 1), float(sectorColorMapIndexFrag.b >= 0));"
             + @"
-                float fogDensity = (1.0 - (lightLevelFrag / 255.0)) * 0.004047;
-                float fogFactor = (1.0 - exp(-fogDensity * dist)) * sectorFadeColorFrag.a;
+                float fogFactor = 1.0 - exp(-sectorFadeColorFrag.a * dist);
                 fragColor.rgb = mix(fragColor.rgb, sectorFadeColorFrag.rgb, clamp(fogFactor, 0.0, 1.0));"
             + InvulnerabilityFragColor
             + GammaCorrection()

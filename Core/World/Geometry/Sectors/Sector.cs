@@ -59,6 +59,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public int DamageInterval;
     public int DamageLeakiness;
     public Color LightColor;
+    public Color FadeColor;
     public string SkyFloor;
     public string SkyCeiling;
     public int? FloorSkyTextureHandle;
@@ -98,7 +99,6 @@ public sealed class Sector : IFloorCeilingAnchor
     public Sector TransferCeilingLightSector;
     public Sector SetTransferFloorLightSector;
     public Sector SetTransferCeilingLightSector;
-    public Vec4F FadeColor;
 
 #if DEBUG
     public SectorDamageSpecial? SectorDamageSpecial { get; private set; }
