@@ -18,7 +18,7 @@ public class SectorMoveSpecial : ISectorSpecial
     public SectorPlane SectorPlane;
     public SectorMoveData MoveData;
     public SectorSoundData SoundData;
-    public bool IsPaused { get; private set; }
+    public virtual bool IsPaused { get; private set; }
     public SectorMoveStatus MoveStatus;
     public MoveDirection MoveDirection;
     public int DelayTics;
@@ -406,7 +406,7 @@ public class SectorMoveSpecial : ISectorSpecial
         return true;
     }
 
-    public void Pause()
+    public virtual void Pause()
     {
         IsPaused = true;
         SectorPlane.PrevZ = SectorPlane.Z;
@@ -414,7 +414,7 @@ public class SectorMoveSpecial : ISectorSpecial
             StopSound(SoundData.MovementSound);
     }
 
-    public void Resume()
+    public virtual void Resume()
     {
         IsPaused = false;
         if (SoundData.MovementSound != null)

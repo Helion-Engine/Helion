@@ -430,9 +430,12 @@ public class DataCache
 
     public void FreeLightChangeSpecial(LightChangeSpecial special)
     {
-        special.World = null!;
-        special.Sector = null!;
-        m_lightChanges.Add(special);
+        if (special.GetType() == typeof(LightChangeSpecial))
+        {
+            special.World = null!;
+            special.Sector = null!;
+            m_lightChanges.Add(special);
+        }
     }
 
     public SectorMoveSpecial GetSectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
@@ -508,8 +511,11 @@ public class DataCache
 
     public void FreeSwitchChangeSpecial(SwitchChangeSpecial special)
     {
-        special.Free();
-        m_switchSpecials.Add(special);
+        if (special.GetType() == typeof(SwitchChangeSpecial))
+        {
+            special.Free();
+            m_switchSpecials.Add(special);
+        }
     }
 
     public StairSpecial GetStairSpecial()

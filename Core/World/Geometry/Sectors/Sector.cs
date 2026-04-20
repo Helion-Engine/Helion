@@ -78,6 +78,8 @@ public sealed class Sector : IFloorCeilingAnchor
     public int SoundValidationCount;
     public int SoundBlock;
     public int CheckCount;
+    public int MoveEventGameTick = -1;
+    public int MoveProcessedGameTick;
     public bool MarkAutomap;
     public bool Flood;
     public bool Silent;
