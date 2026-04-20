@@ -9,6 +9,7 @@ using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Definitions;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
@@ -75,7 +76,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     public LinkedList<ISpecial> GetSpecials() => m_specials;
 
-    public EventHandler<ISectorSpecial>? SectorSpecialDestroyed;
+    public EventHandler<SectorPlane>? SectorMoveComplete;
 
     public SpecialManager(WorldBase world, IRandom random)
     {
@@ -117,12 +118,12 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     private void FreeSpecial(ISpecial special)
     {
-        if (special.GetType() == typeof(SectorMoveSpecial))
-            m_dataCache.FreeSectorMoveSpecial((SectorMoveSpecial)special);
-        else if (special.GetType() == typeof(LightChangeSpecial))
-            m_dataCache.FreeLightChangeSpecial((LightChangeSpecial)special);
-        else if (special.GetType() == typeof(SwitchChangeSpecial))
-            m_dataCache.FreeSwitchChangeSpecial((SwitchChangeSpecial)special);
+        if (special is SectorMoveSpecial move)
+            m_dataCache.FreeSectorMoveSpecial(move);
+        else if (special is LightChangeSpecial light)
+            m_dataCache.FreeLightChangeSpecial(light);
+        else if (special is SwitchChangeSpecial switchChange)
+            m_dataCache.FreeSwitchChangeSpecial(switchChange);
     }
 
     public void Dispose()
@@ -222,9 +223,10 @@ public sealed class SpecialManager : ITickable, IDisposable
 
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
-            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            var sectorSpecial = m_destroyedMoveSpecials[i];
             sectorSpecial.ResetInterpolation();
-            SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
+            if (sectorSpecial is SectorMoveSpecial move)
+                InvokeSectorMoveComplete(move);
         }
     }
 
@@ -325,7 +327,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     public void Tick()
     {
         if (m_destroyedMoveSpecials.Count > 0)
-            TickDestroyedMoveSpecials();
+            FinalizeDestroyedMoveSpecials();
 
         if (m_world.WorldState == WorldState.Exit)
         {
@@ -367,7 +369,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void TickDestroyedMoveSpecials()
+    private void FinalizeDestroyedMoveSpecials()
     {
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
@@ -386,7 +388,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             if (!sectorSpecial.MultiSector)
             {
-                SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+                InvokeSectorMoveComplete(moveSpecial);
                 FreeSpecial(moveSpecial);
                 continue;
             }
@@ -397,13 +399,20 @@ public sealed class SpecialManager : ITickable, IDisposable
             {
                 moveSpecial.Sector = sector;
                 moveSpecial.SectorPlane = plane;
-                SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+                InvokeSectorMoveComplete(moveSpecial);
             }
 
             m_sectorPlanes.Clear();
         }
 
         m_destroyedMoveSpecials.Clear();
+    }
+
+    private void InvokeSectorMoveComplete(SectorMoveSpecial moveSpecial)
+    {
+        Assert.Precondition(moveSpecial.SectorPlane != null, "SectorMoveSpecial was null. Most likely was released to DataCache before invoking.");
+        if (moveSpecial.SectorPlane != null)
+            SectorMoveComplete?.Invoke(this, moveSpecial.SectorPlane);
     }
 
     public SectorMoveSpecial AddDelayedSpecial(SectorMoveSpecial special, int delayTics)

@@ -937,6 +937,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (checkMovement && (plane.Dynamic & SectorDynamic.Movement) != 0)
             return false;
 
+        plane.Sector.MoveEventGameTick = world.Gametick;
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, plane.Facing.ToSectorPlanes(), SectorDynamic.Movement);
 
         if (handlePlane)
@@ -979,10 +980,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void HandleSectorMoveStartForLines(WorldBase world, Sector sector, bool checkOpposingSector3D)
     {
-        if (sector.CheckCount == WorldStatic.CheckCounter)
+        if (SectorLinesProcessed(world, sector))
             return;
-
-        sector.CheckCount = WorldStatic.CheckCounter;
 
         for (int i = 0; i < sector.Lines.Length; i++)
         {
@@ -1078,6 +1077,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void HandleSectorMoveComplete(WorldBase world, Sector sector, SectorPlane plane, bool check3D = true, bool handlePlane = true)
     {
+        sector.MoveEventGameTick = world.Gametick;
         StaticDataApplier.ClearSectorDynamicMovement(world, plane);
 
         if (sector.Sector3D != null)
@@ -1154,10 +1154,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void HandleSectorMoveCompleteForLines(WorldBase world, Sector sector, bool checkOpposingSector3D)
     {
-        if (sector.CheckCount == WorldStatic.CheckCounter)
+        if (SectorLinesProcessed(world, sector))
             return;
-
-        sector.CheckCount = WorldStatic.CheckCounter;
 
         int lineCount = sector.Lines.Length;
         for (int i = 0; i < lineCount; i++)
@@ -1184,6 +1182,15 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             CheckForFloodFill(line.Back, line.Front, line.Back.Sector.GetRenderSector(TransferHeightView.Middle),
                 line.Front.Sector.GetRenderSector(TransferHeightView.Middle), true);
         }
+    }
+    private static bool SectorLinesProcessed(WorldBase world, Sector sector)
+    {
+        if (sector.CheckCount == WorldStatic.CheckCounter || sector.MoveEventGameTick == sector.MoveProcessedGameTick)
+            return true;
+
+        sector.CheckCount = WorldStatic.CheckCounter;
+        sector.MoveProcessedGameTick = world.Gametick;
+        return false;
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)

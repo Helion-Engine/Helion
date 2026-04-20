@@ -738,7 +738,7 @@ public abstract partial class WorldBase : IWorld
         SetEntityLightSectors();
 
         StaticDataApplier.DetermineStaticData(this);
-        SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
+        SpecialManager.SectorMoveComplete += SpecialManager_SectorMoveComplete;
     }
 
     private void SetEntityLightSectors()
@@ -802,12 +802,10 @@ public abstract partial class WorldBase : IWorld
         return true;
     }
 
-    private void SpecialManager_SectorSpecialDestroyed(object? sender, ISectorSpecial special)
+    private void SpecialManager_SectorMoveComplete(object? sender, SectorPlane sectorPlane)
     {
-        if (special is not SectorMoveSpecial move)
-            return;
-
-        SectorMoveComplete?.Invoke(this, move.SectorPlane);
+        sectorPlane.Sector.MoveEventGameTick = Gametick;
+        SectorMoveComplete?.Invoke(this, sectorPlane);
     }
 
     public Player? GetLineOfSightPlayer(Entity entity, bool allAround)
@@ -1380,7 +1378,7 @@ public abstract partial class WorldBase : IWorld
     public void Dispose()
     {
         OnDestroying?.Invoke(this, EventArgs.Empty);
-        SpecialManager.SectorSpecialDestroyed -= SpecialManager_SectorSpecialDestroyed;
+        SpecialManager.SectorMoveComplete -= SpecialManager_SectorMoveComplete;
         SoundManager.UnregisterEvents();
         PerformDispose();
         GC.SuppressFinalize(this);
@@ -2812,6 +2810,7 @@ public abstract partial class WorldBase : IWorld
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
+        moveSpecial.Sector.MoveEventGameTick = Gametick;
         if (moveSpecial.IsInitialMove)
             SectorMoveStart?.Invoke(this, moveSpecial.SectorPlane);
 
