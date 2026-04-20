@@ -136,9 +136,9 @@ public class StaticShader : RenderProgram
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexGapSet}
             
+            ${SectorColorMapVertexFunction}
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
-            ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = pos.z;
             depthFrag = gl_Position.${Depth};

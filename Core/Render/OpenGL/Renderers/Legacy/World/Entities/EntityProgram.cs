@@ -160,6 +160,7 @@ public class EntityProgram : RenderProgram
         flat out float offsetXYOut;
         flat out float renderIndexOut;
         flat out vec3 sectorColorMapIndexOut;
+        flat out vec4 sectorFadeOut;
 
         uniform float timeFrac;
         uniform samplerBuffer sectorColormapTexture;
@@ -188,6 +189,7 @@ public class EntityProgram : RenderProgram
             renderIndexOut = renderIndex;
 
             sectorColorMapIndexOut = texelFetch(sectorColormapTexture, sectorIndexInt).rgb;
+            sectorFadeOut = texelFetch(sectorFadeTexture, sectorIndexInt).rgba;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }
@@ -210,6 +212,7 @@ public class EntityProgram : RenderProgram
         flat in float offsetXYOut[];
         flat in float renderIndexOut[];
         flat in vec3 sectorColorMapIndexOut[];
+        flat in vec4 sectorFadeOut[];
 
         out vec2 uvFrag;
         out float dist;
@@ -226,6 +229,7 @@ public class EntityProgram : RenderProgram
         flat out vec3 minPosFrag;
         flat out vec3 maxPosFrag;
         flat out vec3 sectorColorMapIndexFrag;
+        flat out vec4 sectorFadeColorFrag;
         out float depthFrag;
 
         uniform mat4 mvp;
@@ -284,6 +288,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            sectorFadeColorFrag = sectorFadeOut[0];
 
             // Push depth biased by the base times the renderIndex to prevent z-fighting
             float depthBias = float(renderIndexOut[0]) * ${DepthBiasBase};

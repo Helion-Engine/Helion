@@ -143,9 +143,9 @@ public class InterpolationShader : RenderProgram
 
             ${VertexGapSet}
             
+            ${SectorColorMapVertexFunction}
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
-            ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = mixPos.z;
             depthFrag = gl_Position.${Depth};
