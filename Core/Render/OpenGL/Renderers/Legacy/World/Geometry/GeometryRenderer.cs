@@ -903,7 +903,7 @@ public partial class GeometryRenderer : IDisposable
                 RenderMidTexCoverWalls(facingSide, facingSector, otherSector, vertices, visibility, m_renderCoverWallAction);
         }
 
-        if (ShouldRenderFogBarrier(facingSide))
+        if (ShouldRenderFogBarrier(facingSide, otherSide))
             RenderFogBarrier(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
     }
 
@@ -1051,10 +1051,11 @@ public partial class GeometryRenderer : IDisposable
         return upperVisible;
     }
 
-    public static bool ShouldRenderFogBarrier(Side side)
+    public bool ShouldRenderFogBarrier(Side side, Side otherSide)
     {
-        if (side.Sector.FogColor.Uint != 0 && side.PartnerSide!.Sector.FogColor.Uint == 0 && side.Sector.LightLevel <= 248)
-            return true;
+        // Only render if this side has fog and the other does not. First light level is skipped (248) and at least one side must not be sky.
+        if (side.Sector.FogColor.Uint != 0 && otherSide.Sector.FogColor.Uint == 0 && side.Sector.LightLevel <= 248)
+            return !TextureManager.IsSkyTexture(side.Sector.Ceiling.TextureHandle) || !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle);         
 
         return false;
     }

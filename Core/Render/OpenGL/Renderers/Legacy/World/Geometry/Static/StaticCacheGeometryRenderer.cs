@@ -422,11 +422,11 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (fogBarrierOnly)
         {
             if (middle)
-                UpdateFogBarrier(side, isFrontSide, update, otherSide, facingSector, otherSector);
+                UpdateFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide);
             return;
         }
 
-        if (middle && GeometryRenderer.ShouldRenderFogBarrier(side))
+        if (middle && m_geometryRenderer.ShouldRenderFogBarrier(side, otherSide))
         {
             m_geometryRenderer.RenderFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             side.Fog ??= new(m_archiveCollection.TextureManager.BlackTextureIndex, WallLocation.Middle);
@@ -531,14 +531,14 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
     }
 
-    private void UpdateFogBarrier(Side side, bool isFrontSide, bool update, Side otherSide, Sector facingSector, Sector otherSector)
+    private void UpdateFogBarrier(Side side, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
-        var shouldRenderFogBarrier = GeometryRenderer.ShouldRenderFogBarrier(side);
+        var shouldRenderFogBarrier = m_geometryRenderer.ShouldRenderFogBarrier(side, otherSide);
         if (shouldRenderFogBarrier && side.Fog == null)
         {
             m_geometryRenderer.RenderFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             side.Fog = new(m_archiveCollection.TextureManager.BlackTextureIndex, WallLocation.Middle);
-            SetSideVertices(m_geometryRenderer.FogSide, side.Fog, update, sideVertices, true, true, null);
+            SetSideVertices(m_geometryRenderer.FogSide, side.Fog, true, sideVertices, true, true, null);
         }
         else if (!shouldRenderFogBarrier && side.Fog != null)
         {
