@@ -370,6 +370,7 @@ public class EntityProgram : RenderProgram
         uniform float fuzzFrac;
         uniform sampler2D boundTexture;
         uniform sampler2D brightmapTexture;
+        uniform samplerBuffer colormapTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
         uniform vec3 colorMix;
