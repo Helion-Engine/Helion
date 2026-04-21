@@ -299,7 +299,7 @@ public partial class Renderer
 
     private static Vec4F GetSectorFogDensity(Color fadeColor, short lightLevel, float fogDensity)
     {
-        const float FadeFactor = 0.005f;
+        const float FadeFactor = 0.0055f;
         if (fadeColor.Uint == 0)
             return Vec4F.Zero;
 

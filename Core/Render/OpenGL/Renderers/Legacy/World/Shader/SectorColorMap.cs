@@ -16,7 +16,8 @@ sectorFogColorFrag = texelFetch(sectorFogTexture, int(colorMapIndexFrag)).rgba;"
 
     public static readonly string FragVariables =
  @"flat in vec3 sectorColorMapIndexFrag;
-flat in vec4 sectorFogColorFrag;";
+flat in vec4 sectorFogColorFrag;
+uniform int fogBarrier;";
 
     public static readonly string FragFunction = "";
 }

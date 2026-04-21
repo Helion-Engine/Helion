@@ -501,6 +501,13 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             if (m_vanillaRender && result.Vertices.Length > 0)
                 m_geometryRenderer.RenderMidTexCoverWalls(side, facingSector, otherSector, result.Vertices, sideVisibility, m_renderCoverWallAction);
         }
+
+        if (middle && GeometryRenderer.ShouldRenderFogBarrier(side))
+        {
+            m_geometryRenderer.RenderFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
+            side.Fog ??= new(m_archiveCollection.TextureManager.BlackTextureIndex, WallLocation.Middle);
+            SetSideVertices(m_geometryRenderer.FogSide, side.Fog, update, sideVertices, true, true, null);
+        }
     }
 
     private bool ShouldRenderStaticMiddle(Side side)
@@ -993,6 +1000,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 ClearSideGeometryVertices(line.Front, line.Front.Upper);
                 SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Upper);
             }
+
             if (line.Front.IsDynamic)
             {
                 ClearSideGeometryVertices(line.Front, line.Front.Lower);
@@ -1000,6 +1008,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
                 ClearSideGeometryVertices(line.Front, line.Front.Middle);
                 SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Middle);
+
+                if (line.Front.Fog != null)
+                    ClearSideGeometryVertices(line.Front, line.Front.Fog);
             }
 
             if (line.Back == null)
@@ -1021,6 +1032,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 ClearSideGeometryVertices(line.Back, line.Back.Upper);
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Upper);
             }
+
             if (line.Back.IsDynamic)
             {
                 ClearSideGeometryVertices(line.Back, line.Back.Lower);
@@ -1028,6 +1040,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
                 ClearSideGeometryVertices(line.Back, line.Back.Middle);
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Middle);
+
+                if (line.Back.Fog != null)
+                    ClearSideGeometryVertices(line.Back, line.Back.Fog);
             }
         }
     }

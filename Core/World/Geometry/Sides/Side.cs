@@ -34,6 +34,7 @@ public sealed class Side
     public Wall Upper;
     public Wall Middle;
     public Wall Lower;
+    public Wall? Fog;
     public Vec2I Offset;
     public Line Line;
     public SideDataTypes DataChanges;

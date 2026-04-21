@@ -36,6 +36,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_brightmapTextureLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
+    private readonly int m_fogBarrierLocation;
 
     public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
@@ -66,6 +67,7 @@ public class InterpolationShader : RenderProgram
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
+        m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -96,6 +98,7 @@ public class InterpolationShader : RenderProgram
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
+    public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
 
     protected override string VertexShader() => @"
         #version 330

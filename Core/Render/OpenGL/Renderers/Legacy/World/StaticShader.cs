@@ -35,6 +35,7 @@ public class StaticShader : RenderProgram
     private readonly int m_wallClipTextureLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
+    private readonly int m_fogBarrierLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -64,6 +65,7 @@ public class StaticShader : RenderProgram
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
+        m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -93,6 +95,7 @@ public class StaticShader : RenderProgram
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
+    public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
 
     protected override string VertexShader() => @"
         #version 330

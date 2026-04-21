@@ -112,6 +112,9 @@ public sealed class Sector : IFloorCeilingAnchor
     private short m_initialLightLevel;
     private SectorEffect m_initialSectorEffect;
     private InstantKillEffect m_initialKillEffect;
+    private Color m_initialLightColor;
+    private Color m_initialFogColor;
+    private float m_initialFogDensity;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
@@ -149,6 +152,9 @@ public sealed class Sector : IFloorCeilingAnchor
         m_initialLightLevel = lightLevel;
         m_initialSectorEffect = SectorEffect;
         m_initialKillEffect = KillEffect;
+        m_initialLightColor = LightColor;
+        m_initialFogColor = FogColor;
+        m_initialFogDensity = FogDensity;
     }
 
     public void Reset()
@@ -159,6 +165,9 @@ public sealed class Sector : IFloorCeilingAnchor
         LightLevel = m_initialLightLevel;
         SectorEffect = m_initialSectorEffect;
         KillEffect = m_initialKillEffect;
+        LightColor = m_initialLightColor;
+        FogColor = m_initialFogColor;
+        FogDensity = m_initialFogDensity;
         TransferFloorLightSector = this;
         SetTransferFloorLightSector = this;
         TransferCeilingLightSector = this;

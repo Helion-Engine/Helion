@@ -7,5 +7,6 @@ public enum RenderDataStyle
     Translucent,
     Add,
     ColorAdd,
+    FogBarrier,
     Count
 }
