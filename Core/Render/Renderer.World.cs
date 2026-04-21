@@ -31,7 +31,7 @@ public partial class Renderer
 
     private GLBufferTextureStorage<byte>? m_lightBufferStorage;
     private GLBufferTextureStorage<float>? m_sectorColorMapsBuffer;
-    private GLBufferTextureStorage<float>? m_sectorFadeBuffer;
+    private GLBufferTextureStorage<float>? m_sectorFogBuffer;
     private GLBufferTextureStorage<float>? m_colorMapBuffer;
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
@@ -116,7 +116,7 @@ public partial class Renderer
         SetMapDataBuffer(world, alloc);
         SetLightDataBuffer(world, alloc);
         SetSectorColorMapsBuffer(world, alloc);
-        SetSectorFadeBuffer(world, alloc);
+        SetSectorFogBuffer(world, alloc);
         SetLineHeights(world, alloc);
     }
 
@@ -233,9 +233,9 @@ public partial class Renderer
         }
     }
 
-    private unsafe void SetSectorFadeBuffer(IWorld world, bool alloc)
+    private unsafe void SetSectorFogBuffer(IWorld world, bool alloc)
     {
-        if (alloc || m_sectorFadeBuffer == null)
+        if (alloc || m_sectorFogBuffer == null)
         {
             // First index will always map to default colormap
             int sectorBufferCount = (world.Sectors.Count + 1) * LightBuffer.BufferSize;
@@ -243,24 +243,24 @@ public partial class Renderer
             int size = 4;
             var sectorBuffer = new float[sectorBufferCount * size];
 
-            m_sectorFadeBuffer?.Dispose();
-            m_sectorFadeBuffer = new("Sector fade", sectorBuffer, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
+            m_sectorFogBuffer?.Dispose();
+            m_sectorFogBuffer = new("Sector fog", sectorBuffer, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
         }
 
         if (alloc)
         {
-            m_sectorFadeBuffer.Map(data =>
+            m_sectorFogBuffer.Map(data =>
             {
-                float* fadeBuffer = (float*)data.ToPointer();
-                InitSectorFadeBuffer(world, fadeBuffer);
+                float* fogBuffer = (float*)data.ToPointer();
+                InitSectorFogBuffer(world, fogBuffer);
             });
         }
         else
         {
-            var mappedBuffer = m_sectorFadeBuffer.GetMappedBufferAndBind();
+            var mappedBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
             float* fadeBuffer = mappedBuffer.MappedMemoryPtr;
-            InitSectorFadeBuffer(world, fadeBuffer);
-            m_sectorFadeBuffer.Unbind();
+            InitSectorFogBuffer(world, fadeBuffer);
+            m_sectorFogBuffer.Unbind();
         }
     }
 
@@ -275,34 +275,35 @@ public partial class Renderer
         }
     }
 
-    private static unsafe void InitSectorFadeBuffer(IWorld world, float* fadeBuffer)
+    private static unsafe void InitSectorFogBuffer(IWorld world, float* fadeBuffer)
     {
         *(Vec3F*)&fadeBuffer[0] = Vec3F.Zero;
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            SetSectorFade(fadeBuffer, sector.Id, sector.FadeColor, Math.Clamp(sector.LightLevel, (short)0, (short)255));
+            SetSectorFog(fadeBuffer, sector.Id, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255));
         }
     }
 
-    private static unsafe void SetSectorFade(float* fadeBuffer, int sectorId, Color fadeColor, short lightLevel)
+    private static unsafe void SetSectorFog(float* fadeBuffer, int sectorId, Color fadeColor, short lightLevel)
     {
         int index = (sectorId + 1) * LightBuffer.BufferSize;
         const int VectorSize = 4;
 
-        var fade = GetSectorFadeDensity(fadeColor, lightLevel);
+        var fade = GetSectorFogDensity(fadeColor, lightLevel);
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * VectorSize] = fade;
     }
 
-    private static Vec4F GetSectorFadeDensity(Color fadeColor, short lightLevel)
+    private static Vec4F GetSectorFogDensity(Color fadeColor, short lightLevel)
     {
         if (fadeColor.Uint == 0)
             return Vec4F.Zero;
 
-        var density = (1.0f - lightLevel / 255.0f) * 0.004047f;
+        var density = (1.0f - lightLevel / 255.0f) * 0.006f;
+        //var density = (1.0f - lightLevel / 255.0f) * 0.04047f;
         return new(fadeColor.R / 255f, fadeColor.G / 255f, fadeColor.B / 255f, density);
     }
 
@@ -435,14 +436,14 @@ public partial class Renderer
 
     private unsafe void UpdateLights()
     {
-        if (m_updateLightSectors.UpdateSectors.Length == 0 || m_lightBufferStorage == null || m_sectorFadeBuffer == null)
+        if (m_updateLightSectors.UpdateSectors.Length == 0 || m_lightBufferStorage == null || m_sectorFogBuffer == null)
             return;
 
         var lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
         var lightData = lightBuffer.MappedMemoryPtr;
 
-        var fadeBuffer = m_sectorFadeBuffer.GetMappedBufferAndBind();
-        var fadeData = fadeBuffer.MappedMemoryPtr;
+        var fogBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+        var fogData = fogBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateLightSectors.UpdateSectors.Length; i++)
         {
@@ -452,7 +453,7 @@ public partial class Renderer
             lightData[index + LightBuffer.FloorOffset] = level;
             lightData[index + LightBuffer.CeilingOffset] = level;
             lightData[index + LightBuffer.WallOffset] = level;
-            SetSectorFade(fadeData, sector.Id, sector.FadeColor, level);
+            SetSectorFog(fogData, sector.Id, sector.FogColor, level);
         }
 
         m_lightBufferStorage.Unbind();

@@ -78,7 +78,7 @@ public class UdmfGeometryBuilder
                 DamageInterval = mapSector.DamageInterval == 0 ? SectorDamageSpecial.DefaultDamageInterval : mapSector.DamageInterval,
                 MoreTags = mapSector.MoreTags,
                 LightColor = new(mapSector.LightColor),
-                FadeColor = new(mapSector.FadeColor),
+                FogColor = new(mapSector.FadeColor),
             };
 
             if (mapSector.DamageAmount != 0)

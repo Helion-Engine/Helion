@@ -59,7 +59,8 @@ public sealed class Sector : IFloorCeilingAnchor
     public int DamageInterval;
     public int DamageLeakiness;
     public Color LightColor;
-    public Color FadeColor;
+    public Color FogColor;
+    public float FogDensity;
     public string SkyFloor;
     public string SkyCeiling;
     public int? FloorSkyTextureHandle;

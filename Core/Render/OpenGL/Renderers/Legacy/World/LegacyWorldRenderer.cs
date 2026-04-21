@@ -762,7 +762,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SectorLightTexture(BindTextures.SectorLight);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
-        program.SectorFadeTexture(BindTextures.SectorFade);
+        program.SectorFogTexture(BindTextures.SectorFog);
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.WallClipTexture(BindTextures.WallClipTexture);
@@ -799,7 +799,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SectorLightTexture(BindTextures.SectorLight);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
-        program.SectorFadeTexture(BindTextures.SectorFade);
+        program.SectorFogTexture(BindTextures.SectorFog);
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.WallClipTexture(BindTextures.WallClipTexture);

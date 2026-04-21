@@ -356,7 +356,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
-        program.SectorFadeTexture(BindTextures.SectorFade);
+        program.SectorFogTexture(BindTextures.SectorFog);
         program.ExtraLight(renderInfo.Uniforms.ExtraLightOrColorMapIndex);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
