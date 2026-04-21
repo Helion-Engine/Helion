@@ -509,6 +509,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 sector.LightColor = (uint)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("fadeColor"))
                 sector.FadeColor = (uint)parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("fogDensity"))
+                sector.FogDensity = parser.ParseInt(prop.Value);
 
             else if (prop.Name.EqualsIgnoreCase("scrollfloormode"))
                 GetScrollSector(sector.Id, SectorPlaneFace.Floor, scrollSectors).Flags = (UdmfScrollSectorFlags)parser.ParseInt(prop.Value);

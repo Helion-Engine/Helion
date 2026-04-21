@@ -79,6 +79,7 @@ public class UdmfGeometryBuilder
                 MoreTags = mapSector.MoreTags,
                 LightColor = new(mapSector.LightColor),
                 FogColor = new(mapSector.FadeColor),
+                FogDensity = mapSector.FogDensity / 510f
             };
 
             if (mapSector.DamageAmount != 0)

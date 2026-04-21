@@ -282,29 +282,33 @@ public partial class Renderer
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            SetSectorFog(fadeBuffer, sector.Id, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255));
+            SetSectorFog(fadeBuffer, sector.Id, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255), sector.FogDensity);
         }
     }
 
-    private static unsafe void SetSectorFog(float* fadeBuffer, int sectorId, Color fadeColor, short lightLevel)
+    private static unsafe void SetSectorFog(float* fadeBuffer, int sectorId, Color fadeColor, short lightLevel, float fogDensity)
     {
         int index = (sectorId + 1) * LightBuffer.BufferSize;
         const int VectorSize = 4;
 
-        var fade = GetSectorFogDensity(fadeColor, lightLevel);
+        var fade = GetSectorFogDensity(fadeColor, lightLevel, fogDensity);
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * VectorSize] = fade;
     }
 
-    private static Vec4F GetSectorFogDensity(Color fadeColor, short lightLevel)
+    private static Vec4F GetSectorFogDensity(Color fadeColor, short lightLevel, float fogDensity)
     {
+        const float FadeFactor = 0.005f;
         if (fadeColor.Uint == 0)
             return Vec4F.Zero;
 
-        var density = (1.0f - lightLevel / 255.0f) * 0.006f;
-        //var density = (1.0f - lightLevel / 255.0f) * 0.04047f;
-        return new(fadeColor.R / 255f, fadeColor.G / 255f, fadeColor.B / 255f, density);
+        if (fogDensity == 0)
+            fogDensity = (1.0f - lightLevel / 255.0f) * FadeFactor;
+        else
+            fogDensity *= FadeFactor;
+
+        return new(fadeColor.R / 255f, fadeColor.G / 255f, fadeColor.B / 255f, fogDensity);
     }
 
     private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
@@ -453,7 +457,7 @@ public partial class Renderer
             lightData[index + LightBuffer.FloorOffset] = level;
             lightData[index + LightBuffer.CeilingOffset] = level;
             lightData[index + LightBuffer.WallOffset] = level;
-            SetSectorFog(fogData, sector.Id, sector.FogColor, level);
+            SetSectorFog(fogData, sector.Id, sector.FogColor, level, sector.FogDensity);
         }
 
         m_lightBufferStorage.Unbind();
