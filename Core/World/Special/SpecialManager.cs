@@ -1355,6 +1355,9 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.SectorSetColor:
                 return ActionSpecials.SectorSetColor(m_world, line.Args);
 
+            case ZDoomLineSpecialType.SectorSetFade:
+                return ActionSpecials.SectorSetFade(m_world, line.Args);
+
             case ZDoomLineSpecialType.NoiseAlert:
                 return ActionSpecials.NoiseAlert(args.Entity, m_world, line.Args);
 

@@ -27,6 +27,7 @@ public partial class Renderer
 
     private readonly SectorUpdates m_updateLightSectors = new();
     private readonly SectorUpdates m_updateColorMapSectors = new();
+    private readonly SectorUpdates m_updateFogColorSectors = new();
     private readonly SectorUpdates m_updateLineHeights = new();
 
     private GLBufferTextureStorage<byte>? m_lightBufferStorage;
@@ -88,9 +89,11 @@ public partial class Renderer
         m_lastDrawWorldCmd = default;
         m_updateLightSectors.ClearAndReset();
         m_updateColorMapSectors.ClearAndReset();
+        m_updateFogColorSectors.ClearAndReset();
         m_updateLineHeights.ClearAndReset();
         m_updateLightSectors.EnsureCapacity(world.Sectors.Count);
         m_updateColorMapSectors.EnsureCapacity(world.Sectors.Count);
+        m_updateFogColorSectors.EnsureCapacity(world.Sectors.Count);
         m_updateLineHeights.EnsureCapacity(world.Sectors.Count);
 
         m_worldRenderer.UpdateToNewWorld(world);
@@ -100,6 +103,7 @@ public partial class Renderer
         {
             m_world.SectorLightChanged -= World_SectorLightChanged;
             m_world.SectorColorMapChanged -= World_SectorColorMapChanged;
+            m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
             m_world.SectorMove -= World_SectorMove;
             m_world.SectorMoveComplete -= World_SectorMoveComplete;
         }
@@ -107,6 +111,7 @@ public partial class Renderer
         m_world = world;
         m_world.SectorLightChanged += World_SectorLightChanged;
         m_world.SectorColorMapChanged += World_SectorColorMapChanged;
+        m_world.SectorFogColorChanged += World_SectorFogColorChanged;
         m_world.SectorMove += World_SectorMove;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
 
@@ -418,6 +423,11 @@ public partial class Renderer
         m_updateColorMapSectors.Add(sector);
     }
 
+    private void World_SectorFogColorChanged(object? sender, Sector sector)
+    {
+        m_updateFogColorSectors.Add(sector);
+    }
+
     private void World_SectorMove(object? sender, SectorPlane e)
     {
         m_updateLineHeights.Add(e.Sector);
@@ -432,9 +442,11 @@ public partial class Renderer
     {
         UpdateLights();
         UpdateColorMaps();
+        UpdateFogColors();
         UpdateLineHeights();
         m_updateLightSectors.Clear();
         m_updateColorMapSectors.Clear();
+        m_updateFogColorSectors.Clear();
         m_updateLineHeights.Clear();
     }
 
@@ -478,6 +490,23 @@ public partial class Renderer
         }
 
         m_sectorColorMapsBuffer.Unbind();
+    }
+
+    private unsafe void UpdateFogColors()
+    {
+        if (m_updateFogColorSectors.UpdateSectors.Length == 0 || m_sectorFogBuffer == null)
+            return;
+
+        var mappedBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+        float* fogBuffer = mappedBuffer.MappedMemoryPtr;
+
+        for (int i = 0; i < m_updateFogColorSectors.UpdateSectors.Length; i++)
+        {
+            var sector = m_updateFogColorSectors.UpdateSectors[i];
+            SetSectorFog(fogBuffer, sector.Id, sector.FogColor, sector.LightLevel, sector.FogDensity);
+        }
+
+        m_sectorFogBuffer.Unbind();
     }
 
     private unsafe void UpdateLineHeights()

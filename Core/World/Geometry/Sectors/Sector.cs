@@ -135,6 +135,9 @@ public sealed class Sector : IFloorCeilingAnchor
         SectorSpecialType = sectorSpecial;
         KillEffect = sectorData.InstantKillEffect;
         SectorEffect = sectorData.SectorEffect;
+        LightColor = sectorData.LightColor;
+        FogColor = sectorData.FogColor;
+        FogDensity = sectorData.FogDensity;
 
         if (sectorData.BasicDamageAmount != 0)
         {
@@ -263,6 +266,13 @@ public sealed class Sector : IFloorCeilingAnchor
     {
         DataChanges |= SectorDataTypes.ColorMap;
         Colormap = colormap;
+    }
+
+    public void SetFog(Color color, float density)
+    {
+        DataChanges |= SectorDataTypes.Fog;
+        FogColor = color;
+        FogDensity = density;
     }
 
     public void SetSectorSpecialType(ZDoomSectorSpecialType type)
@@ -414,8 +424,13 @@ public sealed class Sector : IFloorCeilingAnchor
                 if (Ceiling.RenderOffsets.Scale != Vec2D.One)
                     sectorModel.CeilingScale = new Vector2D(Ceiling.RenderOffsets.Scale);
             }
+            if ((DataChanges & SectorDataTypes.Fog) != 0)
+            {
+                sectorModel.FogColor = FogColor.Uint;
+                sectorModel.FogDensity = FogDensity;
+            }
 
-                sectorModel.Secret = Secret;
+            sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
         }
 
@@ -516,6 +531,14 @@ public sealed class Sector : IFloorCeilingAnchor
                 {
                     Colormap = sectorColorMap;
                 }
+            }
+
+            if ((DataChanges & SectorDataTypes.Fog) != 0)
+            {
+                if (sectorModel.FogColor.HasValue)
+                    FogColor = new(sectorModel.FogColor.Value);
+                if (sectorModel.FogDensity.HasValue)
+                    FogDensity = sectorModel.FogDensity.Value;
             }
         }
 

@@ -3,6 +3,7 @@ using Helion.Dehacked;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
 using Helion.Maps.Components;
@@ -100,6 +101,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<Sector>? SectorColorMapChanged;
+    public event EventHandler<Sector>? SectorFogColorChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
     public event EventHandler<MusicChangeEvent>? OnMusicChanged;
     public event EventHandler? OnTick;
@@ -4340,6 +4342,14 @@ public abstract partial class WorldBase : IWorld
             return;
         sector.SetColorMap(colormap);
         SectorColorMapChanged?.Invoke(this, sector);
+    }
+
+    public void SetSectorFogColor(Sector sector, Color color, float density)
+    {
+        if (sector.FogColor == color && sector.FogDensity == density)
+            return;
+        sector.SetFog(color, sector.FogDensity);
+        SectorFogColorChanged?.Invoke(this, sector);
     }
 
     public void SetSectorPlaneAngle(SectorPlane plane, double angleRadians)
