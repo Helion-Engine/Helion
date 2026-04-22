@@ -1,5 +1,6 @@
 ﻿using Helion.Audio;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
@@ -196,6 +197,17 @@ public static class ActionSpecials
         {
             var sector = sectors[i];
             world.SetSectorColorMap(sector, colormap);
+        }
+        return true;
+    }
+
+    public static bool SectorSetFade(IWorld world, in SpecialArgs args)
+    {
+        var sectors = world.FindBySectorTag(args.Arg0);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+            world.SetSectorFogColor(sector, new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3), sector.FogDensity);
         }
         return true;
     }

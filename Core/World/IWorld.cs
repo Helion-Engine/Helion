@@ -1,4 +1,5 @@
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
 using Helion.Maps.Components;
@@ -59,6 +60,7 @@ public interface IWorld : IDisposable
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<Sector>? SectorColorMapChanged;
+    event EventHandler<Sector>? SectorFogColorChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
     event EventHandler<MusicChangeEvent>? OnMusicChanged;
     event EventHandler? OnTick;
@@ -181,6 +183,7 @@ public interface IWorld : IDisposable
     void SetSectorKillEffect(Sector sector, InstantKillEffect effect);
     void SetSectorDamageSpecial(Sector sector, SectorDamageSpecial? special);
     void SetSectorColorMap(Sector sector, Colormap? colormap);
+    void SetSectorFogColor(Sector sector, Color color, float density);
     void SetSectorPlaneAngle(SectorPlane plane, double angleRadians);
     void SetSectorPlaneScale(SectorPlane plane, Vec2D scale);
     void SetSectorGravity(Sector sector, double gravity);

@@ -72,16 +72,6 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
         m_lookup.Get(GeometryType.Middle3D).Draw();
     }
 
-    public bool HasAlpha()
-    {
-        return HasGeometryType(GeometryType.Translucent) || HasGeometryType(GeometryType.TranslucentAdd) || HasGeometryType(GeometryType.TranslucentColorAdd);
-    }
-
-    public bool HasGeometryType(GeometryType type)
-    {
-        return m_lookup.Get(type).RenderData.Count > 0;
-    }
-
     public void RenderFlats()
     {
         m_lookup.Get(GeometryType.Flat).Draw();

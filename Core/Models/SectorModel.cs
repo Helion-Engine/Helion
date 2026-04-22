@@ -44,4 +44,6 @@ public struct SectorModel
     public double? CeilingRotate;
     public Vector2D? FloorScale;
     public Vector2D? CeilingScale;
+    public uint? FogColor;
+    public float? FogDensity;
 }

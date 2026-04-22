@@ -112,6 +112,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorPlaneTransformed += World_SectorPlaneTransformed;
+        m_world.SectorFogColorChanged += World_SectorFogColorChanged;
 
         m_geometryRenderer.SetInitRender();
 
@@ -178,6 +179,19 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 data.Vbo.Bind();
                 data.Vbo.UploadIfNeeded();
             }
+        }
+    }
+
+    private void World_SectorFogColorChanged(object? sender, Sector sector)
+    {
+        for (int i = 0; i < sector.Lines.Length; i++)
+        {
+            var line = sector.Lines[i];
+            if (line.Back == null)
+                continue;
+
+            AddTwoSided(line.Front, line.Front.IsFront, update: true, fogBarrierOnly: true);
+            AddTwoSided(line.Back, line.Back.IsFront, update: true, fogBarrierOnly: true);
         }
     }
 
@@ -388,7 +402,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
     }
 
-    private void AddTwoSided(Side side, bool isFrontSide, bool update)
+    private void AddTwoSided(Side side, bool isFrontSide, bool update, bool fogBarrierOnly = false)
     {
         Side otherSide = side.PartnerSide!;
         if (update && (side.Sector.IsMoving || otherSide.Sector.IsMoving))
@@ -404,6 +418,20 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic);
 
         m_geometryRenderer.SetRenderTwoSided(side);
+
+        if (fogBarrierOnly)
+        {
+            if (middle)
+                UpdateFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide);
+            return;
+        }
+
+        if (middle && m_geometryRenderer.ShouldRenderFogBarrier(side, otherSide))
+        {
+            m_geometryRenderer.RenderFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
+            side.Fog ??= new(m_archiveCollection.TextureManager.BlackTextureIndex, WallLocation.Middle);
+            SetSideVertices(m_geometryRenderer.FogSide, side.Fog, update, sideVertices, true, true, null);
+        }
 
         AddFloodFillPlane(side, facingSector, isFrontSide);
 
@@ -500,6 +528,23 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
             if (m_vanillaRender && result.Vertices.Length > 0)
                 m_geometryRenderer.RenderMidTexCoverWalls(side, facingSector, otherSector, result.Vertices, sideVisibility, m_renderCoverWallAction);
+        }
+    }
+
+    private void UpdateFogBarrier(Side side, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
+    {
+        var shouldRenderFogBarrier = m_geometryRenderer.ShouldRenderFogBarrier(side, otherSide);
+        if (shouldRenderFogBarrier && (side.Fog == null || side.FogCleared))
+        {
+            m_geometryRenderer.RenderFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
+            side.Fog ??= new(m_archiveCollection.TextureManager.BlackTextureIndex, WallLocation.Middle);
+            side.FogCleared = false;
+            SetSideVertices(m_geometryRenderer.FogSide, side.Fog, true, sideVertices, true, true, null);
+        }
+        else if (!shouldRenderFogBarrier && side.Fog != null)
+        {
+            side.FogCleared = true;
+            ClearSideGeometryVertices(side, side.Fog);
         }
     }
 
@@ -696,6 +741,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world.SectorPlaneTransformed -= World_SectorPlaneTransformed;
+            m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
             m_world = null!;
         }
 
@@ -993,6 +1039,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 ClearSideGeometryVertices(line.Front, line.Front.Upper);
                 SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Upper);
             }
+
             if (line.Front.IsDynamic)
             {
                 ClearSideGeometryVertices(line.Front, line.Front.Lower);
@@ -1000,6 +1047,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
                 ClearSideGeometryVertices(line.Front, line.Front.Middle);
                 SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Middle);
+
+                if (line.Front.Fog != null)
+                    ClearSideGeometryVertices(line.Front, line.Front.Fog);
             }
 
             if (line.Back == null)
@@ -1021,6 +1071,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 ClearSideGeometryVertices(line.Back, line.Back.Upper);
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Upper);
             }
+
             if (line.Back.IsDynamic)
             {
                 ClearSideGeometryVertices(line.Back, line.Back.Lower);
@@ -1028,6 +1079,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
                 ClearSideGeometryVertices(line.Back, line.Back.Middle);
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Middle);
+
+                if (line.Back.Fog != null)
+                    ClearSideGeometryVertices(line.Back, line.Back.Fog);
             }
         }
     }

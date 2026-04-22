@@ -13,6 +13,7 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
+    private readonly int m_sectorFogTextureLocation;
     private readonly int m_cameraLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
@@ -35,6 +36,7 @@ public class FloodFillProgram : RenderProgram
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
+        m_sectorFogTextureLocation = Uniforms.GetLocation("sectorFogTexture");
         m_cameraLocation = Uniforms.GetLocation("camera");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
@@ -56,6 +58,7 @@ public class FloodFillProgram : RenderProgram
     public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void SectorFogTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorFogTextureLocation);
 
     public void CameraDirection(Vec3F dir) => ProgramUniforms.Set(dir, m_cameraDirection);
     public void Camera(Vec3F camera) => ProgramUniforms.Set(camera, m_cameraLocation);
@@ -120,8 +123,8 @@ public class FloodFillProgram : RenderProgram
             float addAlphaFrag;
             ${VertexOptionsSet}
 
-            ${VertexLightBuffer}
             ${SectorColorMapVertexFunction}
+            ${VertexLightBuffer}
 
             // Match doom behavior to not render flood view when camera is above/below ceiling/floor
             vec3 worldPos = mix(vertexPosFrag + cameraDirection * 0.001,

@@ -13,6 +13,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
+    private readonly int m_sectorFogTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
     private readonly int m_hasInvulnerabilityLocation;
@@ -35,6 +36,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_brightmapTextureLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
+    private readonly int m_fogBarrierLocation;
 
     public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
@@ -42,6 +44,7 @@ public class InterpolationShader : RenderProgram
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
+        m_sectorFogTextureLocation = Uniforms.GetLocation("sectorFogTexture");
         m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
@@ -64,12 +67,14 @@ public class InterpolationShader : RenderProgram
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
+        m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void SectorFogTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorFogTextureLocation);
     public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
     public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
     public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
@@ -93,6 +98,7 @@ public class InterpolationShader : RenderProgram
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
+    public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -140,9 +146,9 @@ public class InterpolationShader : RenderProgram
 
             ${VertexGapSet}
             
+            ${SectorColorMapVertexFunction}
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
-            ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = mixPos.z;
             depthFrag = gl_Position.${Depth};

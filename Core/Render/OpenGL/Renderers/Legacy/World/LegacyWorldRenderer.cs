@@ -544,6 +544,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (!hasEntityFuzzData && !hasEntityAlphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
 
+        SetPolygonOffsetFloodFill();
         m_oitFrameBuffer.StartRender();
         GL.DepthMask(false);
 
@@ -579,6 +580,14 @@ public class LegacyWorldRenderer : WorldRenderer
             SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
             m_worldDataManager.RenderAllAlpha();
+
+            if (m_worldDataManager.HasStyleToRender(RenderDataStyle.FogBarrier))
+            {
+                m_interpolationTransparentProgram.FogBarrier(true);
+                GL.Enable(EnableCap.PolygonOffsetFill);
+                m_worldDataManager.Render(RenderDataStyle.FogBarrier);
+                GL.Disable(EnableCap.PolygonOffsetFill);
+            }
         }
 
         if (hasStaticAlphaGeometry)
@@ -588,6 +597,14 @@ public class LegacyWorldRenderer : WorldRenderer
             SetStaticUniforms(m_staticTransparentProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
             m_geometryRenderer.StaticRenderer.RenderAllAlpha();
+
+            if (m_geometryRenderer.StaticRenderer.HasStyleToRender(RenderDataStyle.FogBarrier))
+            {
+                m_staticTransparentProgram.FogBarrier(true);
+                GL.Enable(EnableCap.PolygonOffsetFill);
+                m_geometryRenderer.StaticRenderer.Render(RenderDataStyle.FogBarrier);
+                GL.Disable(EnableCap.PolygonOffsetFill);
+            }
         }
 
         ResetBlendEquations();
@@ -627,9 +644,17 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.DepthMask(true);
     }
 
-    private static void RenderCompositeStyles(IStyleRenderer styleRenderer)
+    private void RenderCompositeStyles(IStyleRenderer styleRenderer)
     {
         styleRenderer.Render(RenderDataStyle.Translucent);
+
+        if (styleRenderer.HasStyleToRender(RenderDataStyle.FogBarrier))
+        {
+            m_staticCompositeProgram.FogBarrier(true);
+            GL.Enable(EnableCap.PolygonOffsetFill);
+            styleRenderer.Render(RenderDataStyle.FogBarrier);
+            GL.Disable(EnableCap.PolygonOffsetFill);
+        }
 
         if (styleRenderer.HasStyleToRender(RenderDataStyle.Add))
         {
@@ -762,6 +787,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SectorLightTexture(BindTextures.SectorLight);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
+        program.SectorFogTexture(BindTextures.SectorFog);
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.WallClipTexture(BindTextures.WallClipTexture);
@@ -781,6 +807,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);
+        program.FogBarrier(false);
 
         if (program is InterpolationCompositeShader)
         {
@@ -798,6 +825,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SectorLightTexture(BindTextures.SectorLight);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
+        program.SectorFogTexture(BindTextures.SectorFog);
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.WallClipTexture(BindTextures.WallClipTexture);
@@ -816,11 +844,12 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);
+        program.FogBarrier(false);
 
         if (program is StaticCompositeShader)
         {
             program.AccumTexture(BindTextures.AccumTexture);
-            program.AccumCountTextre(BindTextures.AccumCountTexture);            
+            program.AccumCountTexture(BindTextures.AccumCountTexture);            
         }
 
         if (program is StaticCompositeShader || program is StaticTransparentShader)

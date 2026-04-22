@@ -22,7 +22,8 @@ public static class LightLevel
     public static string VertexLightBuffer(VertexLightBufferOptions options) =>
 @"int texBufferIndex = int(lightLevelBufferIndex);
 float lightLevelBufferValue = float(texelFetch(sectorLightTexture, texBufferIndex).r);
-lightLevelFrag = clamp(lightLevelBufferValue" + ((options & VertexLightBufferOptions.LightLevelAdd) != 0 ? " + lightLevelAddValue + vertexLightLevelFrag" : " + vertexLightLevelFrag") + ", 0.0, 256.0);";
+lightLevelFrag = clamp(lightLevelBufferValue" + ((options & VertexLightBufferOptions.LightLevelAdd) != 0 ? 
+        " + vertexLightLevelFrag + lightLevelAddValue * (1 - sectorFogColorFrag.a) " : " + vertexLightLevelFrag") + ", 0.0, 256.0);";
 
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).{ShaderVars.Depth};";
 

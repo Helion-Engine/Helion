@@ -13,6 +13,7 @@ public class StaticShader : RenderProgram
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
+    private readonly int m_sectorFogTextureLocation;
     private readonly int m_brightmapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
@@ -34,6 +35,7 @@ public class StaticShader : RenderProgram
     private readonly int m_wallClipTextureLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
+    private readonly int m_fogBarrierLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -41,6 +43,7 @@ public class StaticShader : RenderProgram
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
+        m_sectorFogTextureLocation = Uniforms.GetLocation("sectorFogTexture");
         m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
@@ -62,15 +65,17 @@ public class StaticShader : RenderProgram
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
+        m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void SectorFogTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorFogTextureLocation);
     public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
     public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
-    public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
+    public void AccumCountTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
     public void PlaneClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_planeClipTextureLocation);
     public void WallClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_wallClipTextureLocation);
 
@@ -90,6 +95,7 @@ public class StaticShader : RenderProgram
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
+    public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -133,9 +139,9 @@ public class StaticShader : RenderProgram
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexGapSet}
             
+            ${SectorColorMapVertexFunction}
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
-            ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = pos.z;
             depthFrag = gl_Position.${Depth};

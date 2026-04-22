@@ -14,6 +14,7 @@ public enum GeometryType
     Translucent,
     TranslucentAdd,
     TranslucentColorAdd,
+    FogBarrier,
     Count
 }
 

@@ -21,6 +21,9 @@ public abstract class StyleRendererBase : IStyleRenderer
 
     public bool HasAlphaToRender()
     {
+        if (HasStyleToRender(RenderDataStyle.FogBarrier))
+            return true;
+
         for (int i = 0; i < AlphaStyles.Length; i++)
         {
             if (HasStyleToRender(AlphaStyles[i]))

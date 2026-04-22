@@ -12,6 +12,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using System;
 using Helion.World.Geometry.Lines;
+using Helion.Graphics;
 
 namespace Helion.Render;
 
@@ -26,10 +27,12 @@ public partial class Renderer
 
     private readonly SectorUpdates m_updateLightSectors = new();
     private readonly SectorUpdates m_updateColorMapSectors = new();
+    private readonly SectorUpdates m_updateFogColorSectors = new();
     private readonly SectorUpdates m_updateLineHeights = new();
 
     private GLBufferTextureStorage<byte>? m_lightBufferStorage;
     private GLBufferTextureStorage<float>? m_sectorColorMapsBuffer;
+    private GLBufferTextureStorage<float>? m_sectorFogBuffer;
     private GLBufferTextureStorage<float>? m_colorMapBuffer;
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
@@ -86,9 +89,11 @@ public partial class Renderer
         m_lastDrawWorldCmd = default;
         m_updateLightSectors.ClearAndReset();
         m_updateColorMapSectors.ClearAndReset();
+        m_updateFogColorSectors.ClearAndReset();
         m_updateLineHeights.ClearAndReset();
         m_updateLightSectors.EnsureCapacity(world.Sectors.Count);
         m_updateColorMapSectors.EnsureCapacity(world.Sectors.Count);
+        m_updateFogColorSectors.EnsureCapacity(world.Sectors.Count);
         m_updateLineHeights.EnsureCapacity(world.Sectors.Count);
 
         m_worldRenderer.UpdateToNewWorld(world);
@@ -98,6 +103,7 @@ public partial class Renderer
         {
             m_world.SectorLightChanged -= World_SectorLightChanged;
             m_world.SectorColorMapChanged -= World_SectorColorMapChanged;
+            m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
             m_world.SectorMove -= World_SectorMove;
             m_world.SectorMoveComplete -= World_SectorMoveComplete;
         }
@@ -105,6 +111,7 @@ public partial class Renderer
         m_world = world;
         m_world.SectorLightChanged += World_SectorLightChanged;
         m_world.SectorColorMapChanged += World_SectorColorMapChanged;
+        m_world.SectorFogColorChanged += World_SectorFogColorChanged;
         m_world.SectorMove += World_SectorMove;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
 
@@ -114,6 +121,7 @@ public partial class Renderer
         SetMapDataBuffer(world, alloc);
         SetLightDataBuffer(world, alloc);
         SetSectorColorMapsBuffer(world, alloc);
+        SetSectorFogBuffer(world, alloc);
         SetLineHeights(world, alloc);
     }
 
@@ -230,6 +238,37 @@ public partial class Renderer
         }
     }
 
+    private unsafe void SetSectorFogBuffer(IWorld world, bool alloc)
+    {
+        if (alloc || m_sectorFogBuffer == null)
+        {
+            // First index will always map to default colormap
+            int sectorBufferCount = (world.Sectors.Count + 1) * LightBuffer.BufferSize;
+            // PaletteColorMode is index to colormap, true color will be RGB mix
+            int size = 4;
+            var sectorBuffer = new float[sectorBufferCount * size];
+
+            m_sectorFogBuffer?.Dispose();
+            m_sectorFogBuffer = new("Sector fog", sectorBuffer, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
+        }
+
+        if (alloc)
+        {
+            m_sectorFogBuffer.Map(data =>
+            {
+                float* fogBuffer = (float*)data.ToPointer();
+                InitSectorFogBuffer(world, fogBuffer);
+            });
+        }
+        else
+        {
+            var mappedBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+            float* fadeBuffer = mappedBuffer.MappedMemoryPtr;
+            InitSectorFogBuffer(world, fadeBuffer);
+            m_sectorFogBuffer.Unbind();
+        }
+    }
+
     private static unsafe void InitSectorColorMap(IWorld world, float* colorMapBuffer)
     {
         *(Vec3F*)&colorMapBuffer[0] = Vec3F.One;
@@ -239,6 +278,42 @@ public partial class Renderer
             var sector = world.Sectors[i];
             SetSectorColorMap(colorMapBuffer, sector, sector.Colormap);
         }
+    }
+
+    private static unsafe void InitSectorFogBuffer(IWorld world, float* fadeBuffer)
+    {
+        *(Vec3F*)&fadeBuffer[0] = Vec3F.Zero;
+
+        for (int i = 0; i < world.Sectors.Count; i++)
+        {
+            var sector = world.Sectors[i];
+            SetSectorFog(fadeBuffer, sector.Id, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255), sector.FogDensity);
+        }
+    }
+
+    private static unsafe void SetSectorFog(float* fadeBuffer, int sectorId, Color fadeColor, short lightLevel, float fogDensity)
+    {
+        int index = (sectorId + 1) * LightBuffer.BufferSize;
+        const int VectorSize = 4;
+
+        var fade = GetSectorFogDensity(fadeColor, lightLevel, fogDensity);
+        *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = fade;
+        *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = fade;
+        *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * VectorSize] = fade;
+    }
+
+    private static Vec4F GetSectorFogDensity(Color fadeColor, short lightLevel, float fogDensity)
+    {
+        const float FadeFactor = 0.004f;
+        if (fadeColor.Uint == 0)
+            return Vec4F.Zero;
+
+        if (fogDensity == 0)
+            fogDensity = (1.0f - lightLevel / 255.0f) * FadeFactor;
+        else
+            fogDensity *= FadeFactor;
+
+        return new(fadeColor.R / 255f, fadeColor.G / 255f, fadeColor.B / 255f, fogDensity);
     }
 
     private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
@@ -348,6 +423,11 @@ public partial class Renderer
         m_updateColorMapSectors.Add(sector);
     }
 
+    private void World_SectorFogColorChanged(object? sender, Sector sector)
+    {
+        m_updateFogColorSectors.Add(sector);
+    }
+
     private void World_SectorMove(object? sender, SectorPlane e)
     {
         m_updateLineHeights.Add(e.Sector);
@@ -362,19 +442,24 @@ public partial class Renderer
     {
         UpdateLights();
         UpdateColorMaps();
+        UpdateFogColors();
         UpdateLineHeights();
         m_updateLightSectors.Clear();
         m_updateColorMapSectors.Clear();
+        m_updateFogColorSectors.Clear();
         m_updateLineHeights.Clear();
     }
 
     private unsafe void UpdateLights()
     {
-        if (m_updateLightSectors.UpdateSectors.Length == 0 || m_lightBufferStorage == null)
+        if (m_updateLightSectors.UpdateSectors.Length == 0 || m_lightBufferStorage == null || m_sectorFogBuffer == null)
             return;
 
         var lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
         var lightData = lightBuffer.MappedMemoryPtr;
+
+        var fogBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+        var fogData = fogBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateLightSectors.UpdateSectors.Length; i++)
         {
@@ -384,6 +469,7 @@ public partial class Renderer
             lightData[index + LightBuffer.FloorOffset] = level;
             lightData[index + LightBuffer.CeilingOffset] = level;
             lightData[index + LightBuffer.WallOffset] = level;
+            SetSectorFog(fogData, sector.Id, sector.FogColor, level, sector.FogDensity);
         }
 
         m_lightBufferStorage.Unbind();
@@ -404,6 +490,23 @@ public partial class Renderer
         }
 
         m_sectorColorMapsBuffer.Unbind();
+    }
+
+    private unsafe void UpdateFogColors()
+    {
+        if (m_updateFogColorSectors.UpdateSectors.Length == 0 || m_sectorFogBuffer == null)
+            return;
+
+        var mappedBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+        float* fogBuffer = mappedBuffer.MappedMemoryPtr;
+
+        for (int i = 0; i < m_updateFogColorSectors.UpdateSectors.Length; i++)
+        {
+            var sector = m_updateFogColorSectors.UpdateSectors[i];
+            SetSectorFog(fogBuffer, sector.Id, sector.FogColor, sector.LightLevel, sector.FogDensity);
+        }
+
+        m_sectorFogBuffer.Unbind();
     }
 
     private unsafe void UpdateLineHeights()

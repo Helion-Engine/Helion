@@ -65,6 +65,10 @@ public class UdmfGeometryBuilder
             ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
 
             GetSectorSpecial(mapSector, needsTranslation, out var sectorSpecial, out var sectorData);
+            sectorData.LightColor = new(mapSector.LightColor);
+            sectorData.FogColor = new(mapSector.FadeColor);
+            sectorData.FogDensity = mapSector.FogDensity / 510f;
+
             var sector = new Sector(builder.Sectors.Count, mapSector.Tag, mapSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData)
             {
@@ -74,8 +78,7 @@ public class UdmfGeometryBuilder
                 SkyFloor = mapSector.SkyFloor,
                 SkyCeiling = mapSector.SkyCeiling,
                 DamageInterval = mapSector.DamageInterval == 0 ? SectorDamageSpecial.DefaultDamageInterval : mapSector.DamageInterval,
-                MoreTags = mapSector.MoreTags,
-                LightColor = new(mapSector.LightColor)
+                MoreTags = mapSector.MoreTags
             };
 
             if (mapSector.DamageAmount != 0)

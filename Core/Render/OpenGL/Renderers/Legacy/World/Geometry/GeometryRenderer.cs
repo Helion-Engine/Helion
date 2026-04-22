@@ -88,6 +88,8 @@ public partial class GeometryRenderer : IDisposable
     private DynamicArray<Subsector>[] m_subsectors = [];
     private int[] m_drawnSides = [];
     private readonly Dictionary<int, DynamicVertex[]> m_vertexPlaneLookup3D = [];
+    private readonly Side m_fogSide;
+    private readonly Wall m_fogWall = new(0, WallLocation.Middle);
 
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderOneSidedSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedLowerSliceFunc;
@@ -96,6 +98,7 @@ public partial class GeometryRenderer : IDisposable
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
     public StaticCacheGeometryRenderer StaticRenderer => m_staticCacheGeometryRenderer;
+    public Side FogSide => m_fogSide;
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
         RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, bool unitTest = false)
@@ -112,6 +115,13 @@ public partial class GeometryRenderer : IDisposable
             ScrollData = m_fakeSideScrollData
         };
         m_emptyTraverseSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_emptyTraverseSector);
+
+        m_fogWall.TextureHandle = TextureManager.BlackTextureIndex;
+        m_fogSide = new(0, default, m_fogWall, m_fogWall, m_fogWall, null!)
+        {
+            RenderDataStyle = RenderDataStyle.FogBarrier
+        };
+        m_fogSide.Flags.WrapMidTex = true;
 
         if (unitTest)
         {
@@ -892,6 +902,9 @@ public partial class GeometryRenderer : IDisposable
             if (vertices.Length > 0 && m_vanillaRender && m_buffer)
                 RenderMidTexCoverWalls(facingSide, facingSector, otherSector, vertices, visibility, m_renderCoverWallAction);
         }
+
+        if (ShouldRenderFogBarrier(facingSide, otherSide))
+            RenderFogBarrier(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
     }
 
     private SideTexture GetSideVisibility(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
@@ -1036,6 +1049,15 @@ public partial class GeometryRenderer : IDisposable
         }
 
         return upperVisible;
+    }
+
+    public bool ShouldRenderFogBarrier(Side side, Side otherSide)
+    {
+        // Only render if this side has fog and the other does not. First light level is skipped (248) and at least one side must not be sky.
+        if (side.Sector.FogColor.Uint != 0 && otherSide.Sector.FogColor.Uint == 0 && side.Sector.LightLevel <= 248)
+            return !TextureManager.IsSkyTexture(side.Sector.Ceiling.TextureHandle) || !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle);         
+
+        return false;
     }
 
     public void RenderTwoSidedLower(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
@@ -1350,6 +1372,18 @@ public partial class GeometryRenderer : IDisposable
         return false;
     }
 
+    public void RenderFogBarrier(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
+        out DynamicVertex[]? vertices, Sector? lightLevelSector = null, MidTexSpan? restrictSpan = null)
+    {
+        var save = WorldStatic.LineVertexGap;
+        WorldStatic.LineVertexGap = 0;
+        m_fogSide.Sector = facingSide.Sector;
+        m_fogSide.Line = facingSide.Line;
+        m_fogWall.TextureHandle = TextureManager.BlackTextureIndex;
+        RenderTwoSidedMiddle(m_fogSide, otherSide, facingSector, otherSector, isFrontSide, out vertices, lightLevelSector, restrictSpan);
+        WorldStatic.LineVertexGap = save;
+    }
+
     public void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
         out DynamicVertex[]? vertices, Sector? lightLevelSector = null, MidTexSpan? restrictSpan = null)
     {
@@ -1361,6 +1395,11 @@ public partial class GeometryRenderer : IDisposable
         float alpha = m_config.Render.TextureTransparency ? Math.Clamp(line.Alpha, 0, 1) : 1.0f;
         DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
         var geometryType = alpha < 1 ? GeometryType.Translucent : GeometryType.TwoSidedMiddleWall;
+        if (facingSide == m_fogSide)
+        {
+            data = null;
+            geometryType = GeometryType.FogBarrier;
+        }
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
@@ -1398,7 +1437,8 @@ public partial class GeometryRenderer : IDisposable
             else
                 SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);
 
-            m_vertexLookup[facingSide.Id] = data;
+            if (facingSide != m_fogSide)
+                m_vertexLookup[facingSide.Id] = data;
             line.RenderSegStart = saveStart;
             line.RenderSegEnd = saveEnd;
         }

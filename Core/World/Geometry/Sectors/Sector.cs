@@ -59,6 +59,8 @@ public sealed class Sector : IFloorCeilingAnchor
     public int DamageInterval;
     public int DamageLeakiness;
     public Color LightColor;
+    public Color FogColor;
+    public float FogDensity;
     public string SkyFloor;
     public string SkyCeiling;
     public int? FloorSkyTextureHandle;
@@ -110,6 +112,9 @@ public sealed class Sector : IFloorCeilingAnchor
     private short m_initialLightLevel;
     private SectorEffect m_initialSectorEffect;
     private InstantKillEffect m_initialKillEffect;
+    private Color m_initialLightColor;
+    private Color m_initialFogColor;
+    private float m_initialFogDensity;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
@@ -130,6 +135,9 @@ public sealed class Sector : IFloorCeilingAnchor
         SectorSpecialType = sectorSpecial;
         KillEffect = sectorData.InstantKillEffect;
         SectorEffect = sectorData.SectorEffect;
+        LightColor = sectorData.LightColor;
+        FogColor = sectorData.FogColor;
+        FogDensity = sectorData.FogDensity;
 
         if (sectorData.BasicDamageAmount != 0)
         {
@@ -147,6 +155,9 @@ public sealed class Sector : IFloorCeilingAnchor
         m_initialLightLevel = lightLevel;
         m_initialSectorEffect = SectorEffect;
         m_initialKillEffect = KillEffect;
+        m_initialLightColor = LightColor;
+        m_initialFogColor = FogColor;
+        m_initialFogDensity = FogDensity;
     }
 
     public void Reset()
@@ -157,6 +168,9 @@ public sealed class Sector : IFloorCeilingAnchor
         LightLevel = m_initialLightLevel;
         SectorEffect = m_initialSectorEffect;
         KillEffect = m_initialKillEffect;
+        LightColor = m_initialLightColor;
+        FogColor = m_initialFogColor;
+        FogDensity = m_initialFogDensity;
         TransferFloorLightSector = this;
         SetTransferFloorLightSector = this;
         TransferCeilingLightSector = this;
@@ -252,6 +266,13 @@ public sealed class Sector : IFloorCeilingAnchor
     {
         DataChanges |= SectorDataTypes.ColorMap;
         Colormap = colormap;
+    }
+
+    public void SetFog(Color color, float density)
+    {
+        DataChanges |= SectorDataTypes.Fog;
+        FogColor = new(0, color.R, color.G, color.B);
+        FogDensity = density;
     }
 
     public void SetSectorSpecialType(ZDoomSectorSpecialType type)
@@ -403,8 +424,13 @@ public sealed class Sector : IFloorCeilingAnchor
                 if (Ceiling.RenderOffsets.Scale != Vec2D.One)
                     sectorModel.CeilingScale = new Vector2D(Ceiling.RenderOffsets.Scale);
             }
+            if ((DataChanges & SectorDataTypes.Fog) != 0)
+            {
+                sectorModel.FogColor = FogColor.Uint;
+                sectorModel.FogDensity = FogDensity;
+            }
 
-                sectorModel.Secret = Secret;
+            sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
         }
 
@@ -505,6 +531,14 @@ public sealed class Sector : IFloorCeilingAnchor
                 {
                     Colormap = sectorColorMap;
                 }
+            }
+
+            if ((DataChanges & SectorDataTypes.Fog) != 0)
+            {
+                if (sectorModel.FogColor.HasValue)
+                    FogColor = new(sectorModel.FogColor.Value);
+                if (sectorModel.FogDensity.HasValue)
+                    FogDensity = sectorModel.FogDensity.Value;
             }
         }
 
