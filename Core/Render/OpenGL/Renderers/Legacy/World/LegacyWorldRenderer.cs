@@ -648,33 +648,24 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         styleRenderer.Render(RenderDataStyle.Translucent);
 
-        var hasFogBarrier = styleRenderer.HasStyleToRender(RenderDataStyle.FogBarrier);
-        if (styleRenderer.HasStyleToRender(RenderDataStyle.Add) || hasFogBarrier)
+        if (styleRenderer.HasStyleToRender(RenderDataStyle.FogBarrier))
+        {
+            m_staticCompositeProgram.FogBarrier(true);
+            GL.Enable(EnableCap.PolygonOffsetFill);
+            styleRenderer.Render(RenderDataStyle.FogBarrier);
+            GL.Disable(EnableCap.PolygonOffsetFill);
+        }
+
+        if (styleRenderer.HasStyleToRender(RenderDataStyle.Add))
         {
             SetBlendEquation(RenderDataStyle.Add);
             styleRenderer.Render(RenderDataStyle.Add);
-
-            //if (hasFogBarrier)
-            //{
-            //    GL.Enable(EnableCap.PolygonOffsetFill);
-            //    styleRenderer.Render(RenderDataStyle.FogBarrier);
-            //    GL.Disable(EnableCap.PolygonOffsetFill);
-            //}
         }
 
         if (styleRenderer.HasStyleToRender(RenderDataStyle.ColorAdd))
         {
             SetBlendEquation(RenderDataStyle.ColorAdd);
             styleRenderer.Render(RenderDataStyle.ColorAdd);
-        }
-
-        if (hasFogBarrier)
-        {
-            m_staticCompositeProgram.FogBarrier(true);
-            SetBlendEquation(RenderDataStyle.Translucent);
-            GL.Enable(EnableCap.PolygonOffsetFill);
-            styleRenderer.Render(RenderDataStyle.FogBarrier);
-            GL.Disable(EnableCap.PolygonOffsetFill);
         }
     }
 
