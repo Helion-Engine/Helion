@@ -212,8 +212,8 @@ public class FragFunction
             + @"
                 float fogFactor = 1.0 - exp(-sectorFogColorFrag.a * dist);
                 fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, clamp(fogFactor, 0.0, 1.0));"
-            // Fog barriers need to ignore texture color and just apply fog color + factor directly. Only relevant to the OIT transparent pass.
-            + (oitOptions != OitOptions.OitTransparentPass ? "" : "fragColor.rgba = mix(fragColor.rgba, vec4(sectorFogColorFrag.rgb, fogFactor), fogBarrier);")
+            // Fog barriers need to ignore texture color and just apply fog color + factor directly. Only relevant to the OIT transparent pass for level geometry.
+            + ((oitOptions != OitOptions.OitTransparentPass || ctx == ColorMapFetchContext.Entity) ? "" : "fragColor.rgba = mix(fragColor.rgba, vec4(sectorFogColorFrag.rgb, fogFactor), fogBarrier);")
             + InvulnerabilityFragColor
             + GammaCorrection()
             + postProcess
