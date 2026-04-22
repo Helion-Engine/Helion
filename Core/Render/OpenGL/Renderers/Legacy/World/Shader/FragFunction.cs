@@ -210,8 +210,8 @@ public class FragFunction
             // This is to support Sector_SetColor to have true color mixes when still using palette color mode.
             + "fragColor.rgb *= mix(vec3(1), min(sectorColorMapIndexFrag, 1), float(sectorColorMapIndexFrag.b >= 0));"
             + @"
-                float fogFactor = 1.0 - exp(-sectorFogColorFrag.a * dist);
-                fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, clamp(fogFactor, 0.0, 1.0));"
+                float fogFactor = clamp(1.0 - exp(-sectorFogColorFrag.a * dist), 0.0, 1.0);
+                fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, fogFactor);"
             // Fog barriers need to ignore texture color and just apply fog color + factor directly. Only relevant to the OIT transparent pass for level geometry.
             + ((oitOptions != OitOptions.OitTransparentPass || ctx == ColorMapFetchContext.Entity) ? "" : "fragColor.rgba = mix(fragColor.rgba, vec4(sectorFogColorFrag.rgb, fogFactor), fogBarrier);")
             + InvulnerabilityFragColor
@@ -307,7 +307,9 @@ public class FragFunction
                     vec3 average_color = accumulation.rgb / max(accumulation.a, 0.00001f);
                     fragColor = vec4(average_color, alphaComponent / countComponent);
                     // The original fragColor from the texture is mixed with the fog but is overwritten in this statement so it has to be remixed.
-                    fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, clamp(fogFactor, 0.0, 1.0));
+                    fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, fogFactor);
+                    // Increase alpha as the fog becomes more dense. Otherwise the fog color pops out too much when blending with other background colors.
+                    fragColor.a *= (1 - (fogFactor * 0.5)); 
                 }"
                 :
                 @"
