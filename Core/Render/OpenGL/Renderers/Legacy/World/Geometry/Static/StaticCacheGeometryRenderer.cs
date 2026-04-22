@@ -534,14 +534,16 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private void UpdateFogBarrier(Side side, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         var shouldRenderFogBarrier = m_geometryRenderer.ShouldRenderFogBarrier(side, otherSide);
-        if (shouldRenderFogBarrier && side.Fog == null)
+        if (shouldRenderFogBarrier && (side.Fog == null || side.FogCleared))
         {
             m_geometryRenderer.RenderFogBarrier(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
-            side.Fog = new(m_archiveCollection.TextureManager.BlackTextureIndex, WallLocation.Middle);
+            side.Fog ??= new(m_archiveCollection.TextureManager.BlackTextureIndex, WallLocation.Middle);
+            side.FogCleared = false;
             SetSideVertices(m_geometryRenderer.FogSide, side.Fog, true, sideVertices, true, true, null);
         }
         else if (!shouldRenderFogBarrier && side.Fog != null)
         {
+            side.FogCleared = true;
             ClearSideGeometryVertices(side, side.Fog);
         }
     }

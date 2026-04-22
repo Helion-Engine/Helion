@@ -47,6 +47,7 @@ public sealed class Side
     public byte LightLevel;
 
     public bool IsFront;
+    public bool FogCleared;
     public Side? PartnerSide;
 
     public SideScrollData? ScrollData;

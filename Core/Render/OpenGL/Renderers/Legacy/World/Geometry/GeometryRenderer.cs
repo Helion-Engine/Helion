@@ -1375,10 +1375,13 @@ public partial class GeometryRenderer : IDisposable
     public void RenderFogBarrier(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
         out DynamicVertex[]? vertices, Sector? lightLevelSector = null, MidTexSpan? restrictSpan = null)
     {
+        var save = WorldStatic.LineVertexGap;
+        WorldStatic.LineVertexGap = 0;
         m_fogSide.Sector = facingSide.Sector;
         m_fogSide.Line = facingSide.Line;
         m_fogWall.TextureHandle = TextureManager.BlackTextureIndex;
         RenderTwoSidedMiddle(m_fogSide, otherSide, facingSector, otherSector, isFrontSide, out vertices, lightLevelSector, restrictSpan);
+        WorldStatic.LineVertexGap = save;
     }
 
     public void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,

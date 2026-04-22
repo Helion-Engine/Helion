@@ -271,7 +271,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public void SetFog(Color color, float density)
     {
         DataChanges |= SectorDataTypes.Fog;
-        FogColor = color;
+        FogColor = new(0, color.R, color.G, color.B);
         FogDensity = density;
     }
 
