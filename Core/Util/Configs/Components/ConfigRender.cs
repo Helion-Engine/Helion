@@ -3,6 +3,7 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using System.ComponentModel;
+using Helion.Geometry.Vectors;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
@@ -166,6 +167,14 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [ConfigInfo("Emulates custom invulnerability palettes in true color mode. May not work well with all WADs. Application restart required.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Invulnerability Colormap")]
     public readonly ConfigValue<bool> EmulateInvulnerabilityColorMap = new(false);
+    
+    [ConfigInfo("Uses a custom color overlay for Invulnerability instead of the vanilla inverse/white strobe.")]
+    [OptionMenu(OptionSectionType.Render, "Alternative Invulnerability Overlay")]
+    public readonly ConfigValue<bool> AlternativeInvulnerabilityOverlay = new(false);
+
+    [ConfigInfo("The color used for the alternative invulnerability overlay.")]
+    [OptionMenu(OptionSectionType.Render, "Alternative Invulnerability Color")]
+    public readonly ConfigValue<Vec3I> AlternativeInvulnerabilityColor = new((0, 255, 0), ClampColor);
 
     [ConfigInfo("Line contrast mode.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Line contrast mode")]

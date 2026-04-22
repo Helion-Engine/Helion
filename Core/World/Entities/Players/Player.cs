@@ -134,6 +134,9 @@ public class Player : Entity
 
         foreach (PowerupType powerupType in PowerupsWithBrightness)
         {
+            if (powerupType == PowerupType.Invulnerable && WorldStatic.World.Config.Render.AlternativeInvulnerabilityOverlay)
+                continue;
+
             IPowerup? powerup = Inventory.GetPowerup(powerupType);
             if (powerup != null)
                 return powerup.DrawPowerupEffect;
@@ -144,7 +147,9 @@ public class Player : Entity
 
     public bool HasLightAmp() => Inventory.GetPowerup(PowerupType.LightAmp) != null;
 
-    public bool DrawInvulnerableColorMap() => Inventory.PowerupEffectColorMap != null && Inventory.PowerupEffectColorMap.DrawPowerupEffect;
+    public bool DrawInvulnerableColorMap() => 
+        !WorldStatic.World.Config.Render.AlternativeInvulnerabilityOverlay &&
+        Inventory.PowerupEffectColorMap is { DrawPowerupEffect: true };
     public int GetExtraLightRender() => WorldStatic.World.Config.Render.ExtraLight + (ExtraLight * Constants.ExtraLightFactor);
 
     public override double ViewZ => m_viewZ;

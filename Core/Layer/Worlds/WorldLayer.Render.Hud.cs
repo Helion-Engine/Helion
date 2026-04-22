@@ -366,6 +366,13 @@ public partial class WorldLayer
             hud.Clear(box, powerup.DrawColor.Value, alpha);
         }
 
+        var invuln = Player.Inventory.PowerupEffectColorMap;
+        if (m_config.Render.AlternativeInvulnerabilityOverlay && invuln is { PowerupType: PowerupType.Invulnerable, DrawPowerupEffect: true })
+        {
+            var customColor = m_config.Render.AlternativeInvulnerabilityColor.Value;
+            hud.Clear(box, new Color((byte)customColor.X, (byte)customColor.Y, (byte)customColor.Z), 0.15f);
+        }
+        
         if (Player.BonusCount > 0)
         {
             const float PickupScaleAmount = 3f;
