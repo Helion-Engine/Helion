@@ -306,6 +306,8 @@ public class FragFunction
                     
                     vec3 average_color = accumulation.rgb / max(accumulation.a, 0.00001f);
                     fragColor = vec4(average_color, alphaComponent / countComponent);
+                    // The original fragColor from the texture is mixed with the fog but is overwritten in this statement so it has to be remixed.
+                    fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, clamp(fogFactor, 0.0, 1.0));
                 }"
                 :
                 @"
