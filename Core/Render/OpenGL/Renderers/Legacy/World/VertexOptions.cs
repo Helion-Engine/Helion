@@ -14,10 +14,10 @@ public static class VertexOptions
     }
 
     // UvFlags only required for walls
-    public static unsafe float ColorMapIndex(int colorMapIndex, int vertexLightLevel, UvFlags uvFlags = UvFlags.Normal)
+    public static unsafe float LightBufferIndex(int lightIndex, int vertexLightLevel, UvFlags uvFlags = UvFlags.Normal)
     {
-        // colorMapIndex 22 bits, uvFlags 2 bits, vertexLightLevel 8 bits
-        int packed = ((colorMapIndex & 0x3FFFFF) << 10) | (((int)uvFlags & 0x3) << 8) | (vertexLightLevel & 0xFF);
+        // lightIndex 22 bits, uvFlags 2 bits, vertexLightLevel 8 bits
+        int packed = ((lightIndex & 0x3FFFFF) << 10) | (((int)uvFlags & 0x3) << 8) | (vertexLightLevel & 0xFF);
         return *(float*)&packed;
     }
 
