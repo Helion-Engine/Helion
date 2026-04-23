@@ -1905,7 +1905,7 @@ public partial class GeometryRenderer : IDisposable
             uvFlags |= UvFlags.MirrorX;
         if (wv.TopLeft.V > wv.BottomRight.V)
             uvFlags |= UvFlags.MirrorY;
-        var lightBufferIndex = VertexOptions.PackRender(lightIndex, wallLightLevel, uvFlags);
+        var renderOptions = VertexOptions.PackRender(lightIndex, wallLightLevel, uvFlags);
         var lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
         var lower = location == WallLocation.Lower ? 1 : 0;
         var upper = location == WallLocation.Upper ? 1 : 0;
@@ -1924,7 +1924,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1939,7 +1939,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1954,7 +1954,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1969,7 +1969,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1984,7 +1984,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1999,7 +1999,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
         }
     }
 
@@ -2011,7 +2011,7 @@ public partial class GeometryRenderer : IDisposable
             uvFlags |= UvFlags.MirrorX;
         if (wv.TopLeft.V > wv.BottomRight.V)
             uvFlags |= UvFlags.MirrorY;
-        var lightBufferIndex = VertexOptions.PackRender(lightIndex, wallLightLevel, uvFlags);
+        var renderOptions = VertexOptions.PackRender(lightIndex, wallLightLevel, uvFlags);
         var lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
         var lower = location == WallLocation.Lower ? 1 : 0;
         var upper = location == WallLocation.Upper ? 1 : 0;
@@ -2040,7 +2040,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             // 1
             vertex++;
@@ -2056,7 +2056,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             // 2
             vertex++;
@@ -2072,7 +2072,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             // 3
             vertex++;
@@ -2088,7 +2088,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             // 4
             vertex++;
@@ -2104,7 +2104,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
 
             // 5
             vertex++;
@@ -2120,7 +2120,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->RenderOptions = renderOptions;
         }
 
         return data;
@@ -2129,8 +2129,8 @@ public partial class GeometryRenderer : IDisposable
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
         int lightIndex, int overrideLightIndex, int flatLightLevel, int upper, int lower, int addAlpha, float alpha)
     {
-        var options = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
-        float lightBufferIndex = VertexOptions.PackRender(lightIndex, flatLightLevel);
+        var surfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+        var renderOptions = VertexOptions.PackRender(lightIndex, flatLightLevel);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {
             DynamicVertex* vertex = startVertex;
@@ -2144,8 +2144,8 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = root.V;
             vertex->PrevU = root.PrevU;
             vertex->PrevV = root.PrevV;
-            vertex->SurfaceOptions = options;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->SurfaceOptions = surfaceOptions;
+            vertex->RenderOptions = renderOptions;
 
             vertex++;
             vertex->X = second.X;
@@ -2158,8 +2158,8 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = second.V;
             vertex->PrevU = second.PrevU;
             vertex->PrevV = second.PrevV;
-            vertex->SurfaceOptions = options;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->SurfaceOptions = surfaceOptions;
+            vertex->RenderOptions = renderOptions;
 
             vertex++;
             vertex->X = third.X;
@@ -2172,8 +2172,8 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = third.V;
             vertex->PrevU = third.PrevU;
             vertex->PrevV = third.PrevV;
-            vertex->SurfaceOptions = options;
-            vertex->ColorMapIndex = lightBufferIndex;
+            vertex->SurfaceOptions = surfaceOptions;
+            vertex->RenderOptions = renderOptions;
         }
     }
 

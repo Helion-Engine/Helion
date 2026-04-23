@@ -31,5 +31,5 @@ public struct DynamicVertex
     public float PrevV;
 
     [VertexAttribute]
-    public float ColorMapIndex;
+    public float RenderOptions;
 }
