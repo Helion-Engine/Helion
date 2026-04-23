@@ -112,6 +112,7 @@ public partial class GeometryRenderer : IDisposable
         m_fakeSideScrollData = new();
         m_fakeSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_sliceSector)
         {
+            NoCache = true,
             ScrollData = m_fakeSideScrollData
         };
         m_emptyTraverseSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_emptyTraverseSector);
@@ -119,6 +120,7 @@ public partial class GeometryRenderer : IDisposable
         m_fogWall.TextureHandle = TextureManager.BlackTextureIndex;
         m_fogSide = new(0, default, m_fogWall, m_fogWall, m_fogWall, null!)
         {
+            NoCache = true,
             RenderDataStyle = RenderDataStyle.FogBarrier
         };
         m_fogSide.Flags.WrapMidTex = true;
@@ -744,7 +746,7 @@ public partial class GeometryRenderer : IDisposable
         WallVertices wall = default;
         texture = m_glTextureManager?.GetTexture(side.Middle.TextureHandle) ?? TestTexture;
         var brightmapTexture = m_glTextureManager?.GetBrightmapTexture(side.Middle.TextureHandle);
-        var data = m_vertexLookup[side.Id];
+        var data = GetCachedSide(m_vertexLookup, side);
 
         renderSector ??= side.Sector.GetRenderSector(m_transferHeightsView);
         lightLevelSector ??= renderSector;
@@ -778,7 +780,7 @@ public partial class GeometryRenderer : IDisposable
             else
                 SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha, alpha: side.Alpha);
 
-            m_vertexLookup[side.Id] = data;
+            SetCachedSide(m_vertexLookup, side, data);
         }
 
         if (m_buffer)
@@ -790,6 +792,19 @@ public partial class GeometryRenderer : IDisposable
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
         }
         vertices = data;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static DynamicVertex[]? GetCachedSide(DynamicVertex[]?[] lookup, Side side)
+    {
+        return side.NoCache ? null : lookup[side.Id];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void SetCachedSide(DynamicVertex[]?[] lookup, Side side, DynamicVertex[] data)
+    {
+        if (!side.NoCache)
+            lookup[side.Id] = data;
     }
 
     private static GeometryType GetGeometryType(RenderDataStyle style, GeometryType baseType)
@@ -1113,7 +1128,7 @@ public partial class GeometryRenderer : IDisposable
         }
         else
         {
-            DynamicVertex[]? data = m_vertexLowerLookup[facingSide.Id];
+            var data = GetCachedSide(m_vertexLowerLookup, facingSide);
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
@@ -1129,7 +1144,7 @@ public partial class GeometryRenderer : IDisposable
                 else
                     SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower);
 
-                m_vertexLowerLookup[facingSide.Id] = data;
+                SetCachedSide(m_vertexLookup, facingSide, data);
             }
 
             if (m_buffer)
@@ -1236,7 +1251,7 @@ public partial class GeometryRenderer : IDisposable
                 return;
             }
 
-            DynamicVertex[]? data = m_vertexUpperLookup[facingSide.Id];
+            var data = GetCachedSide(m_vertexUpperLookup, facingSide);
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
@@ -1248,7 +1263,7 @@ public partial class GeometryRenderer : IDisposable
                 else
                     SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper);
 
-                m_vertexUpperLookup[facingSide.Id] = data;
+                SetCachedSide(m_vertexUpperLookup, facingSide, data);
             }
 
             if (m_buffer)
@@ -1392,14 +1407,11 @@ public partial class GeometryRenderer : IDisposable
         GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
 
         var line = facingSide.Line;
-        float alpha = m_config.Render.TextureTransparency ? Math.Clamp(line.Alpha, 0, 1) : 1.0f;
-        DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
+        var alpha = m_config.Render.TextureTransparency ? Math.Clamp(line.Alpha, 0, 1) : 1.0f;
+        var data = GetCachedSide(m_vertexLookup, facingSide);
         var geometryType = alpha < 1 ? GeometryType.Translucent : GeometryType.TwoSidedMiddleWall;
         if (facingSide == m_fogSide)
-        {
-            data = null;
             geometryType = GeometryType.FogBarrier;
-        }
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
@@ -1437,8 +1449,7 @@ public partial class GeometryRenderer : IDisposable
             else
                 SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);
 
-            if (facingSide != m_fogSide)
-                m_vertexLookup[facingSide.Id] = data;
+            SetCachedSide(m_vertexLookup, facingSide, data);
             line.RenderSegStart = saveStart;
             line.RenderSegEnd = saveEnd;
         }

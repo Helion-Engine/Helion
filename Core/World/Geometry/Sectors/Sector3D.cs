@@ -262,7 +262,7 @@ public sealed class Sector3D
             var overlapLight = false;
             if (i > 0 && lastPlane3D.Sector3D != null && lastPlane3D.ControlPlane.Z == plane3D.Plane.Z)
             {
-                if (lastPlane3D.Face == plane3D.Face)
+                if (lastPlane3D.Face == plane3D.Face && !sector3D.ShouldRenderInsideWalls)
                 {
                     // Flag previous plane not to render since this one takes precedence
                     var keepPlane = (SectorPlanes)(lastPlane3D.Face + 1);
@@ -656,7 +656,12 @@ public sealed class Sector3D
             return false;
 
         if (RenderDataStyle != RenderDataStyle.Normal && other.RenderDataStyle != RenderDataStyle.Normal)
+        {
+            if ((Alpha == 0 && other.Alpha != 0) || (Alpha != 0 && other.Alpha == 0))
+                return false;
+
             return true;
+        }
 
         if (ClipStyle != other.ClipStyle && (IsLightTransfer || other.IsLightTransfer))
             return false;
