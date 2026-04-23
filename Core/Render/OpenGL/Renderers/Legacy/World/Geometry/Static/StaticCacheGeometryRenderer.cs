@@ -622,7 +622,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Options, v->LightLevelAdd, v->ColorMapIndex);
+                    v->SurfaceOptions, v->LightLevelAdd, v->ColorMapIndex);
             }
 
             staticVertices.SetLength(staticVertices.Length + vertices.Length);
@@ -637,7 +637,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Options, v->LightLevelAdd, v->ColorMapIndex);
+                    v->SurfaceOptions, v->LightLevelAdd, v->ColorMapIndex);
             }
         }
     }

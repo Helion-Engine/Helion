@@ -48,22 +48,22 @@ public class CoverWallUtil
         {
             DynamicVertex* v = startVertex;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.AddTop, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
+                v->SurfaceOptions, v->LightLevelAdd, 0);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.SubBottom, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
+                v->SurfaceOptions, v->LightLevelAdd, 0);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.AddTop, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
+                v->SurfaceOptions, v->LightLevelAdd, 0);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.SubBottom, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
+                v->SurfaceOptions, v->LightLevelAdd, 0);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.AddTop, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
+                v->SurfaceOptions, v->LightLevelAdd, 0);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.SubBottom, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
+                v->SurfaceOptions, v->LightLevelAdd, 0);
         }
     }
 

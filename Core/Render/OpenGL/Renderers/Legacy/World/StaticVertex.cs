@@ -19,7 +19,7 @@ public struct StaticVertex(float x, float y, float z, float u, float v, float op
     public float LightLevelAdd = lightLevelAdd;
 
     [VertexAttribute]
-    public float Options = options;
+    public float SurfaceOptions = options;
 
     [VertexAttribute(required: false)]
     public float ColorMapIndex = colorMapIndex;

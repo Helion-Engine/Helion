@@ -6,15 +6,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 public static class VertexOptions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float World(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex)
+    public static unsafe float PackSurface(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex)
     {
         int alphaByte = (int)(alpha * 255.0f);
         int packed = (alphaByte & 0xFF) | (topLeft << 8) | (addAlpha << 9) | (upper << 10) | (lower << 11) | (overrideLightIndex << 12);
         return *(float*)&packed;
     }
-
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     // UvFlags only required for walls
-    public static unsafe float LightBufferIndex(int lightIndex, int vertexLightLevel, UvFlags uvFlags = UvFlags.Normal)
+    public static unsafe float PackRender(int lightIndex, int vertexLightLevel, UvFlags uvFlags = UvFlags.Normal)
     {
         // lightIndex 22 bits, uvFlags 2 bits, vertexLightLevel 8 bits
         int packed = ((lightIndex & 0x3FFFFF) << 10) | (((int)uvFlags & 0x3) << 8) | (vertexLightLevel & 0xFF);

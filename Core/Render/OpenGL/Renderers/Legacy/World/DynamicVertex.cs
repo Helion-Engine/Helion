@@ -16,7 +16,7 @@ public struct DynamicVertex
     public float V;
 
     [VertexAttribute]
-    public float Options;
+    public float SurfaceOptions;
 
     [VertexAttribute]
     public float LightLevelAdd;
@@ -30,6 +30,6 @@ public struct DynamicVertex
     public float PrevU;
     public float PrevV;
 
-    [VertexAttribute(required: false)]
+    [VertexAttribute]
     public float ColorMapIndex;
 }

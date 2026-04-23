@@ -35,7 +35,7 @@ public static class VertexFunction
 
     public static string VertexOptionsSet =>
         @"  
-            int intOptions = floatBitsToInt(options);
+            int intOptions = floatBitsToInt(surfaceOptions);
             alphaFrag = (intOptions & 0xFF) / 255.0;
             float topLeft = float((intOptions >> 8) & 1);
             addAlphaFrag = float((intOptions >> 9) & 1);

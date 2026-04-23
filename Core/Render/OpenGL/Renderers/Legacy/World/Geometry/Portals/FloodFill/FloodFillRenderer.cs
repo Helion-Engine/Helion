@@ -111,7 +111,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
         var upper = sideTexture == SideTexture.Upper ? 1 : 0;
         var lower = sideTexture == SideTexture.Lower ? 1 : 0;
-        var options = VertexOptions.World(0, 0, 0, upper, lower, data.LightIndex);
+        var options = VertexOptions.PackSurface(0, 0, 0, upper, lower, data.LightIndex);
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
             prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapAndLightLevel, mapId);
@@ -159,7 +159,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
             lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, SectorPlaneFace.Ceiling, LightBufferType.Ceiling, out overrideLightIndex);
 
         var flatLightLevel = (byte)Math.Clamp(sectorPlane.LightLevelAdd, (short)0, (short)255);
-        var lightBufferIndex = VertexOptions.LightBufferIndex(lightIndex, flatLightLevel);
+        var lightBufferIndex = VertexOptions.PackRender(lightIndex, flatLightLevel);
 
         for (var node = m_freeData.First; node != null; node = node.Next)
         {
@@ -183,7 +183,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
         var upper = sideTexture == SideTexture.Upper ? 1 : 0;
         var lower = sideTexture == SideTexture.Lower ? 1 : 0;
-        var options = VertexOptions.World(0, 0, 0, upper, lower, overrideLightIndex);
+        var options = VertexOptions.PackSurface(0, 0, 0, upper, lower, overrideLightIndex);
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z),
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, options, lightBufferIndex, mapId);
@@ -231,7 +231,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
             float prevTopZ = vertices.PrevTopZ + currentAddHeight;
             float prevBottomZ = vertices.PrevBottomZ + currentAddHeight;
 
-            var options = VertexOptions.World(0, 0, 0, 0, 0, lightIndex);
+            var options = VertexOptions.PackSurface(0, 0, 0, 0, 0, lightIndex);
             FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topLeftZ),
                 prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
             FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, topLeftZ),

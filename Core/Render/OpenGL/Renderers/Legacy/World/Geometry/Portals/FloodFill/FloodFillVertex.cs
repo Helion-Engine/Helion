@@ -25,10 +25,10 @@ public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPl
     [VertexAttribute("prevPlaneZ", size: 1)]
     public float PrevPlaneZ = prevPlaneZ;
 
-    [VertexAttribute("options", size: 1)]
-    public float Options = options;
+    [VertexAttribute("surfaceOptions", size: 1)]
+    public float SurfaceOptions = options;
 
-    [VertexAttribute("colorMapIndex", size: 1, required: false)]
+    [VertexAttribute("colorMapIndex", size: 1)]
     public float ColorMapIndex = colorMapAndLightLevel;
 
     [VertexAttribute("mapId", size: 1, required: false)]
