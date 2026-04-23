@@ -191,6 +191,26 @@ public class Sector3D_Map
         wallHeights = left3D.WallHeights;
         left3D.CalculateWallHeights(GameActions.GetLine(World, 307).Front, out newWallHeights).Should().BeFalse();
     }
+
+    [Fact(DisplayName = "Overlapping alpha walls render when other is zero")]
+    public void OverlappingAlphaWallsZeroAlpha()
+    {
+        var innerSector = GameActions.GetSector(World, 225);
+        var outerSector = GameActions.GetSector(World, 224);
+        var inner3D = innerSector.Sectors3D[0];
+        var outer3D = outerSector.Sectors3D[0];
+        inner3D.RenderDataStyle.Should().Be(RenderDataStyle.Translucent);
+        outer3D.RenderDataStyle.Should().Be(RenderDataStyle.Translucent);
+        inner3D.Alpha.Should().BeApproximately(0.5f, 1);
+        outer3D.Alpha.Should().Be(0f);
+
+        inner3D.CalculateWallHeights(GameActions.GetLine(World, 837).Front, out var newWallHeights).Should().BeTrue();
+        newWallHeights.TopZ.Should().Be(32);
+        newWallHeights.BottomZ.Should().Be(0);
+
+        outer3D.Alpha = 1f;
+        inner3D.CalculateWallHeights(GameActions.GetLine(World, 837).Front, out _).Should().BeFalse();
+    }
     
     [Fact(DisplayName = "Partially overlapping non-solid walls")]
     public void PartiallyOverlappingNonSolidWalls()

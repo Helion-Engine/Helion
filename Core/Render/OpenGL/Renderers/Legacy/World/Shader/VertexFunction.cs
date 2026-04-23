@@ -47,7 +47,7 @@ public static class VertexFunction
         @"            
             int colorMapAndLightLevel = floatBitsToInt(colorMapIndex);
             vertexLightLevelFrag = float(colorMapAndLightLevel & 0xFF);
-            colorMapIndexFrag = float((colorMapAndLightLevel >> 10) & 0xFFFF);
+            colorMapIndexFrag = float((colorMapAndLightLevel >> 10) & 0x3FFFFF);
             uvFlags = float((colorMapAndLightLevel >> 8) & 0x3);";
 
     public static string LightLevelAddAndMapIdSet =>

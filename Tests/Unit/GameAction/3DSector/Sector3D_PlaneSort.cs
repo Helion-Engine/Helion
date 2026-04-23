@@ -3,6 +3,7 @@ using FluentAssertions;
 using Helion.Resources.IWad;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
+using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction._3DSector;
@@ -115,7 +116,7 @@ public class Sector3D_PlaneSort
     */
 
     [Fact(DisplayName = "3D sector light transfer pool with floating solid sector")]
-    private void LightTransferLavaPool()
+    public void LightTransferLavaPool()
     {
         var lavaSector = GameActions.GetSector(World, 167);
         AssertPlanes3D(lavaSector,
@@ -153,7 +154,7 @@ public class Sector3D_PlaneSort
     }
 
     [Fact(DisplayName = "3D sector light water pool with floating solid sector")]
-    private void LightTransferWaterPool()
+    public void LightTransferWaterPool()
     {
         var waterSector = GameActions.GetSector(World, 173);
         AssertPlanes3D(waterSector,
@@ -188,6 +189,17 @@ public class Sector3D_PlaneSort
             new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 190), RenderPlanes: SectorPlanes.Ceiling),
             new PlaneData(-64, PlaneFace3D.Bottom, GameActions.GetSector(World, 190), RenderPlanes: SectorPlanes.Ceiling)
             );
+    }
+
+    [Fact(DisplayName = "3D sector with overlapping planes should render inside walls")]
+    public void OverlapRenderInside()
+    {
+        var sector = GameActions.GetSector(World, 229);
+        sector.Sectors3D.Length.Should().Be(2);
+        sector.Sectors3D[1].ShouldRenderInsideWalls.Should().BeTrue();
+
+        foreach (var plane in sector.SectorPlanes3D)
+            plane.NoRenderWall.Should().BeFalse();
     }
 
     private static void AssertPlanes3D(Sector sector, params PlaneData[] planes)

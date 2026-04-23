@@ -48,6 +48,7 @@ public sealed class Side
 
     public bool IsFront;
     public bool FogCleared;
+    public bool NoCache;
     public Side? PartnerSide;
 
     public SideScrollData? ScrollData;
