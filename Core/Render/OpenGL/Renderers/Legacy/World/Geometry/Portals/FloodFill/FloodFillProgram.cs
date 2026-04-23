@@ -117,11 +117,10 @@ public class FloodFillProgram : RenderProgram
             vertexPosFrag = mix(prevPos, pos, timeFrac);
             mapIdFrag = mapId;
 
-            ${ColorMapAndLightLevelSet}
-
             float alphaFrag;
             float addAlphaFrag;
             ${VertexOptionsSet}
+            ${ColorMapAndLightLevelSet}
 
             ${SectorColorMapVertexFunction}
             ${VertexLightBuffer}

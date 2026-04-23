@@ -6,10 +6,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 public static class VertexOptions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float World(int topLeft, float alpha, int addAlpha, int upper, int lower, int lightLevelBufferIndex)
+    public static unsafe float World(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex)
     {
         int alphaByte = (int)(alpha * 255.0f);
-        int packed = (alphaByte & 0xFF) | (topLeft << 8) | (addAlpha << 9) | (upper << 10) | (lower << 11) | (lightLevelBufferIndex << 12);
+        int packed = (alphaByte & 0xFF) | (topLeft << 8) | (addAlpha << 9) | (upper << 10) | (lower << 11) | (overrideLightIndex << 12);
         return *(float*)&packed;
     }
 

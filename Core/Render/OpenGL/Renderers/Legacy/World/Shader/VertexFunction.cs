@@ -41,14 +41,16 @@ public static class VertexFunction
             addAlphaFrag = float((intOptions >> 9) & 1);
             upperFrag = float((intOptions >> 10) & 1);
             lowerFrag =  float((intOptions >> 11) & 1);
-            float lightLevelBufferIndex = float(intOptions >> 12);";
+            float overrideLightIndex = float(float(intOptions >> 12));";
 
     public static string ColorMapAndLightLevelSet =>
         @"            
-            int colorMapAndLightLevel = floatBitsToInt(colorMapIndex);
-            vertexLightLevelFrag = float(colorMapAndLightLevel & 0xFF);
-            colorMapIndexFrag = float((colorMapAndLightLevel >> 10) & 0x3FFFFF);
-            uvFlags = float((colorMapAndLightLevel >> 8) & 0x3);";
+            int lightLevelIndexAndLightLevel = floatBitsToInt(colorMapIndex);
+            vertexLightLevelFrag = float(lightLevelIndexAndLightLevel & 0xFF);
+            float lightLevelBufferIndex = float((lightLevelIndexAndLightLevel >> 10) & 0x3FFFFF);
+            colorMapIndexFrag = lightLevelBufferIndex;
+            lightLevelBufferIndex = mix(lightLevelBufferIndex, overrideLightIndex - 1, float(overrideLightIndex > 0));
+            uvFlags = float((lightLevelIndexAndLightLevel >> 8) & 0x3);";
 
     public static string LightLevelAddAndMapIdSet =>
         @"

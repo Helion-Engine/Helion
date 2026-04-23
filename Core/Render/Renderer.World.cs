@@ -41,24 +41,21 @@ public partial class Renderer
     private float[] m_mapBufferData = [];
     private float[] m_lineHeightsBufferData = [];
 
-    public static int GetLightBufferIndex(Side side, Wall wall, Sector sector)
+    const int VectorSize = 4;
+
+    public static int GetLightBufferIndex(Side side, Wall wall, Sector sector, out int overrideLightIndex)
     {
         // The shader will add the light level at this index plus the vertex light level.
         // Return LightBuffer.DarkIndex (lightlevel=0) to not add the sectors light level if absolute.
-        if (side.Flags.LightLevelAbsolute || wall.LightLevelAbsolute)
-            return LightBuffer.DarkIndex;
-
+        overrideLightIndex = side.Flags.LightLevelAbsolute || wall.LightLevelAbsolute ? 1 : 0;
         return GetLightBufferIndex(sector, LightBufferType.Wall);
     }
 
-    public static int GetLightBufferIndex(Sector sector, SectorPlaneFace planeType, LightBufferType type)
+    public static int GetLightBufferIndex(Sector sector, SectorPlaneFace planeType, LightBufferType type, out int overrideLightIndex)
     {
         var transferLightSector = planeType == SectorPlaneFace.Floor ? sector.TransferFloorLightSector : sector.TransferCeilingLightSector;
         var plane = transferLightSector.GetSectorPlane(planeType);
-
-        if (plane.LightLevelAbsolute)
-            return LightBuffer.DarkIndex;
-
+        overrideLightIndex = plane.LightLevelAbsolute ? 1 : 0;
         return GetLightBufferIndex(sector, type);
     }
 
@@ -70,17 +67,6 @@ public partial class Renderer
             LightBufferType.Ceiling => sector.TransferCeilingLightSector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart + LightBuffer.CeilingOffset,
             LightBufferType.Wall => sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart + LightBuffer.WallOffset,
             _ => sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart,
-        };
-    }
-
-    public static int GetColorMapBufferIndex(Sector sector, LightBufferType type)
-    {
-        return type switch
-        {
-            LightBufferType.Floor => (sector.TransferFloorLightSector.Id + 1) * LightBuffer.BufferSize + LightBuffer.FloorOffset,
-            LightBufferType.Ceiling => (sector.TransferCeilingLightSector.Id + 1) * LightBuffer.BufferSize + LightBuffer.CeilingOffset,
-            LightBufferType.Wall => (sector.Id + 1) * LightBuffer.BufferSize + LightBuffer.WallOffset,
-            _ => sector.Id + 1,
         };
     }
 
@@ -130,7 +116,7 @@ public partial class Renderer
         if (alloc || m_lightBufferStorage == null)
         {
             m_lightBufferStorage?.Dispose();
-            m_lightBufferData = new byte[world.Sectors.Count * LightBuffer.BufferSize + LightBuffer.SectorIndexStart];
+            m_lightBufferData = AllocLightSectorBufferBuffer<byte>(world);
             m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R8ui, GLInfo.MapPersistentBitSupported);
 
             m_lightBufferStorage.Map(data =>
@@ -158,7 +144,7 @@ public partial class Renderer
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
-            Sector sector = world.Sectors[i];
+            var sector = world.Sectors[i];
             var lightLevel = (byte)Math.Clamp(sector.LightLevel, (short)0, (short)255);
             int index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
             lightBuffer[index + LightBuffer.FloorOffset] = lightLevel;
@@ -211,14 +197,8 @@ public partial class Renderer
     {
         if (alloc || m_sectorColorMapsBuffer == null)
         {
-            // First index will always map to default colormap
-            int sectorBufferCount = (world.Sectors.Count + 1) * LightBuffer.BufferSize;
-            // PaletteColorMode is index to colormap, true color will be RGB mix
-            int size = 4;
-            var sectorBuffer = new float[sectorBufferCount * size];
-
             m_sectorColorMapsBuffer?.Dispose();
-            m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
+            m_sectorColorMapsBuffer = new("Sector colormaps", AllocLightSectorBufferBuffer<float>(world), SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
         }
 
         if (alloc)
@@ -238,18 +218,18 @@ public partial class Renderer
         }
     }
 
+    private static T[] AllocLightSectorBufferBuffer<T>(IWorld world) where T : struct
+    {
+        var sectorBufferCount = world.Sectors.Count * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
+        return new T[sectorBufferCount * VectorSize];
+    }
+
     private unsafe void SetSectorFogBuffer(IWorld world, bool alloc)
     {
         if (alloc || m_sectorFogBuffer == null)
         {
-            // First index will always map to default colormap
-            int sectorBufferCount = (world.Sectors.Count + 1) * LightBuffer.BufferSize;
-            // PaletteColorMode is index to colormap, true color will be RGB mix
-            int size = 4;
-            var sectorBuffer = new float[sectorBufferCount * size];
-
             m_sectorFogBuffer?.Dispose();
-            m_sectorFogBuffer = new("Sector fog", sectorBuffer, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
+            m_sectorFogBuffer = new("Sector fog", AllocLightSectorBufferBuffer<float>(world), SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
         }
 
         if (alloc)
@@ -293,13 +273,22 @@ public partial class Renderer
 
     private static unsafe void SetSectorFog(float* fadeBuffer, int sectorId, Color fadeColor, short lightLevel, float fogDensity)
     {
-        int index = (sectorId + 1) * LightBuffer.BufferSize;
-        const int VectorSize = 4;
-
+        int index = sectorId * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
         var fade = GetSectorFogDensity(fadeColor, lightLevel, fogDensity);
+
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * VectorSize] = fade;
+    }
+
+    private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
+    {
+        int index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
+        var setColor = GetSectorSetColor(colormap);
+
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.WallOffset) * VectorSize] = setColor;
     }
 
     private static Vec4F GetSectorFogDensity(Color fadeColor, short lightLevel, float fogDensity)
@@ -314,18 +303,6 @@ public partial class Renderer
             fogDensity *= FadeFactor;
 
         return new(fadeColor.R / 255f, fadeColor.G / 255f, fadeColor.B / 255f, fogDensity);
-    }
-
-    private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
-    {
-        int index = (sector.Id + 1) * LightBuffer.BufferSize;
-
-        const int VectorSize = 4;
-        var setColor = GetSectorSetColor(colormap);
-
-        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = setColor;
-        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = setColor;
-        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.WallOffset) * VectorSize] = setColor;
     }
 
     private static Vec3F GetSectorSetColor(Colormap? colormap)

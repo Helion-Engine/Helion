@@ -151,20 +151,14 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         float prevPlaneZ = (float)sectorPlane.PrevZ;
         FloodFillInfo floodFillInfo = GetOrCreateFloodFillInfo(sectorPlane);
 
-        int lightIndex, colorMapIndex;
+        int lightIndex;
         if (sectorPlane.Facing == SectorPlaneFace.Floor)
-        {
-            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, SectorPlaneFace.Floor, LightBufferType.Floor);
-            colorMapIndex = Renderer.GetColorMapBufferIndex(sectorPlane.Sector, LightBufferType.Floor);
-        }
+            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, SectorPlaneFace.Floor, LightBufferType.Floor, out _);
         else
-        {
-            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, SectorPlaneFace.Ceiling, LightBufferType.Ceiling);
-            colorMapIndex = Renderer.GetColorMapBufferIndex(sectorPlane.Sector, LightBufferType.Ceiling);
-        }
+            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, SectorPlaneFace.Ceiling, LightBufferType.Ceiling, out _);
 
         var flatLightLevel = (byte)Math.Clamp(sectorPlane.LightLevelAbsolute ? sectorPlane.LightLevel : (short)0, (short)0, (short)255);
-        var colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
+        var colorMapAndLightLevel = VertexOptions.ColorMapIndex(lightIndex, flatLightLevel);
 
         for (var node = m_freeData.First; node != null; node = node.Next)
         {
@@ -213,7 +207,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
         if (isFloodFillPlane)
             ProjectFloodPlane(vbo, vbo.Data.Length, vertices, minZ, maxZ, planeZ, prevPlaneZ, lightIndex, 
-                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, true, colorMapIndex, mapId);
+                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, true, lightIndex, mapId);
 
         if (m_renderMode == FloodFillRenderMode.Dynamic)
             return 0;

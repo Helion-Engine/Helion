@@ -286,7 +286,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.ColorMapAndRenderIndex = VertexOptions.EntityColorMapAndRenderIndex(
-            Renderer.GetColorMapBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
+            Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
