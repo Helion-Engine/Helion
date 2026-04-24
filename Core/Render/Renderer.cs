@@ -981,7 +981,7 @@ public partial class Renderer : IDisposable
         m_worldRenderer.Dispose();
         m_framebufferRenderer.Dispose();
         m_automapRenderer.Dispose();
-        m_lightBufferStorage?.Dispose();
+        m_sectorLightsBuffer?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
         m_sectorFogBuffer?.Dispose();
         m_transitionRenderer?.Dispose();

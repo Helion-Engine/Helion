@@ -11,7 +11,7 @@ public struct EntityVertex
     public Vec3F Pos;
 
     [VertexAttribute]
-    // X offset written to colormap option portion when in health bar mode
+    // X offset written to surface option portions when in health bar mode
     public float SurfaceOptions;
 
     [VertexAttribute]
