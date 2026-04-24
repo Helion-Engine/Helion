@@ -5,6 +5,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public static class VertexOptions
 {
+    // When overrideLightIndex is non-zero then lighting uses index overrideLightIndex - 1
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe float PackSurface(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex)
     {
