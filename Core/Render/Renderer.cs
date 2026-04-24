@@ -633,7 +633,7 @@ public partial class Renderer : IDisposable
 
     private void BindLightBuffer()
     {
-        m_lightBufferStorage?.BindTexture(BindTextures.SectorLight);
+        m_sectorLightsBuffer?.BindTexture(BindTextures.SectorLight);
     }
 
     private void BindMapDataBuffer()

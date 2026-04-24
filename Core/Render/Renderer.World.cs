@@ -25,23 +25,19 @@ public partial class Renderer
         Both = 3
     }
 
+    private unsafe delegate void SetLightBufferPtrAction<T>(IWorld world, T* data);
+
     private readonly SectorUpdates m_updateLightSectors = new();
     private readonly SectorUpdates m_updateColorMapSectors = new();
     private readonly SectorUpdates m_updateFogColorSectors = new();
     private readonly SectorUpdates m_updateLineHeights = new();
 
-    private GLBufferTextureStorage<byte>? m_lightBufferStorage;
+    private GLBufferTextureStorage<byte>? m_sectorLightsBuffer;
     private GLBufferTextureStorage<float>? m_sectorColorMapsBuffer;
     private GLBufferTextureStorage<float>? m_sectorFogBuffer;
     private GLBufferTextureStorage<float>? m_colorMapBuffer;
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
-
-    private byte[] m_lightBufferData = [];
-    private float[] m_mapBufferData = [];
-    private float[] m_lineHeightsBufferData = [];
-
-    const int VectorSize = 4;
 
     public static int GetLightBufferIndex(Side side, Wall wall, Sector sector, out int overrideLightIndex)
     {
@@ -70,7 +66,7 @@ public partial class Renderer
         };
     }
 
-    public void UpdateToNewWorld(IWorld world)
+    public unsafe void UpdateToNewWorld(IWorld world)
     {
         m_lastDrawWorldCmd = default;
         m_updateLightSectors.ClearAndReset();
@@ -105,56 +101,16 @@ public partial class Renderer
 
         var alloc = !m_world.SameAsPreviousMap;
         SetMapDataBuffer(world, alloc);
-        SetLightDataBuffer(world, alloc);
-        SetSectorColorMapsBuffer(world, alloc);
-        SetSectorFogBuffer(world, alloc);
+        m_sectorLightsBuffer = InitLightBuffer(world, alloc, m_sectorLightsBuffer, InitLightBuffer, "Sector light levels", SizedInternalFormat.R8ui);
+        m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f);
+        m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f);
         SetLineHeights(world, alloc);
-    }
-
-    private unsafe void SetLightDataBuffer(IWorld world, bool alloc)
-    {
-        if (alloc || m_lightBufferStorage == null)
-        {
-            m_lightBufferStorage?.Dispose();
-            m_lightBufferData = AllocLightSectorArray<byte>(world);
-            m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R8ui, GLInfo.MapPersistentBitSupported);
-
-            m_lightBufferStorage.Map(data =>
-            {
-                var lightBuffer = (byte*)data.ToPointer();
-                SetLightBuffer(world, lightBuffer);
-            });
-        }
-        else
-        {
-            var lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
-            SetLightBuffer(world, lightBuffer.MappedMemoryPtr);
-            m_lightBufferStorage.Unbind();
-        }
-    }
-
-    private unsafe void SetLightBuffer(IWorld world, byte* lightBuffer)
-    {        
-        lightBuffer[LightBuffer.DarkIndex] = 0;
-        lightBuffer[LightBuffer.FullBrightIndex] = 255;
-
-        for (int i = 0; i < LightBuffer.ColorMapCount; i++)
-            lightBuffer[LightBuffer.ColorMapStartIndex + i] =
-                (byte)(256 - ((LightBuffer.ColorMapCount - i) * 256 / LightBuffer.ColorMapCount));
-
-        for (int i = 0; i < world.Sectors.Count; i++)
-        {
-            var sector = world.Sectors[i];
-            var lightLevel = sector.GetByteLightLevel();
-            SetSectorLight(lightBuffer, sector, lightLevel);
-        }
     }
 
     private unsafe void SetLineHeights(IWorld world, bool alloc)
     {
         if (!world.Config.Render.VanillaRender)
         {
-            m_lineHeightsBufferData = [];
             m_lineHeightsBuffer?.Dispose();
             m_lineHeightsBuffer = null;
             return;
@@ -163,8 +119,7 @@ public partial class Renderer
         if (alloc || m_lineHeightsBuffer == null)
         {
             m_lineHeightsBuffer?.Dispose();
-            m_lineHeightsBufferData = new float[world.Lines.Count * GLBufferTextureStorage<float>.FourComponentLength];
-            m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
+            m_lineHeightsBuffer = new("Line heights data buffer", new float[world.Lines.Count * GLBufferTextureStorage<float>.FourComponentLength], SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
 
             m_lineHeightsBuffer.Map(data =>
             {
@@ -190,59 +145,50 @@ public partial class Renderer
         }
     }
 
+    private static unsafe GLBufferTextureStorage<T> InitLightBuffer<T>(IWorld world, bool alloc, GLBufferTextureStorage<T>? bufferStorage, 
+        SetLightBufferPtrAction<T> setAction, string name, SizedInternalFormat format) where T : struct
+    {
+        if (alloc || bufferStorage == null)
+        {
+            bufferStorage?.Dispose();
+            bufferStorage = new(name, AllocLightSectorArray<T>(world), format, GLInfo.MapPersistentBitSupported);
+
+            bufferStorage.Map(data =>
+            {
+                var lightBuffer = (T*)data.ToPointer();
+                setAction(world, lightBuffer);
+            });
+        }
+        else
+        {
+            var lightBuffer = bufferStorage.GetMappedBufferAndBind();
+            setAction(world, lightBuffer.MappedMemoryPtr);
+            bufferStorage.Unbind();
+        }
+
+        return bufferStorage;
+    }
+
     private static T[] AllocLightSectorArray<T>(IWorld world) where T : struct
     {
         var sectorBufferCount = world.Sectors.Count * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
-        return new T[sectorBufferCount * VectorSize];
+        return new T[sectorBufferCount * GLBufferTextureStorage<float>.FourComponentLength];
     }
 
-    private unsafe void SetSectorColorMapsBuffer(IWorld world, bool alloc)
+    private unsafe void InitLightBuffer(IWorld world, byte* lightBuffer)
     {
-        if (alloc || m_sectorColorMapsBuffer == null)
-        {
-            m_sectorColorMapsBuffer?.Dispose();
-            m_sectorColorMapsBuffer = new("Sector colormaps", AllocLightSectorArray<float>(world), SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
-        }
+        lightBuffer[LightBuffer.DarkIndex] = 0;
+        lightBuffer[LightBuffer.FullBrightIndex] = 255;
 
-        if (alloc)
-        {
-            m_sectorColorMapsBuffer.Map(data =>
-            {
-                float* colorMapBuffer = (float*)data.ToPointer();
-                InitSectorColorMap(world, colorMapBuffer);
-            });
-        }
-        else
-        {
-            var mappedBuffer = m_sectorColorMapsBuffer.GetMappedBufferAndBind();
-            float* colorMapBuffer = mappedBuffer.MappedMemoryPtr;
-            InitSectorColorMap(world, colorMapBuffer);
-            m_sectorColorMapsBuffer.Unbind();
-        }
-    }
+        for (int i = 0; i < LightBuffer.ColorMapCount; i++)
+            lightBuffer[LightBuffer.ColorMapStartIndex + i] =
+                (byte)(256 - ((LightBuffer.ColorMapCount - i) * 256 / LightBuffer.ColorMapCount));
 
-    private unsafe void SetSectorFogBuffer(IWorld world, bool alloc)
-    {
-        if (alloc || m_sectorFogBuffer == null)
+        for (int i = 0; i < world.Sectors.Count; i++)
         {
-            m_sectorFogBuffer?.Dispose();
-            m_sectorFogBuffer = new("Sector fog", AllocLightSectorArray<float>(world), SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
-        }
-
-        if (alloc)
-        {
-            m_sectorFogBuffer.Map(data =>
-            {
-                float* fogBuffer = (float*)data.ToPointer();
-                InitSectorFogBuffer(world, fogBuffer);
-            });
-        }
-        else
-        {
-            var mappedBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
-            float* fadeBuffer = mappedBuffer.MappedMemoryPtr;
-            InitSectorFogBuffer(world, fadeBuffer);
-            m_sectorFogBuffer.Unbind();
+            var sector = world.Sectors[i];
+            var lightLevel = sector.GetByteLightLevel();
+            SetSectorLight(lightBuffer, sector, lightLevel);
         }
     }
 
@@ -273,9 +219,9 @@ public partial class Renderer
         var index = sectorId * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
         var fade = GetSectorFogDensity(fadeColor, lightLevel, fogDensity);
 
-        *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = fade;
-        *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = fade;
-        *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * VectorSize] = fade;
+        *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
+        *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
+        *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
     }
 
     private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
@@ -283,9 +229,9 @@ public partial class Renderer
         var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
         var setColor = GetSectorSetColor(colormap);
 
-        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = setColor;
-        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = setColor;
-        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.WallOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * GLBufferTextureStorage<float>.FourComponentLength] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.CeilingOffset) * GLBufferTextureStorage<float>.FourComponentLength] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.WallOffset) * GLBufferTextureStorage<float>.FourComponentLength] = setColor;
     }
 
     private static Vec4F GetSectorFogDensity(Color fadeColor, short lightLevel, float fogDensity)
@@ -321,7 +267,6 @@ public partial class Renderer
     {
         if (!world.Config.Render.VanillaRender)
         {
-            m_mapBufferData = [];
             m_mapDataBuffer?.Dispose();
             m_mapDataBuffer = null;
             return;
@@ -331,8 +276,7 @@ public partial class Renderer
             return;
 
         m_mapDataBuffer?.Dispose();
-        m_mapBufferData = new float[world.Lines.Count * 6];
-        m_mapDataBuffer = new("Map data buffer", m_mapBufferData, SizedInternalFormat.Rgba32f, false);
+        m_mapDataBuffer = new("Map data buffer", new float[world.Lines.Count * 6], SizedInternalFormat.Rgba32f, false);
 
         m_mapDataBuffer.Map(data =>
         {
@@ -426,10 +370,10 @@ public partial class Renderer
 
     private unsafe void UpdateLights()
     {
-        if (m_updateLightSectors.UpdateSectors.Length == 0 || m_lightBufferStorage == null || m_sectorFogBuffer == null)
+        if (m_updateLightSectors.UpdateSectors.Length == 0 || m_sectorLightsBuffer == null || m_sectorFogBuffer == null)
             return;
 
-        var lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
+        var lightBuffer = m_sectorLightsBuffer.GetMappedBufferAndBind();
         var lightData = lightBuffer.MappedMemoryPtr;
 
         var fogBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
@@ -443,7 +387,8 @@ public partial class Renderer
             SetSectorFog(fogData, sector.Id, sector.FogColor, lightLevel, sector.FogDensity);
         }
 
-        m_lightBufferStorage.Unbind();
+        m_sectorLightsBuffer.Unbind();
+        m_sectorFogBuffer.Unbind();
     }
 
     private unsafe void SetSectorLight(byte* lightData, Sector sector, byte lightLevel)
