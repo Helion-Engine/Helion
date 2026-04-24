@@ -1104,8 +1104,13 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private void ClearSideGeometryVertices(Side side, Wall wall)
     {
         ClearGeometryVertices(wall.Static);
-        if (m_vanillaRender && m_coverWallLookup.TryGetValue(CoverKey.MakeCoverWallKey(side.Id, wall.Location), out var geometryData))
-            ClearGeometryVertices(geometryData);
+        if (m_vanillaRender)
+        {
+            if (m_coverWallLookup.TryGetValue(CoverKey.MakeCoverWallKey(side.Id, wall.Location, true), out var geometryData))
+                ClearGeometryVertices(geometryData);
+            if (m_coverWallLookup.TryGetValue(CoverKey.MakeCoverWallKey(side.Id, wall.Location, false), out geometryData))
+                ClearGeometryVertices(geometryData);
+        }
     }
 
     private void World_SectorMoveComplete(object? sender, SectorPlane plane)
@@ -1347,7 +1352,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             return;
 
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
-        var key = CoverKey.MakeCoverWallKey(side.Id, location);
+        var key = CoverKey.MakeCoverWallKey(side.Id, location, oneSided);
         int length = sideVertices.Length;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData) && staticGeometryData.GeometryData != null)
         {

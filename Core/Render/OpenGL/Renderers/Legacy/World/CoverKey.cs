@@ -9,7 +9,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 readonly struct CoverKey(int key1, int key2) : IEquatable<CoverKey>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CoverKey MakeCoverWallKey(int sideId, WallLocation location) => new(sideId, (int)location);
+    public static CoverKey MakeCoverWallKey(int sideId, WallLocation location, bool oneSided) => new(sideId, (int)location * (oneSided ? 1 : 2));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CoverKey MakeFlatKey(int sectorId, SectorPlaneFace plane) => new(sectorId, (int)plane);
