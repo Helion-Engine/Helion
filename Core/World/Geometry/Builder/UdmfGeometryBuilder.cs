@@ -48,7 +48,7 @@ public class UdmfGeometryBuilder
             offsets.Scale.Y = mapSector.ScaleFloorY;
 
             var floorPlane = CreateSectorPlane(mapSector, SectorPlaneFace.Floor, textureManager, offsets);
-            floorPlane.LightLevel = mapSector.LightFloor;
+            floorPlane.LightLevelAdd = mapSector.LightFloor;
             floorPlane.LightLevelAbsolute = mapSector.LightFloorAbsolute;
 
             offsets = default;
@@ -61,7 +61,7 @@ public class UdmfGeometryBuilder
             offsets.Scale.Y = mapSector.ScaleCeilingY;
 
             var ceilingPlane = CreateSectorPlane(mapSector, SectorPlaneFace.Ceiling, textureManager, offsets);
-            ceilingPlane.LightLevel = mapSector.LightCeiling;
+            ceilingPlane.LightLevelAdd = mapSector.LightCeiling;
             ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
 
             GetSectorSpecial(mapSector, needsTranslation, out var sectorSpecial, out var sectorData);

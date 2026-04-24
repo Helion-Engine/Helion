@@ -103,8 +103,8 @@ public class StaticShader : RenderProgram
         layout(location = 0) in vec3 pos;
         layout(location = 1) in vec2 uv;
         layout(location = 2) in float lightLevelAdd;
-        layout(location = 3) in float options;
-        layout(location = 4) in float colorMapIndex;
+        layout(location = 3) in float surfaceOptions;
+        layout(location = 4) in float renderOptions;
 
         out vec2 uvFrag;
         flat out float alphaFrag;

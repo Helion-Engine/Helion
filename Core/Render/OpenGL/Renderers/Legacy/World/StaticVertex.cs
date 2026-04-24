@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct StaticVertex(float x, float y, float z, float u, float v, float options, float lightLevelAdd, float colorMapIndex)
+public struct StaticVertex(float x, float y, float z, float u, float v, float surfaceOptions, float lightLevelAdd, float renderOptions)
 {
     [VertexAttribute("pos", size: 3)]
     public float X = x;
@@ -19,8 +19,8 @@ public struct StaticVertex(float x, float y, float z, float u, float v, float op
     public float LightLevelAdd = lightLevelAdd;
 
     [VertexAttribute]
-    public float Options = options;
+    public float SurfaceOptions = surfaceOptions;
 
-    [VertexAttribute(required: false)]
-    public float ColorMapIndex = colorMapIndex;
+    [VertexAttribute]
+    public float RenderOptions = renderOptions;
 }

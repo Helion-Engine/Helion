@@ -145,10 +145,10 @@ public class EntityProgram : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in float options;
+        layout(location = 1) in float surfaceOptions;
         layout(location = 2) in vec3 prevPos;
         layout(location = 3) in float offsetXYZ;
-        layout(location = 4) in float colorMapAndRenderIndex;
+        layout(location = 4) in float renderOptions;
 
         flat out float lightLevelOut;
         flat out float alphaOut;
@@ -168,15 +168,15 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            int intOptions = floatBitsToInt(options);
+            int intOptions = floatBitsToInt(surfaceOptions);
             alphaOut = (intOptions & 0xFF) / 255.0;
             fuzzOut = (intOptions >> 8) & 1;
             flipUOut = (intOptions >> 9) & 1;
             lightLevelOut = (intOptions >> 10) & 0xFF;
             colorMapTranslationOut = (intOptions >> 18);
 
-            intOptions = floatBitsToInt(colorMapAndRenderIndex);
-            int sectorIndexInt = intOptions >> 16;
+            intOptions = floatBitsToInt(renderOptions);
+            int lightIndexInt = intOptions >> 16;
             int renderIndex = intOptions & 0xFFFF;
 
             intOptions = floatBitsToInt(offsetXYZ);
@@ -188,8 +188,8 @@ public class EntityProgram : RenderProgram
             offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
             renderIndexOut = renderIndex;
 
-            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, sectorIndexInt).rgb;
-            sectorFogOut = texelFetch(sectorFogTexture, sectorIndexInt).rgba;
+            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
+            sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }

@@ -23,6 +23,7 @@ public sealed class SectorPlane : ISoundSource
     public double PrevZ;
     public int TextureHandle;
     public short LightLevel;
+    public short LightLevelAdd;
     public int LastRenderChangeGametick;
     public int LastRenderGametick;
     public int Id;

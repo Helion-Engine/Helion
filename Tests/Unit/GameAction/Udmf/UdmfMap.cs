@@ -228,7 +228,8 @@ public class UdmfMap
         sector.Ceiling.RenderOffsets.Offset.Y.Should().Be(48);
         sector.Ceiling.RenderOffsets.Scale.X.Should().Be(3);
         sector.Ceiling.RenderOffsets.Scale.Y.Should().Be(2);
-        sector.Ceiling.LightLevel.Should().Be(64);
+        sector.Ceiling.LightLevel.Should().Be(96);
+        sector.Ceiling.LightLevelAdd.Should().Be(64);
         sector.Ceiling.LightLevelAbsolute.Should().BeFalse();
         sector.Ceiling.RenderOffsets.Rotate.Should().Be(MathHelper.ToRadians(160));
 
@@ -236,7 +237,8 @@ public class UdmfMap
         sector.Floor.RenderOffsets.Offset.Y.Should().Be(24);
         sector.Floor.RenderOffsets.Scale.X.Should().Be(0.5);
         sector.Floor.RenderOffsets.Scale.Y.Should().Be(0.6);
-        sector.Floor.LightLevel.Should().Be(128);
+        sector.Floor.LightLevel.Should().Be(96);
+        sector.Floor.LightLevelAdd.Should().Be(128);
         sector.Floor.LightLevelAbsolute.Should().BeTrue();
         sector.Floor.RenderOffsets.Rotate.Should().Be(MathHelper.ToRadians(45));
 

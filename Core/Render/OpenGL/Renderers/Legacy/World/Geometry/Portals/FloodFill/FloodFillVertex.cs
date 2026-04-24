@@ -5,7 +5,7 @@ using Helion.Render.OpenGL.Vertex;
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, float options, float colorMapAndLightLevel, int mapId)
+public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, float surfaceOptions, float renderOptions, int mapId)
 {
     [VertexAttribute("pos", size: 3)]
     public Vec3F Pos = pos;
@@ -25,11 +25,11 @@ public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPl
     [VertexAttribute("prevPlaneZ", size: 1)]
     public float PrevPlaneZ = prevPlaneZ;
 
-    [VertexAttribute("options", size: 1)]
-    public float Options = options;
+    [VertexAttribute("surfaceOptions", size: 1)]
+    public float SurfaceOptions = surfaceOptions;
 
-    [VertexAttribute("colorMapIndex", size: 1, required: false)]
-    public float ColorMapIndex = colorMapAndLightLevel;
+    [VertexAttribute("renderOptions", size: 1)]
+    public float RenderOptions = renderOptions;
 
     [VertexAttribute("mapId", size: 1, required: false)]
     public float MapId = mapId;

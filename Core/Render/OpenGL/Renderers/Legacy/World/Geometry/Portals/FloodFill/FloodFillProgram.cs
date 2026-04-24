@@ -85,8 +85,8 @@ public class FloodFillProgram : RenderProgram
         layout(location = 3) in float maxViewZ;
         layout(location = 4) in float prevZ;
         layout(location = 5) in float prevPlaneZ;
-        layout(location = 6) in float options;
-        layout(location = 7) in float colorMapIndex;
+        layout(location = 6) in float surfaceOptions;
+        layout(location = 7) in float renderOptions;
         layout(location = 8) in float mapId;
 
         flat out float planeZFrag;
@@ -117,11 +117,10 @@ public class FloodFillProgram : RenderProgram
             vertexPosFrag = mix(prevPos, pos, timeFrac);
             mapIdFrag = mapId;
 
-            ${ColorMapAndLightLevelSet}
-
             float alphaFrag;
             float addAlphaFrag;
             ${VertexOptionsSet}
+            ${ColorMapAndLightLevelSet}
 
             ${SectorColorMapVertexFunction}
             ${VertexLightBuffer}

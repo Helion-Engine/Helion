@@ -105,11 +105,11 @@ public class InterpolationShader : RenderProgram
 
         layout(location = 0) in vec3 pos;
         layout(location = 1) in vec2 uv;
-        layout(location = 2) in float options;
+        layout(location = 2) in float surfaceOptions;
         layout(location = 3) in float lightLevelAdd;
         layout(location = 4) in vec3 prevPos;
         layout(location = 5) in vec2 prevUV;
-        layout(location = 6) in float colorMapIndex;
+        layout(location = 6) in float renderOptions;
 
         out vec2 uvFrag;
         flat out float alphaFrag;

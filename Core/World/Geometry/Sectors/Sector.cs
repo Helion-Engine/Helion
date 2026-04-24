@@ -17,8 +17,10 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using static Helion.World.Entities.EntityManager;
 using Vector2D = Helion.Models.Vector2D;
 
@@ -235,6 +237,9 @@ public sealed class Sector : IFloorCeilingAnchor
 
     public short FloorRenderLightLevel => TransferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => TransferCeilingLightSector.Ceiling.LightLevel;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public byte GetByteLightLevel() => (byte)Math.Clamp(LightLevel, (short)0, (short)255);
 
     public void SetFriction(double friction)
     {

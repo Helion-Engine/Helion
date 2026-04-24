@@ -633,7 +633,7 @@ public partial class Renderer : IDisposable
 
     private void BindLightBuffer()
     {
-        m_lightBufferStorage?.BindTexture(BindTextures.SectorLight);
+        m_sectorLightsBuffer?.BindTexture(BindTextures.SectorLight);
     }
 
     private void BindMapDataBuffer()
@@ -981,7 +981,7 @@ public partial class Renderer : IDisposable
         m_worldRenderer.Dispose();
         m_framebufferRenderer.Dispose();
         m_automapRenderer.Dispose();
-        m_lightBufferStorage?.Dispose();
+        m_sectorLightsBuffer?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
         m_sectorFogBuffer?.Dispose();
         m_transitionRenderer?.Dispose();
