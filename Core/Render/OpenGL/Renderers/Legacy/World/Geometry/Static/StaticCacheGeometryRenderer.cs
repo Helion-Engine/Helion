@@ -57,9 +57,10 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private GeometryData? m_coverWallGeometryOneSided;
     private GeometryData? m_coverFlatGeometry;
 
-    private bool m_disposed;
     private IWorld m_world = null!;
+    private bool m_disposed;
     private bool m_vanillaRender;
+    private bool m_worldReload;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -103,6 +104,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         ClearData(world);
 
         m_world = world;
+        m_worldReload = true;
 
         if (WorldStatic.Sector3D)
             m_world.SectorMove += World_SectorMove;
@@ -180,6 +182,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 data.Vbo.UploadIfNeeded();
             }
         }
+
+        m_worldReload = false;
     }
 
     private void World_SectorFogColorChanged(object? sender, Sector sector)
@@ -1100,8 +1104,13 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private void ClearSideGeometryVertices(Side side, Wall wall)
     {
         ClearGeometryVertices(wall.Static);
-        if (m_vanillaRender && m_coverWallLookup.TryGetValue(CoverKey.MakeCoverWallKey(side.Id, wall.Location), out var geometryData))
-            ClearGeometryVertices(geometryData);
+        if (m_vanillaRender)
+        {
+            if (m_coverWallLookup.TryGetValue(CoverKey.MakeCoverWallKey(side.Id, wall.Location, true), out var geometryData))
+                ClearGeometryVertices(geometryData);
+            if (m_coverWallLookup.TryGetValue(CoverKey.MakeCoverWallKey(side.Id, wall.Location, false), out geometryData))
+                ClearGeometryVertices(geometryData);
+        }
     }
 
     private void World_SectorMoveComplete(object? sender, SectorPlane plane)
@@ -1322,8 +1331,16 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         var startIndex = staticGeometry.Index;
         CopyVertices(staticGeometry.GeometryData.Vbo.Data.Data, vertices, startIndex);
-        staticGeometry.GeometryData.Vbo.Bind();
-        staticGeometry.GeometryData.Vbo.UploadSubData(startIndex, vertices.Length);
+
+        if (m_worldReload)
+        {
+            staticGeometry.GeometryData.Vbo.SetNotUploaded();
+        }
+        else
+        {
+            staticGeometry.GeometryData.Vbo.Bind();
+            staticGeometry.GeometryData.Vbo.UploadSubData(startIndex, vertices.Length);
+        }
 
         // On map reloads the Vbo length is cleared. This ensures it's expanded back out correctly.
         staticGeometry.GeometryData.Vbo.Data.Length = Math.Max(staticGeometry.GeometryData.Vbo.Data.Length, startIndex + vertices.Length);
@@ -1334,29 +1351,55 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (m_coverWallGeometry == null || m_coverWallGeometryOneSided == null)
             return;
 
-        var useGeometry = oneSided ? m_coverWallGeometryOneSided : m_coverWallGeometry;
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
-        var vbo = useGeometry.Vbo;
-        var key = CoverKey.MakeCoverWallKey(side.Id, location);
+        var key = CoverKey.MakeCoverWallKey(side.Id, location, oneSided);
         int length = sideVertices.Length;
-        if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
+        if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData) && staticGeometryData.GeometryData != null)
         {
-            CoverWallUtil.CopyCoverWallVertices(side, vbo.Data.Data, sideVertices, staticGeometryData.Index, location);
-            vbo.Bind();
-            vbo.UploadSubData(staticGeometryData.Index, length);
-            return;
+            var geometryVbo = staticGeometryData.GeometryData.Vbo;
+            EnsureCoverWallVboCapacity(staticGeometryData, sideVertices, geometryVbo);
+
+            CoverWallUtil.CopyCoverWallVertices(side, geometryVbo.Data.Data, sideVertices, staticGeometryData.Index, location);
+            if (m_worldReload)
+            {
+                geometryVbo.SetNotUploaded();
+            }
+            else
+            {
+                geometryVbo.Bind();
+                geometryVbo.UploadSubData(staticGeometryData.Index, length);
+            }
         }
+        else
+        {
+            var useGeometry = oneSided ? m_coverWallGeometryOneSided : m_coverWallGeometry;
+            var geometryVbo = useGeometry.Vbo;
+            EnsureCoverWallVboCapacity(staticGeometryData, sideVertices, geometryVbo);
+            var vertices = geometryVbo.Data;
+            geometryVbo.Data.EnsureCapacity(vertices.Length + sideVertices.Length);
+            staticGeometryData = new(useGeometry, vertices.Length, length);
+            CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, location);
+            vertices.Length += length;
+            m_coverWallLookup[key] = staticGeometryData;
 
-        var vertices = vbo.Data;
-        vbo.Data.EnsureCapacity(vertices.Length + sideVertices.Length);
-        staticGeometryData = new(useGeometry, vertices.Length, length);
-        CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, location);
-        vertices.Length += length;
-        m_coverWallLookup[key] = staticGeometryData;
-        vbo.Bind();
-        vbo.UploadSubData(staticGeometryData.Index, length);
+            if (!m_worldReload)
+            {
+                geometryVbo.Bind();
+                geometryVbo.UploadSubData(staticGeometryData.Index, length);
+            }
 
-        vbo.Data.Length = Math.Max(vbo.Data.Length, staticGeometryData.Index + length);
+            geometryVbo.Data.Length = Math.Max(geometryVbo.Data.Length, staticGeometryData.Index + length);
+        }
+    }
+
+    private static void EnsureCoverWallVboCapacity(in StaticGeometryData staticGeometryData, Span<DynamicVertex> sideVertices, StaticVertexBuffer<StaticVertex> geometryVbo)
+    {
+        // This generally shouldn't happen but vanilla sprite clipping emulation renders two-sided middle cover walls that may overflow the original calculation since textures can move/change.
+        if (geometryVbo.Data.Capacity < staticGeometryData.Index + sideVertices.Length)
+        {
+            geometryVbo.Data.EnsureCapacity(staticGeometryData.Index + sideVertices.Length);
+            geometryVbo.SetNotUploaded();
+        }
     }
 
     private void AddOrUpdateCoverFlatGeometry(Sector sector, SectorPlane plane, DynamicVertex[] vertices)
