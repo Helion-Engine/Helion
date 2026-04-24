@@ -190,6 +190,8 @@ public sealed class Sector : IFloorCeilingAnchor
         Ceiling.Reset(m_initialLightLevel);
         Gravity = 1;
         HasDamageSector3D = default;
+        MoveEventGameTick = -1;
+        MoveProcessedGameTick = default;
 
         for (int i = 0; i < Sectors3D.Length; i++)
             Sectors3D[i].Reset();
