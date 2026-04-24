@@ -284,8 +284,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.PrevPos.X = (float)(entity.PrevPosition.X - nudgeAmount.X);
         vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
-        vertex.Options = VertexOptions.Entity(alpha, fuzz, flipU, colorMapIndex, lightLevel);
-        vertex.ColorMapAndRenderIndex = VertexOptions.EntityColorMapAndRenderIndex(
+        vertex.SurfaceOptions = VertexOptions.EntityPackSurface(alpha, fuzz, flipU, colorMapIndex, lightLevel);
+        vertex.RenderOptions = VertexOptions.EntityPackRender(
             Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
@@ -298,7 +298,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
         
-        vertex.OffsetXYZ = VertexOptions.EntityXYZ(offsetX, offsetZ);
+        vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(offsetX, offsetZ);
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable() && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
@@ -326,10 +326,10 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
         // Normalized health percent (0-255)
         int health = (int)(Math.Max(min, entity.Health / (float)entity.Properties.Health) * 255f);
-        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth, health);
+        vertex.SurfaceOptions = VertexOptions.EntityPackSurface(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth, health);
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
-        vertex.OffsetXYZ = VertexOptions.EntityXYZ(0, offset);
+        vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(0, offset);
 
         array.SetLength(array.Length + 1);
     }

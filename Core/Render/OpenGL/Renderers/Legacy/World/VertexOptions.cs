@@ -35,7 +35,7 @@ public static class VertexOptions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float Entity(float alpha, int fuzz, int flipU, int colormap, int lightLevel)
+    public static unsafe float EntityPackSurface(float alpha, int fuzz, int flipU, int colormap, int lightLevel)
     {
         int alphaByte = (int)(alpha * 255.0f);
         int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | (Math.Clamp(lightLevel, 0, 255) << 10) | (colormap << 18);
@@ -43,14 +43,14 @@ public static class VertexOptions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float EntityColorMapAndRenderIndex(int colorMapIndex, int renderIndex)
+    public static unsafe float EntityPackRender(int colorMapIndex, int renderIndex)
     {
         int packed = colorMapIndex << 16 | renderIndex;
         return *(float*)&packed;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float EntityXYZ(int offsetXY, int offsetZ)
+    public static unsafe float EntityPackXYZ(int offsetXY, int offsetZ)
     {
         // Shift negative bit for mask to get absolute value and sign bit to remove branches
         int maskXY = offsetXY >> 31;

@@ -12,7 +12,7 @@ public struct EntityVertex
 
     [VertexAttribute]
     // X offset written to colormap option portion when in health bar mode
-    public float Options;
+    public float SurfaceOptions;
 
     [VertexAttribute]
     public Vec3F PrevPos;
@@ -20,6 +20,6 @@ public struct EntityVertex
     [VertexAttribute]
     public float OffsetXYZ;
 
-    [VertexAttribute(required: false)]
-    public float ColorMapAndRenderIndex;
+    [VertexAttribute]
+    public float RenderOptions;
 }
