@@ -271,7 +271,7 @@ public struct FrameState
             return;
 
         CurrentTick--;
-        if (CurrentTick <= 0)
+        if (CurrentTick == 0)
         {
             if (Frame.BranchType == ActorStateBranch.Stop && (Options & FrameStateOptions.DestroyOnStop) != 0)
             {
