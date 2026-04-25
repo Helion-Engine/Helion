@@ -27,6 +27,7 @@
 - Fix sky texture not working when it's not in the texture namespace.
 - Right-extend "block" characters in ENDOOM to emulate VGA "line graphics enable" mode.
 - Fix A_Refire not calling noise alert.
+- Match Doom behavior in the thing tick function that wouldn't advance the state for zero duration frames and leave them in a -1 loop.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
