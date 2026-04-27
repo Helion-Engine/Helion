@@ -182,7 +182,7 @@ public sealed class PhysicsManager
         var moveType = moveSpecial.MoveData.SectorMoveType;
         var startZ = sectorPlane.Z;
         if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
-            return SectorMoveStatus.BlockedAndStop;
+            return SectorMoveStatus.Blocked | SectorMoveStatus.Stop;
 
         // Move lower entities first to handle stacked entities
         // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
@@ -204,7 +204,7 @@ public sealed class PhysicsManager
         if (!moveSpecial.IsDoor && !m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
         {
             FixPlaneClip(sector, sectorPlane, moveType);
-            status = SectorMoveStatus.BlockedAndStop;
+            status = SectorMoveStatus.Blocked | SectorMoveStatus.Stop;
         }
 
         if (solid)
@@ -310,14 +310,16 @@ public sealed class PhysicsManager
 
                     if (moveData.Crush != null)
                     {
+                        status |= SectorMoveStatus.Crushed;
+
                         if (moveData.Crush.Value.CrushMode == ZDoomCrushMode.Hexen || moveData.Crush.Value.Damage == 0)
                         {
                             highestBlockEntity = entity;
                             highestBlockHeight = entity.Height;
                             highestBlockEntityWasCrushing = entityMoveData.WasCrushing;
+                            status |= SectorMoveStatus.Blocked;
                         }
-
-                        status = SectorMoveStatus.Crush;
+                        
                         m_crushEntities.Add(entity);
                     }
                     else if (CheckSectorMoveBlock(entity, moveType, entityMoveData.SaveZ))
@@ -383,16 +385,16 @@ public sealed class PhysicsManager
 
         // If an entity is blocking this and the destination is blocked then we need to stop to match vanilla behavior.
         if (isCompleted && status == SectorMoveStatus.Blocked)
-            return SectorMoveStatus.BlockedAndStop;
+            return SectorMoveStatus.Blocked | SectorMoveStatus.Stop;
 
-        if (status == SectorMoveStatus.BlockedAndStop)
+        if (status == (SectorMoveStatus.Blocked | SectorMoveStatus.Stop))
             return status;
 
         if (WorldStatic.Sector3D && checkSector3D && sector.TaggedSectors3D.Length > 0)
         {
             status = TestMoveSector3D(speed, destZ, startZ, moveSpecial, sector, sectorPlane, moveType);
 
-            if (status == SectorMoveStatus.Blocked || status == SectorMoveStatus.BlockedAndStop)
+            if ((status & (SectorMoveStatus.Blocked | SectorMoveStatus.Stop)) != 0)
                 sectorPlane.SetZ(startZ);
         }
 
@@ -455,9 +457,9 @@ public sealed class PhysicsManager
             moveSpecial.MoveData.SectorMoveType = face;
             moveSpecial.MoveData.Sector3D = null;
 
-            if (status != SectorMoveStatus.Success)
+            if ((status & SectorMoveStatus.Blocked) != 0)
                 return status;
-        }        
+        }       
 
         return SectorMoveStatus.Success;
     }
