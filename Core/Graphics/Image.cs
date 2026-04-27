@@ -140,23 +140,25 @@ public class Image
             foreach (ref TPixel pixel in pixelRow)
             {
                 pixel.ToRgba32(ref tempPixel);
-
-                argbData[offset] = tempPixel.A;
-                argbData[offset + 1] = tempPixel.R;
-                argbData[offset + 2] = tempPixel.G;
-                argbData[offset + 3] = tempPixel.B;
-
-                if (indices != null && paletteTranslation != null && paletteTranslationColorLookup != null && tempPixel.A != 0)
+                if (tempPixel.A != 0)
                 {
-                    var nearestIndex = paletteTranslationColorLookup.GetIndex(tempPixel.R, tempPixel.G, tempPixel.B);
-                    indices[index] = nearestIndex;
+                    argbData[offset] = tempPixel.A;
+                    argbData[offset + 1] = tempPixel.R;
+                    argbData[offset + 2] = tempPixel.G;
+                    argbData[offset + 3] = tempPixel.B;
 
-                    if (colorTranslation != null)
+                    if (indices != null && paletteTranslation != null && paletteTranslationColorLookup != null && tempPixel.A != 0)
                     {
-                        var color = paletteTranslation.DefaultLayer[colorTranslation[nearestIndex]];
-                        argbData[offset + 1] = color.R;
-                        argbData[offset + 2] = color.G;
-                        argbData[offset + 3] = color.B;
+                        var nearestIndex = paletteTranslationColorLookup.GetIndex(tempPixel.R, tempPixel.G, tempPixel.B);
+                        indices[index] = nearestIndex;
+
+                        if (colorTranslation != null)
+                        {
+                            var color = paletteTranslation.DefaultLayer[colorTranslation[nearestIndex]];
+                            argbData[offset + 1] = color.R;
+                            argbData[offset + 2] = color.G;
+                            argbData[offset + 3] = color.B;
+                        }
                     }
                 }
 
