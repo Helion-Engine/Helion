@@ -3135,13 +3135,13 @@ public abstract partial class WorldBase : IWorld
             return;
 
         bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood() || entity.Flags.Dormant();
-        EntityDefinition? def;
+        EntityDefinition? def = null;
         if (bulletPuff)
         {
             def = EntityManager.DefinitionComposer.BulletPuffDefinition;
             intersect.Z += Random.NextDiff() * Constants.PuffRandZ;
         }
-        else
+        else if (entity != null)
         {
             def = entity!.GetBloodDefinition();
         }
@@ -3186,20 +3186,22 @@ public abstract partial class WorldBase : IWorld
 
         blood.Velocity.Z = 2;
 
-        // Doom had the blood states hardcoded. Supercharged bulletride seems to function differing in gz vs dsda.
-        // The changed the frame for blood that dsda will ignore because of hardcoded states, but work in gz.
-        if (HasDehacked && entity != null && entity.FrameState.Frame.VanillaIndex != (int)ThingState.BLOOD1)
-            return;
-
         int offset = 0;
         if (damage <= 12 && damage >= 9)
             offset = 1;
         else if (damage < 9)
             offset = 2;
 
-        if (offset == 0)
-            blood.SetRandomizeTicks();
-        else if (blood.Definition.SpawnState != null)
+        blood.SetRandomizeTicks();
+
+        if (HasDehacked)
+        {
+            if (offset > 0)
+                blood.FrameState.SetFrameIndex(blood, ArchiveCollection.EntityFrameTable.GetBloodFrameIndex() + offset);
+            return;
+        }
+
+        if (blood.Definition.SpawnState != null)
             blood.FrameState.SetFrameIndex(blood, blood.Definition.SpawnState.Value + offset);
     }
 

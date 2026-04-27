@@ -36,7 +36,7 @@ public class EntityFrameTable
         return m_vileHealFrame;
     }
 
-    public int GetBloodIndex()
+    public int GetBloodFrameIndex()
     {
         if (m_bloodIndex != -1)
             return m_bloodIndex;
