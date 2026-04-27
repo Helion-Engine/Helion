@@ -239,7 +239,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
         IsInitialMove = false;
 
-        if (MoveStatus == SectorMoveStatus.BlockedAndStop)
+        if ((MoveStatus & SectorMoveStatus.Stop) != 0)
             DestZ = SectorPlane.Z;
 
         if (MoveData.LightTag > 0)
@@ -247,7 +247,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
         CheckPlaySound();
 
-        if ((IsNonRepeat && SectorPlane.Z == DestZ) || MoveStatus == SectorMoveStatus.BlockedAndStop)
+        if ((IsNonRepeat && SectorPlane.Z == DestZ) || (MoveStatus & SectorMoveStatus.Stop) != 0)
         {
             if (CheckInstantMove(destZ))
                 ResetInterpolation();
@@ -474,27 +474,33 @@ public class SectorMoveSpecial : ISectorSpecial
     {
         MoveStatus = m_world.MoveSectorZ(MoveSpeed, destZ, this);
 
-        switch (MoveStatus)
+        // Never flip crushers on blocked
+        if ((MoveStatus & SectorMoveStatus.Blocked) != 0 && (MoveStatus & SectorMoveStatus.Crushed) == 0)
         {
-            case SectorMoveStatus.Blocked:
-                if (MoveData.MoveRepetition != MoveRepetition.None)
-                    FlipMovementDirection(true);
-                break;
+            if (MoveData.MoveRepetition != MoveRepetition.None)
+                FlipMovementDirection(true);
+        }
 
-            case SectorMoveStatus.Crush when IsInitCrush:
-                SetSectorDataChange();
+        if ((MoveStatus & SectorMoveStatus.Crushed) != 0)
+        {
+            if (IsInitCrush)
+            {
                 IsCrushing = true;
                 if (MoveData.Crush != null && MoveData.Crush.Value.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
                     MoveSpeed = MoveSpeed < 0 ? -Constants.DoomSlowCrushSpeed : Constants.DoomSlowCrushSpeed;
-                break;
+            }
 
-            case SectorMoveStatus.Success:
+            if ((MoveStatus & SectorMoveStatus.Blocked) == 0)
                 SetSectorDataChange();
-                break;
-        } 
+        }
 
-        if (IsCrushing && MoveStatus == SectorMoveStatus.Success)
-            IsCrushing = false;
+        if ((MoveStatus & SectorMoveStatus.Success) != 0)
+        {
+            SetSectorDataChange();
+
+            if (IsCrushing)
+                IsCrushing = false;
+        }
     }
 
     private void SetSectorDataChange()

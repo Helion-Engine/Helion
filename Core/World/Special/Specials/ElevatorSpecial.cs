@@ -26,12 +26,13 @@ public class ElevatorSpecial : SectorMoveSpecial
     public ElevatorSpecial(IWorld world, Sector sector, double floorDestZ, double speed,
         MoveDirection moveDirection, SectorSoundData soundData)
     {
+        var crush = new CrushData(Maps.Specials.ZDoom.ZDoomCrushMode.Hexen, 5);
         Sector = sector;
 
         var floor = world.DataCache.GetSectorMoveSpecial(world, sector, Sector.Floor.Z, floorDestZ,
-            new SectorMoveData(SectorPlaneFace.Floor, moveDirection, MoveRepetition.None, speed, 0), soundData);
+            new SectorMoveData(SectorPlaneFace.Floor, moveDirection, MoveRepetition.None, speed, 0, crush: crush), soundData);
         var ceiling = world.DataCache.GetSectorMoveSpecial(world, sector, Sector.Ceiling.Z, floorDestZ + sector.Ceiling.Z - sector.Floor.Z,
-            new SectorMoveData(SectorPlaneFace.Ceiling, moveDirection, MoveRepetition.None, speed, 0), soundData);
+            new SectorMoveData(SectorPlaneFace.Ceiling, moveDirection, MoveRepetition.None, speed, 0, crush: crush), soundData);
 
         // Sector plane that can potentially be blocked needs to moved first
         // Reverse when sector controls 3D sectors
@@ -60,7 +61,7 @@ public class ElevatorSpecial : SectorMoveSpecial
     public override SpecialTickStatus Tick()
     {
         m_firstMove.Tick();
-        if (m_firstMove.MoveStatus == SectorMoveStatus.Blocked)
+        if ((m_firstMove.MoveStatus & SectorMoveStatus.Blocked) != 0)
             m_secondMove.ResetInterpolation();
         else
             return m_secondMove.Tick();
