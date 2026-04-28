@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util.Container;
+using Helion.Util.Loggers;
+using Helion.World;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -14,8 +17,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 /// </summary>
 public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
-    private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new();
-    private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new();
+    const int GrowthSize = 1024;
+    private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new(2048);
+    private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new(2048);
     private readonly RenderProgram m_program;
     private int m_renderCount;
     private bool m_disposed;
@@ -45,14 +49,17 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
     
     public RenderData<TVertex> Get(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        if (texture.TextureId >= m_allRenderData.Length)
-            ResizeToSupportIndex(texture.TextureId);
-
+        m_allRenderData.EnsureCapacity(texture.TextureId + 1);
         RenderData<TVertex>? data = m_allRenderData[texture.TextureId];
         
         if (data == null)
         {
-            data = new(texture, m_program, brightmapTexture) { RenderCount = m_renderCount - 1 };
+            if (WorldStatic.DataCache != null && typeof(TVertex) == typeof(EntityVertex))
+                data = (WorldStatic.DataCache.GetEntityRenderData(texture, m_program, brightmapTexture) as RenderData<TVertex>)!;
+            else
+                data = new(texture, m_program, brightmapTexture);
+
+            data.RenderCount = m_renderCount - 1;
             m_allRenderData[texture.TextureId] = data;
         }
 
@@ -63,14 +70,6 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         }
 
         return data;
-    }
-    
-    private void ResizeToSupportIndex(int index)
-    {
-        const int GrowthSize = 1024;
-
-        int nextLargestSize = ((index / GrowthSize) + 1) * GrowthSize;
-        m_allRenderData.Resize(nextLargestSize);
     }
     
     public void Render(PrimitiveType primitive)

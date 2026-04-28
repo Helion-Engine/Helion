@@ -89,6 +89,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     {
         m_vanillaRender = world.Config.Render.VanillaRender;
         m_lastViewerEntityId = -1;
+        world.DataCache.InitEntityRenderData(m_program);
     }
     
     public void Clear(IWorld world)

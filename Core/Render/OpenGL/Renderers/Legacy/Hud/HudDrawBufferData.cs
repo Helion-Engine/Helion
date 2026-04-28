@@ -7,7 +7,7 @@ public class HudDrawBufferData(GLLegacyTexture texture, GLLegacyTexture? brightm
 {
     public GLLegacyTexture Texture = texture;
     public GLLegacyTexture? BrightmapTexture = brightmapTexture;
-    public readonly DynamicArray<HudVertex> Vertices = new(128);
+    public readonly DynamicArray<HudVertex> Vertices = new(128, arrayPool: true);
 
     public void Set(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {

@@ -1,11 +1,14 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using Helion.Render.OpenGL.Buffer.Array.Vertex;
+﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
+using Helion.Resources;
 using Helion.Util.Container;
+using Helion.World;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
@@ -18,16 +21,25 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
     public DynamicArray<TVertex> ArrayData;
     public int RenderCount;
     private bool m_disposed;
+
+    public RenderData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null) : this(program)
+    {
+        Set(texture, brightmapTexture);
+    }
+
+    public RenderData(RenderProgram program)
+    {
+        Vao = new("Entity VAO");
+        Vbo = new("Entity VBO");
+        Attributes.BindAndApply(Vbo, Vao, program.Attributes);
+        ArrayData = Vbo.Data;
+        Texture = null!;
+    }
     
-    public RenderData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
+    public void Set(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         Texture = texture;
         BrightmapTexture = brightmapTexture;
-        Vao = new($"Attributes for {texture.Name}");
-        Vbo = new($"Vertices for {texture.Name}");
-        ArrayData = Vbo.Data;
-
-        Attributes.BindAndApply(Vbo, Vao, program.Attributes);
     }
 
     ~RenderData()

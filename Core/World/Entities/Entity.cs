@@ -102,7 +102,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public IFloorCeilingAnchor LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public DynamicArray<Sector> IntersectSectors = new();
+    public DynamicArray<Sector> IntersectSectors = new(arrayPool: true);
     public int Id;
     public int ThingId;
     // Index in Blockmap.BlockLines
@@ -137,7 +137,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
-    public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
+    public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new(arrayPool: true);
     public readonly DynamicArray<int> IntersectMidTexLines = new(); 
     public bool IsDisposed;
     public bool WaitSoundDispose;

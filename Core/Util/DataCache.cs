@@ -27,6 +27,10 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Islands;
 using Helion.World.Entities.Players;
 using Helion.Maps.Specials;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
+using Helion.Render.OpenGL.Shader;
+using Helion.Util.Loggers;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 namespace Helion.Util;
 
@@ -35,20 +39,22 @@ public class DataCache
     private static int StaticId;
     public int Id;
     private const int DefaultLength = 1024;
+    private const int EntityRenderLength = 1024;
 
     public int EntityLength;
     public int EntityId;
     public Entity[] Entities = new Entity[DefaultLength];
+    private bool InitRenderData;
 
     private readonly DynamicArray<int> m_entities = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<DynamicIsland>> m_islandNodes = new(DefaultLength);
-    private readonly DynamicArray<IAudioSource> m_audioSources = new();
+    private readonly DynamicArray<IAudioSource> m_audioSources = new(64);
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
-    private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
-    private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new();
-    private readonly DynamicArray<RenderableString> m_strings = new();
-    private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
+    private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new(256);
+    private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new(64);
+    private readonly DynamicArray<RenderableString> m_strings = new(64);
+    private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new(64);
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
     private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new(256);
@@ -60,6 +66,7 @@ public class DataCache
     private readonly DynamicArray<DynamicVertex[]> m_wallVertices = new(DefaultLength);
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
     private readonly DynamicArray<LinkedListNode<Entity>> m_entityLinkedListNodes = new(32);
+    private readonly DynamicArray<RenderData<EntityVertex>> m_entityRenderData = new(EntityRenderLength);
 
     public bool CacheEntities = true;
 
@@ -81,6 +88,31 @@ public class DataCache
             entity.Index = i;
             entity.Id = i;
         }
+    }
+
+    public void InitEntityRenderData(RenderProgram program)
+    {
+        var maxLength = EntityRenderLength / 4;
+        if (!InitRenderData)
+        {
+            InitRenderData = true;
+            maxLength = EntityRenderLength;
+        }
+
+        for (int i = m_entityRenderData.Length; i < maxLength; i++)
+            m_entityRenderData.Add(new RenderData<EntityVertex>(program));
+    }
+
+    public RenderData<EntityVertex> GetEntityRenderData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
+    {
+        if (m_entityRenderData.Length > 0)
+        {
+            var data = m_entityRenderData.RemoveLast();
+            data.Set(texture, brightmapTexture);
+            return data;
+        }
+
+        return new RenderData<EntityVertex>(texture, program, brightmapTexture);
     }
 
     // Clear pointers to references that could keep the world around and prevent garbage collection.
