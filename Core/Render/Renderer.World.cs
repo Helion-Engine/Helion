@@ -1,18 +1,19 @@
-﻿using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.World.Geometry.Sectors;
-using Helion.World;
-using OpenTK.Graphics.OpenGL;
-using Helion.Render.OpenGL.Textures;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+﻿using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Palettes;
-using Helion.Geometry.Vectors;
-using static Helion.Util.Constants;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Textures;
+using Helion.Util.Assertion;
+using Helion.World;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using OpenTK.Graphics.OpenGL;
 using System;
-using Helion.World.Geometry.Lines;
-using Helion.Graphics;
+using static Helion.Util.Constants;
 
 namespace Helion.Render;
 
@@ -25,7 +26,7 @@ public partial class Renderer
         Both = 3
     }
 
-    private unsafe delegate void SetLightBufferPtrAction<T>(IWorld world, T* data);
+    private unsafe delegate void SetLightBufferPtrAction<T>(IWorld world, T* data, int length);
 
     private readonly SectorUpdates m_updateLightSectors = new();
     private readonly SectorUpdates m_updateColorMapSectors = new();
@@ -101,9 +102,9 @@ public partial class Renderer
 
         var alloc = !m_world.SameAsPreviousMap;
         SetMapDataBuffer(world, alloc);
-        m_sectorLightsBuffer = InitLightBuffer(world, alloc, m_sectorLightsBuffer, InitLightBuffer, "Sector light levels", SizedInternalFormat.R8ui);
-        m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f);
-        m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f);
+        m_sectorLightsBuffer = InitLightBuffer(world, alloc, m_sectorLightsBuffer, InitLightBuffer, "Sector light levels", SizedInternalFormat.R8ui, 1);
+        m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
+        m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         SetLineHeights(world, alloc);
     }
 
@@ -146,36 +147,37 @@ public partial class Renderer
     }
 
     private static unsafe GLBufferTextureStorage<T> InitLightBuffer<T>(IWorld world, bool alloc, GLBufferTextureStorage<T>? bufferStorage, 
-        SetLightBufferPtrAction<T> setAction, string name, SizedInternalFormat format) where T : struct
+        SetLightBufferPtrAction<T> setAction, string name, SizedInternalFormat format, int components) where T : struct
     {
         if (alloc || bufferStorage == null)
         {
+            var arrayData = AllocLightSectorArray<T>(world, components);
             bufferStorage?.Dispose();
-            bufferStorage = new(name, AllocLightSectorArray<T>(world), format, GLInfo.MapPersistentBitSupported);
+            bufferStorage = new(name, arrayData, format, GLInfo.MapPersistentBitSupported);
 
             bufferStorage.Map(data =>
             {
                 var lightBuffer = (T*)data.ToPointer();
-                setAction(world, lightBuffer);
+                setAction(world, lightBuffer, arrayData.Length);
             });
         }
         else
         {
             var lightBuffer = bufferStorage.GetMappedBufferAndBind();
-            setAction(world, lightBuffer.MappedMemoryPtr);
+            setAction(world, lightBuffer.MappedMemoryPtr, bufferStorage.DataLength());
             bufferStorage.Unbind();
         }
 
         return bufferStorage;
     }
 
-    private static T[] AllocLightSectorArray<T>(IWorld world) where T : struct
+    private static T[] AllocLightSectorArray<T>(IWorld world, int components) where T : struct
     {
         var sectorBufferCount = world.Sectors.Count * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
-        return new T[sectorBufferCount * GLBufferTextureStorage<float>.FourComponentLength];
+        return new T[sectorBufferCount * components];
     }
 
-    private unsafe void InitLightBuffer(IWorld world, byte* lightBuffer)
+    private static unsafe void InitLightBuffer(IWorld world, byte* lightBuffer, int length)
     {
         lightBuffer[LightBuffer.DarkIndex] = 0;
         lightBuffer[LightBuffer.FullBrightIndex] = 255;
@@ -188,46 +190,50 @@ public partial class Renderer
         {
             var sector = world.Sectors[i];
             var lightLevel = sector.GetByteLightLevel();
-            SetSectorLight(lightBuffer, sector, lightLevel);
+            SetSectorLight(lightBuffer, length, sector, lightLevel);
         }
     }
 
-    private static unsafe void InitSectorColorMap(IWorld world, float* colorMapBuffer)
+    private static unsafe void InitSectorColorMap(IWorld world, float* colorMapBuffer, int length)
     {
         *(Vec3F*)&colorMapBuffer[0] = Vec3F.One;
         
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            SetSectorColorMap(colorMapBuffer, sector, sector.Colormap);
+            SetSectorColorMap(colorMapBuffer, length, sector, sector.Colormap);
         }
     }
 
-    private static unsafe void InitSectorFogBuffer(IWorld world, float* fadeBuffer)
+    private unsafe void InitSectorFogBuffer(IWorld world, float* fadeBuffer, int length)
     {
         *(Vec3F*)&fadeBuffer[0] = Vec3F.Zero;
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            SetSectorFog(fadeBuffer, sector.Id, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255), sector.FogDensity);
+            SetSectorFog(fadeBuffer, length, sector.Id, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255), sector.FogDensity);
         }
     }
 
-    private static unsafe void SetSectorFog(float* fadeBuffer, int sectorId, Color fadeColor, short lightLevel, float fogDensity)
+    private static unsafe void SetSectorFog(float* fadeBuffer, int bufferLength, int sectorId, Color fadeColor, short lightLevel, float fogDensity)
     {
         var index = sectorId * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
         var fade = GetSectorFogDensity(fadeColor, lightLevel, fogDensity);
+
+        Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sectorId} for sector fog buffer");
 
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
         *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
     }
 
-    private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
+    private static unsafe void SetSectorColorMap(float* colorMapBuffer, int bufferLength, Sector sector, Colormap? colormap)
     {
         var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
         var setColor = GetSectorSetColor(colormap);
+
+        Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength *3 ), $"Invalid sector id {sector.Id} for sector colormap buffer");
 
         *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * GLBufferTextureStorage<float>.FourComponentLength] = setColor;
         *(Vec3F*)&colorMapBuffer[(index + LightBuffer.CeilingOffset) * GLBufferTextureStorage<float>.FourComponentLength] = setColor;
@@ -276,7 +282,7 @@ public partial class Renderer
             return;
 
         m_mapDataBuffer?.Dispose();
-        m_mapDataBuffer = new("Map data buffer", new float[world.Lines.Count * 6], SizedInternalFormat.Rgba32f, false);
+        m_mapDataBuffer = new("Map data buffer", new float[world.Lines.Count * GLBufferTextureStorage<float>.FourComponentLength], SizedInternalFormat.Rgba32f, false);
 
         m_mapDataBuffer.Map(data =>
         {
@@ -293,7 +299,7 @@ public partial class Renderer
         });
     }
 
-    private static unsafe void SetLineHeightBuffer(float* buffer, int lineId, ref StructLine line)
+    private unsafe void SetLineHeightBuffer(float* buffer, int lineId, ref StructLine line)
     {
         var prevFloorZ = (float)line.FrontFloorPlane.PrevZ;
         var floorZ = (float)line.FrontFloorPlane.Z;
@@ -304,6 +310,7 @@ public partial class Renderer
         }
 
         var index = lineId * GLBufferTextureStorage<float>.FourComponentLength;
+        Assert.Precondition(m_lineHeightsBuffer!.DataLength() > index + 2, "Invalid line id for line height buffer");
         buffer[index] = prevFloorZ;
         buffer[index + 1] = floorZ;
 
@@ -374,26 +381,29 @@ public partial class Renderer
             return;
 
         var lightBuffer = m_sectorLightsBuffer.GetMappedBufferAndBind();
+        var lightBufferLength = m_sectorLightsBuffer.DataLength();
         var lightData = lightBuffer.MappedMemoryPtr;
 
         var fogBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+        var fogBufferLength = m_sectorFogBuffer.DataLength();
         var fogData = fogBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateLightSectors.UpdateSectors.Length; i++)
         {
             var sector = m_updateLightSectors.UpdateSectors[i];
             var lightLevel = sector.GetByteLightLevel();
-            SetSectorLight(lightData, sector, lightLevel);
-            SetSectorFog(fogData, sector.Id, sector.FogColor, lightLevel, sector.FogDensity);
+            SetSectorLight(lightData, lightBufferLength, sector, lightLevel);
+            SetSectorFog(fogData, fogBufferLength, sector.Id, sector.FogColor, lightLevel, sector.FogDensity);
         }
 
         m_sectorLightsBuffer.Unbind();
         m_sectorFogBuffer.Unbind();
     }
 
-    private unsafe void SetSectorLight(byte* lightData, Sector sector, byte lightLevel)
+    private static unsafe void SetSectorLight(byte* lightData, int length, Sector sector, byte lightLevel)
     {
         var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
+        Assert.Precondition(length > index + (LightBuffer.BufferSize - 1), $"Invalid sector id {sector.Id} for sector light buffer");
         lightData[index + LightBuffer.FloorOffset] = lightLevel;
         lightData[index + LightBuffer.CeilingOffset] = lightLevel;
         lightData[index + LightBuffer.WallOffset] = lightLevel;
@@ -405,12 +415,13 @@ public partial class Renderer
             return;
 
         var mappedBuffer = m_sectorColorMapsBuffer.GetMappedBufferAndBind();
+        var mappedBufferLength = m_sectorColorMapsBuffer.DataLength();
         float* colorMapBuffer = mappedBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateColorMapSectors.UpdateSectors.Length; i++)
         {
             var sector = m_updateColorMapSectors.UpdateSectors[i];
-            SetSectorColorMap(colorMapBuffer, sector, sector.Colormap);
+            SetSectorColorMap(colorMapBuffer, mappedBufferLength, sector, sector.Colormap);
         }
 
         m_sectorColorMapsBuffer.Unbind();
@@ -422,12 +433,13 @@ public partial class Renderer
             return;
 
         var mappedBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+        var mappedBufferLength = m_sectorFogBuffer.DataLength();
         float* fogBuffer = mappedBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateFogColorSectors.UpdateSectors.Length; i++)
         {
             var sector = m_updateFogColorSectors.UpdateSectors[i];
-            SetSectorFog(fogBuffer, sector.Id, sector.FogColor, sector.LightLevel, sector.FogDensity);
+            SetSectorFog(fogBuffer, mappedBufferLength, sector.Id, sector.FogColor, sector.LightLevel, sector.FogDensity);
         }
 
         m_sectorFogBuffer.Unbind();
