@@ -43,9 +43,9 @@ public static class VertexOptions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float EntityPackRender(int colorMapIndex, int renderIndex)
+    public static unsafe float EntityPackRender(int lightIndex, int renderIndex)
     {
-        int packed = colorMapIndex << 16 | renderIndex;
+        int packed = (lightIndex << 12) | (renderIndex & 0xFFF);
         return *(float*)&packed;
     }
 
