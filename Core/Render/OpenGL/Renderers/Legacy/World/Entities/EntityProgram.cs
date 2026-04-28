@@ -176,8 +176,8 @@ public class EntityProgram : RenderProgram
             colorMapTranslationOut = (intOptions >> 18);
 
             intOptions = floatBitsToInt(renderOptions);
-            int lightIndexInt = intOptions >> 16;
-            int renderIndex = intOptions & 0xFFFF;
+            int lightIndexInt = (intOptions >> 12) & 0xFFFFF;
+            int renderIndex = intOptions & 0xFFF;
 
             intOptions = floatBitsToInt(offsetXYZ);
             offsetXYOut = (intOptions >> 16) & 0x3FFF;
