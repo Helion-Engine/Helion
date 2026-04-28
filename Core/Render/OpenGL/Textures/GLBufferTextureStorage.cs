@@ -2,7 +2,6 @@
 using Helion.Util.Assertion;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Xml.Linq;
 
 namespace Helion.Render.OpenGL.Textures;
 
@@ -13,12 +12,14 @@ public class GLBufferTextureStorage<T> where T : struct
     private readonly GLBufferTexture<T> m_bufferTexture;
     private GLMappedBuffer<T> m_mappedBuffer;
     private bool m_mapped;
+    private int m_dataLength;
 
     public GLBufferTextureStorage(string label, T[] data, SizedInternalFormat format, bool persistentBufferStorage)
     {
         // This can be removed when OpenGL 3.3 support is dropped.
         Assert.Precondition(AssertFormat(format), "OpenGL 3.3 does not support three component formats for TBOs.");
 
+        m_dataLength = data.Length;
         m_bufferTexture = new(label, data, format, persistentBufferStorage);
     }
 
@@ -29,6 +30,8 @@ public class GLBufferTextureStorage<T> where T : struct
                                !stringFormat.StartsWith("Rgba", StringComparison.Ordinal);
         return !isThreeComponent;
     }
+
+    public int DataLength() => m_dataLength;
 
     public GLMappedBuffer<T> GetMappedBufferAndBind()
     {
