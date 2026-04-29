@@ -42,3 +42,4 @@
 - Use colormap index one for lite amp goggles instead of zero to match original doom behavior.
 - Removed sprite overlap code from CPU and use sprite detph bias on GPU instead to fix z-fighting.
 - Add support for transparent rendering in static shader.
+- Add pool for entity sprite VBO/VAOs to fix stutter when encountering a new sprite to render.

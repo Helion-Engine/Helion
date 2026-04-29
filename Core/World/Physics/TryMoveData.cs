@@ -31,7 +31,7 @@ public class TryMoveData
     public DynamicArray<int> IntersectSpecialLines = new(16);
     public DynamicArray<int> ImpactSpecialLines = new(16);
     public DynamicArray<int> IntersectMidTexLines = new(16);
-    public DynamicArray<Sector> IntersectSectors = new(16);
+    public DynamicArray<Sector> IntersectSectors = new(16, arrayPool: true);
 
     public void Clear()
     {

@@ -35,6 +35,7 @@ public class DataCache
     private static int StaticId;
     public int Id;
     private const int DefaultLength = 1024;
+    private const int EntityRenderLength = 1024;
 
     public int EntityLength;
     public int EntityId;
@@ -43,12 +44,12 @@ public class DataCache
     private readonly DynamicArray<int> m_entities = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<DynamicIsland>> m_islandNodes = new(DefaultLength);
-    private readonly DynamicArray<IAudioSource> m_audioSources = new();
+    private readonly DynamicArray<IAudioSource> m_audioSources = new(64);
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
-    private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
-    private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new();
-    private readonly DynamicArray<RenderableString> m_strings = new();
-    private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
+    private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new(256);
+    private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new(64);
+    private readonly DynamicArray<RenderableString> m_strings = new(64);
+    private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new(64);
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
     private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new(256);

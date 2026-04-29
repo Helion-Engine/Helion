@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Shader;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -144,6 +145,7 @@ public static class Attributes
         return nextAvailableIndex;
     }
 
+    [Conditional("DEBUG")]
     private static void AssertCorrectMappingOrThrow<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
     {
         Type type = typeof(TVertex);

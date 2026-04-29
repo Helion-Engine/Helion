@@ -1,11 +1,11 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using Helion.Render.OpenGL.Buffer.Array.Vertex;
+﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
@@ -14,20 +14,29 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
     public DynamicVertexBuffer<TVertex> Vbo;
     public VertexArrayObject Vao;
     public GLLegacyTexture Texture;
-    public GLLegacyTexture? BrightmapTexture;
+    public GLLegacyTexture? BrightMapTexture;
     public DynamicArray<TVertex> ArrayData;
     public int RenderCount;
     private bool m_disposed;
+
+    public RenderData(RenderProgram program, GLLegacyTexture texture, GLLegacyTexture? brightMapTexture = null) : this(program)
+    {
+        Set(texture, brightMapTexture);
+    }
+
+    public RenderData(RenderProgram program)
+    {
+        Vao = new("Entity VAO");
+        Vbo = new("Entity VBO");
+        Attributes.BindAndApply(Vbo, Vao, program.Attributes);
+        ArrayData = Vbo.Data;
+        Texture = null!;
+    }
     
-    public RenderData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
+    public void Set(GLLegacyTexture texture, GLLegacyTexture? brightMapTexture = null)
     {
         Texture = texture;
-        BrightmapTexture = brightmapTexture;
-        Vao = new($"Attributes for {texture.Name}");
-        Vbo = new($"Vertices for {texture.Name}");
-        ArrayData = Vbo.Data;
-
-        Attributes.BindAndApply(Vbo, Vao, program.Attributes);
+        BrightMapTexture = brightMapTexture;
     }
 
     ~RenderData()
@@ -48,8 +57,8 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         GL.ActiveTexture(BindTextures.BoundTexture);
         Texture.Bind();
         GL.ActiveTexture(BindTextures.BrightmapTexture);
-        if (BrightmapTexture != null)
-            BrightmapTexture.Bind();
+        if (BrightMapTexture != null)
+            BrightMapTexture.Bind();
         else
             GL.BindTexture(TextureTarget.Texture2D, 0);
         Vao.Bind();

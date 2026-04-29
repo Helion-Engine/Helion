@@ -14,15 +14,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 /// </summary>
 public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
-    private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new();
-    private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new();
+    private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new(2048);
+    private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new(2048);
     private readonly RenderProgram m_program;
+    private readonly RenderDataPool<TVertex> m_renderDataPool;
     private int m_renderCount;
     private bool m_disposed;
     
-    public RenderDataCollection(RenderProgram program)
+    public RenderDataCollection(RenderProgram program, RenderDataPool<TVertex> renderDataPool)
     {
         m_program = program;
+        m_renderDataPool = renderDataPool;
     }
 
     ~RenderDataCollection()
@@ -45,14 +47,13 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
     
     public RenderData<TVertex> Get(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        if (texture.TextureId >= m_allRenderData.Length)
-            ResizeToSupportIndex(texture.TextureId);
-
+        m_allRenderData.EnsureCapacity(texture.TextureId + 1);
         RenderData<TVertex>? data = m_allRenderData[texture.TextureId];
         
         if (data == null)
         {
-            data = new(texture, m_program, brightmapTexture) { RenderCount = m_renderCount - 1 };
+            data = m_renderDataPool.Get(texture, brightmapTexture);
+            data.RenderCount = m_renderCount - 1;
             m_allRenderData[texture.TextureId] = data;
         }
 
@@ -63,14 +64,6 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         }
 
         return data;
-    }
-    
-    private void ResizeToSupportIndex(int index)
-    {
-        const int GrowthSize = 1024;
-
-        int nextLargestSize = ((index / GrowthSize) + 1) * GrowthSize;
-        m_allRenderData.Resize(nextLargestSize);
     }
     
     public void Render(PrimitiveType primitive)
