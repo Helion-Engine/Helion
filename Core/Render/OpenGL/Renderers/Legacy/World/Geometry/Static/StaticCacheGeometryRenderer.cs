@@ -1360,15 +1360,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             EnsureCoverWallVboCapacity(staticGeometryData, sideVertices, geometryVbo);
 
             CoverWallUtil.CopyCoverWallVertices(side, geometryVbo.Data.Data, sideVertices, staticGeometryData.Index, location);
-            if (m_worldReload)
-            {
-                geometryVbo.SetNotUploaded();
-            }
-            else
-            {
-                geometryVbo.Bind();
-                geometryVbo.UploadSubData(staticGeometryData.Index, length);
-            }
+            HandleCoverWallUpload(geometryVbo, staticGeometryData.Index, length);
+            geometryVbo.Data.Length = Math.Max(geometryVbo.Data.Length, staticGeometryData.Index + length);
         }
         else
         {
@@ -1382,13 +1375,21 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             vertices.Length += length;
             m_coverWallLookup[key] = staticGeometryData;
 
-            if (!m_worldReload)
-            {
-                geometryVbo.Bind();
-                geometryVbo.UploadSubData(staticGeometryData.Index, length);
-            }
-
+            HandleCoverWallUpload(geometryVbo, staticGeometryData.Index, length);
             geometryVbo.Data.Length = Math.Max(geometryVbo.Data.Length, staticGeometryData.Index + length);
+        }
+    }
+
+    private void HandleCoverWallUpload(StaticVertexBuffer<StaticVertex> geometryVbo, int index, int length)
+    {
+        if (m_worldReload)
+        {
+            geometryVbo.SetNotUploaded();
+        }
+        else
+        {
+            geometryVbo.Bind();
+            geometryVbo.UploadSubData(index, length);
         }
     }
 
