@@ -25,6 +25,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     const int MaxBarWidth = 80;
     const int MinHealth = 20;
     const int MaxHealth = 4000;
+    const int RenderPoolSize = 2048;
 
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -36,6 +37,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
     private readonly ArchiveCollection m_archiveCollection;
+    private readonly RenderDataPool<EntityVertex> m_renderDataPool;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
@@ -57,7 +59,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_textureManager = textureManager;
         m_archiveCollection = archiveCollection;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
-        m_dataManager = new(m_program, textureManager.BlackTexture);
+        m_renderDataPool = new(m_program, RenderPoolSize);
+        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPool);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
@@ -89,7 +92,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     {
         m_vanillaRender = world.Config.Render.VanillaRender;
         m_lastViewerEntityId = -1;
-        world.DataCache.InitEntityRenderData(m_program);
+        m_renderDataPool.RefillPool(RenderPoolSize / 4);
     }
     
     public void Clear(IWorld world)

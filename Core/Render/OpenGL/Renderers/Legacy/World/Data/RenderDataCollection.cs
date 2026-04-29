@@ -17,16 +17,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 /// </summary>
 public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
-    const int GrowthSize = 1024;
     private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new(2048);
     private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new(2048);
     private readonly RenderProgram m_program;
+    private readonly RenderDataPool<TVertex> m_renderDataPool;
     private int m_renderCount;
     private bool m_disposed;
     
-    public RenderDataCollection(RenderProgram program)
+    public RenderDataCollection(RenderProgram program, RenderDataPool<TVertex> renderDataPool)
     {
         m_program = program;
+        m_renderDataPool = renderDataPool;
     }
 
     ~RenderDataCollection()
@@ -54,11 +55,7 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         
         if (data == null)
         {
-            if (WorldStatic.DataCache != null && typeof(TVertex) == typeof(EntityVertex))
-                data = (WorldStatic.DataCache.GetEntityRenderData(texture, m_program, brightmapTexture) as RenderData<TVertex>)!;
-            else
-                data = new(texture, m_program, brightmapTexture);
-
+            data = m_renderDataPool.Get(texture, brightmapTexture);
             data.RenderCount = m_renderCount - 1;
             m_allRenderData[texture.TextureId] = data;
         }
