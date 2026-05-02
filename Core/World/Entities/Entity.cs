@@ -1057,8 +1057,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         if (CanBlockEntity(entity) && topZ >= dropOffZ)
         {
-            // Ignore if can't step up
-            if (topZ > Position.Z && topZ - Position.Z > maxStepHeight)
+            // Ignore if can't step up / step down
+            if ((topZ > Position.Z && topZ - Position.Z > maxStepHeight) || (topZ < Position.Z && Position.Z - topZ > maxStepHeight))
                 return highestWalk;
 
             // ActLikeBridge takes precedence when z is equal

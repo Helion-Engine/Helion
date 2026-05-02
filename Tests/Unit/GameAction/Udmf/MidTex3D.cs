@@ -5,6 +5,7 @@ using Helion.Resources.IWad;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -12,7 +13,7 @@ using Xunit;
 namespace Helion.Tests.Unit.GameAction.Udmf;
 
 [Collection("GameActions")]
-public class MidTex3D
+public class MidTex3D : IDisposable
 {
     private static readonly string ResourceZip = "Resources/midtex3d.zip";
     private static readonly string MapName = "MAP01";
@@ -40,6 +41,11 @@ public class MidTex3D
             World.Link(entity);
             entity = entity.Next;
         }
+    }
+
+    public void Dispose()
+    {
+        GameActions.DestroyCreatedEntities(World);
     }
 
     private static Helion.Graphics.Image CreateImage(int width, int height) =>
@@ -366,5 +372,30 @@ public class MidTex3D
         monster.Sector.Id.Should().Be(58);
         monster.OnGround.Should().BeTrue();
         monster.Position.XY.IsApprox(new Vec2D(2509.254, 274.745));
+    }
+
+    [Fact(DisplayName = "Monster doesn't drop off midtex")]
+    public void MonsterMidTexDropoffFail()
+    {
+        var monster = GameActions.CreateEntity(World, "Zombieman", (-128, 464, 128), frozen: false);
+        monster.Position.Z.Should().Be(128);
+        monster.OnGround.Should().BeTrue();
+
+        // This move will pass the XY check but must fail on the drop off to the next midtex check since it's radius is no longer on the midtex and the drop is > 24.
+        monster.SetMoveDirection(Entity.MoveDir.North);
+        monster.MoveEnemy(out _).Should().BeFalse();
+
+        monster.SetMoveDirection(Entity.MoveDir.East);
+        monster.MoveEnemy(out _).Should().BeTrue();
+
+        monster.SetMoveDirection(Entity.MoveDir.West);
+        monster.MoveEnemy(out _).Should().BeTrue();
+
+        monster.SetMoveDirection(Entity.MoveDir.South);
+        for (int i = 0; i < 4; i++)
+            monster.MoveEnemy(out _).Should().BeTrue();
+
+        // Same as the first check. The radius no longer overlaps and shouldn't be allowed to dropoff.
+        monster.MoveEnemy(out _).Should().BeFalse();
     }
 }
