@@ -30,6 +30,7 @@
 - Match Doom behavior in the thing tick function that wouldn't advance the state for zero duration frames and leave them in a -1 loop.
 - Fix PNGs with fully transparent pixels loading colors that causes rendering issues when used with texture filtering.
 - Fix spawn blood to use hard-coded vanilla frames when dehacked is present.
+- Fix tracer lines drawing over sprites with software emulation.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.

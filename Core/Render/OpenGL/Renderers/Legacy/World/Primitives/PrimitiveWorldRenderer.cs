@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
+using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
@@ -13,24 +13,33 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 /// </summary>
 public class PrimitiveWorldRenderer : IDisposable
 {
-    private readonly List<PrimitiveVbo> m_drawItems = new();
+    private readonly DynamicArray<PrimitiveVbo> m_drawItems = [];
+    private readonly DynamicArray<PrimitiveVbo> m_drawItemsTransparent = [];
     private readonly PrimitiveShader m_program = new();
     private bool m_disposed;
-    private bool m_hasData;
+
+    public bool HasOpaque;
+    public bool HasTransparent;
 
     public PrimitiveWorldRenderer()
     {
         var values = Enum.GetValues<PrimitiveRenderType>();
+        SetupVbo(values, m_drawItems);
+        SetupVbo(values, m_drawItemsTransparent);
+    }
+
+    private void SetupVbo(PrimitiveRenderType[] values, DynamicArray<PrimitiveVbo> items)
+    {
         foreach (var value in values)
         {
             int lineWidth = 2;
             if (value == PrimitiveRenderType.Rail)
                 lineWidth = 5;
 
-            var data = new PrimitiveVbo($"Primitive {value.ToString()}", lineWidth);
+            var data = new PrimitiveVbo($"Primitive {value}", lineWidth);
             Attributes.BindAndApply(data.Vbo, data.Vao, m_program.Attributes);
-            m_drawItems.Add(data);
-        }        
+            items.Add(data);
+        }
     }
 
     ~PrimitiveWorldRenderer()
@@ -43,23 +52,59 @@ public class PrimitiveWorldRenderer : IDisposable
         PrimitiveVertex start = new(segment.Start, color, alpha);
         PrimitiveVertex end = new(segment.End, color, alpha);
 
-        var vboData = m_drawItems[(int)type];
+        bool transparent = alpha < 1;
+
+        var vboData = transparent ? m_drawItemsTransparent[(int)type] : m_drawItems[(int)type];
         vboData.Vbo.Add(start);
         vboData.Vbo.Add(end);
-        m_hasData = true;
+        if (transparent)
+            HasTransparent |= true;
+        else
+            HasOpaque |= true;
     }
 
-    public void Render(RenderInfo renderInfo)
+    public void RenderAll(RenderInfo renderInfo)
     {
-        if (!m_hasData)
-            return;
+        RenderOpaque(renderInfo);
+        RenderTransparent(renderInfo);
+    }
 
+    public void RenderOpaque(RenderInfo renderInfo)
+    {
+        if (HasOpaque)
+            Render(renderInfo, m_drawItems);
+    }
+
+    public void RenderTransparent(RenderInfo renderInfo)
+    {
+        if (HasTransparent)
+            Render(renderInfo, m_drawItemsTransparent);
+    }
+
+    public void Clear()
+    {
+        if (HasOpaque)
+            Clear(m_drawItems);
+        if (HasTransparent)
+            Clear(m_drawItemsTransparent);
+        HasOpaque = false;
+        HasTransparent = false;
+    }
+
+    private static void Clear(DynamicArray<PrimitiveVbo> items)
+    {
+        for (int i = 0; i < items.Length; i++)
+            items[i].Vbo.Clear();
+    }
+
+    private void Render(RenderInfo renderInfo, DynamicArray<PrimitiveVbo> items)
+    {
         m_program.Bind();
-        m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
-        
-        for (int i = 0; i < m_drawItems.Count; i++)
+        m_program.Mvp(renderInfo.Uniforms.Mvp);
+
+        for (int i = 0; i < items.Length; i++)
         {
-            var item = m_drawItems[i];
+            var item = items[i];
             if (item.Vbo.Empty)
                 continue;
 
@@ -69,14 +114,11 @@ public class PrimitiveWorldRenderer : IDisposable
             item.Vao.Bind();
             item.Vbo.DrawArrays(PrimitiveType.Lines);
             item.Vao.Unbind();
-
-            item.Vbo.Clear();
         }
-        
+
         GL.LineWidth(1); // Any automap drawing should return to normal afterwards.
 
         m_program.Unbind();
-        m_hasData = false;
     }
 
     protected virtual void Dispose(bool disposing)
