@@ -313,8 +313,6 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_renderStatic)
             m_geometryRenderer.RenderStaticSkies(renderInfo);
 
-        m_primitiveRenderer.Render(renderInfo);
-
         if (!m_vanillaRender)
         {
             m_interpolationProgram.Bind();
@@ -338,6 +336,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
             RenderTwoSidedMiddleWalls(renderInfo);
             m_entityRenderer.RenderOpaque(renderInfo);
+            m_primitiveRenderer.RenderAll(renderInfo);
             RenderTransparent(renderInfo, framebuffer);
             return;
         }
@@ -374,7 +373,16 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_wallClipFrameBuffer != null || m_planeClipFrameBuffer != null)
             WriteSpriteClipBuffers(renderInfo, framebuffer);
 
+        m_primitiveRenderer.RenderAll(renderInfo);
+
         GL.Clear(ClearBufferMask.DepthBufferBit);
+
+        if (m_primitiveRenderer.HasOpaque)
+        {
+            GL.ColorMask(false, false, false, false);
+            m_primitiveRenderer.RenderOpaque(renderInfo);
+            GL.ColorMask(true, true, true, true);
+        }
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
@@ -740,6 +748,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         bool newTick = world.GameTicker != m_lastTicker;
         m_geometryRenderer.Clear(renderInfo.TickFraction, newTick);
+        m_primitiveRenderer.Clear();
 
         if (newTick)
         {
