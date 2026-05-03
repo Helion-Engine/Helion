@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.IWad;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
@@ -393,6 +394,33 @@ public class Sector3D_Walls
             new WallSlice(64, 0, 255, (0, 448), GameActions.GetSector(World, 221)));
 
         var line = GameActions.GetLine(World, 814);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Two-sided wall in translucent sector doesn't render 3D sector walls")]
+    public void TwoSidedWallInTranslucentSector()
+    {
+        var sector = GameActions.GetSectorByTag(World, 68);
+        sector.Sectors3D.Length.Should().Be(1);        
+
+        var line = GameActions.GetLine(World, 862);
+        line.Front.Sector.Should().Be(sector);
+        line.Back.Should().NotBeNull();
+        line.Back.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        // This line should be flagged not to render for this 3D sector
+        var sector3D = sector.Sectors3D[0];
+        sector3D.FakeSector.Lines[lineIndex].NoRenderSector3D.Should().BeTrue();
+        GeometryRenderer.RenderSectorLine3D(sector.Sectors3D[0], lineIndex, true, true, RenderSectorWallVertices3D);
+        m_sliceIndex.Should().Be(0);
+
+        // The two-sided line itself should render as normal
+        SetSlices(new WallSlice(512, 0, 192, (0, 0), null), 
+            new WallSlice(0, -32, 192, (0, 512), null));
         GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }

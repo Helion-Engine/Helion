@@ -1102,13 +1102,13 @@ public sealed class SpecialManager : ITickable, IDisposable
         float alpha = translucency / 255.0f;
         if (lineId == Line.NoLineId)
         {
-            line.SetAlpha(alpha);
+            line.SetAlpha(alpha, false);
         }
         else
         {
             IEnumerable<Line> lines = m_world.FindByLineId(lineId);
             foreach (Line setLine in lines)
-                setLine.SetAlpha(alpha);
+                setLine.SetAlpha(alpha, false);
         }
     }
 

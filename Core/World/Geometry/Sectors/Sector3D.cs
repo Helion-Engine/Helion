@@ -116,6 +116,10 @@ public sealed class Sector3D
     public ClipStyle ClipStyle;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
+    private static readonly Line NoRenderLine3D = new(0, default, new(0, default, EmptyWall, EmptyWall, EmptyWall, Sector.Default), null, default, LineSpecial.Default, default)
+    {
+        NoRenderSector3D = true
+    };
     private static readonly Comparison<Sector3D> SortSectors3D = new(HeightCompare);
     public static readonly Comparison<SectorPlane3D> SortPlanesByKey3D = new(PlaneHeightKeyCompare);
 
@@ -430,6 +434,12 @@ public sealed class Sector3D
         for (int i = 0; i < sector.Lines.Length; i++)
         {
             var line = sector.Lines[i];
+            if (line.Back == null || line.Front.Sector == line.Back.Sector)
+            {
+                lines[i] = NoRenderLine3D;
+                continue;
+            }
+
             var middle = new Wall(textureHandle, WallLocation.Middle3D);
             var side = new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, EmptyWall, middle, EmptyWall, sector);
             // Normalize so front is always the rendered side
@@ -440,6 +450,7 @@ public sealed class Sector3D
             var backSide = createBackSide ? new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, EmptyWall, new(textureHandle, WallLocation.Middle3D), EmptyWall, sector) : null;
             lines[i] = new Line(line.Id, lineSeg, side, backSide, default, LineSpecial.Default, default);
         }
+
         return lines;
     }
 
