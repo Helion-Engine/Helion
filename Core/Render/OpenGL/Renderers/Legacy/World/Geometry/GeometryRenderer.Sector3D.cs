@@ -50,6 +50,9 @@ public partial class GeometryRenderer
         Action<Side, Wall, Sector, GLLegacyTexture?, Span<DynamicVertex>, Sector3D?>? renderVertices)
     {
         var sectorLine = sector3D.FakeSector.Lines[lineIndex];
+        if (sectorLine.NoRenderSector3D)
+            return;
+
         var parentSectorLine = sector3D.ParentSector.Lines[lineIndex];
 
         var flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;

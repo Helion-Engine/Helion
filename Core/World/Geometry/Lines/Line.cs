@@ -37,11 +37,13 @@ public sealed class Line
     public ZDoomKeyType LockNumber;
     public bool DataChanged => DataChanges > 0;
     public bool BlockFlagsReset;
+    public bool NoRenderSector3D;
     public int BlockmapCount;
     public int PhysicsCount;
     public string? MusicChangeFront;
     public string? MusicChangeBack;
     public LineBlockFlags InitialLineBlockFlags;
+    public float InitialAlpha;
 
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
@@ -84,13 +86,14 @@ public sealed class Line
         m_length = -1;
         m_angle = double.MinValue;
         InitialLineBlockFlags = flags.Blocking;
+        InitialAlpha = 1;
     }
 
     public void Reset()
     {
         BlockFlagsReset = (DataChanges & LineDataTypes.BlockFlags) != 0;
 
-        Alpha = 1;
+        Alpha = InitialAlpha;
         DataChanges = default;
         BlockmapCount = default;
         PhysicsCount = default;
@@ -228,10 +231,12 @@ public sealed class Line
         DataChanges |= LineDataTypes.EverActivated;
     }
 
-    public void SetAlpha(float alpha)
+    public void SetAlpha(float alpha, bool initial)
     {
         Alpha = alpha;
         DataChanges |= LineDataTypes.Alpha;
+        if (initial)
+            InitialAlpha = alpha;
     }
 
     // Create an entity to use for 3d physics handling of MidTex3D lines

@@ -141,7 +141,7 @@ public class UdmfGeometryBuilder
             line.MoreLineIds = mapLine.MoreLineIds;
 
             if (mapLine.Alpha != 1)
-                line.SetAlpha(mapLine.Alpha);
+                line.SetAlpha(mapLine.Alpha, true);
 
             if (mapLine.Health > 0)
             {
