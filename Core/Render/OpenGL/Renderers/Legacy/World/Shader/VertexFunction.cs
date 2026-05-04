@@ -2,6 +2,10 @@
 
 public static class VertexFunction
 {
+    public static string VertexDistVar3D => "out float dist3D;";
+
+    public static string SetVertexDist3D(string posVariable) => $"dist3D = (mvp * {posVariable}).{ShaderVars.Depth};";
+
     public static string VertexGapVariables => "flat out vec2 uvClampMinFrag; flat out vec2 uvClampMaxFrag;";
 
     // Clamps the uv coordintes so that the extended ranges repeat pixels instead of reading the next row/col of pixels.

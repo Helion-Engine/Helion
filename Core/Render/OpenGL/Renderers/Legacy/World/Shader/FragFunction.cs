@@ -33,6 +33,8 @@ public enum FuzzRefractionOptions
 
 public class FragFunction
 {
+    public static string VertexDistVar3D => "in float dist3D;";
+
     public static string OitFragVariables(OitOptions options)
     {
         switch (options)
@@ -210,7 +212,7 @@ public class FragFunction
             // This is to support Sector_SetColor to have true color mixes when still using palette color mode.
             + "fragColor.rgb *= mix(vec3(1), min(sectorColorMapIndexFrag, 1), float(sectorColorMapIndexFrag.b >= 0));"
             + @"
-                float fogFactor = clamp(1.0 - exp(-sectorFogColorFrag.a * dist), 0.0, 1.0);
+                float fogFactor = clamp(1.0 - exp(-sectorFogColorFrag.a * dist3D), 0.0, 1.0);
                 fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, fogFactor);"
             // Fog barriers need to ignore texture color and just apply fog color + factor directly. Only relevant to the OIT transparent pass for level geometry.
             + ((oitOptions != OitOptions.OitTransparentPass || ctx == ColorMapFetchContext.Entity) ? "" : "fragColor.rgba = mix(fragColor.rgba, vec4(sectorFogColorFrag.rgb, fogFactor), fogBarrier);")
@@ -342,7 +344,7 @@ public class FragFunction
 
         if (options == OitOptions.OitTransparentPass)
             return // Capping to 0.16 = ~2600 map units. Prevents far objects from being completely dominated by near objects.
-                "float weight = max(exp(-dist * 0.0007), 0.16);" +
+                "float weight = max(exp(-dist3D * 0.0007), 0.16);" +
                 ((fragColorOptions & FragColorFunctionOptions.Fuzz) != 0 ?
                 @"
                 outFuzz = fuzzFrag;
