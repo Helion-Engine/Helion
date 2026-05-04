@@ -293,9 +293,9 @@ public class FragFunction
                     
                     vec4 accumulation = texelFetch(accum, refractCoords, 0);
                     
-                    // down-weighted from normal OIT so black pixels don't oversaturate the mix
-                    float weight = clamp(10 / (1e-5 + pow(dist/500, 2)) + pow(dist/4096, 6), 100.0, 1000.0);
-                    vec4 weightColor = vec4(fuzzColor.rgb * fuzzAlpha, fuzzAlpha) * weight;                
+                    // Modified alpha so the fuzz effect pixels don't overly pop
+                    float weight = max(exp(-dist * 0.0007), 0.16);
+                    vec4 weightColor = vec4(fuzzColor.rgb * fuzzAlpha, fuzzAlpha * 0.9) * weight;
 
                     accumulation += weightColor;
                     alphaComponent += fuzzAlpha;
@@ -309,7 +309,7 @@ public class FragFunction
                     // The original fragColor from the texture is mixed with the fog but is overwritten in this statement so it has to be remixed.
                     fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, fogFactor);
                     // Increase alpha as the fog becomes more dense. Otherwise the fog color pops out too much when blending with other background colors.
-                    fragColor.a *= (1 - (fogFactor * 0.5)); 
+                    fragColor.a *= (1 - (fogFactor * 0.5));
                 }"
                 :
                 @"
@@ -341,8 +341,8 @@ public class FragFunction
             return @"";
 
         if (options == OitOptions.OitTransparentPass)
-            return
-                "float weight = clamp(10 / (1e-5 + pow(dist/1000, 2)) + pow(dist/8192, 6), 100.0, 1000.0);" +
+            return // Capping to 0.16 = ~2600 map units. Prevents far objects from being completely dominated by near objects.
+                "float weight = max(exp(-dist * 0.0007), 0.16);" +
                 ((fragColorOptions & FragColorFunctionOptions.Fuzz) != 0 ?
                 @"
                 outFuzz = fuzzFrag;
