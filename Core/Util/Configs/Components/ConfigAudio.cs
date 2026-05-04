@@ -37,6 +37,10 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
     [OptionMenu(OptionSectionType.Audio, "Same Sound Window")]
     public readonly ConfigValue<int> SameSoundWindow = new(1, GreaterOrEqual(1));
 
+    [ConfigInfo("Which audio resampler to use when playing sounds.")]
+    [OptionMenu(OptionSectionType.Audio, "Sound Resampler", isDynamicStringCycle: true)]
+    public readonly ConfigValue<string> Resampler = new("Default");
+
     [ConfigInfo("Randomize sound pitch.")]
     [OptionMenu(OptionSectionType.Audio, "Randomize Pitch", spacer: true)]
     public readonly ConfigValue<RandomPitch> RandomizePitch = new(RandomPitch.None);

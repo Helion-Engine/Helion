@@ -1,4 +1,5 @@
 ﻿using Helion.Audio.Sounds;
+using Helion.Audio.Impl;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -243,6 +244,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
             if (attr.Section == OptionSectionType.Hud) 
                 cfgSection.DynamicOptionProvider = (name) => name == "Status Bar Layout" ? m_sbarLayoutNames : null;
+            if (attr.Section == OptionSectionType.Audio) 
+                cfgSection.DynamicOptionProvider = (name) => name == "Sound Resampler" ? OpenALSoftResamplerType.MenuOptions : null;
 
             cfgSection.Add(value, attr, configAttr);
         }

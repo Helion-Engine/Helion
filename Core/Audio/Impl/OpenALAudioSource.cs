@@ -17,6 +17,8 @@ public class OpenALAudioSource : IAudioSource
     private const ALSourcei SourceDistanceModel = (ALSourcei)53248;
     private const ALSourcei SourceRelative = (ALSourcei)0x202;
 
+    private const ALSourcei SourceResamplerSoft = (ALSourcei)0x1212;
+
     public float Pitch { get; set; } = 1f;
 
     private AudioData m_audioData;
@@ -180,6 +182,11 @@ public class OpenALAudioSource : IAudioSource
     public float GetOffsetSeconds()
     {
         return AL.GetSource(m_sourceId, ALSourcef.SecOffset);
+    }
+
+    public void SetResampler(OpenALSoftResamplerType resampler)
+    {
+        AL.Source(m_sourceId, SourceResamplerSoft, resampler.Value);
     }
 
     public void Update(in UpdateParams updateParams)
