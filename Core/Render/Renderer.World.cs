@@ -384,6 +384,16 @@ public partial class Renderer
         var lightBufferLength = m_sectorLightsBuffer.DataLength();
         var lightData = lightBuffer.MappedMemoryPtr;
 
+        for (int i = 0; i < m_updateLightSectors.UpdateSectors.Length; i++)
+        {
+            var sector = m_updateLightSectors.UpdateSectors[i];
+            var lightLevel = sector.GetByteLightLevel();
+            SetSectorLight(lightData, lightBufferLength, sector, lightLevel);
+        }
+
+        // This was done in the same loop but would cause crashes on 3.3 GPUs
+        m_sectorLightsBuffer.Unbind();
+
         var fogBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
         var fogBufferLength = m_sectorFogBuffer.DataLength();
         var fogData = fogBuffer.MappedMemoryPtr;
@@ -392,11 +402,9 @@ public partial class Renderer
         {
             var sector = m_updateLightSectors.UpdateSectors[i];
             var lightLevel = sector.GetByteLightLevel();
-            SetSectorLight(lightData, lightBufferLength, sector, lightLevel);
             SetSectorFog(fogData, fogBufferLength, sector.Id, sector.FogColor, lightLevel, sector.FogDensity);
         }
 
-        m_sectorLightsBuffer.Unbind();
         m_sectorFogBuffer.Unbind();
     }
 
