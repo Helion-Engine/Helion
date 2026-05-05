@@ -118,6 +118,7 @@ public class StaticShader : RenderProgram
         flat out float lowerFrag;
         out float depthFrag;
         ${VertexGapVariables}
+        ${VertexDistVar3D}
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -142,6 +143,7 @@ public class StaticShader : RenderProgram
             ${SectorColorMapVertexFunction}
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
+            ${SetVertexDist3D}
             gl_Position = mvp * mixPos;
             zPos = pos.z;
             depthFrag = gl_Position.${Depth};
@@ -151,6 +153,7 @@ public class StaticShader : RenderProgram
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.LightLevelAdd))
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"))
+    .Replace("${SetVertexDist3D}", VertexFunction.SetVertexDist3D("mixPos"))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
@@ -159,7 +162,8 @@ public class StaticShader : RenderProgram
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
     .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
     .Replace("${LightLevelAddAndMapIdSet}", VertexFunction.LightLevelAddAndMapIdSet)
-    .Replace("${Depth}", ShaderVars.Depth);
+    .Replace("${Depth}", ShaderVars.Depth)
+    .Replace("${VertexDistVar3D}", VertexFunction.VertexDistVar3D);
 
     protected override string FragmentShader()
     {
@@ -190,6 +194,7 @@ public class StaticShader : RenderProgram
             flat in float lowerFrag;
             in float depthFrag;
             ${VertexGapVariables}
+            ${VertexDistVar3D}
 
             ${OutTargets}
 
@@ -228,7 +233,8 @@ public class StaticShader : RenderProgram
         .Replace("${OutTargets}", GetOutTargets(planeClip))
         .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
         .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip))
-        .Replace("${TransparentDiscard}", PlaneClip.GetTransparentDiscard(GetOitOptions()));
+        .Replace("${TransparentDiscard}", PlaneClip.GetTransparentDiscard(GetOitOptions()))
+        .Replace("${VertexDistVar3D}", FragFunction.VertexDistVar3D);
     }
 
     private OitOptions GetOitOptions()
