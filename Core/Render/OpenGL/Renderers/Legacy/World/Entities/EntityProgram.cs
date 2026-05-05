@@ -158,8 +158,10 @@ public class EntityProgram : RenderProgram
         flat out float renderIndexOut;
         flat out vec3 sectorColorMapIndexOut;
         flat out vec4 sectorFogOut;
+        flat out ivec2 textureDimOut;
 
         uniform float timeFrac;
+        uniform sampler2D boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
 
@@ -184,6 +186,8 @@ public class EntityProgram : RenderProgram
             offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
             offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
             renderIndexOut = renderIndex;
+
+            textureDimOut = textureSize(boundTexture, 0);
 
             sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
             sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
@@ -210,6 +214,7 @@ public class EntityProgram : RenderProgram
         flat in float renderIndexOut[];
         flat in vec3 sectorColorMapIndexOut[];
         flat in vec4 sectorFogOut[];
+        flat in ivec2 textureDimOut[];
 
         out vec2 uvFrag;
         out float dist2D;
@@ -234,7 +239,6 @@ public class EntityProgram : RenderProgram
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
         uniform vec2 prevViewRightNormal;
-        uniform sampler2D boundTexture;
         uniform float timeFrac;
         uniform vec3 viewPos;
         uniform int healthBarMode;
@@ -253,7 +257,6 @@ public class EntityProgram : RenderProgram
             zPosFrag = pos.z;
             pos.z += offsetZOut[0];
 
-            ivec2 textureDim = textureSize(boundTexture, 0);
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
 
@@ -267,7 +270,7 @@ public class EntityProgram : RenderProgram
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
-            textureWidthFrag = textureDim.x;
+            textureWidthFrag = textureDimOut[0].x;
             centerPosFrag = pos;
             minPosFrag = minPos;
             maxPosFrag = maxPos;
@@ -342,7 +345,7 @@ public class EntityProgram : RenderProgram
 
         return @"
             vec3 minPos = pos - offsetXY;
-            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
+            vec3 maxPos = pos + (posMoveDir * textureDimOut[0].x) + (vec3(0, 0, 1) * textureDimOut[0].y) - offsetXY;";
     }
 
     private static string AdjustSpriteVertexClip()
