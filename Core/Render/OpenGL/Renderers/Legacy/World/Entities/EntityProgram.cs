@@ -412,7 +412,33 @@ public class EntityProgram : RenderProgram
 
         ${OitVariables}
         ${FuzzFunction}
+        ${SoftwareSpriteEmulationFunctions}
 
+        void main()
+        {
+            ${CheckPlaneClip}
+            ${LightLevelFragFunction}
+            ${SectorColorMapFragFunction}
+            ${FragColorFunction}
+        }
+    "
+    .Replace("${SoftwareSpriteEmulationFunctions}", GetSoftwareSpriteEmulationFunctions())
+    .Replace("${CheckPlaneClip}", GetCheckPlaneClip())
+    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+    .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmaps, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
+    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+    .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
+    .Replace("${OutFragColor}", GetOutFragColor())
+    .Replace("${BoxDefines}", BoxDefines);
+
+    private static string GetSoftwareSpriteEmulationFunctions()
+    {
+        if (!ShaderVars.SoftwareSpriteEmulation)
+            return "";
+
+        return @"
         bool lineIntersection(vec2 startA, vec2 endA, vec2 startB, vec2 endB) {
             // use epsilon for approximate checks to deal with sprites that are exactly on lines / points
             const float MinEpsilon = 0.001;
@@ -493,26 +519,18 @@ public class EntityProgram : RenderProgram
             }
             
             return false;
-        }
+        }";
+    }
 
-        void main()
-        {
+    private static string GetCheckPlaneClip()
+    {
+        if (!ShaderVars.SoftwareSpriteEmulation)
+            return "";
+
+        return @"
             if (checkPlaneClip == 1 && discardPlaneClip())
-                discard;
-
-            ${LightLevelFragFunction}
-            ${SectorColorMapFragFunction}
-            ${FragColorFunction}
-        }
-    "
-    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmaps, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
-    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
-    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
-    .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-    .Replace("${OutFragColor}", GetOutFragColor())
-    .Replace("${BoxDefines}", BoxDefines);
+                discard;";
+    }
 
     private string GetPostProcess() 
     {

@@ -254,6 +254,7 @@ public partial class Renderer : IDisposable
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         ShaderVars.EmulateInvulnerabilityColorMap = m_config.Render.EmulateInvulnerabilityColorMap;
+        ShaderVars.SoftwareSpriteEmulation = m_config.Render.VanillaRender;
     }
 
     private void SetReverseZ()
