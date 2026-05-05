@@ -230,7 +230,10 @@ public class FragFunction
             return "fragColor.rgb *= lightLevel;";
 
         return @"
-                fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel));";
+            if (useBrightmaps == 1)
+                fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel));
+            else
+                fragColor.rgb *= lightLevel;";
     }
 
     private static string GetClearAlpha(OitOptions oitOptions)

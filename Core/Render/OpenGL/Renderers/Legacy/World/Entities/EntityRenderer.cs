@@ -47,6 +47,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private bool m_vanillaRender;
     private bool m_healthBars;
     private bool m_attackIndicator;
+    private bool m_brightMaps;
     private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
@@ -66,6 +67,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_vanillaRender = m_config.Render.VanillaRender;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
+        m_brightMaps = m_config.Render.Brightmaps;
     }
 
     ~EntityRenderer()
@@ -104,6 +106,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_healthBars = m_config.Render.HealthBar.Enable;
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
+        m_brightMaps = m_config.Render.Brightmaps;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -233,7 +236,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             flipU = spriteRotation.FlipU;
         }
 
-        var disableFullbright = spriteRotation.BrightmapNoFullbright;
+        var disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
         var shadow = entity.Flags.Shadow() || entity.RenderStyle == RenderStyle.Fuzzy;
@@ -378,6 +381,9 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         program.ViewPos(renderInfo.Camera.Position);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(m_vanillaRender);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
         program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
         program.ColorClamp(1f);
 

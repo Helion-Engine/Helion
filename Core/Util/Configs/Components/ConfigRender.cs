@@ -135,6 +135,10 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Full Brightness")]
     public readonly ConfigValue<bool> Fullbright = new(false);
 
+    [ConfigInfo("Use brightmaps if loaded. Colors are not applied in palette mode.")]
+    [OptionMenu(OptionSectionType.Render, "Use Brightmaps")]
+    public readonly ConfigValue<bool> Brightmaps = new(true);
+
     // Misc. Visual effects
 
     [ConfigInfo("Gamma correction level.")]

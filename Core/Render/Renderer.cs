@@ -348,8 +348,11 @@ public partial class Renderer : IDisposable
             colorMapUniforms,
             paletteIndex,
             config.Render.LightMode,
-            (float)config.Render.GammaCorrection,
+            (float)config.Render.GammaCorrection.Value,
             maxDistance,
+            config.Render.Brightmaps && renderInfo.BrightMaps,
+            renderInfo.SectorColor,
+            renderInfo.SectorFog,
             GetDownScaleAmount(config, renderInfo));
     }
 
@@ -857,7 +860,7 @@ public partial class Renderer : IDisposable
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, false, false, false);
 
         m_automapRenderer.Render(cmd.World, m_renderInfo);
     }
@@ -870,8 +873,11 @@ public partial class Renderer : IDisposable
         var viewSector = cmd.World.ToSubsector(cmd.Camera.PositionInterpolated.X, cmd.Camera.PositionInterpolated.Y).Sector;
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
+        var forceTexelFetch = m_config.Developer.ForceTexelFetch;
+
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, 
+            m_archiveCollection.BrightMapFetched || forceTexelFetch, m_sectorColor || forceTexelFetch, m_sectorFog || forceTexelFetch);
         m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);

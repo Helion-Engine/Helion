@@ -32,10 +32,13 @@ public class InterpolationShader : RenderProgram
     private readonly int m_planeClipTextureLocation;
     private readonly int m_checkPlaneClipLocation;
     private readonly int m_wallClipTextureLocation;
+    private readonly int m_useBrightmapsLocation;
     private readonly int m_brightmapTextureLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
     private readonly int m_fogBarrierLocation;
+    private readonly int m_useSectorColorLocation;
+    private readonly int m_useSectorFogLocation;
 
     public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
@@ -63,9 +66,12 @@ public class InterpolationShader : RenderProgram
         m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
+        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
+        m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -93,9 +99,12 @@ public class InterpolationShader : RenderProgram
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
+    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
+    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
+    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -131,6 +140,8 @@ public class InterpolationShader : RenderProgram
         uniform float timeFrac;
         uniform int vertexGapClampUV;
         uniform sampler2D boundTexture;
+        uniform int useSectorColor;
+        uniform int useSectorFog;
 
         void main() {
             ${VertexOptionsSet}
@@ -211,6 +222,7 @@ public class InterpolationShader : RenderProgram
             uniform sampler2D planeClipTexture;
             uniform sampler2D wallClipTexture;
             uniform int checkPlaneClip;
+            uniform int useBrightmaps;
             uniform float downScaleAmount;
             uniform ivec2 screenBounds;
 

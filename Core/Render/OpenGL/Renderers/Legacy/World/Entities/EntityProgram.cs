@@ -46,8 +46,11 @@ public class EntityProgram : RenderProgram
     private readonly int m_mapDataTextureLoaction;
     private readonly int m_wallClipTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
+    private readonly int m_useBrightmapsLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_colorClampLocation;
+    private readonly int m_useSectorColorLocation;
+    private readonly int m_useSectorFogLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -88,8 +91,11 @@ public class EntityProgram : RenderProgram
         m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_colorClampLocation = Uniforms.GetLocation("colorClamp");
+        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
+        m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
     
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -130,8 +136,11 @@ public class EntityProgram : RenderProgram
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void HealthBarMode(bool value) => ProgramUniforms.Set(value, m_healthBarModeLocation);
+    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ColorClamp(float value) => ProgramUniforms.Set(value, m_colorClampLocation);
+    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
+    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -161,6 +170,8 @@ public class EntityProgram : RenderProgram
         flat out ivec2 textureDimOut;
 
         uniform float timeFrac;
+        uniform int useSectorColor;
+        uniform int useSectorFog;
         uniform sampler2D boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
@@ -402,6 +413,7 @@ public class EntityProgram : RenderProgram
         uniform ivec2 screenBounds;
         uniform int checkPlaneClip;
         uniform int healthBarMode;
+        uniform int useBrightmaps;
         uniform vec3 viewPos;
         uniform float timeFrac;
         uniform float downScaleAmount;

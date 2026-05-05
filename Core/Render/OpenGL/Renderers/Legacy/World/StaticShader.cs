@@ -27,6 +27,7 @@ public class StaticShader : RenderProgram
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
+    private readonly int m_useBrightmapsLocation;
     private readonly int m_accumTextureLocation;
     private readonly int m_accumCountTextureLocation;
     private readonly int m_planeClipTextureLocation;
@@ -35,6 +36,8 @@ public class StaticShader : RenderProgram
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
     private readonly int m_fogBarrierLocation;
+    private readonly int m_useSectorColorLocation;
+    private readonly int m_useSectorFogLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -56,6 +59,7 @@ public class StaticShader : RenderProgram
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_accumTextureLocation = Uniforms.GetLocation("accum");
         m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
         m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
@@ -64,6 +68,8 @@ public class StaticShader : RenderProgram
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
+        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
+        m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -89,10 +95,13 @@ public class StaticShader : RenderProgram
     public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
+    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
+    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
+    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -126,6 +135,8 @@ public class StaticShader : RenderProgram
         uniform float timeFrac;
         uniform int vertexGapClampUV;
         uniform sampler2D boundTexture;
+        uniform int useSectorColor;
+        uniform int useSectorFog;
 
         void main() {
             uvFrag = uv;
@@ -201,6 +212,7 @@ public class StaticShader : RenderProgram
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;
+            uniform int useBrightmaps;
             uniform sampler2D planeClipTexture;
             uniform sampler2D wallClipTexture;
             uniform int checkPlaneClip;

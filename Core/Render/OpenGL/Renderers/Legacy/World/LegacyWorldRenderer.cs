@@ -418,7 +418,7 @@ public class LegacyWorldRenderer : WorldRenderer
             viewport = new Rectangle((int)(viewport.X / downScaleAmount), (int)(viewport.Y / downScaleAmount), (int)(viewport.Width / downScaleAmount), (int)(viewport.Height / downScaleAmount));
             m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
                 renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
-                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView);
+                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView, renderInfo.BrightMaps, renderInfo.SectorColor, renderInfo.SectorFog);
             m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, m_downSizedRenderInfo);
 
             GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
@@ -812,6 +812,9 @@ public class LegacyWorldRenderer : WorldRenderer
         program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);
@@ -848,6 +851,9 @@ public class LegacyWorldRenderer : WorldRenderer
         program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);

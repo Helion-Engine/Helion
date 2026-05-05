@@ -11,8 +11,17 @@ flat out vec4 sectorFogColorFrag;";
 uniform samplerBuffer sectorFogTexture;";
 
     public static readonly string VertexFunction =
-@"sectorColorMapIndexFrag = texelFetch(sectorColormapTexture, int(colorMapIndexFrag)).rgb;
-sectorFogColorFrag = texelFetch(sectorFogTexture, int(colorMapIndexFrag)).rgba;";
+@"
+if (useSectorColor == 1)
+    sectorColorMapIndexFrag = texelFetch(sectorColormapTexture, int(colorMapIndexFrag)).rgb;
+else
+    sectorColorMapIndexFrag = vec3(1);
+
+if (useSectorFog == 1)
+    sectorFogColorFrag = texelFetch(sectorFogTexture, int(colorMapIndexFrag)).rgba;
+else
+    sectorFogColorFrag = vec4(0);
+";
 
     public static readonly string FragVariables =
  @"flat in vec3 sectorColorMapIndexFrag;

@@ -28,7 +28,10 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_colorMapIndexLocation;
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
+    private readonly int m_useBrightmapsLocation;
     private readonly int m_cameraDirection;
+    private readonly int m_useSectorColorLocation;
+    private readonly int m_useSectorFogLocation;
 
     public FloodFillProgram(string name) : base($"FloodFill - {name}")
     {
@@ -51,7 +54,10 @@ public class FloodFillProgram : RenderProgram
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_cameraDirection = Uniforms.GetLocation("cameraDirection");
+        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
+        m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -75,6 +81,9 @@ public class FloodFillProgram : RenderProgram
     public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
+    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
+    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
+    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -110,6 +119,8 @@ public class FloodFillProgram : RenderProgram
         uniform vec3 camera;
         uniform vec3 cameraDirection;
         uniform float timeFrac;
+        uniform int useSectorColor;
+        uniform int useSectorFog;
 
         void main()
         {

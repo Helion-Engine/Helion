@@ -20,6 +20,7 @@ public class LegacyHudShader : RenderProgram
     private readonly int m_opaqueTextureLocation;
     private readonly int m_screenBoundsLocation;
     private readonly int m_brightmapTextureLocation;
+    private readonly int m_useBrightmapsLocation;
     private readonly int m_fuzzRefractionLocation;
     private readonly int m_fuzzSampleFactorLocation;
     private readonly int m_fuzzSampleOffsetLocation;
@@ -38,6 +39,7 @@ public class LegacyHudShader : RenderProgram
         m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_fuzzRefractionLocation = Uniforms.GetLocation("fuzzRefraction");
         m_fuzzSampleFactorLocation = Uniforms.GetLocation("fuzzSampleFactor");
         m_fuzzSampleOffsetLocation = Uniforms.GetLocation("fuzzSampleOffset");
@@ -58,6 +60,7 @@ public class LegacyHudShader : RenderProgram
     public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
+    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -108,7 +111,10 @@ public class LegacyHudShader : RenderProgram
             return "fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);";
 
         return @"
-                fragColor.rgb *= mix(vec3(1.0), min(vec3(1.0), texture(brightmapTexture, uvFrag.st).rgb + rgbMultiplierFrag.rgb), rgbMultiplierFrag.w);";
+            if (useBrightmaps == 1)
+                fragColor.rgb *= mix(vec3(1.0), min(vec3(1.0), texture(brightmapTexture, uvFrag.st).rgb + rgbMultiplierFrag.rgb), rgbMultiplierFrag.w);
+            else
+                fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);";
     }
 
     private readonly string ShaderFrag = @"
@@ -132,6 +138,7 @@ public class LegacyHudShader : RenderProgram
         uniform int paletteIndex;
         uniform int colormapIndex;
         uniform int hasInvulnerability;
+        uniform int useBrightmaps;
         uniform float gammaCorrection;
         uniform ivec2 screenBounds;
         uniform vec2 fuzzSampleFactor;

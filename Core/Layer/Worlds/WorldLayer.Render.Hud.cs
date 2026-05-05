@@ -536,7 +536,7 @@ public partial class WorldLayer
         
         int lightLevel;
         int colorMapIndex;
-        bool disableFullbright = brightmap?.DisableFullbright == true;
+        bool disableFullbright = m_config.Render.Brightmaps && brightmap?.DisableFullbright == true;
         if ((frameState.Frame.Properties.Bright && !disableFullbright) || Player.DrawFullBright())
         {
             lightLevel = 255;

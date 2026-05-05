@@ -87,6 +87,8 @@ public class ArchiveCollection : IResources, IPathResolver
     public bool Loaded { get; private set; }
     public static bool StoreImageIndices => ShaderVars.PaletteColorMode;
     public IConfig Config => m_config;
+    public bool BrightMapFetched;
+
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public ArchiveCollectionEntries Entries = new();
     public DataEntries Data = new();
@@ -748,8 +750,11 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public BrightmapDefinition? GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
     {
-        if (m_brightmapLookupCache.TryGetValue(new BrightmapLookupCacheKey(textureName, textureNamespace), out BrightmapDefinition? cached))
+        if (m_brightmapLookupCache.TryGetValue(new BrightmapLookupCacheKey(textureName, textureNamespace), out var cached))
+        {
+            BrightMapFetched = BrightMapFetched || cached != null;
             return cached;
+        }
 
         var bmapsDef = Definitions.GldefsDefinition.BrightMaps;
         var brightmapsOfType = textureNamespace switch
@@ -765,7 +770,7 @@ public class ArchiveCollection : IResources, IPathResolver
         bool sourceIsIwad = sourceWad?.ArchiveType == ArchiveType.IWAD;
         string? sourceWadHash = sourceWad?.MD5;
 
-        BrightmapDefinition? brightmap = brightmapsOfType?.FirstOrDefault(x => (
+        var brightmap = brightmapsOfType?.FirstOrDefault(x => (
             x.TargetTexture.EqualsIgnoreCase(textureName)
             && (
                 (!x.IwadOnly && x.SpecificWadMd5 == null)
@@ -773,9 +778,10 @@ public class ArchiveCollection : IResources, IPathResolver
                 || (x.SpecificWadMd5 == sourceWadHash)
             )
         ));
-        if (brightmap == null && bmapsDef.Auto.TryGetValue(textureName, out BrightmapDefinition? val))
+        if (brightmap == null && bmapsDef.Auto.TryGetValue(textureName, out var val))
             brightmap = val;
 
+        BrightMapFetched = BrightMapFetched || brightmap != null;
         m_brightmapLookupCache[new BrightmapLookupCacheKey(textureName, textureNamespace)] = brightmap;
         return brightmap;
     }
