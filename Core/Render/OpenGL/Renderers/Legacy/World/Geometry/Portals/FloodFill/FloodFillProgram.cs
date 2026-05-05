@@ -10,6 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 public class FloodFillProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_brightmapTextureLocation;
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
@@ -32,6 +33,7 @@ public class FloodFillProgram : RenderProgram
     public FloodFillProgram(string name) : base($"FloodFill - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
@@ -53,6 +55,7 @@ public class FloodFillProgram : RenderProgram
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);

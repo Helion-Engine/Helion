@@ -333,6 +333,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     {
         GL.ActiveTexture(BindTextures.BoundTexture);
         program.BoundTexture(BindTextures.BoundTexture);
+        program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.SectorLightTexture(BindTextures.SectorLight);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
