@@ -91,7 +91,7 @@ public class FloodFillProgram : RenderProgram
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
-        out float dist;
+        out float dist2D;
         flat out float distanceOffsetFrag;
         flat out float colorMapIndexFrag;
         flat out float uvFlags;
@@ -158,7 +158,7 @@ public class FloodFillProgram : RenderProgram
             flat in float upperFrag;
             flat in float lowerFrag;
             in vec3 vertexPosFrag;
-            in float dist;
+            in float dist2D;
 
             out vec4 fragColor;
 
@@ -188,7 +188,7 @@ public class FloodFillProgram : RenderProgram
 
                 uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.
 
-                float dist = (mvpNoPitch * vec4(planePos, 1.0)).${Depth};
+                float dist2D = (mvpNoPitch * vec4(planePos, 1.0)).${Depth};
                 float dist3D = (mvp * vec4(planePos, 1.0)).${Depth};
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}

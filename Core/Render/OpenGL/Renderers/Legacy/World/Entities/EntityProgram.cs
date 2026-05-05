@@ -215,7 +215,7 @@ public class EntityProgram : RenderProgram
         flat in vec4 sectorFogOut[];
 
         out vec2 uvFrag;
-        out float dist;
+        out float dist2D;
         out float dist3D;
         out float fuzzDist;
         out float renderDistSquared;
@@ -298,7 +298,7 @@ public class EntityProgram : RenderProgram
             clip = glPosMin;
             ${AdjustSpriteVertexClip}
             gl_Position = clip;
-            dist = (mvpNoPitch * vec4(minPos, 1.0)).${Depth};
+            dist2D = (mvpNoPitch * vec4(minPos, 1.0)).${Depth};
             dist3D = (mvp * vec4(minPos, 1.0)).${Depth};
             uvFrag = vec2(leftU, 1);
             depthFrag = gl_Position.${Depth};
@@ -307,7 +307,7 @@ public class EntityProgram : RenderProgram
             clip = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1.0);
             ${AdjustSpriteVertexClip}
             gl_Position = clip;
-            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
+            dist2D = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
             dist3D = (mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
             uvFrag = vec2(rightU, 1);
             depthFrag = gl_Position.${Depth};
@@ -316,7 +316,7 @@ public class EntityProgram : RenderProgram
             clip = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1.0);
             ${AdjustSpriteVertexClip}
             gl_Position = clip;
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
+            dist2D = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
             dist3D = (mvp * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
             uvFrag = vec2(leftU, 0);
             depthFrag = gl_Position.${Depth};
@@ -325,7 +325,7 @@ public class EntityProgram : RenderProgram
             clip = glPosMax;
             ${AdjustSpriteVertexClip}
             gl_Position = clip;
-            dist = (mvpNoPitch * vec4(maxPos, 1.0)).${Depth};
+            dist2D = (mvpNoPitch * vec4(maxPos, 1.0)).${Depth};
             dist3D = (mvp * vec4(maxPos, 1.0)).${Depth};
             uvFrag = vec2(rightU, 0);
             depthFrag = gl_Position.${Depth};
@@ -352,7 +352,7 @@ public class EntityProgram : RenderProgram
         ${BoxDefines}
 
         in vec2 uvFrag;
-        in float dist;
+        in float dist2D;
         in float dist3D;
         in float fuzzDist;
         in float renderDistSquared;

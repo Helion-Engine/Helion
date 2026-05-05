@@ -277,7 +277,7 @@ public class FragFunction
                 options == FuzzRefractionOptions.World ?
                 @"float fuzz = texelFetch(fuzzTexture, refractCoords, 0).r;
                 refractCoords = ivec2(mix(coords, refractCoords, fuzz));
-                refractCoords = ivec2(mix(coords, refractCoords, float(dist < 800.0)));
+                refractCoords = ivec2(mix(coords, refractCoords, float(dist2D < 800.0)));
                 "
                 :
                 "")
@@ -296,7 +296,7 @@ public class FragFunction
                     vec4 accumulation = texelFetch(accum, refractCoords, 0);
                     
                     // Modified alpha so the fuzz effect pixels don't overly pop
-                    float weight = max(exp(-dist * 0.0007), 0.16);
+                    float weight = max(exp(-dist3D * 0.0007), 0.16);
                     vec4 weightColor = vec4(fuzzColor.rgb * fuzzAlpha, fuzzAlpha * 0.9) * weight;
 
                     accumulation += weightColor;
@@ -343,7 +343,7 @@ public class FragFunction
             return @"";
 
         if (options == OitOptions.OitTransparentPass)
-            return // Capping to 0.16 = ~2600 map units. Prevents far objects from being completely dominated by near objects.
+            return // Capping to 0.16 = ~2600 map units. Prevents far objects from being completely dominated by near objects.                
                 "float weight = max(exp(-dist3D * 0.0007), 0.16);" +
                 ((fragColorOptions & FragColorFunctionOptions.Fuzz) != 0 ?
                 @"
