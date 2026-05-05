@@ -349,7 +349,6 @@ public partial class Renderer : IDisposable
             config.Render.LightMode,
             (float)config.Render.GammaCorrection,
             maxDistance,
-            config.Render.Brightmaps,
             GetDownScaleAmount(config, renderInfo));
     }
 

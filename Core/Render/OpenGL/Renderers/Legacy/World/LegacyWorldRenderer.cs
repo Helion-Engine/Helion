@@ -812,7 +812,6 @@ public class LegacyWorldRenderer : WorldRenderer
         program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
-        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);
@@ -849,7 +848,6 @@ public class LegacyWorldRenderer : WorldRenderer
         program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
-        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);

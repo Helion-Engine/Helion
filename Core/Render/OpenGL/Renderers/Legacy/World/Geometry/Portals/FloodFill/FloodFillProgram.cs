@@ -27,7 +27,6 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_colorMapIndexLocation;
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
-    private readonly int m_useBrightmapsLocation;
     private readonly int m_cameraDirection;
 
     public FloodFillProgram(string name) : base($"FloodFill - {name}")
@@ -50,7 +49,6 @@ public class FloodFillProgram : RenderProgram
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
-        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_cameraDirection = Uniforms.GetLocation("cameraDirection");
     }
 
@@ -74,7 +72,6 @@ public class FloodFillProgram : RenderProgram
     public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
-    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330

@@ -32,7 +32,6 @@ public class InterpolationShader : RenderProgram
     private readonly int m_planeClipTextureLocation;
     private readonly int m_checkPlaneClipLocation;
     private readonly int m_wallClipTextureLocation;
-    private readonly int m_useBrightmapsLocation;
     private readonly int m_brightmapTextureLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
@@ -64,7 +63,6 @@ public class InterpolationShader : RenderProgram
         m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
-        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
@@ -95,7 +93,6 @@ public class InterpolationShader : RenderProgram
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
-    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
@@ -214,7 +211,6 @@ public class InterpolationShader : RenderProgram
             uniform sampler2D planeClipTexture;
             uniform sampler2D wallClipTexture;
             uniform int checkPlaneClip;
-            uniform int useBrightmaps;
             uniform float downScaleAmount;
             uniform ivec2 screenBounds;
 

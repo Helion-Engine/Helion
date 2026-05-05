@@ -27,7 +27,6 @@ public class StaticShader : RenderProgram
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
-    private readonly int m_useBrightmapsLocation;
     private readonly int m_accumTextureLocation;
     private readonly int m_accumCountTextureLocation;
     private readonly int m_planeClipTextureLocation;
@@ -57,7 +56,6 @@ public class StaticShader : RenderProgram
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
-        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_accumTextureLocation = Uniforms.GetLocation("accum");
         m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
         m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
@@ -91,7 +89,6 @@ public class StaticShader : RenderProgram
     public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
-    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
@@ -204,7 +201,6 @@ public class StaticShader : RenderProgram
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;
-            uniform int useBrightmaps;
             uniform sampler2D planeClipTexture;
             uniform sampler2D wallClipTexture;
             uniform int checkPlaneClip;

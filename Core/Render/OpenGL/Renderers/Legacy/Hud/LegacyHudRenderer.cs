@@ -164,7 +164,6 @@ public class LegacyHudRenderer : HudRenderer
         m_program.HasInvulnerability(uniforms.DrawInvulnerability);
         m_program.GammaCorrection(uniforms.GammaCorrection);
         m_program.ScreenBounds((viewport.Width, viewport.Height));
-        m_program.UseBrightmaps(uniforms.UseBrightmaps);
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {

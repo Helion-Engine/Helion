@@ -46,7 +46,6 @@ public class EntityProgram : RenderProgram
     private readonly int m_mapDataTextureLoaction;
     private readonly int m_wallClipTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
-    private readonly int m_useBrightmapsLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_colorClampLocation;
 
@@ -89,7 +88,6 @@ public class EntityProgram : RenderProgram
         m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
-        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_colorClampLocation = Uniforms.GetLocation("colorClamp");
     }
@@ -132,7 +130,6 @@ public class EntityProgram : RenderProgram
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void HealthBarMode(bool value) => ProgramUniforms.Set(value, m_healthBarModeLocation);
-    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ColorClamp(float value) => ProgramUniforms.Set(value, m_colorClampLocation);
 
@@ -260,15 +257,7 @@ public class EntityProgram : RenderProgram
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
 
-            vec3 minPos = pos - offsetXY;
-            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;
-
-            if (healthBarMode == 1) {
-                minPos = pos;
-                maxPos = pos;
-                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
-                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
-            }
+            ${MinMaxPos}
 
             // fuzzDist is going to be the center of min/max.
             // This keeps the fuzz consistent across the texture.
@@ -337,7 +326,24 @@ public class EntityProgram : RenderProgram
     .Replace("${Depth}", ShaderVars.Depth)
     .Replace("${BoxDefines}", BoxDefines)
     .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
-    .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip());
+    .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip())
+    .Replace("${MinMaxPos}", GetMinMaxPos());
+
+    private string GetMinMaxPos()
+    {
+        if (this is EntityHealthBarProgram)
+        {
+            return @"            
+                vec3 minPos = pos;
+                vec3 maxPos = pos;
+                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
+                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);";
+        }
+
+        return @"
+            vec3 minPos = pos - offsetXY;
+            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
+    }
 
     private static string AdjustSpriteVertexClip()
     {
@@ -393,7 +399,6 @@ public class EntityProgram : RenderProgram
         uniform ivec2 screenBounds;
         uniform int checkPlaneClip;
         uniform int healthBarMode;
-        uniform int useBrightmaps;
         uniform vec3 viewPos;
         uniform float timeFrac;
         uniform float downScaleAmount;
@@ -495,7 +500,6 @@ public class EntityProgram : RenderProgram
             if (checkPlaneClip == 1 && discardPlaneClip())
                 discard;
 
-            ${HealthBarCheck}
             ${LightLevelFragFunction}
             ${SectorColorMapFragFunction}
             ${FragColorFunction}
@@ -508,8 +512,7 @@ public class EntityProgram : RenderProgram
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
     .Replace("${OutFragColor}", GetOutFragColor())
-    .Replace("${BoxDefines}", BoxDefines)
-    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "");
+    .Replace("${BoxDefines}", BoxDefines);
 
     private string GetPostProcess() 
     {
@@ -529,9 +532,12 @@ public class EntityProgram : RenderProgram
         ".Replace("${HealthBar}", GetOitOptions() == OitOptions.None ? GetHealthBar() : "");
     }
 
-    private static string GetHealthBar() => @"
-        }
-        if (healthBarMode == 1) {
+    private string GetHealthBar()
+    {
+        if (this is not EntityHealthBarProgram)
+            return "";
+
+        return @"
             float healthNormalized = lightLevelFrag / 255.0;
             fragColor = vec4(0, 0, 0, 1);
             const float RedAmount = 0.33;
@@ -550,7 +556,8 @@ public class EntityProgram : RenderProgram
             // Black box border
             fragColor.rgb = mix(fragColor.rgb, mix(vec3(0, 0, 0), vec3(0.7, 0, 0), fuzzFrag), 
                 float(uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV));
-        }";
+        ";
+    }
 
     private OitOptions GetOitOptions()
     {
