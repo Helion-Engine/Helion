@@ -199,13 +199,21 @@ public class EntityProgram : RenderProgram
             renderIndexOut = renderIndex;
 
             textureDimOut = textureSize(boundTexture, 0);
+            if (useSectorColor == 1)
+                sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
+            else
+                sectorColorMapIndexOut = vec3(1);
 
-            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
-            sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
+            if (useSectorFog == 1)
+                sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
+            else
+                sectorFogOut = vec4(0);
+
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }
-    ";
+    "
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexOut", "sectorFogColorOut"));
 
     protected override string? GeometryShader() => @"
         #version 330 core

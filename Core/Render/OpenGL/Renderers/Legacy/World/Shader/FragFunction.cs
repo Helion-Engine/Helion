@@ -98,7 +98,8 @@ public class FragFunction
             return "";
 
         return
-            @"// Check for the reserved alpha value to indicate a full bright pixel.
+            @"
+            // Check for the reserved alpha value to indicate a full bright pixel.
             float fullBrightFlag = float(fragColor.w == 0.9960784313725490196078431372549);
             " + (lightLevel ? "lightLevel = mix(lightLevel, 1, fullBrightFlag);\n" : "") +
             "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
@@ -199,7 +200,7 @@ public class FragFunction
                 :
                 "") +
             ((options & FragColorFunctionOptions.Alpha) != 0 ?
-                "fragColor.w *= alphaFrag;" :
+                "\nfragColor.w *= alphaFrag;" :
                 "") +
             @"
             if (fragColor.w <= 0.0)

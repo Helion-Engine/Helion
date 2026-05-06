@@ -151,7 +151,7 @@ public class FloodFillProgram : RenderProgram
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.Default))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunctionWorld())
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
     .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
     .Replace("${Depth}", ShaderVars.Depth);

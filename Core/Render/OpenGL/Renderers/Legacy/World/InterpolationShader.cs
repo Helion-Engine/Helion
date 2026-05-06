@@ -171,7 +171,7 @@ public class InterpolationShader : RenderProgram
     .Replace("${SetVertexDist3D}", VertexFunction.SetVertexDist3D("mixPos"))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunctionWorld())
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
