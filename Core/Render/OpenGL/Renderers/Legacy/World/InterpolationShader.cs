@@ -106,7 +106,15 @@ public class InterpolationShader : RenderProgram
     public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
     public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader()
+    {
+        if (this is InterpolationWallClipShader || this is InterpolationWallClipAlphaShader || this is InterpolationPlaneClipShader || this is InterpolationPlaneClipAlphaShader)
+            return VertexShaderInternal(true);
+
+        return VertexShaderInternal(false);
+    }
+
+    protected static string VertexShaderInternal(bool planeClip) => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
@@ -164,21 +172,21 @@ public class InterpolationShader : RenderProgram
             depthFrag = gl_Position.${Depth};
         }
     "
-    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
-    .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.LightLevelAdd))
-    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"))
-    .Replace("${SetVertexDist3D}", VertexFunction.SetVertexDist3D("mixPos"))
-    .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
-    .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunctionWorld())
-    .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
-    .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
-    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
-    .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
+    .Replace("${LightLevelVertexVariables}", planeClip ? "" : LightLevel.VertexVariables(LightLevelOptions.Default))
+    .Replace("${VertexLightBufferVariables}", planeClip ? "" : LightLevel.VertexLightBufferVariables)
+    .Replace("${VertexLightBuffer}", planeClip ? "" : LightLevel.VertexLightBuffer(VertexLightBufferOptions.LightLevelAdd))
+    .Replace("${LightLevelVertexDist}", planeClip ? "" : LightLevel.VertexDist("mixPos"))
+    .Replace("${SetVertexDist3D}", planeClip ? "" : VertexFunction.SetVertexDist3D("mixPos"))
+    .Replace("${SectorColorMapVertexFragVariables}", planeClip ? "" : SectorColorMap.VertexFragVariables)
+    .Replace("${SectorColorMapVertexUniformVariables}", planeClip ? "" : SectorColorMap.VertexUniformVariables)
+    .Replace("${SectorColorMapVertexFunction}", planeClip ? "" : SectorColorMap.VertexFunctionWorld())
+    .Replace("${VertexGapVariables}", planeClip ? "" : VertexFunction.VertexGapVariables)
+    .Replace("${VertexGapSet}", planeClip ? "" : VertexFunction.VertexGapSet)
+    .Replace("${ColorMapAndLightLevelSet}", planeClip ? "" : VertexFunction.ColorMapAndLightLevelSet)
+    .Replace("${VertexDistVar3D}", planeClip ? "" : VertexFunction.VertexDistVar3D)
     .Replace("${LightLevelAddAndMapIdSet}", VertexFunction.LightLevelAddAndMapIdSet)
-    .Replace("${Depth}", ShaderVars.Depth)
-    .Replace("${VertexDistVar3D}", VertexFunction.VertexDistVar3D);
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${Depth}", ShaderVars.Depth);
 
     protected override string FragmentShader()
     {
