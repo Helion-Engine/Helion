@@ -9,6 +9,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using System;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace Helion.World.Special.Specials;
 
@@ -25,7 +26,6 @@ public enum TeleportOptions
     None = 0,
     KeepHeight = 1,
     KeepMomentum = 2,
-    MapSpot = 4
 }
 
 public struct TeleportSpecial
@@ -42,6 +42,9 @@ public struct TeleportSpecial
     private readonly TeleportFog m_fogFlags;
     private readonly TeleportType m_type;
     private readonly TeleportOptions m_options;
+
+    // list used to avoid re-allocations in teleport code
+    private static readonly List<Entity> randomSpotList = new();
 
     public static TeleportFog GetTeleportFog(Line line)
     {
@@ -296,31 +299,52 @@ public struct TeleportSpecial
                 teleportNode = teleportNode.Next;
             }
         }
-        else if (m_tag == -1)
-        {
-            foreach (Entity entity in m_world.FindByTid(m_tid))
-            {
-                if (entity.Flags.IsTeleportSpot() || ((m_options & TeleportOptions.MapSpot) != 0) && entity.Definition.Type == EntityType.MapSpot)
-                {
-                    pos = GetTeleportPosition(entity);
-                    angle = entity.AngleRadians;
-                    return true;
-                }
-            }
-        }
         else
         {
-            var teleportNode = m_world.EntityManager.TeleportSpots.First;
-            while (teleportNode != null)
+            // the intended use case of the TID-based specials is to randomly pick a Teleport Target
+            // thing with the right TID, but there's some edge case handling for old WADs inherited from ZDoom
+            randomSpotList.Clear();
+            foreach (Entity entity in m_world.FindByTid(m_tid))
             {
-                if (teleportNode.Value.Sector.Tag == m_tag && teleportNode.Value.ThingId == m_tid)
+                if ((m_tag == -1 || entity.Sector.Tag == m_tag) && entity.Flags.IsTeleportSpot())
                 {
-                    Entity entity = teleportNode.Value;
-                    pos = GetTeleportPosition(entity);
-                    angle = entity.AngleRadians;
-                    return true;
+                    randomSpotList.Add(entity);
                 }
-                teleportNode = teleportNode.Next;
+            }
+
+            if (randomSpotList.Count > 0)
+            {
+                int choice = m_world.Random.NextByte() % randomSpotList.Count;
+                var entity = randomSpotList[choice];
+                // don't hold onto references to the entities for too long
+                randomSpotList.Clear();
+                pos = GetTeleportPosition(entity);
+                angle = entity.AngleRadians;
+                return true;
+            }
+            else if (m_tag == -1) // compatibility edge cases used in both ZDoom and DSDA-Doom
+            {
+                // teleport to first map spot (e.g. Hexen MAP10)
+                foreach (Entity entity in m_world.FindByTid(m_tid))
+                {
+                    if (entity.Definition.Type == EntityType.MapSpot)
+                    {
+                        pos = GetTeleportPosition(entity);
+                        angle = entity.AngleRadians;
+                        return true;
+                    }
+                }
+
+                // if even that failed, teleport to first non-solid thing (e.g. Caldera MAP13)
+                foreach (Entity entity in m_world.FindByTid(m_tid))
+                {
+                    if (!entity.Flags.Solid())
+                    {
+                        pos = GetTeleportPosition(entity);
+                        angle = entity.AngleRadians;
+                        return true;
+                    }
+                }
             }
         }
 

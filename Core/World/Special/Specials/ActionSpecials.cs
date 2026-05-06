@@ -415,7 +415,7 @@ public static class ActionSpecials
         var teleportEntities = GetEntities(world, sourceTid);
         for (var entity = teleportEntities.Current(); entity != null; entity = teleportEntities.Advance())
         {
-            var teleport = new TeleportSpecial(entity, null, world, targetTid, 0, fog, options: TeleportOptions.MapSpot);
+            var teleport = new TeleportSpecial(entity, null, world, targetTid, 0, fog);
             success |= teleport.Teleport();
         }
 
