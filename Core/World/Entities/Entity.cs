@@ -532,10 +532,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public virtual void Tick()
     {
+        Flags.ClearTeleported();
+
         if (Flags.Dormant())
             return;
-
-        Flags.ClearTeleported();
 
         if (FrozenTics > 0)
             FrozenTics--;

@@ -415,7 +415,7 @@ public static class ActionSpecials
         var teleportEntities = GetEntities(world, sourceTid);
         for (var entity = teleportEntities.Current(); entity != null; entity = teleportEntities.Advance())
         {
-            var teleport = new TeleportSpecial(entity, null, world, targetTid, 0, fog, options: TeleportOptions.MapSpot);
+            var teleport = new TeleportSpecial(entity, null, world, targetTid, 0, fog);
             success |= teleport.Teleport();
         }
 
@@ -506,10 +506,16 @@ public static class ActionSpecials
         var teleportPosXY = Vec2D.Rotate(diff.X, diff.Y, angle);
         var teleportPos = new Vec3D(teleportSpot.Position.X + teleportPosXY.X, teleportSpot.Position.Y + teleportPosXY.Y, teleportSpot.Position.Z);
         var save = teleportSpot.Position;
+        var originalEntityAngle = entity.AngleRadians;
         teleportSpot.Position = teleportPos;
 
         var teleport = new TeleportSpecial(entity, null, world, 0, 0, fog);
         var success = teleport.Teleport(teleportSpot);
+
+        if (success)
+        {
+            entity.AngleRadians = originalEntityAngle + angle;
+        }
 
         teleportSpot.Position = save;
         return success;
