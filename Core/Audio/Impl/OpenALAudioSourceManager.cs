@@ -27,6 +27,8 @@ public class OpenALAudioSourceManager : IAudioSourceManager
     private readonly DynamicArray<int> m_playGroup = new();
     private readonly IConfig m_config;
 
+    private OpenALSoftResamplerType? m_currentResampler;
+
     public readonly OpenALAudioSystem AudioSystem;
 
     public OpenALAudioSourceManager(OpenALAudioSystem owner, ArchiveCollection archiveCollection, IConfig config)
@@ -34,6 +36,8 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         AudioSystem = owner;
         m_archiveCollection = archiveCollection;
         m_config = config;
+        m_config.Audio.Resampler.OnChanged += Resampler_OnChanged;
+        SetAllResamplers(m_config.Audio.Resampler);
         OpenALDebug.Start("Setting distance model");
         AL.DistanceModel(ALDistanceModel.ExponentDistance);
         OpenALDebug.End("Setting distance model");
@@ -100,8 +104,25 @@ public class OpenALAudioSourceManager : IAudioSourceManager
             return null;
 
         OpenALAudioSource source = m_archiveCollection.DataCache.GetAudioSource(this, buffer, audioData);
+        if (m_currentResampler != null)
+        {
+            source.SetResampler(m_currentResampler);
+        }
         m_sources.Add(source);
         return source;
+    }
+
+    private void Resampler_OnChanged(object? sender, string e) => SetAllResamplers(e);
+    private void SetAllResamplers(string name)
+    {
+        m_currentResampler = OpenALSoftResamplerType.FromName(name);
+        if (m_currentResampler != null)
+        {
+            foreach (var source in m_sources)
+            {
+                source.SetResampler(m_currentResampler);
+            }
+        }
     }
 
     public void PlayGroup(SoundList audioSources)
