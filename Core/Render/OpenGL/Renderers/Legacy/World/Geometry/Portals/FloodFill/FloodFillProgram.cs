@@ -10,6 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 public class FloodFillProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_brightmapTextureLocation;
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
@@ -29,10 +30,13 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_useBrightmapsLocation;
     private readonly int m_cameraDirection;
+    private readonly int m_useSectorColorLocation;
+    private readonly int m_useSectorFogLocation;
 
     public FloodFillProgram(string name) : base($"FloodFill - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
@@ -52,9 +56,12 @@ public class FloodFillProgram : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_cameraDirection = Uniforms.GetLocation("cameraDirection");
+        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
+        m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
@@ -75,6 +82,8 @@ public class FloodFillProgram : RenderProgram
     public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
+    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
+    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -110,6 +119,8 @@ public class FloodFillProgram : RenderProgram
         uniform vec3 camera;
         uniform vec3 cameraDirection;
         uniform float timeFrac;
+        uniform int useSectorColor;
+        uniform int useSectorFog;
 
         void main()
         {
@@ -140,7 +151,7 @@ public class FloodFillProgram : RenderProgram
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.Default))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunctionWorld())
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
     .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
     .Replace("${Depth}", ShaderVars.Depth);

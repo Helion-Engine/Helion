@@ -66,6 +66,7 @@ public partial class Renderer : IDisposable
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly TransitionRenderer m_transitionRenderer;
     private readonly Image m_framebufferImage = new([], (0, 0), ImageType.Rgba, (0, 0), Resources.ResourceNamespace.Global);
+    private readonly bool m_vanillaRender;
     private uint[] m_imageRowFlip = [];
 
     private IWorld? m_world;
@@ -73,7 +74,6 @@ public partial class Renderer : IDisposable
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
     private bool m_useVirtualBuffer;
-    private bool m_vanillaRender;
     private DrawWorldCommand m_lastDrawWorldCmd;
     private TextureMinFilter m_virtualMinFilter;
     private TextureMagFilter m_virtualMagFilter;
@@ -254,6 +254,7 @@ public partial class Renderer : IDisposable
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         ShaderVars.EmulateInvulnerabilityColorMap = m_config.Render.EmulateInvulnerabilityColorMap;
+        ShaderVars.SoftwareSpriteEmulation = m_config.Render.VanillaRender;
     }
 
     private void SetReverseZ()
@@ -347,9 +348,11 @@ public partial class Renderer : IDisposable
             colorMapUniforms,
             paletteIndex,
             config.Render.LightMode,
-            (float)config.Render.GammaCorrection,
+            (float)config.Render.GammaCorrection.Value,
             maxDistance,
-            config.Render.Brightmaps,
+            renderInfo.BrightMaps,
+            renderInfo.SectorColor,
+            renderInfo.SectorFog,
             GetDownScaleAmount(config, renderInfo));
     }
 
@@ -857,7 +860,7 @@ public partial class Renderer : IDisposable
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, false, false, false);
 
         m_automapRenderer.Render(cmd.World, m_renderInfo);
     }
@@ -871,7 +874,8 @@ public partial class Renderer : IDisposable
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, 
+            m_archiveCollection.BrightMapFetched, m_sectorColor, m_sectorFog);
         m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);

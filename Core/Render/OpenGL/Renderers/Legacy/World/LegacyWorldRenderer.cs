@@ -53,9 +53,9 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly Stopwatch m_stopwatch = new();
     private readonly OitFrameBuffer m_oitFrameBuffer = new();
     private readonly RenderInfo m_downSizedRenderInfo = new();
+    private readonly bool m_vanillaRender;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
-    private bool m_vanillaRender;
     private bool m_renderStatic;
     private bool m_lastRenderStatic;
     private bool m_pixelGapCorrection;
@@ -76,6 +76,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
+        m_vanillaRender = config.Render.VanillaRender;
     }
 
     ~LegacyWorldRenderer()
@@ -92,7 +93,6 @@ public class LegacyWorldRenderer : WorldRenderer
     public override void UpdateToNewWorld(IWorld world)
     {
         m_stopwatch.Restart();
-        m_vanillaRender = m_config.Render.VanillaRender;
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
 
@@ -418,7 +418,7 @@ public class LegacyWorldRenderer : WorldRenderer
             viewport = new Rectangle((int)(viewport.X / downScaleAmount), (int)(viewport.Y / downScaleAmount), (int)(viewport.Width / downScaleAmount), (int)(viewport.Height / downScaleAmount));
             m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
                 renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
-                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView);
+                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView, renderInfo.BrightMaps, renderInfo.SectorColor, renderInfo.SectorFog);
             m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, m_downSizedRenderInfo);
 
             GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
@@ -813,6 +813,8 @@ public class LegacyWorldRenderer : WorldRenderer
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);
@@ -850,6 +852,8 @@ public class LegacyWorldRenderer : WorldRenderer
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);

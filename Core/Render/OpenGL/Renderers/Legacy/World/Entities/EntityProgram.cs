@@ -49,6 +49,8 @@ public class EntityProgram : RenderProgram
     private readonly int m_useBrightmapsLocation;
     private readonly int m_downScaleAmountLocation;
     private readonly int m_colorClampLocation;
+    private readonly int m_useSectorColorLocation;
+    private readonly int m_useSectorFogLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -92,6 +94,8 @@ public class EntityProgram : RenderProgram
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_colorClampLocation = Uniforms.GetLocation("colorClamp");
+        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
+        m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
     
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -135,6 +139,8 @@ public class EntityProgram : RenderProgram
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ColorClamp(float value) => ProgramUniforms.Set(value, m_colorClampLocation);
+    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
+    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -161,8 +167,12 @@ public class EntityProgram : RenderProgram
         flat out float renderIndexOut;
         flat out vec3 sectorColorMapIndexOut;
         flat out vec4 sectorFogOut;
+        flat out ivec2 textureDimOut;
 
         uniform float timeFrac;
+        uniform int useSectorColor;
+        uniform int useSectorFog;
+        uniform sampler2D boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
 
@@ -188,12 +198,22 @@ public class EntityProgram : RenderProgram
             offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
             renderIndexOut = renderIndex;
 
-            sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
-            sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
+            textureDimOut = textureSize(boundTexture, 0);
+            if (useSectorColor == 1)
+                sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
+            else
+                sectorColorMapIndexOut = vec3(1);
+
+            if (useSectorFog == 1)
+                sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
+            else
+                sectorFogOut = vec4(0);
+
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }
-    ";
+    "
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexOut", "sectorFogColorOut"));
 
     protected override string? GeometryShader() => @"
         #version 330 core
@@ -213,6 +233,7 @@ public class EntityProgram : RenderProgram
         flat in float renderIndexOut[];
         flat in vec3 sectorColorMapIndexOut[];
         flat in vec4 sectorFogOut[];
+        flat in ivec2 textureDimOut[];
 
         out vec2 uvFrag;
         out float dist2D;
@@ -237,7 +258,6 @@ public class EntityProgram : RenderProgram
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
         uniform vec2 prevViewRightNormal;
-        uniform sampler2D boundTexture;
         uniform float timeFrac;
         uniform vec3 viewPos;
         uniform int healthBarMode;
@@ -256,19 +276,10 @@ public class EntityProgram : RenderProgram
             zPosFrag = pos.z;
             pos.z += offsetZOut[0];
 
-            ivec2 textureDim = textureSize(boundTexture, 0);
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
 
-            vec3 minPos = pos - offsetXY;
-            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;
-
-            if (healthBarMode == 1) {
-                minPos = pos;
-                maxPos = pos;
-                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
-                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
-            }
+            ${MinMaxPos}
 
             // fuzzDist is going to be the center of min/max.
             // This keeps the fuzz consistent across the texture.
@@ -278,7 +289,7 @@ public class EntityProgram : RenderProgram
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
-            textureWidthFrag = textureDim.x;
+            textureWidthFrag = textureDimOut[0].x;
             centerPosFrag = pos;
             minPosFrag = minPos;
             maxPosFrag = maxPos;
@@ -337,7 +348,24 @@ public class EntityProgram : RenderProgram
     .Replace("${Depth}", ShaderVars.Depth)
     .Replace("${BoxDefines}", BoxDefines)
     .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
-    .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip());
+    .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip())
+    .Replace("${MinMaxPos}", GetMinMaxPos());
+
+    private string GetMinMaxPos()
+    {
+        if (this is EntityHealthBarProgram)
+        {
+            return @"            
+                vec3 minPos = pos;
+                vec3 maxPos = pos;
+                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
+                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);";
+        }
+
+        return @"
+            vec3 minPos = pos - offsetXY;
+            vec3 maxPos = pos + (posMoveDir * textureDimOut[0].x) + (vec3(0, 0, 1) * textureDimOut[0].y) - offsetXY;";
+    }
 
     private static string AdjustSpriteVertexClip()
     {
@@ -407,7 +435,33 @@ public class EntityProgram : RenderProgram
 
         ${OitVariables}
         ${FuzzFunction}
+        ${SoftwareSpriteEmulationFunctions}
 
+        void main()
+        {
+            ${CheckPlaneClip}
+            ${LightLevelFragFunction}
+            ${SectorColorMapFragFunction}
+            ${FragColorFunction}
+        }
+    "
+    .Replace("${SoftwareSpriteEmulationFunctions}", GetSoftwareSpriteEmulationFunctions())
+    .Replace("${CheckPlaneClip}", GetCheckPlaneClip())
+    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+    .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmaps, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
+    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+    .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
+    .Replace("${OutFragColor}", GetOutFragColor())
+    .Replace("${BoxDefines}", BoxDefines);
+
+    private static string GetSoftwareSpriteEmulationFunctions()
+    {
+        if (!ShaderVars.SoftwareSpriteEmulation)
+            return "";
+
+        return @"
         bool lineIntersection(vec2 startA, vec2 endA, vec2 startB, vec2 endB) {
             // use epsilon for approximate checks to deal with sprites that are exactly on lines / points
             const float MinEpsilon = 0.001;
@@ -488,28 +542,18 @@ public class EntityProgram : RenderProgram
             }
             
             return false;
-        }
+        }";
+    }
 
-        void main()
-        {
+    private static string GetCheckPlaneClip()
+    {
+        if (!ShaderVars.SoftwareSpriteEmulation)
+            return "";
+
+        return @"
             if (checkPlaneClip == 1 && discardPlaneClip())
-                discard;
-
-            ${HealthBarCheck}
-            ${LightLevelFragFunction}
-            ${SectorColorMapFragFunction}
-            ${FragColorFunction}
-        }
-    "
-    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmaps, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
-    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
-    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
-    .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-    .Replace("${OutFragColor}", GetOutFragColor())
-    .Replace("${BoxDefines}", BoxDefines)
-    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "");
+                discard;";
+    }
 
     private string GetPostProcess() 
     {
@@ -529,9 +573,12 @@ public class EntityProgram : RenderProgram
         ".Replace("${HealthBar}", GetOitOptions() == OitOptions.None ? GetHealthBar() : "");
     }
 
-    private static string GetHealthBar() => @"
-        }
-        if (healthBarMode == 1) {
+    private string GetHealthBar()
+    {
+        if (this is not EntityHealthBarProgram)
+            return "";
+
+        return @"
             float healthNormalized = lightLevelFrag / 255.0;
             fragColor = vec4(0, 0, 0, 1);
             const float RedAmount = 0.33;
@@ -550,7 +597,8 @@ public class EntityProgram : RenderProgram
             // Black box border
             fragColor.rgb = mix(fragColor.rgb, mix(vec3(0, 0, 0), vec3(0.7, 0, 0), fuzzFrag), 
                 float(uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV));
-        }";
+        ";
+    }
 
     private OitOptions GetOitOptions()
     {

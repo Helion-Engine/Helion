@@ -98,7 +98,8 @@ public class FragFunction
             return "";
 
         return
-            @"// Check for the reserved alpha value to indicate a full bright pixel.
+            @"
+            // Check for the reserved alpha value to indicate a full bright pixel.
             float fullBrightFlag = float(fragColor.w == 0.9960784313725490196078431372549);
             " + (lightLevel ? "lightLevel = mix(lightLevel, 1, fullBrightFlag);\n" : "") +
             "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
@@ -164,11 +165,10 @@ public class FragFunction
 
     static string BrightMapLightColorIndexFetch(string uvVar) =>
         @$"
-        if (useBrightmaps == 1) {{
             vec3 brightColor = texture(brightmapTexture, {uvVar}).rgb;
             float hasBrightColor = float(brightColor.r != 0 && brightColor.r == brightColor.g && brightColor.g == brightColor.b);
             lightColorIndex = int(mix(lightColorIndex, min(int((1 - brightColor.r) * 31), lightColorIndex), hasBrightColor));
-        }}";
+        ";
 
     private static string GetTextureMappingClamp(FragColorFunctionOptions options)
     {
@@ -200,7 +200,7 @@ public class FragFunction
                 :
                 "") +
             ((options & FragColorFunctionOptions.Alpha) != 0 ?
-                "fragColor.w *= alphaFrag;" :
+                "\nfragColor.w *= alphaFrag;" :
                 "") +
             @"
             if (fragColor.w <= 0.0)

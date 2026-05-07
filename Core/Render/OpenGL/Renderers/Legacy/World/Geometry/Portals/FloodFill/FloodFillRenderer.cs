@@ -333,6 +333,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     {
         GL.ActiveTexture(BindTextures.BoundTexture);
         program.BoundTexture(BindTextures.BoundTexture);
+        program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.SectorLightTexture(BindTextures.SectorLight);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
@@ -352,6 +353,9 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
     }
 
     public void ClearVertices()

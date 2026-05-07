@@ -30,6 +30,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly EntityProgram m_program = new("Main");
+    private readonly EntityHealthBarProgram m_healthBarProgram = new();
     private readonly EntityTransparentProgram m_programTransparent = new();
     private readonly EntityCompositeProgram m_programComposite = new();
     private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
@@ -38,15 +39,14 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly SpriteRotation m_nullSpriteRotation;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly RenderDataPool<EntityVertex> m_renderDataPool;
+    private readonly bool m_vanillaRender;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
-    private bool m_vanillaRender;
     private bool m_healthBars;
     private bool m_attackIndicator;
-    private bool m_brightMaps;
     private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
@@ -65,8 +65,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_vanillaRender = m_config.Render.VanillaRender;
-        m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
-        m_brightMaps = m_config.Render.Brightmaps;
+        m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax.Value;
     }
 
     ~EntityRenderer()
@@ -90,7 +89,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     public void UpdateTo(IWorld world)
     {
-        m_vanillaRender = world.Config.Render.VanillaRender;
         m_lastViewerEntityId = -1;
         m_renderDataPool.RefillPool(RenderPoolSize / 4);
     }
@@ -105,7 +103,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_healthBars = m_config.Render.HealthBar.Enable;
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
-        m_brightMaps = m_config.Render.Brightmaps;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -235,7 +232,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             flipU = spriteRotation.FlipU;
         }
 
-        var disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
+        var disableFullbright = spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
         var shadow = entity.Flags.Shadow() || entity.RenderStyle == RenderStyle.Fuzzy;
@@ -381,6 +378,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
         program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
         program.ColorClamp(1f);
 
@@ -414,16 +413,14 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_program.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
-        m_program.HealthBarMode(false);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal, PrimitiveType.Points);
 
         if (m_healthBars)
         {
-            m_program.HealthBarMode(true);
+            m_healthBarProgram.Bind();
+            SetUniforms(m_healthBarProgram, renderInfo);
             m_dataManager.RenderHealthBars();
         }
-
-        m_program.Unbind();
     }
 
     public void RenderOitTransparentPass(RenderInfo renderInfo)
