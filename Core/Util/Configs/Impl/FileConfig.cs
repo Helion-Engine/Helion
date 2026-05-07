@@ -66,10 +66,8 @@ public class FileConfig : Config
         else
             Render.DownScaleVanillaRenderSampleBuffer.Set(2);
 
-        if (colorMode != Window.ColorMode.Value)
+        if (colorMode != Window.ColorMode.Value || vanillaRender != Render.VanillaRender.Value)
             AppRestartRequired?.Invoke(this, EventArgs.Empty);
-        if (vanillaRender != Render.VanillaRender.Value)
-            MapRestartRequired?.Invoke(this, EventArgs.Empty);
     }
 
     private void DetermineRenderMode()

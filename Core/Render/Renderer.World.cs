@@ -101,8 +101,6 @@ public partial class Renderer
         m_world.SectorMove += World_SectorMove;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
 
-        m_vanillaRender = m_config.Render.VanillaRender;
-
         var alloc = !m_world.SameAsPreviousMap;
         SetMapDataBuffer(world, alloc);
         m_sectorLightsBuffer = InitLightBuffer(world, alloc, m_sectorLightsBuffer, InitLightBuffer, "Sector light levels", SizedInternalFormat.R8ui, 1);

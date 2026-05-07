@@ -66,6 +66,7 @@ public partial class Renderer : IDisposable
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly TransitionRenderer m_transitionRenderer;
     private readonly Image m_framebufferImage = new([], (0, 0), ImageType.Rgba, (0, 0), Resources.ResourceNamespace.Global);
+    private readonly bool m_vanillaRender;
     private uint[] m_imageRowFlip = [];
 
     private IWorld? m_world;
@@ -73,7 +74,6 @@ public partial class Renderer : IDisposable
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
     private bool m_useVirtualBuffer;
-    private bool m_vanillaRender;
     private DrawWorldCommand m_lastDrawWorldCmd;
     private TextureMinFilter m_virtualMinFilter;
     private TextureMagFilter m_virtualMagFilter;

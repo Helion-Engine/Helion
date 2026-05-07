@@ -59,8 +59,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private IWorld m_world = null!;
     private bool m_disposed;
-    private bool m_vanillaRender;
     private bool m_worldReload;
+    private readonly bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -78,6 +78,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_renderTwoSidedUpperSliceFunc = m_geometryRenderer.RenderTwoSidedUpperSlice;
         m_renderTwoSidedMiddleSliceFunc = m_geometryRenderer.RenderTwoSidedMiddleSlice;
         m_renderSectorWallVertices3D = RenderSectorWallVertices3D;
+        m_vanillaRender = archiveCollection.Config.Render.VanillaRender;
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -100,7 +101,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     public void UpdateTo(IWorld world)
     {
-        m_vanillaRender = world.Config.Render.VanillaRender;
         ClearData(world);
 
         m_world = world;

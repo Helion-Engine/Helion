@@ -53,9 +53,9 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly Stopwatch m_stopwatch = new();
     private readonly OitFrameBuffer m_oitFrameBuffer = new();
     private readonly RenderInfo m_downSizedRenderInfo = new();
+    private readonly bool m_vanillaRender;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
-    private bool m_vanillaRender;
     private bool m_renderStatic;
     private bool m_lastRenderStatic;
     private bool m_pixelGapCorrection;
@@ -76,6 +76,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
+        m_vanillaRender = config.Render.VanillaRender;
     }
 
     ~LegacyWorldRenderer()
@@ -92,7 +93,6 @@ public class LegacyWorldRenderer : WorldRenderer
     public override void UpdateToNewWorld(IWorld world)
     {
         m_stopwatch.Restart();
-        m_vanillaRender = m_config.Render.VanillaRender;
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
 

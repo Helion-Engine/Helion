@@ -39,12 +39,12 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly SpriteRotation m_nullSpriteRotation;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly RenderDataPool<EntityVertex> m_renderDataPool;
+    private readonly bool m_vanillaRender;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
-    private bool m_vanillaRender;
     private bool m_healthBars;
     private bool m_attackIndicator;
     private int m_healthBarLimit;
@@ -89,7 +89,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     public void UpdateTo(IWorld world)
     {
-        m_vanillaRender = world.Config.Render.VanillaRender;
         m_lastViewerEntityId = -1;
         m_renderDataPool.RefillPool(RenderPoolSize / 4);
     }
