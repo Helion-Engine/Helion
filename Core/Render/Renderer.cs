@@ -873,11 +873,9 @@ public partial class Renderer : IDisposable
         var viewSector = cmd.World.ToSubsector(cmd.Camera.PositionInterpolated.X, cmd.Camera.PositionInterpolated.Y).Sector;
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
-        var forceTexelFetch = m_config.Developer.ForceTexelFetch;
-
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, 
-            m_archiveCollection.BrightMapFetched || forceTexelFetch, m_sectorColor || forceTexelFetch, m_sectorFog || forceTexelFetch);
+            m_archiveCollection.BrightMapFetched, m_sectorColor, m_sectorFog);
         m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
