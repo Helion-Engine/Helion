@@ -8,10 +8,12 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helion.Dehacked;
 
@@ -1013,25 +1015,64 @@ public partial class DehackedDefinition
 
     private static int GetIntProperty(DehackedProp prop)
     {
-        if (int.TryParse(prop.Value, out var value))
-            return value;
-
-        // Dehacked parsers used sscanf which would read until a non digit was hit.
-        // Consume int expects the entire token to be an integer.
         return ConsumeDehackedInteger(prop.Value);
     }
 
+    // Dehacked parsers used sscanf which would read until a non digit was hit. Also supports hex and octal because why not.
     private static int ConsumeDehackedInteger(string data)
     {
+        var span = data.AsSpan().TrimStart();
+        if (span.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            if (int.TryParse(TrimNumberGarbage(span[2..], hex: true), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var value))
+                return value;
+        }
+
+        if (span.Length > 1 && span[0] == '0')
+        {
+            if (TryParseOctal(TrimNumberGarbage(span[1..]), out var value))
+                return value;
+        }
+
+        span = TrimNumberGarbage(span);
+        if (int.TryParse(span, out var i))
+            return i;
+
+        // Matching existing behavior that returns 0 on failure.
+        Log.Warn($"Dehacked bad integer: {data}");
+        return 0;
+    }
+
+    private static ReadOnlySpan<char> TrimNumberGarbage(ReadOnlySpan<char> span, bool hex = false)
+    {
         int end = 0;
-        if (data[0] == '-')
+        if (span[0] == '-')
             end++;
-        while (end < data.Length && char.IsDigit(data[end]))
+        while (end < span.Length && (char.IsDigit(span[end]) || (!hex || IsHexChar(span[end]))))
             end++;
 
-        if (!int.TryParse(data.AsSpan(0, end), out int i))
-            throw new Exception($"Expected an integer but got {data}");
-        return i;
+        return span[0..end];
+    }
+
+    static bool IsHexChar(char c)
+    {
+        return (c >= 'a' && c <= 'f') ||
+               (c >= 'A' && c <= 'F');
+    }
+
+    private static bool TryParseOctal(ReadOnlySpan<char> s, out int value)
+    {
+        value = 0;
+
+        foreach (char c in s)
+        {
+            if ((uint)(c - '0') > 7)
+                return false;
+
+            value = (value << 3) + (c - '0');
+        }
+
+        return true;
     }
 
     private static void ConsumeProperty(SimpleParser parser, string property)

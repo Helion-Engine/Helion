@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Helion.Dehacked;
-using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.Dehacked;
@@ -35,5 +34,56 @@ Speed = 12";
 
         unknown.Should().BeFalse();
         dehacked.Things.Count.Should().Be(1);
+    }
+
+    [Fact(DisplayName = "Bad dehacked integer")]
+    public void BadInteger()
+    {
+        var data = @"Thing 27 (some thing)
+            Speed = 42949672960";
+        var dehacked = new DehackedDefinition();
+        dehacked.Parse(data);
+        dehacked.Things.Count.Should().Be(1);
+        var thing = dehacked.Things[0];
+        thing.Speed.Should().Be(0);
+    }
+
+
+    [Fact(DisplayName = "dehacked negative integer")]
+    public void NegativeInteger()
+    {
+        var data = @"Thing 27 (some thing)
+            Speed = -69";
+        var dehacked = new DehackedDefinition();
+        dehacked.Parse(data);
+        dehacked.Things.Count.Should().Be(1);
+        var thing = dehacked.Things[0];
+        thing.Speed.Should().Be(-69);
+    }
+
+    [Fact(DisplayName = "Dehacked hex integer")]
+    public void HexInteger()
+    {
+        var data = @"Thing 27 (some thing)
+            Hit points = 0X58
+            Speed = 0xFF";
+        var dehacked = new DehackedDefinition();
+        dehacked.Parse(data);
+        dehacked.Things.Count.Should().Be(1);
+        var thing = dehacked.Things[0];
+        thing.Hitpoints.Should().Be(88);
+        thing.Speed.Should().Be(255);
+    }
+
+    [Fact(DisplayName = "Dehacked hex octal")]
+    public void HexOctal()
+    {
+        var data = @"Thing 27 (some thing)
+            Speed = 077";
+        var dehacked = new DehackedDefinition();
+        dehacked.Parse(data);
+        dehacked.Things.Count.Should().Be(1);
+        var thing = dehacked.Things[0];
+        thing.Speed.Should().Be(63);
     }
 }
