@@ -11,6 +11,7 @@
 - Added TeleportGroup and TeleportInSector
 - Added Floor_LowerInstant, Floor_RaiseInstant, Ceiling_LowerInstant, Ceiling_RaiseInstant
 - Added feature to show enemy's health in crosshair when targeted
+- Added sound resampler options
 
 ## Bug Fixes:
 - Fix nextmap/previousmap breaking on WADs with maps that exit to the same map.
@@ -31,6 +32,7 @@
 - Fix PNGs with fully transparent pixels loading colors that causes rendering issues when used with texture filtering.
 - Fix spawn blood to use hard-coded vanilla frames when dehacked is present.
 - Fix tracer lines drawing over sprites with software emulation.
+- Fix to match boom behavior to parsing dehacked integers with failures defaulting to zero.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
