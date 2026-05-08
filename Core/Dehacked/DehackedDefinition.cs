@@ -1047,8 +1047,16 @@ public partial class DehackedDefinition
         int end = 0;
         if (span[0] == '-')
             end++;
-        while (end < span.Length && (char.IsDigit(span[end]) || (!hex || IsHexChar(span[end]))))
-            end++;
+
+        while (end < span.Length)
+        {
+            if (char.IsDigit(span[end]))
+                end++;
+            else if (hex && IsHexChar(span[end]))
+                end++;
+            else
+                break;
+        }
 
         return span[0..end];
     }

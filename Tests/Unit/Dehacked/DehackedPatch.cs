@@ -48,6 +48,18 @@ Speed = 12";
         thing.Speed.Should().Be(0);
     }
 
+    [Fact(DisplayName = "Dehacked integer with stuff on the end")]
+    public void IntegerWithStuff()
+    {
+        var data = @"Thing 27 (some thing)
+            Speed = 420lmao";
+        var dehacked = new DehackedDefinition();
+        dehacked.Parse(data);
+        dehacked.Things.Count.Should().Be(1);
+        var thing = dehacked.Things[0];
+        thing.Speed.Should().Be(420);
+    }
+
 
     [Fact(DisplayName = "dehacked negative integer")]
     public void NegativeInteger()
