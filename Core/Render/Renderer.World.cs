@@ -32,6 +32,7 @@ public partial class Renderer
     private readonly SectorUpdates m_updateColorMapSectors = new();
     private readonly SectorUpdates m_updateFogColorSectors = new();
     private readonly SectorUpdates m_updateLineHeights = new();
+    private Vec4F m_lastGlobalViewFog;
 
     private GLBufferTextureStorage<byte>? m_sectorLightsBuffer;
     private GLBufferTextureStorage<float>? m_sectorColorMapsBuffer;
@@ -213,23 +214,46 @@ public partial class Renderer
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            SetSectorFog(fadeBuffer, length, sector.Id, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255), sector.FogDensity);
+            SetSectorFog(fadeBuffer, length, sector, sector.FogColor, Math.Clamp(sector.LightLevel, (short)0, (short)255), sector.FogDensity);
         }
     }
 
-    private unsafe void SetSectorFog(float* fadeBuffer, int bufferLength, int sectorId, Color fadeColor, short lightLevel, float fogDensity)
+    private unsafe void SetGlobalViewFog(int sectorId)
     {
-        var index = sectorId * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
-        var fade = GetSectorFogDensity(fadeColor, lightLevel, fogDensity);
+        if (m_sectorFogBuffer == null || m_world == null || sectorId >= m_world.Sectors.Count)
+            return;
 
-        if (fadeColor.Uint != 0)
+        var sector = m_world.Sectors[sectorId];
+        var fog = GetSectorFogDensity(sector.FogColor, sector.LightLevel, sector.FogDensity);
+        if (fog == m_lastGlobalViewFog)
+            return;
+
+        m_lastGlobalViewFog = fog;
+        var fogBuffer = m_sectorFogBuffer.GetMappedBufferAndBind();
+        var fogData = fogBuffer.MappedMemoryPtr;
+
+        // Sectors fog color start after LightBuffer.SectorIndexStart so index 0 can be used for forcing a global view color.
+        *(Vec4F*)&fogData[0] = fog;
+
+        m_sectorFogBuffer.Unbind();
+    }
+
+    private unsafe void SetSectorFog(float* fogBuffer, int bufferLength, Sector sector, Color fogColor, short lightLevel, float fogDensity)
+    {
+        var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
+        var fog = GetSectorFogDensity(fogColor, lightLevel, fogDensity);
+
+        if (sector.IgnoreFogColor)
+            fog = Vec4F.Zero;
+
+        if (fogColor.Uint != 0)
             m_sectorFog = true;
 
-        Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sectorId} for sector fog buffer");
+        Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sector.Id} for sector fog buffer");
 
-        *(Vec4F*)&fadeBuffer[(index + LightBuffer.FloorOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
-        *(Vec4F*)&fadeBuffer[(index + LightBuffer.CeilingOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
-        *(Vec4F*)&fadeBuffer[(index + LightBuffer.WallOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fade;
+        *(Vec4F*)&fogBuffer[(index + LightBuffer.FloorOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fog;
+        *(Vec4F*)&fogBuffer[(index + LightBuffer.CeilingOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fog;
+        *(Vec4F*)&fogBuffer[(index + LightBuffer.WallOffset) * GLBufferTextureStorage<float>.FourComponentLength] = fog;
     }
 
     private unsafe void SetSectorColorMap(float* colorMapBuffer, int bufferLength, Sector sector, Colormap? colormap)
@@ -409,7 +433,7 @@ public partial class Renderer
         {
             var sector = m_updateLightSectors.UpdateSectors[i];
             var lightLevel = sector.GetByteLightLevel();
-            SetSectorFog(fogData, fogBufferLength, sector.Id, sector.FogColor, lightLevel, sector.FogDensity);
+            SetSectorFog(fogData, fogBufferLength, sector, sector.FogColor, lightLevel, sector.FogDensity);
         }
 
         m_sectorFogBuffer.Unbind();
@@ -454,7 +478,7 @@ public partial class Renderer
         for (int i = 0; i < m_updateFogColorSectors.UpdateSectors.Length; i++)
         {
             var sector = m_updateFogColorSectors.UpdateSectors[i];
-            SetSectorFog(fogBuffer, mappedBufferLength, sector.Id, sector.FogColor, sector.LightLevel, sector.FogDensity);
+            SetSectorFog(fogBuffer, mappedBufferLength, sector, sector.FogColor, sector.LightLevel, sector.FogDensity);
         }
 
         m_sectorFogBuffer.Unbind();

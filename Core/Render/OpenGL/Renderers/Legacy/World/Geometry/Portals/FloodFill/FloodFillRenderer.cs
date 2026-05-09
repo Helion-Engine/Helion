@@ -355,7 +355,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.UseSectorColor(renderInfo.Uniforms.SectorColor);
-        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
     }
 
     public void ClearVertices()

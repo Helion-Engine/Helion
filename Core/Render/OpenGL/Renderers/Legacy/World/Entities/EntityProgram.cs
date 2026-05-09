@@ -140,7 +140,7 @@ public class EntityProgram : RenderProgram
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ColorClamp(float value) => ProgramUniforms.Set(value, m_colorClampLocation);
     public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
-    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
+    public void UseSectorFog(int value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -199,21 +199,23 @@ public class EntityProgram : RenderProgram
             renderIndexOut = renderIndex;
 
             textureDimOut = textureSize(boundTexture, 0);
-            if (useSectorColor == 1)
-                sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
-            else
-                sectorColorMapIndexOut = vec3(1);
+            //if (useSectorColor == 1)
+            //    sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
+            //else
+            //    sectorColorMapIndexOut = vec3(1);
 
-            if (useSectorFog == 1)
-                sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
-            else
-                sectorFogOut = vec4(0);
+            //if (useSectorFog == 1)
+            //    sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
+            //else
+            //    sectorFogOut = vec4(0);
+            
+            ${SectorColorMapVertexFunction}
 
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
         }
     "
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexOut", "sectorFogColorOut"));
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexOut", "sectorFogOut"));
 
     protected override string? GeometryShader() => @"
         #version 330 core
@@ -427,6 +429,7 @@ public class EntityProgram : RenderProgram
         uniform float downScaleAmount;
         uniform vec2 downScaleSampleFactor;
         uniform float colorClamp;
+        uniform int useSectorFog;
 
         uniform sampler2D planeClipTexture;
         uniform sampler2D wallClipTexture;

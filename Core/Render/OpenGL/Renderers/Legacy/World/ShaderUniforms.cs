@@ -26,8 +26,12 @@ public struct ShaderUniforms(
     bool useBrightmaps,
     bool sectorColor,
     bool sectorFog,
+    int viewBlendSectorFogIndex,
     float downScaleAmount)
 {
+    public const int ViewBlendFog = 2;
+    public const int NoViewBlendSectorIndex = -1;
+
     public mat4 Mvp = mvp;
     public mat4 MvpNoPitch = mvpNoPitch;
     public float TimeFrac = timeFrac;
@@ -45,5 +49,7 @@ public struct ShaderUniforms(
     public bool UseBrightmaps = useBrightmaps;
     public bool SectorColor = sectorColor;
     public bool SectorFog = sectorFog;
+     public int SectorFogIndex = sectorFog ? viewBlendSectorFogIndex >= 0 ? ViewBlendFog : 1 : 0;
+    public int ViewBlendFogSectorIndex = viewBlendSectorFogIndex;
     public float DownScaleAmount = downScaleAmount;
 }

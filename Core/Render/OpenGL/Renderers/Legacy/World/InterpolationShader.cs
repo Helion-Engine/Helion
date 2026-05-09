@@ -104,7 +104,7 @@ public class InterpolationShader : RenderProgram
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
     public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
-    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
+    public void UseSectorFog(int value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     protected override string VertexShader()
     {
@@ -233,6 +233,7 @@ public class InterpolationShader : RenderProgram
             uniform int useBrightmaps;
             uniform float downScaleAmount;
             uniform ivec2 screenBounds;
+            uniform int useSectorFog;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}

@@ -30,7 +30,8 @@ public enum SectorFlags3D
     UseUpperTexture = 2048,
     UseLowerTexture = 4096,
     AdditiveTransparency = 8192,
-    Fade = 65536,
+    // When this flag is not set UZDoom will render the fog color as a global blend color and not have fade density. When set it renders the fog color in the 3D sector as expected.
+    NoViewFade = 65536,
     ResetAbove = 131072,
 
     // Helion Flags
@@ -180,6 +181,10 @@ public sealed class Sector3D
         ClipPrevBottomZ = ControlBottom.PrevZ;
 
         ClipStyle = RenderDataStyle == RenderDataStyle.Normal && (Flags & SectorFlags3D.LightTransfer) == 0 ? ClipStyle.Solid : ClipStyle.NotSolid;
+
+        // Currently can't render this because of the shader fetch based on sector id. Likely doesn't matter since it's an unviewable control sector anyway.
+        if ((Flags & SectorFlags3D.NoViewFade) == 0)
+            ControlSector.IgnoreFogColor = true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
