@@ -1142,7 +1142,7 @@ public partial class GeometryRenderer : IDisposable
                 else
                     SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower);
 
-                SetCachedSide(m_vertexLookup, facingSide, data);
+                SetCachedSide(m_vertexLowerLookup, facingSide, data);
             }
 
             if (m_buffer)
