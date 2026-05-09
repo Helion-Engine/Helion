@@ -814,7 +814,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.UseSectorColor(renderInfo.Uniforms.SectorColor);
-        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);
@@ -853,7 +853,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.UseSectorColor(renderInfo.Uniforms.SectorColor);
-        program.UseSectorFog(renderInfo.Uniforms.SectorFog);
+        program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(false);

@@ -89,6 +89,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public bool Silent;
     public bool NoAttack;
     public bool HasDamageSector3D;
+    public bool IgnoreFogColor;
     public Sector3D? Sector3D;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
@@ -636,6 +637,23 @@ public sealed class Sector : IFloorCeilingAnchor
 
         sector3d = null;
         height = 0;
+        return false;
+    }
+
+    public bool GetViewSector3D(Entity entity, [NotNullWhen(true)] out Sector3D? sector3d)
+    {
+        if (WorldStatic.Sector3D && Sectors3D.Length > 0)
+        {
+            var viewZ = entity.Position.Z + entity.ViewZ;
+            for (int i = 0; i < Sectors3D.Length; i++)
+            {
+                sector3d = Sectors3D[i];
+                if (viewZ > sector3d.ControlBottom.Z && viewZ < sector3d.ControlTop.Z)
+                    return true;
+            }
+        }
+
+        sector3d = null;
         return false;
     }
 

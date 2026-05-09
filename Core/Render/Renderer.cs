@@ -331,6 +331,10 @@ public partial class Renderer : IDisposable
             }
         }
 
+        int viewBlendSectorFogIndex = ShaderUniforms.NoViewBlendSectorIndex;
+        if (renderInfo.SectorFog && renderInfo.ViewerEntity.Sector.GetViewSector3D(renderInfo.ViewerEntity, out var viewSector3D) && (viewSector3D.Flags & SectorFlags3D.NoViewFade) == 0)
+            viewBlendSectorFogIndex = viewSector3D.ControlSector.Id;
+
         int maxDistance = config.Render.MaxDistance.Value;
         if (maxDistance <= 0)
             maxDistance = Constants.DefaultMaxDistance;
@@ -353,6 +357,7 @@ public partial class Renderer : IDisposable
             renderInfo.BrightMaps,
             renderInfo.SectorColor,
             renderInfo.SectorFog,
+            viewBlendSectorFogIndex,
             GetDownScaleAmount(config, renderInfo));
     }
 
@@ -877,6 +882,9 @@ public partial class Renderer : IDisposable
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, 
             m_archiveCollection.BrightMapFetched, m_sectorColor, m_sectorFog);
         m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
+
+        if (m_renderInfo.Uniforms.SectorFog && m_renderInfo.Uniforms.ViewBlendFogSectorIndex != ShaderUniforms.NoViewBlendSectorIndex)
+            SetGlobalViewFog(m_renderInfo.Uniforms.ViewBlendFogSectorIndex);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 

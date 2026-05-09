@@ -83,7 +83,7 @@ public class FloodFillProgram : RenderProgram
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
-    public void UseSectorFog(bool value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
+    public void UseSectorFog(int value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -183,6 +183,7 @@ public class FloodFillProgram : RenderProgram
             uniform int paletteIndex;
             uniform int colormapIndex;
             uniform int useBrightmaps;
+            uniform int useSectorFog;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}

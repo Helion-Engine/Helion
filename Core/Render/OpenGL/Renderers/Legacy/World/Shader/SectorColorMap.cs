@@ -21,8 +21,8 @@ uniform samplerBuffer sectorFogTexture;";
             else
                 {colorVar} = vec3(1);
 
-            if (useSectorFog == 1)
-                {fogVar} = texelFetch(sectorFogTexture, int({indexVar})).rgba;
+            if (useSectorFog >= 1)
+                {fogVar} = texelFetch(sectorFogTexture, int(mix({indexVar}, 0, float(useSectorFog == {ShaderUniforms.ViewBlendFog})))).rgba;
             else
                 {fogVar} = vec4(0);
             ";
