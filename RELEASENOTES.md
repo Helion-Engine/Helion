@@ -33,6 +33,7 @@
 - Fix spawn blood to use hard-coded vanilla frames when dehacked is present.
 - Fix tracer lines drawing over sprites with software emulation.
 - Fix to match boom behavior to parsing dehacked integers with failures defaulting to zero.
+- Fix SBARDEF crash when children element was explicity set to null.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.

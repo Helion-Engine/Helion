@@ -21,17 +21,33 @@ public class StatusBarFileDef
 
 public class StatusBarDefinition
 {
-    public const string HiddenLayoutName = "Hidden"; 
-    
+    private List<StatusBarNumberFontDef> m_numberFonts = [];
+    private List<StatusBarHudFontDef> m_hudFonts = [];
+    private List<StatusBarLayoutDef> m_statusBars = [];
+
+    public const string HiddenLayoutName = "Hidden";
+
     [JsonPropertyName("numberfonts")]
-    public List<StatusBarNumberFontDef> NumberFonts { get; set; } = [];
+    public List<StatusBarNumberFontDef> NumberFonts
+    {
+        get => m_numberFonts;
+        set => m_numberFonts = value ?? [];
+    }
 
     // v1.1 Extension: HUD Fonts
     [JsonPropertyName("hudfonts")]
-    public List<StatusBarHudFontDef> HudFonts { get; set; } = [];
+    public List<StatusBarHudFontDef> HudFonts
+    {
+        get => m_hudFonts;
+        set => m_hudFonts = value ?? [];
+    }
 
     [JsonPropertyName("statusbars")]
-    public List<StatusBarLayoutDef> StatusBars { get; set; } = [];
+    public List<StatusBarLayoutDef> StatusBars
+    {
+        get => m_statusBars;
+        set => m_statusBars = value ?? [];
+    }
 
     public void Parse(string data)
     {
@@ -138,6 +154,8 @@ public class StatusBarHudFontDef
 
 public class StatusBarLayoutDef
 {
+    private StatusBarElementWrapper[] m_children = [];
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
@@ -151,7 +169,11 @@ public class StatusBarLayoutDef
     public string? FillFlat { get; set; }
 
     [JsonPropertyName("children")]
-    public StatusBarElementWrapper[] Children { get; set; } = [];
+    public StatusBarElementWrapper[] Children
+    {
+        get => m_children;
+        set => m_children = value ?? [];
+    }
 
     [JsonIgnore]
     public bool CoverageSet { get; set; }
