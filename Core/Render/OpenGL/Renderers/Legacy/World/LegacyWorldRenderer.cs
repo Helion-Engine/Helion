@@ -823,7 +823,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (program is InterpolationCompositeShader)
         {
             program.AccumTexture(BindTextures.AccumTexture);
-            program.AccumCountTextre(BindTextures.AccumCountTexture);
+            program.AccumCountTexture(BindTextures.AccumCountTexture);
         }
 
         if (program is InterpolationTransparentShader || program is InterpolationCompositeShader)
