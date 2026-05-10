@@ -1,4 +1,6 @@
-﻿namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+﻿using Helion.Util;
+
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
 public enum LightLevelOptions
 {
@@ -40,15 +42,15 @@ $"flat in float lightLevelFrag;{((options & LightLevelOptions.NoDist) != 0 ? "" 
     // 47 = MAXLIGHTSCALE - 1
     // startmap from R_ExecuteSetViewSize in r_main
     public static string FragFunction =>
-@"
+$@"
 const int colorMaps = 32;
 float lightLevel = lightLevelFrag;
 int lightNum = int(lightLevel / 8);
 int startMap = (30 - lightNum) * 2;
-float lightIndex = min(2560 / abs(dist2D), 47);
+float lightIndex = min(2560 / abs(dist2D), {Constants.LightBuffer.LightLevelsIndexMax});
 float lightColor = clamp((startMap - lightIndex / 2) - extraLight, 0, 31);
 // Directly set the index when extraLight < 0 to the absolute value
-int lightColorIndex = int(mix(lightColor, abs(extraLight) - 1, float(extraLight < 0)));
+int lightColorIndex = int(mix(lightColor, {ShaderUniforms.ExtraLightFixedIndex} + extraLight, float(extraLight < -{Constants.LightBuffer.LightLevelsIndexMax})));
 "
 + (ShaderVars.PaletteColorMode ? "" :
 @"

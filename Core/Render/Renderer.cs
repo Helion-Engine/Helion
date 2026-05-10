@@ -308,7 +308,7 @@ public partial class Renderer : IDisposable
 
             if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
             {
-                extraLightOrColorMapIndex = GetFixedColorMapIndex(Constants.ColorMapIndex.FullBright);
+                extraLightOrColorMapIndex = ShaderUniforms.GetFixedColorMapIndex(Constants.ColorMapIndex.FullBright);
                 mix = 1.0f;            
             }
 
@@ -326,7 +326,7 @@ public partial class Renderer : IDisposable
                 if (player.HasLightAmp())
                 {
                     mix = 0;
-                    extraLightOrColorMapIndex = GetFixedColorMapIndex(Constants.ColorMapIndex.LightAmp);
+                    extraLightOrColorMapIndex = ShaderUniforms.GetFixedColorMapIndex(Constants.ColorMapIndex.LightAmp);
                 }
             }
         }
@@ -359,11 +359,6 @@ public partial class Renderer : IDisposable
             renderInfo.SectorFog,
             viewBlendSectorFogIndex,
             GetDownScaleAmount(config, renderInfo));
-    }
-
-    public static int GetFixedColorMapIndex(int index)
-    {
-        return -index - 1;
     }
 
     public static bool GetNativeLetterBoxes(IConfig config, Dimension renderDimension, out Box2I left, out Box2I right)

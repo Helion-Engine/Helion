@@ -31,6 +31,12 @@ public struct ShaderUniforms(
 {
     public const int ViewBlendFog = 2;
     public const int NoViewBlendSectorIndex = -1;
+    public const int ExtraLightFixedIndex = -100;
+
+    public static int GetFixedColorMapIndex(int index)
+    {
+        return -ExtraLightFixedIndex + index;
+    }
 
     public mat4 Mvp = mvp;
     public mat4 MvpNoPitch = mvpNoPitch;
