@@ -1,146 +1,59 @@
-﻿using GlmSharp;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
-using Helion.Util.Configs.Components;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
-public class EntityProgram : RenderProgram
+public class EntityProgram : RenderProgramBase
 {
-    private readonly int m_boundTextureLocation;
-    private readonly int m_brightmapTextureLocation;
-    private readonly int m_colormapTextureLocation;
-    private readonly int m_sectorColormapTextureLocation;
-    private readonly int m_sectorFogTextureLocation;
-    private readonly int m_mvpLocation;
-    private readonly int m_timeFracLocation;
-    private readonly int m_hasInvulnerabilityLocation;
-    private readonly int m_mvpNoPitchLocation;
     private readonly int m_fuzzFracLocation;
-    private readonly int m_lightLevelMixLocation;
-    private readonly int m_extraLightLocation;
     private readonly int m_viewRightNormalLocation;
     private readonly int m_prevViewRightNormalLocation;
-    private readonly int m_distanceOffsetLocation;
-    private readonly int m_colorMixLocation;
     private readonly int m_fuzzDivLocation;
-    private readonly int m_paletteIndexLocation;
-    private readonly int m_colorMapIndexLocation;
-    private readonly int m_lightModeLocation;
-    private readonly int m_gammaCorrectionLocation;
     private readonly int m_maxDistanceLocation;
     private readonly int m_fadeDistanceLocation;
     private readonly int m_viewPosLocation;
-    private readonly int m_accumTextureLocation;
-    private readonly int m_accumCountTextureLocation;
     private readonly int m_fuzzTextureLocation;
     private readonly int m_opaqueTextureLocation;
     private readonly int m_renderFuzzLocation;
     private readonly int m_renderFuzzRefractionColorLocation;
-    private readonly int m_screenBoundsLocation;
-    private readonly int m_planeClipTextureLocation;
-    private readonly int m_checkPlaneClipLocation;
-    private readonly int m_healthBarModeLocation;
-    private readonly int m_mapDataTextureLoaction;
-    private readonly int m_wallClipTextureLocation;
+    private readonly int m_mapDataTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
-    private readonly int m_useBrightmapsLocation;
-    private readonly int m_downScaleAmountLocation;
     private readonly int m_colorClampLocation;
-    private readonly int m_useSectorColorLocation;
-    private readonly int m_useSectorFogLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
-        m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
-        m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
-        m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
-        m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
-        m_sectorFogTextureLocation = Uniforms.GetLocation("sectorFogTexture");
-        m_mvpLocation = Uniforms.GetLocation("mvp");
-        m_timeFracLocation = Uniforms.GetLocation("timeFrac");
-        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
-        m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
         m_fuzzFracLocation = Uniforms.GetLocation("fuzzFrac");
-        m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
-        m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_viewRightNormalLocation = Uniforms.GetLocation("viewRightNormal");
         m_prevViewRightNormalLocation = Uniforms.GetLocation("prevViewRightNormal");
-        m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
-        m_colorMixLocation = Uniforms.GetLocation("colorMix");
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
-        m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
-        m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
-        m_lightModeLocation = Uniforms.GetLocation("lightMode");
-        m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_maxDistanceLocation = Uniforms.GetLocation("maxDistanceSquared");
         m_fadeDistanceLocation = Uniforms.GetLocation("fadeDistance");
         m_viewPosLocation = Uniforms.GetLocation("viewPos");
-        m_accumTextureLocation = Uniforms.GetLocation("accum");
-        m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
-        m_fuzzTextureLocation = Uniforms.GetLocation("fuzzTexture");
-        m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_renderFuzzLocation = Uniforms.GetLocation("renderFuzz");
         m_renderFuzzRefractionColorLocation = Uniforms.GetLocation("renderFuzzRefractionColor");
-        m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
-        m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
-        m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
-        m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
-        m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
-        m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
+        m_mapDataTextureLocation = Uniforms.GetLocation("mapDataTexture");
         m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
-        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
-        m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
+        m_fuzzTextureLocation = Uniforms.GetLocation("fuzzTexture");
+        m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_colorClampLocation = Uniforms.GetLocation("colorClamp");
-        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
-        m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
     
-    public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
-    public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
-    public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
-    public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
-    public void SectorFogTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorFogTextureLocation);
-    public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
-    public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
     public void FuzzTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_opaqueTextureLocation);
-    public void PlaneClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_planeClipTextureLocation);
-    public void WallClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_wallClipTextureLocation);
-    public void MapDataTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_mapDataTextureLoaction);
+    public void MapDataTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_mapDataTextureLocation);
     public void LineHeightsTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_lineHeightsTextureLocation);
-
-    public void ExtraLight(int extraLight) => ProgramUniforms.Set(extraLight, m_extraLightLocation);
-    public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void LightLevelMix(float lightLevelMix) => ProgramUniforms.Set(lightLevelMix, m_lightLevelMixLocation);
-    public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
-    public void MvpNoPitch(mat4 mvpNoPitch) => ProgramUniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
     public void FuzzFrac(float frac) => ProgramUniforms.Set(frac, m_fuzzFracLocation);
-    public void TimeFrac(float frac) => ProgramUniforms.Set(frac, m_timeFracLocation);
     public void ViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_viewRightNormalLocation);
     public void PrevViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_prevViewRightNormalLocation);
-    public void DistanceOffset(float distance) => ProgramUniforms.Set(distance, m_distanceOffsetLocation);
-    public void ColorMix(Vec3F color) => ProgramUniforms.Set(color, m_colorMixLocation);
     public void FuzzDiv(float div) => ProgramUniforms.Set(div, m_fuzzDivLocation);
-    public void PaletteIndex(int index) => ProgramUniforms.Set(index, m_paletteIndexLocation);
-    public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
-    public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
-    public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void MaxDistanceSquared(float value) => ProgramUniforms.Set(value, m_maxDistanceLocation);
     public void FadeDistance(float value) => ProgramUniforms.Set(value, m_fadeDistanceLocation);
     public void ViewPos(Vec3F pos) => ProgramUniforms.Set(pos, m_viewPosLocation);
     public void RenderFuzz(bool value) => ProgramUniforms.Set(value, m_renderFuzzLocation);
     public void RenderFuzzRefractionColor(bool value) => ProgramUniforms.Set(value, m_renderFuzzRefractionColorLocation);
-    public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
-    public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
-    public void HealthBarMode(bool value) => ProgramUniforms.Set(value, m_healthBarModeLocation);
-    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
-    public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ColorClamp(float value) => ProgramUniforms.Set(value, m_colorClampLocation);
-    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
-    public void UseSectorFog(int value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -197,17 +110,7 @@ public class EntityProgram : RenderProgram
             offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
             offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
             renderIndexOut = renderIndex;
-
             textureDimOut = textureSize(boundTexture, 0);
-            //if (useSectorColor == 1)
-            //    sectorColorMapIndexOut = texelFetch(sectorColormapTexture, lightIndexInt).rgb;
-            //else
-            //    sectorColorMapIndexOut = vec3(1);
-
-            //if (useSectorFog == 1)
-            //    sectorFogOut = texelFetch(sectorFogTexture, lightIndexInt).rgba;
-            //else
-            //    sectorFogOut = vec4(0);
             
             ${SectorColorMapVertexFunction}
 

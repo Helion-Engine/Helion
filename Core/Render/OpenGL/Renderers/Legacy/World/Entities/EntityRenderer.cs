@@ -75,8 +75,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     public bool HasDataToRenderByStyle(RenderDataStyle style) => m_dataManager.HasDataToRenderByStyle(style);
 
-    public void HealthBarMode(bool set) => m_program.HealthBarMode(set);
-
     public override bool HasStyleToRender(RenderDataStyle style)
     {
         return m_dataManager.HasDataToRenderByStyle(style);
@@ -391,13 +389,13 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (program is EntityCompositeProgram)
         {
             program.AccumTexture(BindTextures.AccumTexture);
-            program.AccumCountTextre(BindTextures.AccumCountTexture);
+            program.AccumCountTexture(BindTextures.AccumCountTexture);
         }
 
         if (program is EntityFuzzRefractionProgram)
         {
             program.AccumTexture(BindTextures.AccumTexture);
-            program.AccumCountTextre(BindTextures.AccumCountTexture);
+            program.AccumCountTexture(BindTextures.AccumCountTexture);
             program.FuzzTexture(BindTextures.FuzzTexture);
             program.OpaqueTexture(BindTextures.OpaqueTexture);
         }
