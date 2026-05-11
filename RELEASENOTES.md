@@ -49,3 +49,4 @@
 - Add support for transparent rendering in static shader.
 - Add pool for entity sprite VBO/VAOs to fix stutter when encountering a new sprite to render.
 - Update order independent transparency weight to be more stable across a higher range.
+- Use ColorAdd render style for Revenant fireball to match UZDoom.

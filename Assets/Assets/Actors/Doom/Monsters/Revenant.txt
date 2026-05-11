@@ -67,6 +67,7 @@ actor RevenantTracer
     SeeSound "skeleton/attack"
     SpawnID 53
     Speed 10
+    RenderStyle ColorAdd
     
     PROJECTILE
     +RANDOMIZE
