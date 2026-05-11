@@ -1210,6 +1210,9 @@ public class Player : Entity
         var baseAmmoDef = Inventory.GetBaseAmmoDef(ammoDef);
         int giveAmount = Inventory.GetAmmoGiveAmount(ammoDef, baseAmmoDef, weaponDef, amount, flags);
 
+        if (giveAmount == 0)
+            return true;
+
         int oldCount = Inventory.Amount(baseAmmoDef);
         bool success = Inventory.Add(baseAmmoDef, giveAmount, flags);
         if (success && autoSwitchWeapon && ShouldSwitch(weaponDef))

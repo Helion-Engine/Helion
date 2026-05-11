@@ -1,13 +1,12 @@
-﻿using Helion.Dehacked;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
-using Helion.Tests.Unit.GameAction;
 using Helion.Tests.Unit.GameAction.Util;
 using Helion.Util;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction;
@@ -22,15 +21,11 @@ public class DehackedPickup : IDisposable
 
     public DehackedPickup()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, dehackedPatch: "");
     }
 
     private void WorldInit(SinglePlayerWorld world)
     {
-        world.ArchiveCollection.Definitions.DehackedDefinition = new();
-        DehackedApplier applier = new(world.ArchiveCollection.Definitions, world.ArchiveCollection.Definitions.DehackedDefinition);
-        applier.Apply(world.ArchiveCollection.Definitions.DehackedDefinition, world.ArchiveCollection.Definitions, world.EntityManager.DefinitionComposer);
-
         // Modify shotgun sprite to blue key.
         // This should cause the player to pickup a blue key instead of the shotgun
         var def = GameActions.GetEntityDefinition(world, Chaingun);
@@ -51,6 +46,7 @@ public class DehackedPickup : IDisposable
     [Fact(DisplayName = "Modified dehacked pickup carries over dropped")]
     public void ModifiedDehackedPickupCarriesOverDropped()
     {
+        Player.Inventory.Clear();
         InventoryUtil.AssertAmount(Player, "Shell", 0);
         var shotgun = GameActions.CreateEntity(World, "Shotgun", Vec3D.Zero);
         World.PerformItemPickup(Player, shotgun);
@@ -61,6 +57,22 @@ public class DehackedPickup : IDisposable
         shotgun.Flags.SetDropped();
         World.PerformItemPickup(Player, shotgun);
         InventoryUtil.AssertAmount(Player, "Shell", 12);
+    }
+
+    [Fact(DisplayName = "Dropped ammo is not modified by skill multiplier")]
+    public void DroppedAmmo()
+    {
+        var ammoNames = World.ArchiveCollection.Dehacked!.AmmoNames.Union(World.ArchiveCollection.Dehacked.AmmoDoubleNames);
+        foreach (var ammo in ammoNames)
+        {
+            Player.Inventory.Clear();
+            var droppedAmmo = GameActions.CreateEntity(World, ammo, Vec3D.Zero);
+            var droppedAmmoDef = droppedAmmo.Definition;
+            droppedAmmo.Flags.SetDropped();
+            World.PerformItemPickup(Player, droppedAmmo);
+            var baseDef = Helion.World.Entities.Inventories.Inventory.GetBaseAmmoDef(droppedAmmoDef);
+            InventoryUtil.AssertAmount(Player, baseDef.Name, droppedAmmoDef.Properties.Inventory.Amount);
+        }
     }
 
     public void Dispose()

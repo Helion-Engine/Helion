@@ -562,6 +562,12 @@ public class ArchiveCollection : IResources, IPathResolver
             Definitions.DehackedDefinition.LoadActorDefinitions(EntityDefinitionComposer);
             var dehackedApplier = new DehackedApplier(Definitions, Definitions.DehackedDefinition);
             dehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
+
+            foreach (var ammo in Definitions.DehackedDefinition.AmmoNames)
+                EntityDefinitionComposer.GetByName(ammo)?.Properties.Inventory.IgnoreAmmoDroppedModifier = true;
+            foreach (var ammo in Definitions.DehackedDefinition.AmmoDoubleNames)
+                EntityDefinitionComposer.GetByName(ammo)?.Properties.Inventory.IgnoreAmmoDroppedModifier = true;
+
             Definitions.DehackedDefinition.FinalizeData();
         }
 
