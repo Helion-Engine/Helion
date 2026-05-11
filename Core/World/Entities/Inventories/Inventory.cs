@@ -410,7 +410,12 @@ public sealed class Inventory
         if (multiplier.HasValue)
             giveAmount = (int)(giveAmount * multiplier);
         else
+        {
+            // Don't apply 0.5 skill dropped multiplier for ammo drops set by dehacked. Only weapons were hard coded to give half when dropped.
+            if (weaponDef == null && ammoDef.Properties.Inventory.IgnoreAmmoDroppedModifier)
+                flags = null;
             giveAmount = WorldStatic.World.SkillDefinition.GetAmmoAmount(giveAmount, 1, flags);
+        }
 
         return giveAmount;
     }

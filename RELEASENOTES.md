@@ -34,6 +34,7 @@
 - Fix tracer lines drawing over sprites with software emulation.
 - Fix to match boom behavior to parsing dehacked integers with failures defaulting to zero.
 - Fix SBARDEF crash when children element was explicity set to null.
+- Fix dehacked dropped ammo types only giving half ammo.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
