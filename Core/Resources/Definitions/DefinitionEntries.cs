@@ -88,6 +88,7 @@ public class DefinitionEntries
     private readonly Dictionary<Color, Colormap> m_levelSectorColormaps = [];
     private readonly PnamesTextureXCollection m_pnamesTextureXCollection = new();
     private readonly LookupArray<Colormap> m_bloodColorMaps = new();
+    private readonly List<StatusBarLayoutDef> m_protectedStatusBars = [];
     private bool m_parseDehacked;
     private bool m_parseDecorate;
     private bool m_parseZDoomMapInfo;
@@ -123,7 +124,7 @@ public class DefinitionEntries
         m_entryNameToAction["COMPLVL"] = entry => ParseEntry(ParseCompLevel, entry);
         m_entryNameToAction["OPTIONS"] = OptionsDefinition.Parse;
         m_entryNameToAction["MUSINFO"] = entry => ParseEntry(ParseMusInfo, entry);
-        m_entryNameToAction["SBARDEF"] = entry => ParseEntry(ParseSBarDef, entry);
+        m_entryNameToAction["SBARDEF"] = entry => ParseSBarDef(entry);
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
@@ -186,8 +187,31 @@ public class DefinitionEntries
     private void ParseLanguageCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);
-    private void ParseSBarDef(string text) => StatusBarDefinition.Parse(text);
     private void ParseGldefs(Entry entry) => GldefsDefinition.Parse(entry, m_archiveCollection.IWadInfo.IWadBaseType);
+
+    private void ParseSBarDef(Entry entry)
+    {
+        try
+        {
+            StatusBarDefinition.Parse(entry.ReadDataAsString(), m_protectedStatusBars);
+
+            if (entry.Parent == m_archiveCollection.Assets && m_protectedStatusBars.Count == 0)
+            {
+                AddProtectedStatusBarLayout(m_protectedStatusBars, StatusBarDefinition.MinimalLayoutName);
+                AddProtectedStatusBarLayout(m_protectedStatusBars, StatusBarDefinition.DetailedLayoutName);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex);
+        }
+    }
+
+    private void AddProtectedStatusBarLayout(List<StatusBarLayoutDef> layouts, string name)
+    {
+        if (StatusBarDefinition.TryGetLayoutByProtectedName(name, out var layout))
+            layouts.Add(layout);
+    }
 
     private void ParseZMapInfo(string text)
     {

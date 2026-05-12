@@ -1,5 +1,4 @@
 using Helion.Geometry.Vectors;
-using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using System;
@@ -155,8 +154,15 @@ public class StatusBarListDef : StatusBarBaseDef
 
 public class StatusBarStringDef : StatusBarBaseDef
 {
+    private string m_font = "";
+
+    // Update this
     [JsonPropertyName("font")]
-    public string Font { get; set; } = string.Empty;
+    public string Font
+    {
+        get => m_font;
+        set => m_font = StatusBarDeserializeContext.GetName(value);
+    }
 
     [JsonPropertyName("type")]
     public int Type { get; set; }
@@ -200,6 +206,7 @@ public class StatusBarFaceDef : StatusBarBaseDef
 public class StatusBarComponentDef : StatusBarBaseDef 
 {
     private string m_type = string.Empty;
+    private string m_font = string.Empty;
 
     [JsonPropertyName("type")]
     public string Type 
@@ -215,8 +222,12 @@ public class StatusBarComponentDef : StatusBarBaseDef
     public StatusBarComponentType ComponentType { get; private set; }
 
     [JsonPropertyName("font")]
-    public string Font { get; set; } = string.Empty;
-    
+    public string Font
+    {
+        get => m_font;
+        set => m_font = StatusBarDeserializeContext.GetName(value);
+    }
+
     // v1.1
     [JsonPropertyName("vertical")]
     public bool Vertical { get; set; }
@@ -257,8 +268,6 @@ public class StatusBarCarouselDef : StatusBarBaseDef
     [JsonPropertyName("translucency")]
     public bool Translucency { get; set; }
 }
-
-
 
 public class StatusBarGraphicDef : StatusBarBaseDef
 {
@@ -303,8 +312,14 @@ public class StatusBarAnimationDef : StatusBarBaseDef
 
 public class StatusBarNumberDef : StatusBarBaseDef
 {
+    private string m_font = string.Empty;
+
     [JsonPropertyName("font")]
-    public string Font { get; set; } = string.Empty;
+    public string Font
+    {
+        get => m_font;
+        set => m_font = StatusBarDeserializeContext.GetName(value);
+    }
 
     [JsonPropertyName("type")]
     public StatusBarNumberType Type { get; set; }

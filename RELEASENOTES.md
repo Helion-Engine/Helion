@@ -35,7 +35,8 @@
 - Fix to match boom behavior to parsing dehacked integers with failures defaulting to zero.
 - Fix SBARDEF crash when children element was explicity set to null.
 - Fix dehacked dropped ammo types only giving half ammo.
-- Fix "Compact HUD" (Tate/Portrait Window) behavior for SBARDEF
+- Fix "Compact HUD" (Tate/Portrait Window) behavior for SBARDEF.
+- Fix cycling order with SBARDEF.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
@@ -51,3 +52,4 @@
 - Add pool for entity sprite VBO/VAOs to fix stutter when encountering a new sprite to render.
 - Update order independent transparency weight to be more stable across a higher range.
 - Use ColorAdd render style for Revenant fireball to match UZDoom.
+- Always load Helion's minimal and detailed HUDs when loading a mod that loads an SBARDEF.
