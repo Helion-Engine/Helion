@@ -342,7 +342,7 @@ public static class StatusBarConditionResolver
 
     private static bool CheckHudMode(StatusBarContext context, int param)
     {
-        int mode = context.ActiveLayout?.FullscreenRender == true ? 1 : 0;
+        int mode = context.IsCompact ? 1 : 0;
         return mode == param;
     }
     
