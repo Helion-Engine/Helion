@@ -1,5 +1,4 @@
 using Helion.Geometry.Vectors;
-using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using System;

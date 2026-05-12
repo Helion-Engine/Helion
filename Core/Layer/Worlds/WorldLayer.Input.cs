@@ -9,7 +9,6 @@ using Helion.World;
 using Helion.World.Entities.Players;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Worlds;
