@@ -93,6 +93,2077 @@
     ],
     "statusbars": [
       {
+        "name": "Full",
+        "height": 32,
+        "fullscreenrender": false,
+        "fillflat": null,
+        "children": [
+          {
+            "graphic": {
+              "x": 160,
+              "y": 0,
+              "alignment": 1,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "patch": "STBAR"
+            }
+          },
+          {
+            "number": {
+              "x": 44,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "Classic Status Bar",
+              "type": 4,
+              "param": 0,
+              "maxlength": 0
+            }
+          },
+          {
+            "percent": {
+              "x": 104,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "Classic Status Bar",
+              "type": 0,
+              "param": 0,
+              "maxlength": 0
+            }
+          },
+          {
+            "canvas": {
+              "x": 104,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 14,
+                  "param": 0,
+                  "param2": 0
+                }
+              ],
+              "children": [
+                {
+                  "graphic": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "patch": "STARMS"
+                  }
+                },
+                {
+                  "canvas": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 7,
+                          "y": 4,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STGNUM2"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 19,
+                          "y": 4,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STGNUM3"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 31,
+                          "y": 4,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STGNUM4"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 7,
+                          "y": 14,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STGNUM5"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 19,
+                          "y": 14,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STGNUM6"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 31,
+                          "y": 14,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STGNUM7"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 7,
+                          "y": 4,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 6,
+                              "param": 2,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STYSNUM2"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 19,
+                          "y": 4,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 6,
+                              "param": 3,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STYSNUM3"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 31,
+                          "y": 4,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 6,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STYSNUM4"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 7,
+                          "y": 14,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 6,
+                              "param": 5,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STYSNUM5"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 19,
+                          "y": 14,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 6,
+                              "param": 6,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STYSNUM6"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 31,
+                          "y": 14,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 6,
+                              "param": 7,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STYSNUM7"
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Weapon Slot Group"
+                }
+              ]
+            },
+            "_cacoco_name": "STARMS Cluster"
+          },
+          {
+            "canvas": {
+              "x": 0,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 14,
+                  "param": 2,
+                  "param2": 0
+                }
+              ],
+              "children": [
+                {
+                  "number": {
+                    "x": 138,
+                    "y": 3,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Status Bar",
+                    "type": 2,
+                    "param": 0,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "facebackground": {
+                    "x": 143,
+                    "y": 1,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "width": 0,
+                    "height": 0,
+                    "topoffset": 0,
+                    "leftoffset": 0,
+                    "midoffset": 0
+                  }
+                }
+              ]
+            },
+            "_cacoco_name": "Deathmatch Group"
+          },
+          {
+            "face": {
+              "x": 143,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 0,
+              "height": 0,
+              "topoffset": 0,
+              "leftoffset": 0,
+              "midoffset": 0
+            }
+          },
+          {
+            "canvas": {
+              "x": 239,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "canvas": {
+                    "x": 0,
+                    "y": 3,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 1,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 11,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS0"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 11,
+                              "param": 1,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS3"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 1,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS6"
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Blue Keys"
+                },
+                {
+                  "canvas": {
+                    "x": 0,
+                    "y": 13,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 2,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 11,
+                              "param": 5,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS1"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 11,
+                              "param": 2,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 5,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS4"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 2,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 5,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS7"
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Yellow Keys"
+                },
+                {
+                  "canvas": {
+                    "x": 0,
+                    "y": 23,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 3,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 11,
+                              "param": 6,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS2"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 11,
+                              "param": 3,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 6,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS5"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 3,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 6,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS8"
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Red Keys"
+                }
+              ]
+            },
+            "_cacoco_name": "Keys Cluster"
+          },
+          {
+            "percent": {
+              "x": 235,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "Classic Status Bar",
+              "type": 1,
+              "param": 0,
+              "maxlength": 0
+            }
+          },
+          {
+            "canvas": {
+              "x": 288,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 5,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 3,
+                    "param": 0,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 11,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 3,
+                    "param": 1,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 17,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 3,
+                    "param": 3,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 23,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 3,
+                    "param": 2,
+                    "maxlength": 0
+                  }
+                }
+              ]
+            },
+            "_cacoco_name": "Current Ammo Group"
+          },
+          {
+            "canvas": {
+              "x": 314,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 5,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 5,
+                    "param": 0,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 11,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 5,
+                    "param": 1,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 17,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 5,
+                    "param": 3,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 23,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Yellow",
+                    "type": 5,
+                    "param": 2,
+                    "maxlength": 0
+                  }
+                }
+              ]
+            },
+            "_cacoco_name": "Max Ammo Group"
+          }
+        ]
+      },
+      {
+        "name": "FullNoBackground",
+        "height": 200,
+        "fullscreenrender": true,
+        "fillflat": null,
+        "children": [
+          {
+            "canvas": {
+              "x": 0,
+              "y": 168,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "number": {
+                    "x": 44,
+                    "y": 3,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Status Bar",
+                    "type": 4,
+                    "param": 0,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "percent": {
+                    "x": 104,
+                    "y": 3,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Status Bar",
+                    "type": 0,
+                    "param": 0,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "canvas": {
+                    "x": 104,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 14,
+                        "param": 0,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [
+                      {
+                        "canvas": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [
+                            {
+                              "graphic": {
+                                "x": 7,
+                                "y": 4,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "STGNUM2"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 19,
+                                "y": 4,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "STGNUM3"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 31,
+                                "y": 4,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "STGNUM4"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 7,
+                                "y": 14,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "STGNUM5"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 19,
+                                "y": 14,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "STGNUM6"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 31,
+                                "y": 14,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "STGNUM7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 7,
+                                "y": 4,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 6,
+                                    "param": 2,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STYSNUM2"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 19,
+                                "y": 4,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 6,
+                                    "param": 3,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STYSNUM3"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 31,
+                                "y": 4,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 6,
+                                    "param": 4,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STYSNUM4"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 7,
+                                "y": 14,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 6,
+                                    "param": 5,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STYSNUM5"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 19,
+                                "y": 14,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 6,
+                                    "param": 6,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STYSNUM6"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 31,
+                                "y": 14,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 6,
+                                    "param": 7,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STYSNUM7"
+                              }
+                            }
+                          ]
+                        },
+                        "_cacoco_name": "Weapon Slot Group"
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "STARMS Cluster"
+                },
+                {
+                  "canvas": {
+                    "x": 239,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "canvas": {
+                          "x": 0,
+                          "y": 3,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 1,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 11,
+                                    "param": 4,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS0"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 11,
+                                    "param": 1,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 10,
+                                    "param": 4,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS3"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 1,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 10,
+                                    "param": 4,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS6"
+                              }
+                            }
+                          ]
+                        },
+                        "_cacoco_name": "Blue Keys"
+                      },
+                      {
+                        "canvas": {
+                          "x": 0,
+                          "y": 13,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 2,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 11,
+                                    "param": 5,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS1"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 11,
+                                    "param": 2,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 10,
+                                    "param": 5,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS4"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 2,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 10,
+                                    "param": 5,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS7"
+                              }
+                            }
+                          ]
+                        },
+                        "_cacoco_name": "Yellow Keys"
+                      },
+                      {
+                        "canvas": {
+                          "x": 0,
+                          "y": 23,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 3,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 11,
+                                    "param": 6,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS2"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 11,
+                                    "param": 3,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 10,
+                                    "param": 6,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS5"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 3,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 10,
+                                    "param": 6,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS8"
+                              }
+                            }
+                          ]
+                        },
+                        "_cacoco_name": "Red Keys"
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Keys Cluster"
+                },
+                {
+                  "percent": {
+                    "x": 235,
+                    "y": 3,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Status Bar",
+                    "type": 1,
+                    "param": 0,
+                    "maxlength": 0
+                  }
+                },
+                {
+                  "canvas": {
+                    "x": 288,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 5,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 3,
+                          "param": 0,
+                          "maxlength": 0
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 11,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 3,
+                          "param": 1,
+                          "maxlength": 0
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 17,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 3,
+                          "param": 3,
+                          "maxlength": 0
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 23,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 3,
+                          "param": 2,
+                          "maxlength": 0
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Current Ammo Group"
+                },
+                {
+                  "canvas": {
+                    "x": 314,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 5,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 5,
+                          "param": 0,
+                          "maxlength": 0
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 11,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 5,
+                          "param": 1,
+                          "maxlength": 0
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 17,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 5,
+                          "param": 3,
+                          "maxlength": 0
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 0,
+                          "y": 23,
+                          "alignment": 2,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Yellow",
+                          "type": 5,
+                          "param": 2,
+                          "maxlength": 0
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Max Ammo Group"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Minimal",
+        "height": 200,
+        "fullscreenrender": true,
+        "fillflat": null,
+        "children": [
+          {
+            "native": {
+              "x": 0,
+              "y": 0,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "message",
+                    "font": "Classic HUD",
+                    "vertical": false,
+                    "duration": 4
+                  }
+                }
+              ]
+            },
+            "_cacoco_name": "Top Left"
+          },
+          {
+            "native": {
+              "x": 0,
+              "y": 160,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 1,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "level_title",
+                    "font": "Classic HUD",
+                    "vertical": false,
+                    "duration": 4
+                  }
+                }
+              ]
+            },
+            "_cacoco_name": "Bottom Left Automap"
+          },
+          {
+            "native": {
+              "x": 5,
+              "y": 197,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "face": {
+                    "x": 90,
+                    "y": -2,
+                    "alignment": 56,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "width": 0,
+                    "height": 0,
+                    "topoffset": 0,
+                    "leftoffset": 0,
+                    "midoffset": 0
+                  }
+                },
+                {
+                  "canvas": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 8,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "canvas": {
+                          "x": -1,
+                          "y": -23,
+                          "alignment": 8,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 56,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 11,
+                                    "param": 15,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 27,
+                                    "param": 1,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "ARM1A0"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 56,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 15,
+                                    "param2": 0
+                                  },
+                                  {
+                                    "condition": 27,
+                                    "param": 1,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "ARM2A0"
+                              }
+                            }
+                          ]
+                        },
+                        "_cacoco_name": "Armor"
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 56,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 11,
+                              "param": 18,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "MEDIA0"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 56,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 18,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "PSTRA0"
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 34,
+                          "y": -23,
+                          "alignment": 8,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 27,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "font": "Classic Status Bar",
+                          "type": 1,
+                          "param": 0,
+                          "maxlength": 3
+                        }
+                      },
+                      {
+                        "number": {
+                          "x": 34,
+                          "y": -1,
+                          "alignment": 8,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "font": "Classic Status Bar",
+                          "type": 0,
+                          "param": 0,
+                          "maxlength": 3
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Health Cluster"
+                }
+              ]
+            },
+            "_cacoco_name": "Bottom Left"
+          },
+          {
+            "native": {
+              "x": 317,
+              "y": 197,
+              "alignment": 138,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "list": {
+                    "x": -1,
+                    "y": -26,
+                    "alignment": 6,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "list": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 1,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS0"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 2,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS1"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 3,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS2"
+                              }
+                            }
+                          ],
+                          "horizontal": true,
+                          "spacing": 4
+                        }
+                      },
+                      {
+                        "list": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 4,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS3"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 5,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS4"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": 0,
+                                "y": 0,
+                                "alignment": 0,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [
+                                  {
+                                    "condition": 10,
+                                    "param": 6,
+                                    "param2": 0
+                                  }
+                                ],
+                                "children": [],
+                                "patch": "STKEYS5"
+                              }
+                            }
+                          ],
+                          "horizontal": true,
+                          "spacing": 4
+                        }
+                      }
+                    ],
+                    "horizontal": false,
+                    "spacing": 4
+                  }
+                },
+                {
+                  "canvas": {
+                    "x": -55,
+                    "y": 0,
+                    "alignment": 10,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 58,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 5,
+                              "param": 0,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "CLIPA0"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 58,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 5,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "SHELA0"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 58,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 5,
+                              "param": 3,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "ROCKA0"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 58,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 5,
+                              "param": 2,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "CELLA0"
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_name": "Ammo"
+                },
+                {
+                  "number": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 10,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 9,
+                        "param": 1,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "font": "Classic Status Bar",
+                    "type": 4,
+                    "param": 0,
+                    "maxlength": 3
+                  }
+                }
+              ]
+            },
+            "_cacoco_name": "Bottom Right"
+          }
+        ]
+      },
+      {
         "name": "Detailed",
         "height": 200,
         "fullscreenrender": true,
@@ -137,7 +2208,7 @@
                           "type": "message",
                           "font": "Classic HUD",
                           "vertical": false,
-                          "duration": 4.0
+                          "duration": 4
                         }
                       },
                       {
@@ -169,7 +2240,7 @@
                                 "type": "stat_totals",
                                 "font": "Boom HUD",
                                 "vertical": true,
-                                "duration": 0.0
+                                "duration": 0
                               }
                             },
                             {
@@ -185,7 +2256,7 @@
                                 "type": "time",
                                 "font": "Boom HUD",
                                 "vertical": false,
-                                "duration": 0.0
+                                "duration": 0
                               }
                             }
                           ]
@@ -225,7 +2296,7 @@
                           "type": "level_title",
                           "font": "Classic HUD",
                           "vertical": false,
-                          "duration": 4.0
+                          "duration": 4
                         }
                       }
                     ]
@@ -271,7 +2342,7 @@
                                 "type": "time",
                                 "font": "Boom HUD",
                                 "vertical": false,
-                                "duration": 0.0
+                                "duration": 0
                               }
                             },
                             {
@@ -293,7 +2364,7 @@
                                 "type": "stat_totals",
                                 "font": "Boom HUD",
                                 "vertical": false,
-                                "duration": 0.0
+                                "duration": 0
                               }
                             }
                           ],
@@ -7390,2077 +9461,6 @@
                 }
               ]
             }
-          }
-        ]
-      },
-      {
-        "name": "Minimal",
-        "height": 200,
-        "fullscreenrender": true,
-        "fillflat": null,
-        "children": [
-          {
-            "native": {
-              "x": 0,
-              "y": 0,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "component": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "type": "message",
-                    "font": "Classic HUD",
-                    "vertical": false,
-                    "duration": 4.0
-                  }
-                }
-              ]
-            },
-            "_cacoco_name": "Top Left"
-          },
-          {
-            "native": {
-              "x": 0,
-              "y": 160,
-              "alignment": 72,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "component": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [
-                      {
-                        "condition": 19,
-                        "param": 1,
-                        "param2": 0
-                      }
-                    ],
-                    "children": [],
-                    "type": "level_title",
-                    "font": "Classic HUD",
-                    "vertical": false,
-                    "duration": 4.0
-                  }
-                }
-              ]
-            },
-            "_cacoco_name": "Bottom Left Automap"
-          },
-          {
-            "native": {
-              "x": 5,
-              "y": 197,
-              "alignment": 72,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "face": {
-                    "x": 90,
-                    "y": -2,
-                    "alignment": 56,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "width": 0,
-                    "height": 0,
-                    "topoffset": 0,
-                    "leftoffset": 0,
-                    "midoffset": 0
-                  }
-                },
-                {
-                  "canvas": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 8,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "canvas": {
-                          "x": -1,
-                          "y": -23,
-                          "alignment": 8,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 56,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 11,
-                                    "param": 15,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 27,
-                                    "param": 1,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "ARM1A0"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 56,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 15,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 27,
-                                    "param": 1,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "ARM2A0"
-                              }
-                            }
-                          ]
-                        },
-                        "_cacoco_name": "Armor"
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 56,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 11,
-                              "param": 18,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "MEDIA0"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 56,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 10,
-                              "param": 18,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "PSTRA0"
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 34,
-                          "y": -23,
-                          "alignment": 8,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 27,
-                              "param": 1,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "font": "Classic Status Bar",
-                          "type": 1,
-                          "param": 0,
-                          "maxlength": 3
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 34,
-                          "y": -1,
-                          "alignment": 8,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Status Bar",
-                          "type": 0,
-                          "param": 0,
-                          "maxlength": 3
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Health Cluster"
-                }
-              ]
-            },
-            "_cacoco_name": "Bottom Left"
-          },
-          {
-            "native": {
-              "x": 317,
-              "y": 197,
-              "alignment": 138,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "list": {
-                    "x": -1,
-                    "y": -26,
-                    "alignment": 6,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "list": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 1,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS0"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 2,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS1"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 3,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS2"
-                              }
-                            }
-                          ],
-                          "horizontal": true,
-                          "spacing": 4
-                        }
-                      },
-                      {
-                        "list": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 4,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS3"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 5,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS4"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 6,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS5"
-                              }
-                            }
-                          ],
-                          "horizontal": true,
-                          "spacing": 4
-                        }
-                      }
-                    ],
-                    "horizontal": false,
-                    "spacing": 4
-                  }
-                },
-                {
-                  "canvas": {
-                    "x": -55,
-                    "y": 0,
-                    "alignment": 10,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 58,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 5,
-                              "param": 0,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "CLIPA0"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 58,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 5,
-                              "param": 1,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "SHELA0"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 58,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 5,
-                              "param": 3,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "ROCKA0"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 58,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 5,
-                              "param": 2,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "CELLA0"
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Ammo"
-                },
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 10,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [
-                      {
-                        "condition": 9,
-                        "param": 1,
-                        "param2": 0
-                      }
-                    ],
-                    "children": [],
-                    "font": "Classic Status Bar",
-                    "type": 4,
-                    "param": 0,
-                    "maxlength": 3
-                  }
-                }
-              ]
-            },
-            "_cacoco_name": "Bottom Right"
-          }
-        ]
-      },
-      {
-        "name": "FullNoBackground",
-        "height": 200,
-        "fullscreenrender": true,
-        "fillflat": null,
-        "children": [
-          {
-            "canvas": {
-              "x": 0,
-              "y": 168,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "number": {
-                    "x": 44,
-                    "y": 3,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Status Bar",
-                    "type": 4,
-                    "param": 0,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "percent": {
-                    "x": 104,
-                    "y": 3,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Status Bar",
-                    "type": 0,
-                    "param": 0,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "canvas": {
-                    "x": 104,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [
-                      {
-                        "condition": 14,
-                        "param": 0,
-                        "param2": 0
-                      }
-                    ],
-                    "children": [
-                      {
-                        "canvas": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [
-                            {
-                              "graphic": {
-                                "x": 7,
-                                "y": 4,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [],
-                                "children": [],
-                                "patch": "STGNUM2"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 19,
-                                "y": 4,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [],
-                                "children": [],
-                                "patch": "STGNUM3"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 31,
-                                "y": 4,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [],
-                                "children": [],
-                                "patch": "STGNUM4"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 7,
-                                "y": 14,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [],
-                                "children": [],
-                                "patch": "STGNUM5"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 19,
-                                "y": 14,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [],
-                                "children": [],
-                                "patch": "STGNUM6"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 31,
-                                "y": 14,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [],
-                                "children": [],
-                                "patch": "STGNUM7"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 7,
-                                "y": 4,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 6,
-                                    "param": 2,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STYSNUM2"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 19,
-                                "y": 4,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 6,
-                                    "param": 3,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STYSNUM3"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 31,
-                                "y": 4,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 6,
-                                    "param": 4,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STYSNUM4"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 7,
-                                "y": 14,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 6,
-                                    "param": 5,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STYSNUM5"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 19,
-                                "y": 14,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 6,
-                                    "param": 6,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STYSNUM6"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 31,
-                                "y": 14,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 6,
-                                    "param": 7,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STYSNUM7"
-                              }
-                            }
-                          ]
-                        },
-                        "_cacoco_name": "Weapon Slot Group"
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "STARMS Cluster"
-                },
-                {
-                  "canvas": {
-                    "x": 239,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "canvas": {
-                          "x": 0,
-                          "y": 3,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 1,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 11,
-                                    "param": 4,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS0"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 11,
-                                    "param": 1,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 10,
-                                    "param": 4,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS3"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 1,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 10,
-                                    "param": 4,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS6"
-                              }
-                            }
-                          ]
-                        },
-                        "_cacoco_name": "Blue Keys"
-                      },
-                      {
-                        "canvas": {
-                          "x": 0,
-                          "y": 13,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 2,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 11,
-                                    "param": 5,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS1"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 11,
-                                    "param": 2,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 10,
-                                    "param": 5,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS4"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 2,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 10,
-                                    "param": 5,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS7"
-                              }
-                            }
-                          ]
-                        },
-                        "_cacoco_name": "Yellow Keys"
-                      },
-                      {
-                        "canvas": {
-                          "x": 0,
-                          "y": 23,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 3,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 11,
-                                    "param": 6,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS2"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 11,
-                                    "param": 3,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 10,
-                                    "param": 6,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS5"
-                              }
-                            },
-                            {
-                              "graphic": {
-                                "x": 0,
-                                "y": 0,
-                                "alignment": 0,
-                                "tranmap": null,
-                                "translation": null,
-                                "translucency": false,
-                                "conditions": [
-                                  {
-                                    "condition": 10,
-                                    "param": 3,
-                                    "param2": 0
-                                  },
-                                  {
-                                    "condition": 10,
-                                    "param": 6,
-                                    "param2": 0
-                                  }
-                                ],
-                                "children": [],
-                                "patch": "STKEYS8"
-                              }
-                            }
-                          ]
-                        },
-                        "_cacoco_name": "Red Keys"
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Keys Cluster"
-                },
-                {
-                  "percent": {
-                    "x": 235,
-                    "y": 3,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Status Bar",
-                    "type": 1,
-                    "param": 0,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "canvas": {
-                    "x": 288,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 5,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 3,
-                          "param": 0,
-                          "maxlength": 0
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 11,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 3,
-                          "param": 1,
-                          "maxlength": 0
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 17,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 3,
-                          "param": 3,
-                          "maxlength": 0
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 23,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 3,
-                          "param": 2,
-                          "maxlength": 0
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Current Ammo Group"
-                },
-                {
-                  "canvas": {
-                    "x": 314,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 5,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 5,
-                          "param": 0,
-                          "maxlength": 0
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 11,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 5,
-                          "param": 1,
-                          "maxlength": 0
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 17,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 5,
-                          "param": 3,
-                          "maxlength": 0
-                        }
-                      },
-                      {
-                        "number": {
-                          "x": 0,
-                          "y": 23,
-                          "alignment": 2,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "font": "Classic Yellow",
-                          "type": 5,
-                          "param": 2,
-                          "maxlength": 0
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Max Ammo Group"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "name": "Full",
-        "height": 32,
-        "fullscreenrender": false,
-        "fillflat": null,
-        "children": [
-          {
-            "graphic": {
-              "x": 160,
-              "y": 0,
-              "alignment": 1,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "patch": "STBAR"
-            }
-          },
-          {
-            "number": {
-              "x": 44,
-              "y": 3,
-              "alignment": 2,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "font": "Classic Status Bar",
-              "type": 4,
-              "param": 0,
-              "maxlength": 0
-            }
-          },
-          {
-            "percent": {
-              "x": 104,
-              "y": 3,
-              "alignment": 2,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "font": "Classic Status Bar",
-              "type": 0,
-              "param": 0,
-              "maxlength": 0
-            }
-          },
-          {
-            "canvas": {
-              "x": 104,
-              "y": 0,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [
-                {
-                  "condition": 14,
-                  "param": 0,
-                  "param2": 0
-                }
-              ],
-              "children": [
-                {
-                  "graphic": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "patch": "STARMS"
-                  }
-                },
-                {
-                  "canvas": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "graphic": {
-                          "x": 7,
-                          "y": 4,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "patch": "STGNUM2"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 19,
-                          "y": 4,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "patch": "STGNUM3"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 31,
-                          "y": 4,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "patch": "STGNUM4"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 7,
-                          "y": 14,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "patch": "STGNUM5"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 19,
-                          "y": 14,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "patch": "STGNUM6"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 31,
-                          "y": 14,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [],
-                          "children": [],
-                          "patch": "STGNUM7"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 7,
-                          "y": 4,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 6,
-                              "param": 2,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STYSNUM2"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 19,
-                          "y": 4,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 6,
-                              "param": 3,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STYSNUM3"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 31,
-                          "y": 4,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 6,
-                              "param": 4,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STYSNUM4"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 7,
-                          "y": 14,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 6,
-                              "param": 5,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STYSNUM5"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 19,
-                          "y": 14,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 6,
-                              "param": 6,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STYSNUM6"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 31,
-                          "y": 14,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 6,
-                              "param": 7,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STYSNUM7"
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Weapon Slot Group"
-                }
-              ]
-            },
-            "_cacoco_name": "STARMS Cluster"
-          },
-          {
-            "canvas": {
-              "x": 0,
-              "y": 0,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [
-                {
-                  "condition": 14,
-                  "param": 2,
-                  "param2": 0
-                }
-              ],
-              "children": [
-                {
-                  "number": {
-                    "x": 138,
-                    "y": 3,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Status Bar",
-                    "type": 2,
-                    "param": 0,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "facebackground": {
-                    "x": 143,
-                    "y": 1,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "width": 0,
-                    "height": 0,
-                    "topoffset": 0,
-                    "leftoffset": 0,
-                    "midoffset": 0
-                  }
-                }
-              ]
-            },
-            "_cacoco_name": "Deathmatch Group"
-          },
-          {
-            "face": {
-              "x": 143,
-              "y": 0,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "width": 0,
-              "height": 0,
-              "topoffset": 0,
-              "leftoffset": 0,
-              "midoffset": 0
-            }
-          },
-          {
-            "canvas": {
-              "x": 239,
-              "y": 0,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "canvas": {
-                    "x": 0,
-                    "y": 3,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 10,
-                              "param": 1,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 11,
-                              "param": 4,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS0"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 11,
-                              "param": 1,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 10,
-                              "param": 4,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS3"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 10,
-                              "param": 1,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 10,
-                              "param": 4,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS6"
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Blue Keys"
-                },
-                {
-                  "canvas": {
-                    "x": 0,
-                    "y": 13,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 10,
-                              "param": 2,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 11,
-                              "param": 5,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS1"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 11,
-                              "param": 2,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 10,
-                              "param": 5,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS4"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 10,
-                              "param": 2,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 10,
-                              "param": 5,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS7"
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Yellow Keys"
-                },
-                {
-                  "canvas": {
-                    "x": 0,
-                    "y": 23,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 10,
-                              "param": 3,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 11,
-                              "param": 6,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS2"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 11,
-                              "param": 3,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 10,
-                              "param": 6,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS5"
-                        }
-                      },
-                      {
-                        "graphic": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 10,
-                              "param": 3,
-                              "param2": 0
-                            },
-                            {
-                              "condition": 10,
-                              "param": 6,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "patch": "STKEYS8"
-                        }
-                      }
-                    ]
-                  },
-                  "_cacoco_name": "Red Keys"
-                }
-              ]
-            },
-            "_cacoco_name": "Keys Cluster"
-          },
-          {
-            "percent": {
-              "x": 235,
-              "y": 3,
-              "alignment": 2,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "font": "Classic Status Bar",
-              "type": 1,
-              "param": 0,
-              "maxlength": 0
-            }
-          },
-          {
-            "canvas": {
-              "x": 288,
-              "y": 0,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 5,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 3,
-                    "param": 0,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 11,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 3,
-                    "param": 1,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 17,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 3,
-                    "param": 3,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 23,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 3,
-                    "param": 2,
-                    "maxlength": 0
-                  }
-                }
-              ]
-            },
-            "_cacoco_name": "Current Ammo Group"
-          },
-          {
-            "canvas": {
-              "x": 314,
-              "y": 0,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 5,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 5,
-                    "param": 0,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 11,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 5,
-                    "param": 1,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 17,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 5,
-                    "param": 3,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "number": {
-                    "x": 0,
-                    "y": 23,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Yellow",
-                    "type": 5,
-                    "param": 2,
-                    "maxlength": 0
-                  }
-                }
-              ]
-            },
-            "_cacoco_name": "Max Ammo Group"
           }
         ]
       }

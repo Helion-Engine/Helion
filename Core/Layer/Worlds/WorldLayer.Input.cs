@@ -319,17 +319,22 @@ public partial class WorldLayer
             return;
 
         var currentLayoutName = m_config.Hud.StatusBarLayout.Value;
-        int currentIndex = -1;
+        int currentIndex = 0;
 
         for (int i = 0; i < sbarDef.StatusBars.Count; i++)
         {
-            if (!sbarDef.StatusBars[i].Name.Equals(currentLayoutName, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!sbarDef.StatusBars[i].Name.Equals(currentLayoutName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
             currentIndex = i;
             break;
         }
 
-        int step = increase ? 1 : -1;
-        int nextIndex = (currentIndex + step + sbarDef.StatusBars.Count) % sbarDef.StatusBars.Count;
+        // First index is the 'largest'. Generally full-sized status bar.
+        int step = increase ? -1 : 1;
+        int nextIndex = (currentIndex + step) % sbarDef.StatusBars.Count;
+        if (nextIndex < 0)
+            nextIndex = sbarDef.StatusBars.Count - 1;
         
         while (string.IsNullOrEmpty(sbarDef.StatusBars[nextIndex].Name) && nextIndex != currentIndex)
         {

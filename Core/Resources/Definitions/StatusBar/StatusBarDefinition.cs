@@ -1,8 +1,10 @@
-using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Helion.Layer.Worlds.StatusBar;
+using Helion.Util.Extensions;
 using Helion.Util.Parser;
 
 namespace Helion.Resources.Definitions.StatusBar;
@@ -24,8 +26,11 @@ public class StatusBarDefinition
     private List<StatusBarNumberFontDef> m_numberFonts = [];
     private List<StatusBarHudFontDef> m_hudFonts = [];
     private List<StatusBarLayoutDef> m_statusBars = [];
+    private int m_statusBarId;
 
     public const string HiddenLayoutName = "Hidden";
+    public const string MinimalLayoutName = "Minimal";
+    public const string DetailedLayoutName = "Detailed";
 
     [JsonPropertyName("numberfonts")]
     public List<StatusBarNumberFontDef> NumberFonts
@@ -49,24 +54,18 @@ public class StatusBarDefinition
         set => m_statusBars = value ?? [];
     }
 
-    public void Parse(string data)
+    public void Parse(string data, List<StatusBarLayoutDef> protectedLayouts)
     {
-        try 
+        m_statusBarId++;
+
+        try
         {
+            StatusBarDeserializeContext.Prefix = $"{m_statusBarId}";
             var file = JsonSerializer.Deserialize(data, StatusBarJsonContext.Default.StatusBarFileDef);
 
             if (!string.IsNullOrEmpty(file?.Type))
             {
-                NumberFonts.Clear();
-                HudFonts.Clear();
-                StatusBars.Clear();
-
-                NumberFonts.AddRange(file.Data.NumberFonts);
-                HudFonts.AddRange(file.Data.HudFonts);
-                StatusBars.AddRange(file.Data.StatusBars);
-                
-                EnsureValidNames();
-                AddHiddenLayout();
+                LoadDefinition(file.Data, protectedLayouts);
             }
             else
             {
@@ -80,24 +79,26 @@ public class StatusBarDefinition
             {
                 var loaded = JsonSerializer.Deserialize(data, StatusBarJsonContext.Default.StatusBarDefinition);
                 if (loaded != null)
-                {
-                    NumberFonts.Clear();
-                    HudFonts.Clear();
-                    StatusBars.Clear();
-
-                    NumberFonts.AddRange(loaded.NumberFonts);
-                    HudFonts.AddRange(loaded.HudFonts);
-                    StatusBars.AddRange(loaded.StatusBars);
-                    
-                    EnsureValidNames();
-                    AddHiddenLayout();
-                }
+                    LoadDefinition(loaded, protectedLayouts);
             }
             catch (JsonException ex)
             {
                 throw new ParserException(0, 0, 0, $"SBARDEF JSON Error: {ex.Message}");
             }
         }
+    }
+
+    private void LoadDefinition(StatusBarDefinition def, List<StatusBarLayoutDef> protectedLayouts)
+    {
+        StatusBars.Clear();
+
+        EnsureValidNames(def.StatusBars);
+        NumberFonts.AddRange(def.NumberFonts);
+        HudFonts.AddRange(def.HudFonts);
+        StatusBars.AddRange(def.StatusBars.Where(x => x.Children.Length > 0));
+        StatusBars.AddRange(protectedLayouts);
+        
+        AddHiddenLayout();
     }
     
     private void AddHiddenLayout()
@@ -111,27 +112,42 @@ public class StatusBarDefinition
         });
     }
     
-    private void EnsureValidNames()
+    private static void EnsureValidNames(List<StatusBarLayoutDef> layouts)
     {
-        for (int i = 0; i < StatusBars.Count; i++)
+        for (int i = 0; i < layouts.Count; i++)
         {
-            var layout = StatusBars[i];
+            var layout = layouts[i];
             if (string.IsNullOrWhiteSpace(layout.Name))
             {
                 layout.Name = $"Layout {i}";
             }
-            else if (string.Equals(layout.Name, HiddenLayoutName, StringComparison.OrdinalIgnoreCase))
+            else if (layout.Name.EqualsIgnoreCase(HiddenLayoutName) || layout.Name.EqualsIgnoreCase(DetailedLayoutName))
             {
                 layout.Name += "*";
             }
         }
     }
+
+    public bool TryGetLayoutByProtectedName(string name, [NotNullWhen(true)] out StatusBarLayoutDef? layout)
+    {
+        layout = StatusBars.FirstOrDefault(x => x.Name.StartsWithIgnoreCase(name));
+        if (layout == null)
+            return false;
+
+        return layout.Name.EqualsIgnoreCase(name) || (layout.Name.Length == name.Length + 1 && layout.Name[^1] == '*');
+    }
 }
 
 public class StatusBarNumberFontDef
 {
+    private string m_name = string.Empty;
+
     [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    public string Name
+    {
+        get => m_name;
+        set => m_name = StatusBarDeserializeContext.GetName(value);
+    }
 
     [JsonPropertyName("type")]
     public int Type { get; set; }
@@ -142,8 +158,14 @@ public class StatusBarNumberFontDef
 
 public class StatusBarHudFontDef
 {
+    private string m_name = string.Empty;
+
     [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    public string Name
+    {
+        get => m_name;
+        set => m_name = StatusBarDeserializeContext.GetName(value);
+    }
 
     [JsonPropertyName("type")]
     public int Type { get; set; }
@@ -180,6 +202,8 @@ public class StatusBarLayoutDef
 
     [JsonIgnore]
     public StatusBarCoverage Coverage { get; set; }
+
+    public override string ToString() => Name;
 }
 
 [JsonSourceGenerationOptions(
