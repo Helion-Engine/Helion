@@ -456,6 +456,7 @@ public partial class WorldLayer
             return;
 
         bool isWidescreen = hud.WindowDimension.AspectRatio > 4.0f / 3.0f;
+        bool isCompact = hud.WindowDimension.AspectRatio < 4.0f / 3.0f;
         int fps = (int)Math.Round(m_fpsTracker.AverageFramesPerSecond);
 
         string? consoleMsg = null;
@@ -484,8 +485,8 @@ public partial class WorldLayer
             }
         }
 
-        var context = new StatusBarContext(World, Player, World.MapInfo, activeLayout, automapVisible, isWidescreen, fps, consoleMsg,
-            isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName), HasTicks);
+        var context = new StatusBarContext(World, Player, World.MapInfo, activeLayout, automapVisible, isWidescreen, isCompact, fps,
+            consoleMsg, isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName), HasTicks);
         m_statusBarRenderer.Draw(hud, activeLayout, context, m_hudPaddingX);
     }
     

@@ -11,6 +11,7 @@ public readonly record struct StatusBarContext(
     StatusBarLayoutDef? ActiveLayout,
     bool AutomapVisible, 
     bool Widescreen,
+    bool IsCompact,
     int Fps,
     string? ConsoleMessage,
     bool IsMessageCentered,
