@@ -293,6 +293,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 thing.Special = (ZDoomLineSpecialType)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
                 thing.Args.Arg0 = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("arg0str"))
+                thing.Args.Arg0Str = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("arg1"))
                 thing.Args.Arg1 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg2"))
@@ -572,6 +574,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 line.LineType = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
                 line.Args.Arg0 = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("arg0str"))
+                line.Args.Arg0Str = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("arg1"))
                 line.Args.Arg1 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg2"))

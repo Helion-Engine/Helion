@@ -117,6 +117,7 @@ public interface IWorld : IDisposable
     MapGeometry Geometry { get; }
     CompatibilityMapDefinition? CompatibilityMapDefinition { get; }
     MapType MapType { get; }
+    ACS.WorldExecutor AcsExecutor { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);

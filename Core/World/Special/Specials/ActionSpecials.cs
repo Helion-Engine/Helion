@@ -521,6 +521,21 @@ public static class ActionSpecials
         return success;
     }
 
+    public static bool AcsExecute(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var threadInfo = new ACS.ThreadInfo { activator = activator };
+        var mapId = (args.Arg1 == 0) ? (uint)world.MapInfo.LevelNumber : (uint)args.Arg1;
+        var scriptArgs = (uint[])[(uint)args.Arg2, (uint)args.Arg3, (uint)args.Arg4];
+        if (args.Arg0Str != null)
+        {
+            return world.AcsExecutor.ScriptStart( args.Arg0Str, 0, mapId, scriptArgs, threadInfo);
+        }
+        else
+        {
+            return world.AcsExecutor.ScriptStart( (uint)args.Arg0, 0, mapId, scriptArgs, threadInfo);
+        }
+    }
+
     private static EntityList GetActivatorOrEntities(Entity activator, IWorld world, int tid)
     {
         if (tid == 0)

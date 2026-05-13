@@ -1393,6 +1393,9 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.ThingSetSpecial:
                 return ActionSpecials.ThingSetSpecial(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptRun:
+                return ActionSpecials.AcsExecute(args.Entity, world, line.Args);
         }
 
         return false;

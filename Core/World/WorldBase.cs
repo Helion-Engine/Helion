@@ -165,6 +165,8 @@ public abstract partial class WorldBase : IWorld
     public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
     public MapType MapType { get; private set; }
 
+    public ACS.WorldExecutor AcsExecutor { get; private set; }
+
     public bool HasDehacked;
 
     protected readonly IAudioSystem AudioSystem;
@@ -302,6 +304,8 @@ public abstract partial class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+
+        AcsExecutor = new ACS.WorldExecutor(this);
 
         if (!SameAsPreviousMap)
             SpecialManager.InitSectors3D();
@@ -959,6 +963,7 @@ public abstract partial class WorldBase : IWorld
         {
             TickPlayers();
             TickEntities();
+            AcsExecutor.Exec();
             SpecialManager.Tick();
             TickScrollers();
 
