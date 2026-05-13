@@ -2267,6 +2267,11 @@ public abstract partial class WorldBase : IWorld
         return success;
     }
 
+    public virtual void ApplyVelocity(Entity entity, Vec3D velocity)
+    {
+        entity.Velocity = velocity;
+    }
+
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
         if (!item.Definition.IgnoreVanillaSpriteLookup &&

@@ -13,6 +13,7 @@ using Helion.Util;
 using Helion.Util.Config.Components;
 using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
+using Helion.Util.RandomGenerators;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -25,6 +26,7 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
+using Helion.World.Special.Specials;
 using Helion.World.StatusBar;
 using NLog;
 using System;
@@ -560,15 +562,23 @@ public class Player : Entity
         return pitch;
     }
 
-    public OldCamera GetCamera(double t)
+    private Vec3D m_quake;
+    private int m_lastQuakeTick;
+
+    public OldCamera GetCamera(double t, CameraOptions options = CameraOptions.Default)
     {
-        Vec3D currentPos = GetViewPosition();
-        Vec3D prevPos = GetPrevViewPosition();
-        Vec3D position = prevPos.Interpolate(currentPos, t);
+        var currentPos = GetViewPosition();
+        var prevPos = GetPrevViewPosition();
+
+        if ((options & CameraOptions.EarthQuake) != 0)
+            currentPos += UpdateQuake(t);
+
+        var position = prevPos.Interpolate(currentPos, t);
+
         CheckLineClip(currentPos);
         position = CheckPlaneClip(currentPos, prevPos, position);
         if (!Flags.NoClip() && position.Z <= HighestFloorZ)
-            position.Z = HighestFloorZ + 1;
+            position.Z = HighestFloorZ + 1;        
 
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
@@ -610,6 +620,30 @@ public class Player : Entity
         }
 
         return m_camera;
+    }
+
+    private Vec3D UpdateQuake(double t)
+    {
+        // Update at 70 times per second instead of 35 so it's more smooth like my brain.
+        var quakeTick = World.GameTicker * 2 + (t >= 0.5 ? 1 : 0);
+        if (quakeTick != m_lastQuakeTick)
+        {
+            var quakeIntensity = World.SpecialManager.GetQuakeIntensity(this);
+            if (quakeIntensity == Vec3D.Zero)
+            {
+                m_quake = Vec3D.Zero;
+                return m_quake;
+            }
+
+            var angle = World.SecondaryRandom.NextAngle();
+            var cos = Math.Cos(angle);
+            var sin = Math.Sin(angle);
+            m_quake.X = cos * quakeIntensity.X * 2;
+            m_quake.Y = sin * quakeIntensity.Y * 2;
+            m_quake.Z = sin * quakeIntensity.Z * 2;
+            m_lastQuakeTick = quakeTick;
+        }
+        return m_quake;
     }
 
     private void CheckLineClip(in Vec3D pos)
@@ -744,6 +778,12 @@ public class Player : Entity
 
         clearedSound = null;
         return false;
+    }
+
+    public override bool HasSound(string sound, SoundChannel channel)
+    {
+        var audioSource = SoundChannels[(int)channel];
+        return audioSource != null && audioSource.AudioData.SoundInfo.Name.EqualsIgnoreCase(sound);
     }
 
     public override void ClearSound(IAudioSource audioSource, SoundChannel channel)

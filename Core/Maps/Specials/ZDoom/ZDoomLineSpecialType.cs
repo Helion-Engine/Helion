@@ -122,7 +122,7 @@ public enum ZDoomLineSpecialType
     LightStop,
     Unused32,
     ThingDamageTid,
-    EarthQuake,
+    RadiusQuake,
     LineIdentify,
     Unused33,
     Unused34,

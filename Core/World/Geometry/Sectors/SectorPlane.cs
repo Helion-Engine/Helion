@@ -4,6 +4,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Sound;
@@ -183,7 +184,7 @@ public sealed class SectorPlane : ISoundSource
 
     public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
-        if (m_soundInfo != null && m_soundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
+        if (m_soundInfo != null && m_soundInfo.Name.EqualsIgnoreCase(sound))
         {
             clearedSound = m_audio;
             m_audio = null;
@@ -193,6 +194,11 @@ public sealed class SectorPlane : ISoundSource
 
         clearedSound = null;
         return false;
+    }
+
+    public bool HasSound(string sound, SoundChannel channel)
+    {
+        return m_soundInfo != null && m_soundInfo.Name.EqualsIgnoreCase(sound);
     }
 
     public void ClearSound(IAudioSource audioSource, SoundChannel channel)

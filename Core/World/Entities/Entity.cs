@@ -1224,8 +1224,15 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         if (IsDisposed)
             return;
 
-        // The sound has a reference back to this entity to update base on position it can't be reused until the sound is complete.
+        // The sound has a reference back to this entity to update based on position it can't be reused until the sound is complete.
         WaitSoundDispose = AudioSource != null;
+
+        // If the sound looping then kill it since it will play indefinitely.
+        if (AudioSource != null && AudioSource.AudioData.Loop)
+        {
+            WaitSoundDispose = false;
+            World.SoundManager.StopSoundBySource(this, AudioSource.AudioData.SoundChannelType, AudioSource.AudioData.SoundInfo.Name);
+        }        
 
         Id = int.MinValue;
         IsDisposed = true;
@@ -1358,8 +1365,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public virtual bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
+        clearedSound = AudioSource;
         AudioSource = null;
-        clearedSound = null;
 
         if (IsDisposed && WaitSoundDispose)
         {
@@ -1367,7 +1374,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             FreeToDataCache();
         }
 
-        return false;
+        return clearedSound != null;
+    }
+
+    public virtual bool HasSound(string sound, SoundChannel channel)
+    {
+        return AudioSource != null && AudioSource.AudioData.SoundInfo.Name.EqualsIgnoreCase(sound);
     }
 
     public virtual void ClearSound(IAudioSource audioSource, SoundChannel channel)

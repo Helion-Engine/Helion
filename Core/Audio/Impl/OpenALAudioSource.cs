@@ -266,6 +266,7 @@ public class OpenALAudioSource : IAudioSource
         {
             OpenALDebug.Start("Stopping sound source");
             AL.SourceStop(m_sourceId);
+            var test = IsPlaying();
             OpenALDebug.End("Stopping sound source");
         }
     }
@@ -315,4 +316,6 @@ public class OpenALAudioSource : IAudioSource
         AL.DeleteSource(m_sourceId);
         OpenALDebug.End("Deleting sound source");
     }
+
+    public override string ToString() => AudioData.SoundInfo.Name;
 }
