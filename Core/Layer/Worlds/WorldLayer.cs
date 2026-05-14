@@ -125,6 +125,16 @@ public partial class WorldLayer : IGameLayerParent
         World.LevelExiting += World_LevelExiting;
         World.WorldPaused += World_WorldPaused;
         World.PlayerMessage += World_PlayerMessage;
+
+        List<string> moduleNames = [];
+        if (World.ArchiveCollection.GetMapEntryCollection(CurrentMap.MapName)?.Behavior != null)
+        {
+            moduleNames.Add($"BEHAVIOR:{CurrentMap.MapName}");
+        }
+        World.AcsExecutor.LoadHubMap(
+            0, (uint)CurrentMap.LevelNumber, [.. moduleNames]
+        );
+        World.AcsExecutor.ScriptStartType(HelionACS.ScriptType.Open, [], new ACS.ThreadInfo {});
     }
     
     private void World_PlayerMessage(object? sender, PlayerMessageEvent e)
