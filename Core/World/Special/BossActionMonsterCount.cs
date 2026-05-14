@@ -29,7 +29,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         if (m_destroyed)
             return SpecialTickStatus.Destroy;
 
-        if (m_world.EntityAliveCount(EntityDefinitionId, ignoreEntity) == 0)
+        if (m_world.EntityAliveCount(EntityDefinitionId, 0, ignoreEntity) == 0)
         {
             m_destroyed = true;
             ExecuteSpecial();

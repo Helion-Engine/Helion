@@ -523,7 +523,7 @@ public static class ActionSpecials
 
     public static bool AcsExecute(Entity activator, IWorld world, in SpecialArgs args)
     {
-        var threadInfo = new ACS.ThreadInfo { activator = activator };
+        var threadInfo = new ACS.ThreadInfo { Activator = activator };
         var mapId = (args.Arg1 == 0) ? (uint)world.MapInfo.LevelNumber : (uint)args.Arg1;
         var scriptArgs = (uint[])[(uint)args.Arg2, (uint)args.Arg3, (uint)args.Arg4];
         if (args.Arg0Str != null)

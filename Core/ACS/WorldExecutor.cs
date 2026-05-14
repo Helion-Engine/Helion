@@ -1,7 +1,7 @@
-using System.Linq;
 using Helion.Maps.Specials;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Special.Specials;
 using HelionACS;
 
 namespace Helion.ACS;
@@ -14,7 +14,6 @@ public class ThreadInfo
 public class WorldExecutor : Executor
 {
     private readonly IWorld m_world;
-    private readonly Entity EmptyActivator = new();
 
     public WorldExecutor(IWorld world)
     {
@@ -41,8 +40,8 @@ public class WorldExecutor : Executor
         // 0-56: ACSVM internal codes.
         AddCodeDataACS0( 57, "",        2, CF_Random);
         AddCodeDataACS0( 58, "WW",      0, CF_Random);
-        //AddCodeDataACS0( 59, "",        2, CF_ThingCount); TODO
-        //AddCodeDataACS0( 60, "WW",      0, CF_ThingCount); TODO
+        AddCodeDataACS0( 59, "",        2, CF_ThingCount);
+        AddCodeDataACS0( 60, "WW",      0, CF_ThingCount);
         AddCodeDataACS0( 61, "",        1, CF_TagWait);
         AddCodeDataACS0( 62, "W",       0, CF_TagWait);
         //AddCodeDataACS0( 63, "",        1, CF_PolyWait); TODO
@@ -150,7 +149,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0(245, "",        3, CF_SetActorProperty);
         //AddCodeDataACS0(246, "",        2, CF_GetActorProperty);
         //AddCodeDataACS0(247, "",        0, CF_PlayerNumber);
-        //AddCodeDataACS0(248, "",        0, CF_ActivatorTID);
+        AddCodeDataACS0(248, "",        0, CF_ActivatorTID);
         //AddCodeDataACS0(249, "",        2, CF_SetMarineSprite);
         //AddCodeDataACS0(250, "",        0, CF_GetScreenW);
         //AddCodeDataACS0(251, "",        0, CF_GetScreenH);
@@ -354,14 +353,14 @@ public class WorldExecutor : Executor
 
     public override uint CallSpecImpl(ThreadHandle thread, uint spec, uint[] args)
     {
-        var threadInfo = (thread.GetThreadInfo() as ThreadInfo)!;
-        var arg0 = (int)args.ElementAtOrDefault(0);
-        var arg1 = (int)args.ElementAtOrDefault(1);
-        var arg2 = (int)args.ElementAtOrDefault(2);
-        var arg3 = (int)args.ElementAtOrDefault(3);
-        var arg4 = (int)args.ElementAtOrDefault(4);
+        var threadInfo = thread.GetThread();
+        var arg0 = args.Get(0);
+        var arg1 = args.Get(1);
+        var arg2 = args.Get(2);
+        var arg3 = args.Get(3);
+        var arg4 = args.Get(4);
         m_world.SpecialManager.AddActivatedLineSpecial(
-            threadInfo.Activator ?? EmptyActivator,
+            threadInfo.Activator ?? m_world.Player,
             (Maps.Specials.ZDoom.ZDoomLineSpecialType)spec,
             new SpecialArgs(arg0, arg1, arg2, arg3, arg4)
         );
@@ -400,8 +399,8 @@ public class WorldExecutor : Executor
 
     public bool CF_Random(ThreadHandle thread, uint[] args)
     {
-        var min = (int)args[0];
-        var max = (int)args[1];
+        var min = args.Get(0);
+        var max = args.Get(1);
         thread.PushStack((uint)m_world.Random.GenInt32Range(min, max));
         return true;
     }
@@ -418,8 +417,43 @@ public class WorldExecutor : Executor
 
     public static bool CF_TagWait(ThreadHandle thread, uint[] args)
     {
-        thread.MakeTagWait(0, args[0]);
+        thread.MakeTagWait(0, args.GetU(0));
         return true;
+    }
+
+    public bool CF_ThingCount(ThreadHandle thread, uint[] args)
+    {
+        thread.PushStack(GetThingCount(args.Get(0), args.Get(1)));
+        return true;
+    }
+
+    public static bool CF_ActivatorTID(ThreadHandle thread, uint[] args)
+    {
+        var threadInfo = thread.GetThread();
+        if (threadInfo.Activator == null)
+        {
+            thread.PushStack(0);
+            return true;
+        }
+
+        thread.PushStack((uint)threadInfo.Activator.ThingId);
+        return true;
+    }
+
+    private uint GetThingCount(int type, int tid)
+    {
+        // Check any type by tid only
+        if (type == 0)
+            return (uint)m_world.EntityAliveCount(tid);
+
+        if (!ThingSpawnTypes.Lookup.TryGetValue(type, out var definitionName))
+            return 0;
+
+        var def = m_world.EntityManager.DefinitionComposer.GetByName(definitionName);
+        if (def == null)
+            return 0;
+
+        return (uint)m_world.EntityAliveCount(def.Id, tid);
     }
 
     private bool DoPrint(ThreadHandle thread, uint[] args)

@@ -3804,20 +3804,26 @@ public abstract partial class WorldBase : IWorld
     }
 
     public int EntityCount(int entityDefinitionId) =>
-        EntityCount(entityDefinitionId, false);
+        EntityCount(entityDefinitionId, 0, false);
 
-    public int EntityAliveCount(int entityDefinitionId, Entity? ignoreEntity = null) =>
-        EntityCount(entityDefinitionId, true, ignoreEntity);
+    public int EntityAliveCount(int tid, Entity? ignoreEntity = null) =>
+        EntityCount(-1, tid, true, ignoreEntity);
 
-    private int EntityCount(int entityDefinitionId, bool checkAlive, Entity? ignoreEntity = null)
+    public int EntityAliveCount(int entityDefinitionId, int tid, Entity? ignoreEntity = null) =>
+        EntityCount(entityDefinitionId, tid, true, ignoreEntity);
+
+    private int EntityCount(int entityDefinitionId, int tid, bool checkAlive, Entity? ignoreEntity = null)
     {
         int count = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            if (entity == ignoreEntity)
+            if (entity == ignoreEntity || (tid != 0 && entity.ThingId != tid))
                 continue;
 
-            if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead()))
+            if (entityDefinitionId >= 0 && entity.Definition.Id != entityDefinitionId)
+                continue;
+
+            if (!checkAlive || !entity.IsDead())
                 count++;
         }
         return count;
