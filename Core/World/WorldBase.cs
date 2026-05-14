@@ -4316,6 +4316,7 @@ public abstract partial class WorldBase : IWorld
                 break;
         }
 
+        TextureManager.EnsureTextureImageLoaded(textureHandle);
         side.SetWallTexture(textureHandle, location);
         SideTextureChanged?.Invoke(this, new SideTextureEvent(side, wall, textureHandle, previousTextureHandle));
     }
@@ -4326,6 +4327,7 @@ public abstract partial class WorldBase : IWorld
         if (textureHandle == previousTextureHandle)
             return;
 
+        TextureManager.EnsureTextureImageLoaded(textureHandle);
         plane.SetTexture(textureHandle, Gametick);
         PlaneTextureChanged?.Invoke(this, new PlaneTextureEvent(plane, textureHandle, previousTextureHandle));
     }

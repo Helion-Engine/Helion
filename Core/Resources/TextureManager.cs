@@ -210,6 +210,21 @@ public partial class TextureManager : ITickable
         }
     }
 
+    public void EnsureTextureImageLoaded(int textureIndex)
+    {
+        if (textureIndex <= 0)
+            return;
+
+        if (LoadTextureImage(textureIndex))
+        {
+            foreach (var anim in m_animations)
+            {
+                if (textureIndex == anim.TranslationIndex)
+                    LoadAnimatedTextures(anim);
+            }
+        }
+    }
+
     private void LoadAnimSwitchComponents(IList<AnimatedTextureComponent> components)
     {
         foreach (var component in components)
@@ -689,19 +704,24 @@ public partial class TextureManager : ITickable
         };
     }
 
-    private void LoadTextureImage(int textureIndex, GetImageOptions options = GetImageOptions.Default)
+    private bool LoadTextureImage(int textureIndex, GetImageOptions options = GetImageOptions.Default)
     {
         var texture = m_textures[textureIndex];
         if (texture.Name == Constants.NoTexture)
-            return;
+            return false;
 
-        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options: options);
+        if (texture.Image != null)
+            return false;
+
+        texture.Image = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options: options);
         if (texture.BrightmapImage == null)
         {
             var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
             if (brightmap?.BrightmapName != null)
                 texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options: options);
         }
+
+        return true;
     }
 
     public void SetSkyTexture()
