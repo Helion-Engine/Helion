@@ -361,7 +361,7 @@ public partial class BoomActions
 
         void World_PlayerMessage(object? sender, PlayerMessageEvent e)
         {
-            message = e.Message;
+            message = e.Args.Message;
         }
     }
 

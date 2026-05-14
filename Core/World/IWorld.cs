@@ -154,8 +154,9 @@ public interface IWorld : IDisposable
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, DamageType damageType, bool gibbed);
-    void DisplayMessage(string message, bool isCentered = false);
-    void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false);
+    void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(new DisplayMessageArgs(message, null, null, IsCentered: true));
+    void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false) => DisplayMessage(new DisplayMessageArgs(message, player, other, IsCentered: true));
+    void DisplayMessage(DisplayMessageArgs args);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
     bool IsPositionBlocked(Entity entity);

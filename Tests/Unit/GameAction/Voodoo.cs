@@ -65,7 +65,7 @@ public partial class Voodoo : IDisposable
 
         void PlayerMessage(object? sender, PlayerMessageEvent e)
         {
-            pickupMessage = e.Message;
+            pickupMessage = e.Args.Message;
         }
     }
 

@@ -2,16 +2,8 @@
 
 namespace Helion.World;
 
-public readonly struct PlayerMessageEvent
+public readonly struct PlayerMessageEvent(Player player, DisplayMessageArgs args)
 {
-    public readonly Player Player;
-    public readonly string Message;
-    public readonly bool IsCentered;
-
-    public PlayerMessageEvent(Player player, string message, bool isCentered = false)
-    {
-        Player = player;
-        Message = message;
-        IsCentered = isCentered;
-    }
+    public readonly Player Player = player;
+    public readonly DisplayMessageArgs Args = args;
 }

@@ -8,12 +8,13 @@ namespace Helion.ACS;
 
 public class ThreadInfo
 {
-    public Entity? activator;
+    public Entity? Activator;
 }
 
 public class WorldExecutor : Executor
 {
     private readonly IWorld m_world;
+    private readonly Entity EmptyActivator = new();
 
     public WorldExecutor(IWorld world)
     {
@@ -68,7 +69,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0( 98, "",        2, CF_SetLineBlocking); TODO
         //AddCodeDataACS0( 99, "",        7, CF_SetLineSpecial); TODO
         //AddCodeDataACS0(100, "",        3, CF_ThingSound); TODO
-        //AddCodeDataACS0(101, "",        0, CF_EndPrintBold); TODO
+        AddCodeDataACS0(101, "",        0, CF_EndPrintBold);
         //AddCodeDataACS0(102, "",        2, CF_ActivatorSound);
         //AddCodeDataACS0(103, "",        2, CF_LocalAmbientSound);
         //AddCodeDataACS0(104, "",        2, CF_SetLineMonsterBlocking);
@@ -360,12 +361,13 @@ public class WorldExecutor : Executor
         var arg3 = (int)args.ElementAtOrDefault(3);
         var arg4 = (int)args.ElementAtOrDefault(4);
         m_world.SpecialManager.AddActivatedLineSpecial(
-            threadInfo?.activator,
+            threadInfo.Activator ?? EmptyActivator,
             (Maps.Specials.ZDoom.ZDoomLineSpecialType)spec,
             new SpecialArgs(arg0, arg1, arg2, arg3, arg4)
         );
         return 0;
     }
+
     public override byte[] LoadModule(string moduleName)
     {
         const string BehaviorPrefix = "BEHAVIOR:";
@@ -383,6 +385,7 @@ public class WorldExecutor : Executor
 
         return [];
     }
+
     public override bool CheckTag(uint type, uint tag)
     {
         foreach (var sector in m_world.FindBySectorTag((int)tag))
@@ -402,17 +405,33 @@ public class WorldExecutor : Executor
         thread.PushStack((uint)m_world.Random.GenInt32Range(min, max));
         return true;
     }
+
     public bool CF_EndPrint(ThreadHandle thread, uint[] args)
     {
-        var threadInfo = (thread.GetThreadInfo() as ThreadInfo)!;
-        var printBuf = thread.GetPrintBuf()!;
-        m_world.DisplayMessage(threadInfo.activator?.PlayerObj, null, printBuf, true);
-
-        return false;
+        return DoPrint(thread, args);
     }
+
+    public bool CF_EndPrintBold(ThreadHandle thread, uint[] args)
+    {
+        return DoPrint(thread, args);
+    }
+
     public static bool CF_TagWait(ThreadHandle thread, uint[] args)
     {
         thread.MakeTagWait(0, args[0]);
         return true;
+    }
+
+    private bool DoPrint(ThreadHandle thread, uint[] args)
+    {
+        var threadInfo = (thread.GetThreadInfo() as ThreadInfo)!;
+        var printBuf = thread.GetPrintBuf()!;
+
+        if (threadInfo.Activator == null)
+            m_world.DisplayMessage(new DisplayMessageArgs(printBuf, null, null, IsCentered: true, ForAllPlayers: true));
+        else
+            m_world.DisplayMessage(new DisplayMessageArgs(printBuf, null, null, IsCentered: true, ForAllPlayers: true));
+
+        return false;
     }
 }

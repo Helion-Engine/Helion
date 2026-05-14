@@ -2921,18 +2921,32 @@ public abstract partial class WorldBase : IWorld
             DisplayMessage(player, killer?.PlayerObj, obituary);
     }
 
-    public virtual void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(null, null, message, isCentered);
+    public virtual void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(new(message, null, null, isCentered));
 
-    public virtual void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false)
+    public virtual void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false) => DisplayMessage(new(message, player, other, isCentered));
+
+    public virtual void DisplayMessage(DisplayMessageArgs args)
     {
-        message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
-        if (message.Length > 0)
+        args.Message = ArchiveCollection.Definitions.Language.GetMessage(args.Player, args.Other, args.Message);
+        if (args.Message.Length == 0)
+            return;
+  
+        if (args.ForAllPlayers)
         {
-            if (!isCentered && (player == null || player == GetCameraPlayer()))
-                HelionLog.Info(message);
-            if (player != null && player == GetCameraPlayer())
-                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message, isCentered));
+            for (int i = 0; i < EntityManager.Players.Count; i++)
+            {
+                var player = EntityManager.Players[i];
+                if (player.IsVooDooDoll)
+                    continue;
+
+                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, args));
+            }
         }
+        else
+        {
+            if (args.Player == GetCameraPlayer())
+                PlayerMessage?.Invoke(this, new PlayerMessageEvent(args.Player, args));
+        }        
     }
 
     private void HandleRespawn(Entity entity)
