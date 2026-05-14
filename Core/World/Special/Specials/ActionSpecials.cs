@@ -3,9 +3,11 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using System.Runtime.CompilerServices;
 
@@ -534,6 +536,19 @@ public static class ActionSpecials
         {
             return world.AcsExecutor.ScriptStart( (uint)args.Arg0, 0, mapId, scriptArgs, threadInfo);
         }
+    }
+
+    public static bool ChangeFlat(IWorld world, int tag, string texture, SectorPlaneFace face)
+    {
+        var textureHandle = world.TextureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
+        var sectors = world.FindBySectorTag(tag);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+            world.SetPlaneTexture(sector.GetSectorPlane(face), textureHandle);
+        }
+
+        return sectors.Count > 0;
     }
 
     private static EntityList GetActivatorOrEntities(Entity activator, IWorld world, int tid)

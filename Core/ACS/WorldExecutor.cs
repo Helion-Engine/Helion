@@ -1,6 +1,7 @@
 using Helion.Maps.Specials;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
 using HelionACS;
 
@@ -46,10 +47,10 @@ public class WorldExecutor : Executor
         AddCodeDataACS0( 62, "W",       0, CF_TagWait);
         //AddCodeDataACS0( 63, "",        1, CF_PolyWait); TODO
         //AddCodeDataACS0( 64, "W",       0, CF_PolyWait); TODO
-        //AddCodeDataACS0( 65, "",        2, CF_ChangeFloor); TODO
-        //AddCodeDataACS0( 66, "WWS",     0, CF_ChangeFloor); TODO
-        //AddCodeDataACS0( 67, "",        2, CF_ChangeCeiling); TODO
-        //AddCodeDataACS0( 68, "WWS",     0, CF_ChangeCeiling); TODO
+        AddCodeDataACS0( 65, "",        2, CF_ChangeFloor);
+        AddCodeDataACS0( 66, "WWS",     0, CF_ChangeFloor);
+        AddCodeDataACS0( 67, "",        2, CF_ChangeCeiling);
+        AddCodeDataACS0( 68, "WWS",     0, CF_ChangeCeiling);
         // 69-79: ACSVM internal codes.
         //AddCodeDataACS0( 80, "",        0, CF_LineSide); TODO
         // 81-82: ACSVM internal codes.
@@ -437,6 +438,22 @@ public class WorldExecutor : Executor
         }
 
         thread.PushStack((uint)threadInfo.Activator.ThingId);
+        return true;
+    }
+
+    public bool CF_ChangeFloor(ThreadHandle thread, uint[] args)
+    {
+        var tag = args.Get(0);
+        var flat = args.GetString(thread, 1);
+        ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Floor);
+        return true;
+    }
+
+    public bool CF_ChangeCeiling(ThreadHandle thread, uint[] args)
+    {
+        var tag = args.Get(0);
+        var flat = args.GetString(thread, 1);
+        ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Ceiling);
         return true;
     }
 
