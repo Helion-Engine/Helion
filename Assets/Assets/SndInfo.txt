@@ -384,10 +384,11 @@ dog/sight	DSDGSIT
 
 world/barrelx			dsbarexp
 
-world/drip			dsempty
+world/drip			    dsempty
 world/watersplash		dsempty
 world/sludgegloop		dsempty
 world/lavasizzle		dsempty
+world/quake             dsquake
 
 //
 //

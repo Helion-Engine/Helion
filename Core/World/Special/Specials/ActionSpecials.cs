@@ -1,6 +1,5 @@
 ﻿using Helion.Audio;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
@@ -393,6 +392,18 @@ public static class ActionSpecials
             target.Args.Arg2 = args.Arg4;
         }
         return true;
+    }
+
+    public static bool RadiusQuake(Entity activator, IWorld world, in SpecialArgs args)
+    {
+        var entity = GetActivator(activator, world, args.Arg4);
+        if (entity != null)
+        {
+            world.SpecialManager.AddSpecial(new QuakeSpecial(world, args.Arg0, args.Arg1, args.Arg2 * 64, args.Arg3 * 64, entity, "world/quake"));
+            return true;
+        }
+
+        return false;
     }
 
     public static bool TeleportOther(IWorld world, in SpecialArgs args)

@@ -14,6 +14,7 @@ using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -44,6 +45,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = [];
     private readonly List<Sector> m_sectorList = [];
     private readonly List<(Sector, SectorPlane)> m_sectorPlanes = [];
+    private readonly List<(Player, QuakeIntensity)> m_playerQuakes = [];
     private readonly Line m_dummyLine;
     private IRandom m_random;
     private WorldBase m_world;
@@ -132,6 +134,27 @@ public sealed class SpecialManager : ITickable, IDisposable
         GC.SuppressFinalize(this);
     }
 
+    public void RegisterQuake(Player player, QuakeIntensity intensity)
+    {
+        m_playerQuakes.Add((player, intensity));
+    }
+
+    public Vec3D GetQuakeIntensity(Player player)
+    {
+        Vec3D amount = Vec3D.Zero;
+        double largest = 0;
+        for (int i = 0; i < m_playerQuakes.Count; i++)
+        {
+            (var p, var intensity) = m_playerQuakes[i];
+            if (p == player && intensity.Intensity > largest)
+            {
+                amount = intensity.Amount;
+                largest = intensity.Intensity;
+            }
+        }
+        return amount;
+    }
+
     public void GetSpecialModels(SpecialModelData data)
     {
         for (var node = m_specials.First; node != null; node = node.Next)
@@ -159,6 +182,8 @@ public sealed class SpecialManager : ITickable, IDisposable
                 data.SwitchSpecials.Add(switchChange.ToSpecialModel());
             else if (special is SectorMoveSpecial move)
                 data.MoveSpecials.Add(move.ToSpecialModel());
+            else if (special is QuakeSpecial quake)
+                data.QuakeSpecials.Add(quake.ToSpecialModel());
             else
                 SpecialModelNotImplemented(special);
         }
@@ -204,6 +229,9 @@ public sealed class SpecialManager : ITickable, IDisposable
 
         for (int i = 0; i < worldModel.SwitchSpecials.Count; i++)
             AddSpecialNodeNotNull(worldModel.SwitchSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.QuakeSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.QuakeSpecials[i].ToWorldSpecial(m_world));
 
         // Kept for legacy purposes. Old versions used generic list.
         for (int i = 0; i < worldModel.Specials.Count; i++)
@@ -326,6 +354,8 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     public void Tick()
     {
+        m_playerQuakes.Clear();
+
         if (m_destroyedMoveSpecials.Count > 0)
             FinalizeDestroyedMoveSpecials();
 
@@ -1396,6 +1426,9 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.ScriptRun:
                 return ActionSpecials.AcsExecute(args.Entity, world, line.Args);
+
+            case ZDoomLineSpecialType.RadiusQuake:
+                return ActionSpecials.RadiusQuake(args.Entity, world, line.Args);
         }
 
         return false;

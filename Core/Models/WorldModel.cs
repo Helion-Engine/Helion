@@ -36,6 +36,7 @@ public class WorldModel
     public IList<ElevatorSpecialModel> ElevatorSpecials { get; set; } = Array.Empty<ElevatorSpecialModel>();
     public IList<SwitchChangeSpecialModel> SwitchSpecials { get; set; } = Array.Empty<SwitchChangeSpecialModel>();
     public IList<SectorDamageSpecialModel> DamageSpecials { get; set; } = Array.Empty<SectorDamageSpecialModel>();
+    public IList<QuakeSpecialModel> QuakeSpecials { get; set; } = Array.Empty<QuakeSpecialModel>();
     public IList<string> VisitedMaps { get; set; } = Array.Empty<string>();
     public int TotalTime { get; set; }
 

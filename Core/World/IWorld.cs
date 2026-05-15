@@ -143,6 +143,7 @@ public interface IWorld : IDisposable
         Func<DamageFuncParams, int>? damageFunc = null, DamageFuncParams damageParams = default);
     Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage, HitScanOptions options = HitScanOptions.Default);
     bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
+    void ApplyVelocity(Entity entity, Vec3D velocity);
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
     void PerformItemPickup(Entity entity, Entity item);
     void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);

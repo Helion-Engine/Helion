@@ -74,6 +74,7 @@ public partial class WorldBase
         s_worldModel.ElevatorSpecials = s_specialModelData.ElevatorSpecials;
         s_worldModel.DamageSpecials = s_specialModelData.SectorDamageSpecials;
         s_worldModel.SwitchSpecials = s_specialModelData.SwitchSpecials;
+        s_worldModel.QuakeSpecials = s_specialModelData.QuakeSpecials;
         s_worldModel.TotalMonsters = LevelStats.TotalMonsters;
         s_worldModel.TotalItems = LevelStats.TotalItems;
         s_worldModel.TotalSecrets = LevelStats.TotalSecrets;

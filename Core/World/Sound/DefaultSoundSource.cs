@@ -1,6 +1,7 @@
 using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Util.Extensions;
 using Helion.World.Entities;
 
 namespace Helion.World.Sound;
@@ -52,6 +53,11 @@ public class DefaultSoundSource : ISoundSource
         clearedSound = m_audioSource;
         m_audioSource = null;
         return clearedSound != null;
+    }
+
+    public bool HasSound(string sound, SoundChannel channel)
+    {
+        return m_audioSource != null && m_audioSource.AudioData.SoundInfo.Name.EqualsIgnoreCase(sound);
     }
 
     public bool CanMakeSound() => true;
