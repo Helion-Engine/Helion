@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Graphics;
@@ -34,6 +35,7 @@ public partial class TextureManager : ITickable
     private readonly HashSet<int> m_animatedTextures = [];
     private readonly HashSet<int> m_processedEntityDefinitions = [];
     private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = [];
+    private readonly BitArray m_loadedTextures;
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -67,6 +69,7 @@ public partial class TextureManager : ITickable
         var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
         int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
         m_textures = new List<Texture>(count);
+        m_loadedTextures = new(count);
 
         var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
         var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
@@ -212,8 +215,10 @@ public partial class TextureManager : ITickable
 
     public void EnsureTextureImageLoaded(int textureIndex)
     {
-        if (textureIndex <= 0)
+        if (textureIndex <= 0 || textureIndex >= m_loadedTextures.Count || m_loadedTextures.Get(textureIndex))
             return;
+
+        m_loadedTextures.Set(textureIndex, true);
 
         if (LoadTextureImage(textureIndex))
         {
