@@ -17,6 +17,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;

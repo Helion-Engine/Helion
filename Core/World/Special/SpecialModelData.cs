@@ -17,6 +17,7 @@ public class SpecialModelData
     public readonly DynamicArray<ElevatorSpecialModel> ElevatorSpecials = [];
     public readonly DynamicArray<SwitchChangeSpecialModel> SwitchSpecials = [];
     public readonly DynamicArray<SectorDamageSpecialModel> SectorDamageSpecials = [];
+    public readonly DynamicArray<QuakeSpecialModel> QuakeSpecials = [];
 
     public void Clear()
     {
@@ -33,5 +34,6 @@ public class SpecialModelData
         ElevatorSpecials.Clear();
         SwitchSpecials.Clear();
         SectorDamageSpecials.Clear();
+        QuakeSpecials.Clear();
     }
 }
