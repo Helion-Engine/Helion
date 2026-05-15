@@ -60,6 +60,7 @@ using Helion.World.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -286,6 +287,12 @@ public abstract partial class WorldBase : IWorld
         m_checkRadiusEntity = new Entity();
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
+        AcsExecutor = new ACS.WorldExecutor(this);
+        List<string> moduleNames = [];
+        if (ArchiveCollection.GetMapEntryCollection(MapInfo.MapName)?.Behavior != null)
+            moduleNames.Add($"BEHAVIOR:{MapInfo.MapName}");
+        AcsExecutor.LoadHubMap(0, (uint)MapInfo.LevelNumber, [.. moduleNames]);
+
         if (worldModel != null)
         {
             WorldState = worldModel.WorldState;
@@ -303,9 +310,20 @@ public abstract partial class WorldBase : IWorld
             LevelStats.KillCount = worldModel.KillCount;
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
-        }
 
-        AcsExecutor = new ACS.WorldExecutor(this);
+            if (worldModel.AcsState.Length > 0)
+            {
+                var file = TempFileManager.GetFile();
+                File.WriteAllBytes(file, worldModel.AcsState);
+                var success = AcsExecutor.LoadState(file);
+                TempFileManager.DeleteFile(file);
+            }
+        }
+        else
+        {
+            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Open, [], new ACS.ThreadInfo { });
+            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Enter, [], new ACS.ThreadInfo { });
+        }
 
         if (!SameAsPreviousMap)
             SpecialManager.InitSectors3D();

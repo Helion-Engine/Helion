@@ -1,11 +1,13 @@
 ﻿using Helion.Models;
 using Helion.Resources.Archives;
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
 using System;
+using System.IO;
 using System.Linq;
 
 namespace Helion.World;
@@ -33,6 +35,11 @@ public partial class WorldBase
         s_fileModels.Clear();
         s_visitedMaps.Clear();
         s_specialModelData.Clear();
+
+        var file = TempFileManager.GetFile();
+        AcsExecutor.SaveState(file);
+        s_worldModel.AcsState = File.ReadAllBytes(file);
+        TempFileManager.DeleteFile(file);
 
         SetSectorModels(s_sectorModels, s_specialModelData.SectorDamageSpecials);
         SpecialManager.GetSpecialModels(s_specialModelData);

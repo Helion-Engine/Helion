@@ -48,4 +48,5 @@ public class WorldModel
     public int SecretCount { get; set; }
 
     public string? MusicName { get; set; }
+    public byte[] AcsState { get; set; } = [];
 }
