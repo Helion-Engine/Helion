@@ -1,6 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Models;
-using Helion.Resources.Archives.Entries;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Sound;
