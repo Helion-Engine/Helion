@@ -56,6 +56,7 @@ public partial class TextureManager : ITickable
     {
         m_archiveCollection = archiveCollection;
         SkyTextureName = Constants.DefaultSkyTextureName;
+        m_loadedTextures = new(0);
     }
 
     public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, string skyTexture, MapInfoDef mapInfo, bool unitTest = false)
