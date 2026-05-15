@@ -17,7 +17,7 @@ public struct QuakeSpecial : ISpecial
     public readonly string Sound;
     public int Duration;
 
-    private readonly Entity? m_quakeEntity;
+    public readonly Entity? SoundSource;
 
     public QuakeSpecial(IWorld world, double intensity, int duration, int damageRadius, int tremorRadius, Entity location, string sound)
     {
@@ -31,9 +31,12 @@ public struct QuakeSpecial : ISpecial
 
         if (Sound.Length > 0)
         {
-            m_quakeEntity = world.EntityManager.Create("HelionSoundObject", Vec3D.Zero);
-            if (m_quakeEntity != null)
-                m_world.SoundManager.CreateSoundOn(m_quakeEntity, Sound, new(m_quakeEntity, loop: true, channel: SoundChannel.Default));
+            SoundSource = world.EntityManager.Create("HelionSoundObject", Vec3D.Zero);
+            if (SoundSource != null)
+            {
+                SoundSource.Position = location.Position;
+                m_world.SoundManager.CreateSoundOn(SoundSource, Sound, new(SoundSource, loop: true, channel: SoundChannel.Default));
+            }
         }
     }
 
@@ -59,7 +62,7 @@ public struct QuakeSpecial : ISpecial
             return SpecialTickStatus.Destroy;
         }
 
-        m_quakeEntity?.Position = entity.Position;
+        SoundSource?.Position = entity.Position;
 
         foreach (var player in m_world.EntityManager.Players)
         {
@@ -89,11 +92,11 @@ public struct QuakeSpecial : ISpecial
 
     private readonly void HandleDestroy()
     {
-        if (Sound.Length > 0 && m_quakeEntity != null)
-            m_world.SoundManager.StopSoundBySource(m_quakeEntity, SoundChannel.Default, Sound);
+        if (Sound.Length > 0 && SoundSource != null)
+            m_world.SoundManager.StopSoundBySource(SoundSource, SoundChannel.Default, Sound);
 
-        if (m_quakeEntity != null)
-            m_world.EntityManager.Destroy(m_quakeEntity);
+        if (SoundSource != null)
+            m_world.EntityManager.Destroy(SoundSource);
     }
 
     public readonly bool Use(Entity entity)
