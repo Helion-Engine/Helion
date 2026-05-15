@@ -196,6 +196,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
         if (renderTexture == null)
         {
+            TextureManager.EnsureTextureImageLoaded(index);
             renderTexture = (texture.Image != null)
                 ? CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeatY)
                 : CreateTexture(texture.Image, repeatY);
