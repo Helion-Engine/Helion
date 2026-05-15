@@ -32,7 +32,7 @@ public struct QuakeSpecial : ISpecial
 
         if (Sound.Length > 0)
         {
-            m_quakeEntity = world.EntityManager.Create("MapSpot", Vec3D.Zero);
+            m_quakeEntity = world.EntityManager.Create("HelionSoundObject", Vec3D.Zero);
             if (m_quakeEntity != null)
                 m_world.SoundManager.CreateSoundOn(m_quakeEntity, Sound, new(m_quakeEntity, loop: true, channel: SoundChannel.Default));
         }
@@ -92,6 +92,9 @@ public struct QuakeSpecial : ISpecial
     {
         if (Sound.Length > 0 && m_quakeEntity != null)
             m_world.SoundManager.StopSoundBySource(m_quakeEntity, SoundChannel.Default, Sound);
+
+        if (m_quakeEntity != null)
+            m_world.EntityManager.Destroy(m_quakeEntity);
     }
 
     public readonly bool Use(Entity entity)

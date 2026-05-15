@@ -260,3 +260,11 @@ actor MapSpot 9001
   +NOGRAVITY
   +DONTSPLASH
 }
+
+actor HelionSoundObject
+{
+  +NOBLOCKMAP
+  +NOSECTOR
+  +NOGRAVITY
+  +DONTSPLASH
+}
