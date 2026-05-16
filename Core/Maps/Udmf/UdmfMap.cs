@@ -41,6 +41,7 @@ public sealed class UdmfMap : IMap, IMapSpecials
     public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    public bool HasBehavior { get; set; }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
     public IReadOnlyList<ISector> GetSectors() => Sectors;
@@ -157,6 +158,7 @@ public sealed class UdmfMap : IMap, IMapSpecials
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
         UdmfNamespace = ns;
+        HasBehavior = map.Behavior != null;
     }
 
     private static UdmfNamespace Parse(Stream textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,

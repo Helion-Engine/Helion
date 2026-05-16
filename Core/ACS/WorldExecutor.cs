@@ -1,16 +1,10 @@
 using Helion.Maps.Specials;
 using Helion.World;
-using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
 using HelionACS;
 
 namespace Helion.ACS;
-
-public class ThreadInfo
-{
-    public Entity? Activator;
-}
 
 public class WorldExecutor : Executor
 {
@@ -354,14 +348,13 @@ public class WorldExecutor : Executor
 
     public override uint CallSpecImpl(ThreadHandle thread, uint spec, uint[] args)
     {
-        var threadInfo = thread.GetThread();
         var arg0 = args.Get(0);
         var arg1 = args.Get(1);
         var arg2 = args.Get(2);
         var arg3 = args.Get(3);
         var arg4 = args.Get(4);
         m_world.SpecialManager.AddActivatedLineSpecial(
-            threadInfo.Activator ?? m_world.Player,
+            thread.GetActivator(m_world) ?? m_world.Player,
             (Maps.Specials.ZDoom.ZDoomLineSpecialType)spec,
             new SpecialArgs(arg0, arg1, arg2, arg3, arg4)
         );
@@ -428,16 +421,16 @@ public class WorldExecutor : Executor
         return true;
     }
 
-    public static bool CF_ActivatorTID(ThreadHandle thread, uint[] args)
+    public bool CF_ActivatorTID(ThreadHandle thread, uint[] args)
     {
-        var threadInfo = thread.GetThread();
-        if (threadInfo.Activator == null)
+        var activator = thread.GetActivator(m_world);
+        if (activator == null)
         {
             thread.PushStack(0);
             return true;
         }
 
-        thread.PushStack((uint)threadInfo.Activator.ThingId);
+        thread.PushStack((uint)activator.ThingId);
         return true;
     }
 
@@ -475,10 +468,10 @@ public class WorldExecutor : Executor
 
     private bool DoPrint(ThreadHandle thread, uint[] args)
     {
-        var threadInfo = (thread.GetThreadInfo() as ThreadInfo)!;
+        var activator = thread.GetActivator(m_world);
         var printBuf = thread.GetPrintBuf()!;
 
-        if (threadInfo.Activator == null)
+        if (activator == null)
             m_world.DisplayMessage(new DisplayMessageArgs(printBuf, null, null, IsCentered: true, ForAllPlayers: true));
         else
             m_world.DisplayMessage(new DisplayMessageArgs(printBuf, null, null, IsCentered: true, ForAllPlayers: true));

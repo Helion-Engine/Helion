@@ -924,6 +924,7 @@ public partial class Client
             if (!sameMap)
             {
                 var mapCompat = map.CompatibilityDefinition;
+                var hasBehavior = map.HasBehavior;
                 if (!m_zdbsp.RunZdbsp(map.ArchivePath, mapInfoDef.MapName, out var compiledMap))
                 {
                     Log.Error("Failed to run zdbsp.");
@@ -936,7 +937,10 @@ public partial class Client
                 map = compiledMap;
 
                 if (map != null)
+                {
                     map.CompatibilityDefinition = mapCompat;
+                    map.HasBehavior = hasBehavior;
+                }
             }
 
             m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);

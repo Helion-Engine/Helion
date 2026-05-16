@@ -288,10 +288,7 @@ public abstract partial class WorldBase : IWorld
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
         AcsExecutor = new ACS.WorldExecutor(this);
-        List<string> moduleNames = [];
-        if (ArchiveCollection.GetMapEntryCollection(MapInfo.MapName)?.Behavior != null)
-            moduleNames.Add($"BEHAVIOR:{MapInfo.MapName}");
-        AcsExecutor.LoadHubMap(0, (uint)MapInfo.LevelNumber, [.. moduleNames]);
+        AcsExecutor.LoadHubMap(0, (uint)MapInfo.LevelNumber, map.HasBehavior ? [$"BEHAVIOR:{MapInfo.MapName}"] : []);
 
         if (worldModel != null)
         {
@@ -321,8 +318,8 @@ public abstract partial class WorldBase : IWorld
         }
         else
         {
-            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Open, [], new ACS.ThreadInfo { });
-            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Enter, [], new ACS.ThreadInfo { });
+            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Open, [], new HelionACS.ThreadInfoData(-1));
+            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Enter, [], new HelionACS.ThreadInfoData(-1));
         }
 
         if (!SameAsPreviousMap)
