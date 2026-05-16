@@ -8,7 +8,7 @@ namespace Helion.ACS;
 
 public class WorldExecutor : Executor
 {
-    private readonly IWorld m_world;
+    private IWorld m_world;
 
     public WorldExecutor(IWorld world)
     {
@@ -344,6 +344,11 @@ public class WorldExecutor : Executor
         //AddFuncDataACS0(401, CF_SetFogDensity);
 
         #endregion "FuncData"
+    }
+
+    public void UpdateWorld(IWorld world)
+    {
+        m_world = world;
     }
 
     public override uint CallSpecImpl(ThreadHandle thread, uint spec, uint[] args)

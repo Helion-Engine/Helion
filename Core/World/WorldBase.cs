@@ -166,6 +166,7 @@ public abstract partial class WorldBase : IWorld
     public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
     public MapType MapType { get; private set; }
 
+    private static ACS.WorldExecutor? StaticAcsExecutor;
     public ACS.WorldExecutor AcsExecutor { get; private set; }
 
     public bool HasDehacked;
@@ -287,8 +288,7 @@ public abstract partial class WorldBase : IWorld
         m_checkRadiusEntity = new Entity();
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
-        AcsExecutor = new ACS.WorldExecutor(this);
-        AcsExecutor.LoadHubMap(0, (uint)MapInfo.LevelNumber, map.HasBehavior ? [$"BEHAVIOR:{MapInfo.MapName}"] : []);
+        AcsExecutor = CreateAcsExecutor();
 
         if (worldModel != null)
         {
@@ -310,20 +310,43 @@ public abstract partial class WorldBase : IWorld
 
             if (worldModel.AcsState.Length > 0)
             {
-                var file = TempFileManager.GetFile();
-                File.WriteAllBytes(file, worldModel.AcsState);
-                var success = AcsExecutor.LoadState(file);
-                TempFileManager.DeleteFile(file);
+                LoadAcsState(worldModel.AcsState);
+                LoadAcsHubMap(map, 0);
             }
         }
-        else
+        else if (map.HasBehavior)
         {
+            LoadAcsHubMap(map, 0);
             AcsExecutor.ScriptStartType(HelionACS.ScriptType.Open, [], new HelionACS.ThreadInfoData(-1));
             AcsExecutor.ScriptStartType(HelionACS.ScriptType.Enter, [], new HelionACS.ThreadInfoData(-1));
         }
 
         if (!SameAsPreviousMap)
             SpecialManager.InitSectors3D();
+    }
+
+    private void LoadAcsState(byte[] acsState)
+    {
+        var file = TempFileManager.GetFile();
+        File.WriteAllBytes(file, acsState);
+        if (!AcsExecutor.LoadState(file))
+            HelionLog.Error("Failed load ACS state.");
+        TempFileManager.DeleteFile(file);
+    }
+
+    private void LoadAcsHubMap(IMap map, uint hubId)
+    {
+        AcsExecutor.LoadHubMap(hubId, (uint)MapInfo.LevelNumber, map.HasBehavior ? [$"BEHAVIOR:{MapInfo.MapName}"] : []);
+    }
+
+    private ACS.WorldExecutor CreateAcsExecutor()
+    {
+        if (StaticAcsExecutor == null)
+            StaticAcsExecutor = new ACS.WorldExecutor(this);
+        else
+            StaticAcsExecutor.UpdateWorld(this);
+
+        return StaticAcsExecutor;
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)
