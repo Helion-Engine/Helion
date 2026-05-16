@@ -45,6 +45,7 @@ public class EntityManager : IDisposable
     public List<Player> VoodooDolls = [];
     public List<Entity> MusicChangers = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
+    private readonly LookupArray<Entity?> EntityLookup = new(1024);
     private readonly Dictionary<int, LinkedList<Entity>> TidToEntity = [];
 
     public EntityManager(IWorld world)
@@ -68,13 +69,8 @@ public class EntityManager : IDisposable
 
     public Entity? FindById(int id)
     {
-        var entity = Head;
-        while (entity != null)
-        {
-            if (entity.Id == id)
-                return entity;
-            entity = entity.Next;
-        }
+        if (EntityLookup.TryGetValue(id, out var entity))
+            return entity;
         return null;
     }
 
@@ -145,6 +141,8 @@ public class EntityManager : IDisposable
 
         if (entity.PlayerObj != null)
             Players.Remove(entity.PlayerObj);
+
+        EntityLookup.Set(entity.Id, null);
 
         entity.Dispose();
     }
@@ -624,6 +622,8 @@ public class EntityManager : IDisposable
 
         if (entity.Flags.IsTeleportSpot())
             TeleportSpots.AddLast(entity);
+
+        EntityLookup.Set(entity.Id, entity);
     }
 
     private void AddToThingLookup(Entity entity, int thingId)
@@ -671,6 +671,7 @@ public class EntityManager : IDisposable
         VoodooDolls.Clear();
         MusicChangers.Clear();
         RealPlayersByNumber.SetAll(null);
+        EntityLookup.SetAll(null);
         TeleportSpots.Clear();
     }
 
