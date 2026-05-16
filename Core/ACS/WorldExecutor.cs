@@ -1,4 +1,5 @@
 using Helion.Maps.Specials;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
@@ -80,7 +81,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0(128, "",        0, CF_OneFlagCTF);
         //AddCodeDataACS0(129, "",        0, CF_GetInvasionWave);
         //AddCodeDataACS0(130, "",        0, CF_GetInvasionState);
-        //AddCodeDataACS0(131, "",        0, CF_PrintName);
+        AddCodeDataACS0(131, "",        0, CF_PrintName);
         //AddCodeDataACS0(132, "",        2, CF_SetMusic);
         //AddCodeDataACS0(133, "WSWW",    0, CF_ConsoleCommand);
         //AddCodeDataACS0(134, "",        3, CF_ConsoleCommand);
@@ -412,6 +413,33 @@ public class WorldExecutor : Executor
     public bool CF_EndPrintBold(ThreadHandle thread, uint[] args)
     {
         return DoPrint(thread, args);
+    }
+
+    public bool CF_PrintName(ThreadHandle thread, uint[] args)
+    {
+        var type = (PrintName)thread.GetStack(1);
+        string? print = null;
+        switch (type)
+        {
+            case PrintName.LevelName:
+                print = m_world.MapInfo.DisplayName;
+                break;
+            case PrintName.Level:
+                print = m_world.MapName;
+                break;
+            case PrintName.Skill:
+                print = m_world.SkillDefinition.Name;
+                break;
+            case PrintName.NextLevel:
+                print = m_world.MapInfo.Next;
+                break;
+            case PrintName.NextSecret:
+                print = m_world.MapInfo.SecretNext;
+                break;
+        }
+        if (print != null && print.Length > 0)
+            thread.AppendToPrintBuf(print);
+        return true;
     }
 
     public static bool CF_TagWait(ThreadHandle thread, uint[] args)
