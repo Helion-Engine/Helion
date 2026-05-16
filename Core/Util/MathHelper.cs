@@ -332,6 +332,12 @@ public static class MathHelper
         return value / 65536.0;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double FromByteAngle(int angle)
+    {
+        return angle / 255.0 * TwoPi;
+    }
+
     /// <summary>
     /// Takes a radian angle and ensures the angle is between 0 and 2pi.
     /// E.g. -6 degrees would return 354 degrees.

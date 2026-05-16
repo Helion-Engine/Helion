@@ -562,6 +562,47 @@ public static class ActionSpecials
         return sectors.Count > 0;
     }
 
+    public static bool Spawn(IWorld world, string className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle)
+    {
+        var pos = new Vec3D(MathHelper.FromFixed(xFixed), MathHelper.FromFixed(yFixed), MathHelper.FromFixed(zFixed));
+        return ExecuteSpawn(world, className, pos, tid, MathHelper.FromByteAngle(byteAngle), false);
+    }
+
+    public static bool SpawnSpot(IWorld world, Entity? activator, string className, int spotTid, int tid, double? angle, bool force)
+    {
+        var success = false;
+        if (spotTid != 0)
+        {
+            var spots = GetEntities(world, spotTid);
+            for (var spot = spots.Current(); spot != null; spot = spots.Advance())
+                success |= ExecuteSpawn(world, className, spot.Position, tid, angle ?? spot.AngleRadians, force);
+        }
+        else if (activator != null)
+        {
+            success |= ExecuteSpawn(world, className, activator.Position, tid, angle ?? activator.AngleRadians, force);
+        }
+
+        return success;
+    }
+
+    private static bool ExecuteSpawn(IWorld world, string className, Vec3D pos, int tid, double angle, bool force)
+    {
+        var entity = world.EntityManager.Create(className, pos);
+
+        if (entity == null)
+            return false;
+
+        if (!force && world.IsPositionBlocked(entity))
+        {
+            world.EntityManager.Destroy(entity);
+            return false;
+        }
+
+        entity.AngleRadians = angle;
+        entity.ThingId = tid;
+        return true;
+    }
+
     private static EntityList GetActivatorOrEntities(Entity activator, IWorld world, int tid)
     {
         if (tid == 0)

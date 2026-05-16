@@ -1,5 +1,6 @@
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
@@ -98,10 +99,10 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0(146, "WSW",     0, CF_TakeInventory);
         //AddCodeDataACS0(147, "",        1, CF_CheckInventory);
         //AddCodeDataACS0(148, "WS",      0, CF_CheckInventory);
-        //AddCodeDataACS0(149, "",        6, CF_Spawn);
-        //AddCodeDataACS0(150, "WSWWWWW", 0, CF_Spawn);
-        //AddCodeDataACS0(151, "",        4, CF_SpawnSpot);
-        //AddCodeDataACS0(152, "WSWWW",   0, CF_SpawnSpot);
+        AddCodeDataACS0(149, "",        6, CF_Spawn);
+        AddCodeDataACS0(150, "WSWWWWW", 0, CF_Spawn);
+        AddCodeDataACS0(151, "",        4, CF_SpawnSpot);
+        AddCodeDataACS0(152, "WSWWW",   0, CF_SpawnSpot);
         //AddCodeDataACS0(153, "",        3, CF_SetMusic);
         //AddCodeDataACS0(154, "WSWW",    0, CF_SetMusic);
         //AddCodeDataACS0(155, "",        3, CF_LocalSetMusic);
@@ -181,7 +182,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0(286, "",        3, CF_SubThingInv);
         //AddCodeDataACS0(287, "",        2, CF_GetThingInv);
         //AddCodeDataACS0(288, "",        2, CF_ThingCountName);
-        //AddCodeDataACS0(289, "",        3, CF_SpawnSpotFacing);
+        AddCodeDataACS0(289, "",        3, CF_SpawnSpotFacing);
         //AddCodeDataACS0(290, "",        1, CF_PlayerClass);
         // 291-325: ACSVM internal codes.
         //AddCodeDataACS0(326, "",        2, CF_GetPlayerProp);
@@ -242,8 +243,8 @@ public class WorldExecutor : Executor
         //AddFuncDataACS0( 17, CF_SetPlayerAir);
         //AddFuncDataACS0( 18, CF_SetSkyScrollSpeed);
         //AddFuncDataACS0( 19, CF_GetPlayerArmor);
-        //AddFuncDataACS0( 20, CF_SpawnSpotForced);
-        //AddFuncDataACS0( 21, CF_SpawnSpotFacingForced);
+        AddFuncDataACS0( 20, CF_SpawnSpotForced);
+        AddFuncDataACS0( 21, CF_SpawnSpotFacingForced);
         //AddFuncDataACS0( 22, CF_CheckActorProperty);
         //AddFuncDataACS0( 23, CF_SetActorVelocity);
         //AddFuncDataACS0( 24, CF_SetThingUserVar);
@@ -481,6 +482,51 @@ public class WorldExecutor : Executor
         var flat = args.GetString(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Ceiling);
         return true;
+    }
+
+    public bool CF_Spawn(ThreadHandle thread, uint[] args)
+    {
+        var className = args.GetString(thread, 0);
+        var x = args.Get(1);
+        var y = args.Get(2);
+        var z = args.Get(3);
+        var tid = args.Get(4);
+        var angle = args.Get(5);
+        return ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle);
+    }
+
+    public bool CF_SpawnSpot(ThreadHandle thread, uint[] args)
+    {
+        var className = args.GetString(thread, 0);
+        var spotTid = args.Get(1);
+        var tid = args.Get(2);
+        var angle = args.Get(3);
+        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), false);
+    }
+
+    public bool CF_SpawnSpotFacing(ThreadHandle thread, uint[] args)
+    {
+        var className = args.GetString(thread, 0);
+        var spotTid = args.Get(1);
+        var tid = args.Get(2);
+        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, false);
+    }
+
+    public bool CF_SpawnSpotFacingForced(ThreadHandle thread, uint[] args)
+    {
+        var className = args.GetString(thread, 0);
+        var spotTid = args.Get(1);
+        var tid = args.Get(2);
+        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, true);
+    }
+
+    public bool CF_SpawnSpotForced(ThreadHandle thread, uint[] args)
+    {
+        var className = args.GetString(thread, 0);
+        var spotTid = args.Get(1);
+        var tid = args.Get(2);
+        var angle = args.Get(3);
+        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), true);
     }
 
     private uint GetThingCount(int type, int tid)
