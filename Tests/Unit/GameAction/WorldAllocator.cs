@@ -100,6 +100,8 @@ internal static class WorldAllocator
         if (!zdbsp.RunZdbsp(map.ArchivePath, mapName, out var outputMap) || outputMap == null)
             throw new Exception("Failed to create bsp");
 
+        outputMap.HasBehavior = map.HasBehavior;
+
         onBeforeInit?.Invoke(archiveCollection);
 
         DoomRandom random = worldModel == null ? new() : new(worldModel.RandomIndex);

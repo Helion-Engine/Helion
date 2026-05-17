@@ -317,8 +317,6 @@ public abstract partial class WorldBase : IWorld
         else if (map.HasBehavior)
         {
             LoadAcsHubMap(map, 0);
-            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Open, [], new HelionACS.ThreadInfoData(-1));
-            AcsExecutor.ScriptStartType(HelionACS.ScriptType.Enter, [], new HelionACS.ThreadInfoData(-1));
         }
 
         if (!SameAsPreviousMap)
@@ -777,12 +775,21 @@ public abstract partial class WorldBase : IWorld
 
             if (m_map is IMapSpecials mapSpecials)
                 mapSpecials.Initialize(this);
+
+            StartScript(HelionACS.ScriptType.Open, [], null);
+            StartScript(HelionACS.ScriptType.Enter, [], null);
         }
 
         SetEntityLightSectors();
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorMoveComplete += SpecialManager_SectorMoveComplete;
+    }
+
+    private void StartScript(HelionACS.ScriptType type, uint[] args, Entity? activator)
+    {
+        if (m_map.HasBehavior)
+            AcsExecutor.ScriptStartType(type, args, new HelionACS.ThreadInfoData(activator == null ? -1 : activator.Id));
     }
 
     private void SetEntityLightSectors()
@@ -2894,6 +2901,7 @@ public abstract partial class WorldBase : IWorld
         {
             HandleObituary(deathEntity.PlayerObj, deathSource, damageType);
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
+            StartScript(HelionACS.ScriptType.Death, [], deathEntity);
         }
 
         ActivateEntitySpecial(deathSource ?? deathEntity, deathEntity);
@@ -4531,6 +4539,7 @@ public abstract partial class WorldBase : IWorld
         player.SetDefaultInventory();
 
         CreateTeleportFog(player);
+        StartScript(HelionACS.ScriptType.Respawn, [], Player);
         return player;
     }
 
