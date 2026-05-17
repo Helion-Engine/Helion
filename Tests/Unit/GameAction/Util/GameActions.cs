@@ -612,5 +612,19 @@ namespace Helion.Tests.Unit.GameAction
             entity.ResetInterpolation();
             return success;
         }
+
+        public static void WithPlayerMessages(IWorld world, Action<List<PlayerMessageEvent>> action)
+        {
+            var messages = new List<PlayerMessageEvent>();
+            world.PlayerMessage += PlayerMessage;
+
+            action(messages);
+
+            world.PlayerMessage -= PlayerMessage;
+            void PlayerMessage(object? sender, PlayerMessageEvent e)
+            {
+                messages.Add(e);
+            }
+        }
     }
 }

@@ -4539,7 +4539,7 @@ public abstract partial class WorldBase : IWorld
         player.SetDefaultInventory();
 
         CreateTeleportFog(player);
-        StartScript(HelionACS.ScriptType.Respawn, [], Player);
+        StartScript(HelionACS.ScriptType.Respawn, [], player);
         return player;
     }
 

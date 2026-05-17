@@ -386,6 +386,13 @@ MUSIC_READ_M = "d_read_m";
 MUSIC_DM2TTL = "d_dm2ttl";
 MUSIC_DM2INT = "d_dm2int";
 
+// Skill
+SKILL_VERY_EASY = "I'm too young to die.";
+SKILL_EASY = "Hey, not too rough.";
+SKILL_NORMAL = "Hurt me plenty.";
+SKILL_HARD = "Ultra-Violence.";
+SKILL_VERY_HARD = "Nightmare!";
+
 // Pickup
 GOTARMOR = "Picked up the armor.";
 GOTMEGA = "Picked up the MegaArmor!";

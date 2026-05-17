@@ -145,7 +145,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0(244, "",        2, CF_SetMarineWeapon);
         //AddCodeDataACS0(245, "",        3, CF_SetActorProperty);
         //AddCodeDataACS0(246, "",        2, CF_GetActorProperty);
-        //AddCodeDataACS0(247, "",        0, CF_PlayerNumber);
+        AddCodeDataACS0(247, "",        0, CF_PlayerNumber);
         AddCodeDataACS0(248, "",        0, CF_ActivatorTID);
         //AddCodeDataACS0(249, "",        2, CF_SetMarineSprite);
         //AddCodeDataACS0(250, "",        0, CF_GetScreenW);
@@ -418,28 +418,55 @@ public class WorldExecutor : Executor
 
     public bool CF_PrintName(ThreadHandle thread, uint[] args)
     {
-        var type = (PrintName)thread.GetStack(1);
+        var stackValue = (int)thread.GetStack(1);
         string? print = null;
-        switch (type)
+
+        if (stackValue >= 0)
         {
-            case PrintName.LevelName:
-                print = m_world.MapInfo.DisplayName;
-                break;
-            case PrintName.Level:
-                print = m_world.MapName;
-                break;
-            case PrintName.Skill:
-                print = m_world.SkillDefinition.Name;
-                break;
-            case PrintName.NextLevel:
-                print = m_world.MapInfo.Next;
-                break;
-            case PrintName.NextSecret:
-                print = m_world.MapInfo.SecretNext;
-                break;
+            if (stackValue == 0)
+            {
+                print = m_world.GetCameraPlayer().Info.Name;
+            }
+            else
+            {
+                var player = m_world.EntityManager.GetRealPlayer(stackValue);
+                if (player != null)
+                    print = player.Info.Name;
+            }
         }
+        else
+        {
+            switch ((PrintName)stackValue)
+            {
+                case PrintName.LevelName:
+                    print = m_world.MapInfo.GetNiceNameOrLookup(m_world.ArchiveCollection.Language);
+                    break;
+                case PrintName.Level:
+                    print = m_world.MapName;
+                    break;
+                case PrintName.Skill:
+                    print = m_world.ArchiveCollection.Language.GetMessage(m_world.SkillDefinition.Name);
+                    break;
+                case PrintName.NextLevel:
+                    {
+                        var result = m_world.ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(m_world.MapInfo);
+                        if (result.MapInfo != null)
+                            print = result.MapName;
+                    }
+                    break;
+                case PrintName.NextSecret:
+                    {
+                        var result = m_world.ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(m_world.MapInfo);
+                        if (result.MapInfo != null)
+                            print = result.MapName;
+                    }
+                    break;
+            }
+        }
+
         if (print != null && print.Length > 0)
             thread.AppendToPrintBuf(print);
+
         return false;
     }
 
@@ -452,6 +479,22 @@ public class WorldExecutor : Executor
     public bool CF_ThingCount(ThreadHandle thread, uint[] args)
     {
         thread.PushStack(GetThingCount(args.Get(0), args.Get(1)));
+        return false;
+    }
+
+    public bool CF_PlayerNumber(ThreadHandle thread, uint[] args)
+    {
+        var activator = thread.GetActivator(m_world);
+        if (activator == null)
+        {
+            thread.PushStack((uint)m_world.Player.PlayerNumber);
+            return false;
+        }
+
+        if (activator.PlayerObj != null)
+            thread.PushStack((uint)activator.PlayerObj.PlayerNumber);
+        else
+            thread.PushStack(unchecked((uint)-1));
         return false;
     }
 
@@ -557,8 +600,8 @@ public class WorldExecutor : Executor
 
         if (activator == null)
             m_world.DisplayMessage(new DisplayMessageArgs(printBuf, null, null, IsCentered: true, ForAllPlayers: true));
-        else
-            m_world.DisplayMessage(new DisplayMessageArgs(printBuf, null, null, IsCentered: true, ForAllPlayers: true));
+        else if (activator.PlayerObj != null)
+            m_world.DisplayMessage(new DisplayMessageArgs(printBuf, activator.PlayerObj, null, IsCentered: true));
 
         return false;
     }
