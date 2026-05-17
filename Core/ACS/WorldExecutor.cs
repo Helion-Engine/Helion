@@ -403,7 +403,7 @@ public class WorldExecutor : Executor
         var min = args.Get(0);
         var max = args.Get(1);
         thread.PushStack((uint)m_world.Random.GenInt32Range(min, max));
-        return true;
+        return false;
     }
 
     public bool CF_EndPrint(ThreadHandle thread, uint[] args)
@@ -440,7 +440,7 @@ public class WorldExecutor : Executor
         }
         if (print != null && print.Length > 0)
             thread.AppendToPrintBuf(print);
-        return true;
+        return false;
     }
 
     public static bool CF_TagWait(ThreadHandle thread, uint[] args)
@@ -452,7 +452,7 @@ public class WorldExecutor : Executor
     public bool CF_ThingCount(ThreadHandle thread, uint[] args)
     {
         thread.PushStack(GetThingCount(args.Get(0), args.Get(1)));
-        return true;
+        return false;
     }
 
     public bool CF_ActivatorTID(ThreadHandle thread, uint[] args)
@@ -461,11 +461,11 @@ public class WorldExecutor : Executor
         if (activator == null)
         {
             thread.PushStack(0);
-            return true;
+            return false;
         }
 
         thread.PushStack((uint)activator.ThingId);
-        return true;
+        return false;
     }
 
     public bool CF_ChangeFloor(ThreadHandle thread, uint[] args)
@@ -473,7 +473,7 @@ public class WorldExecutor : Executor
         var tag = args.Get(0);
         var flat = args.GetString(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Floor);
-        return true;
+        return false;
     }
 
     public bool CF_ChangeCeiling(ThreadHandle thread, uint[] args)
@@ -481,7 +481,7 @@ public class WorldExecutor : Executor
         var tag = args.Get(0);
         var flat = args.GetString(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Ceiling);
-        return true;
+        return false;
     }
 
     public bool CF_Spawn(ThreadHandle thread, uint[] args)
@@ -492,7 +492,8 @@ public class WorldExecutor : Executor
         var z = args.Get(3);
         var tid = args.Get(4);
         var angle = args.Get(5);
-        return ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle);
+        thread.PushStack(ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle) ? 1u : 0u);
+        return false;
     }
 
     public bool CF_SpawnSpot(ThreadHandle thread, uint[] args)
@@ -501,7 +502,8 @@ public class WorldExecutor : Executor
         var spotTid = args.Get(1);
         var tid = args.Get(2);
         var angle = args.Get(3);
-        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), false);
+        thread.PushStack(ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), false) ? 1u : 0u);
+        return false;
     }
 
     public bool CF_SpawnSpotFacing(ThreadHandle thread, uint[] args)
@@ -509,7 +511,8 @@ public class WorldExecutor : Executor
         var className = args.GetString(thread, 0);
         var spotTid = args.Get(1);
         var tid = args.Get(2);
-        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, false);
+        thread.PushStack(ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, false) ? 1u : 0u);
+        return false;
     }
 
     public bool CF_SpawnSpotFacingForced(ThreadHandle thread, uint[] args)
@@ -517,7 +520,8 @@ public class WorldExecutor : Executor
         var className = args.GetString(thread, 0);
         var spotTid = args.Get(1);
         var tid = args.Get(2);
-        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, true);
+        thread.PushStack(ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, true) ? 1u : 0u);
+        return false;
     }
 
     public bool CF_SpawnSpotForced(ThreadHandle thread, uint[] args)
@@ -526,7 +530,8 @@ public class WorldExecutor : Executor
         var spotTid = args.Get(1);
         var tid = args.Get(2);
         var angle = args.Get(3);
-        return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), true);
+        thread.PushStack(ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), true) ? 1u : 0u);
+        return false;
     }
 
     private uint GetThingCount(int type, int tid)
