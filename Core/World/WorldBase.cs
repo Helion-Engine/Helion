@@ -310,10 +310,7 @@ public abstract partial class WorldBase : IWorld
             LevelStats.SecretCount = worldModel.SecretCount;
 
             if (worldModel.AcsState.Length > 0)
-            {
                 LoadAcsState(worldModel.AcsState);
-                LoadAcsHubMap(map, 0);
-            }
         }
         else if (map.HasBehavior)
         {
