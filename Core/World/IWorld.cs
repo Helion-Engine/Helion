@@ -118,6 +118,7 @@ public interface IWorld : IDisposable
     CompatibilityMapDefinition? CompatibilityMapDefinition { get; }
     MapType MapType { get; }
     ACS.WorldExecutor AcsExecutor { get; }
+    byte[]? Behavior { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);

@@ -924,7 +924,7 @@ public partial class Client
             if (!sameMap)
             {
                 var mapCompat = map.CompatibilityDefinition;
-                var hasBehavior = map.HasBehavior;
+                var behavior = map.Behavior;
                 if (!m_zdbsp.RunZdbsp(map.ArchivePath, mapInfoDef.MapName, out var compiledMap))
                 {
                     Log.Error("Failed to run zdbsp.");
@@ -939,7 +939,7 @@ public partial class Client
                 if (map != null)
                 {
                     map.CompatibilityDefinition = mapCompat;
-                    map.HasBehavior = hasBehavior;
+                    map.Behavior = behavior;
                 }
             }
 

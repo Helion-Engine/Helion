@@ -1,15 +1,20 @@
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
 using HelionACS;
+using NLog;
+using System;
 
 namespace Helion.ACS;
 
 public class WorldExecutor : Executor
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private IWorld m_world;
 
     public WorldExecutor(IWorld world)
@@ -371,16 +376,17 @@ public class WorldExecutor : Executor
     public override byte[] LoadModule(string moduleName)
     {
         const string BehaviorPrefix = "BEHAVIOR:";
-        if (moduleName.StartsWith(BehaviorPrefix, System.StringComparison.Ordinal))
+        if (moduleName.StartsWith(BehaviorPrefix, StringComparison.Ordinal))
         {
-            var map = moduleName[BehaviorPrefix.Length..];
-            var mapEntries = m_world.ArchiveCollection.GetMapEntryCollection(map);
-            var behavior = mapEntries?.Behavior;
-            if (behavior == null)
-            {
-                return [];
-            }
-            return behavior.ReadData();
+            var mapName = moduleName.AsSpan(BehaviorPrefix.Length..);
+            if (mapName.EqualsIgnoreCase(m_world.MapName))
+                return m_world.Behavior ?? [];
+
+            Log.Error($"ACS LoadModule doesn't match loaded map: {moduleName} {m_world.MapName}");
+        }
+        else
+        {
+            Log.Error($"ACS LoadModule missing BEHAVIOR: prefix: {moduleName}");
         }
 
         return [];

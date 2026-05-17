@@ -100,7 +100,7 @@ internal static class WorldAllocator
         if (!zdbsp.RunZdbsp(map.ArchivePath, mapName, out var outputMap) || outputMap == null)
             throw new Exception("Failed to create bsp");
 
-        outputMap.HasBehavior = map.HasBehavior;
+        outputMap.Behavior = map.Behavior;
 
         onBeforeInit?.Invoke(archiveCollection);
 

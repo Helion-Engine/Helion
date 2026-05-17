@@ -168,6 +168,7 @@ public abstract partial class WorldBase : IWorld
 
     private static ACS.WorldExecutor? StaticAcsExecutor;
     public ACS.WorldExecutor AcsExecutor { get; private set; }
+    public byte[]? Behavior => m_map.Behavior;
 
     public bool HasDehacked;
 

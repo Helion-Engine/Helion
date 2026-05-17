@@ -27,7 +27,8 @@ public interface IMap
     GLComponents? GL { get; }
     byte[]? Reject { get; set; }
     CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
-    bool HasBehavior { get; set; }
+    bool HasBehavior => Behavior != null;
+    byte[]? Behavior { get; set; }
     void ClearAllExceptThings();
     void ClearAll();
     void LoadData();
