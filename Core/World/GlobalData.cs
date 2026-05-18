@@ -9,6 +9,17 @@ public class GlobalData
 {
     public IList<MapInfoDef> VisitedMaps { get; set; } = new List<MapInfoDef>();
     public int TotalTime { get; set; }
+    private ACS.WorldExecutor? AcsExecutor;
+
+    public ACS.WorldExecutor CreateAcsExecutor(IWorld world)
+    {
+        if (AcsExecutor == null)
+            AcsExecutor = new ACS.WorldExecutor(world);
+        else
+            AcsExecutor.UpdateWorld(world);
+
+        return AcsExecutor;
+    }
 
     public override bool Equals(object? obj)
     {
