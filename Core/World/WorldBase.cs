@@ -166,7 +166,6 @@ public abstract partial class WorldBase : IWorld
     public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
     public MapType MapType { get; private set; }
 
-    private static ACS.WorldExecutor? StaticAcsExecutor;
     public ACS.WorldExecutor AcsExecutor { get; private set; }
     public byte[]? Behavior => m_map.Behavior;
 
@@ -337,12 +336,7 @@ public abstract partial class WorldBase : IWorld
 
     private ACS.WorldExecutor CreateAcsExecutor()
     {
-        if (StaticAcsExecutor == null)
-            StaticAcsExecutor = new ACS.WorldExecutor(this);
-        else
-            StaticAcsExecutor.UpdateWorld(this);
-
-        return StaticAcsExecutor;
+        return GlobalData.CreateAcsExecutor(this);
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)
