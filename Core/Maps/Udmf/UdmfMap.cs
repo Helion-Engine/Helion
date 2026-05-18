@@ -231,6 +231,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
             return UdmfNamespace.Doom;
         else if (ns.EqualsIgnoreCase("dsda"))
             return UdmfNamespace.Dsda;
+        else if (ns.EqualsIgnoreCase("eternity"))
+            return UdmfNamespace.Eternity;
         else if (ns.EqualsIgnoreCase("zdoom"))
             return UdmfNamespace.ZDoom;
         else if (ns.EqualsIgnoreCase("helion"))
