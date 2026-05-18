@@ -36,10 +36,14 @@ public partial class WorldBase
         s_visitedMaps.Clear();
         s_specialModelData.Clear();
 
-        var file = TempFileManager.GetFile();
-        AcsExecutor.SaveState(file);
-        s_worldModel.AcsState = File.ReadAllBytes(file);
-        TempFileManager.DeleteFile(file);
+        // This may need to change later but don't waste time on maps that don't have ACS
+        if (m_map.HasBehavior)
+        {
+            var file = TempFileManager.GetFile();
+            AcsExecutor.SaveState(file);
+            s_worldModel.AcsState = File.ReadAllBytes(file);
+            TempFileManager.DeleteFile(file);
+        }
 
         SetSectorModels(s_sectorModels, s_specialModelData.SectorDamageSpecials);
         SpecialManager.GetSpecialModels(s_specialModelData);
