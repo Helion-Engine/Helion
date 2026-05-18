@@ -289,6 +289,7 @@ public abstract partial class WorldBase : IWorld
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
         AcsExecutor = CreateAcsExecutor();
+        LoadAcsHubMap(map, 0);
 
         if (worldModel != null)
         {
@@ -309,22 +310,18 @@ public abstract partial class WorldBase : IWorld
             LevelStats.SecretCount = worldModel.SecretCount;
 
             if (worldModel.AcsState.Length > 0)
-                LoadAcsState(worldModel.AcsState);
-        }
-        else if (map.HasBehavior)
-        {
-            LoadAcsHubMap(map, 0);
+                LoadAcsState(0, (uint)MapInfo.LevelNumber, worldModel.AcsState);
         }
 
         if (!SameAsPreviousMap)
             SpecialManager.InitSectors3D();
     }
 
-    private void LoadAcsState(byte[] acsState)
+    private void LoadAcsState(uint hubId, uint mapId, byte[] acsState)
     {
         var file = TempFileManager.GetFile();
         File.WriteAllBytes(file, acsState);
-        if (!AcsExecutor.LoadState(file))
+        if (!AcsExecutor.LoadState(hubId, mapId, file))
             HelionLog.Error("Failed load ACS state.");
         TempFileManager.DeleteFile(file);
     }
@@ -767,7 +764,10 @@ public abstract partial class WorldBase : IWorld
 
             if (m_map is IMapSpecials mapSpecials)
                 mapSpecials.Initialize(this);
+        }
 
+        if (worldModel == null)
+        {
             StartScript(HelionACS.ScriptType.Open, [], null);
             StartScript(HelionACS.ScriptType.Enter, [], null);
         }
