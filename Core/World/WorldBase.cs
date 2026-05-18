@@ -3858,18 +3858,32 @@ public abstract partial class WorldBase : IWorld
     private int EntityCount(int entityDefinitionId, int tid, bool checkAlive, Entity? ignoreEntity = null)
     {
         int count = 0;
-        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+        if (tid != 0)
         {
-            if (entity == ignoreEntity || (tid != 0 && entity.ThingId != tid))
-                continue;
+            // If searching by thing id then pre-filter by tid list.
+            var entities = EntityManager.FindByTid(tid);
+            for (var node = entities.First; node != null; node = node.Next)
+                CountEntity(node.Value, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
 
-            if (entityDefinitionId >= 0 && entity.Definition.Id != entityDefinitionId)
-                continue;
-
-            if (!checkAlive || !entity.IsDead())
-                count++;
+            return count;
         }
+
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+            CountEntity(entity, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+
         return count;
+    }
+
+    private static void CountEntity(Entity entity, int entityDefinitionId, int tid, bool checkAlive, Entity? ignoreEntity, ref int count)
+    {
+        if (entity == ignoreEntity || (tid != 0 && entity.ThingId != tid))
+            return;
+
+        if (entityDefinitionId >= 0 && entity.Definition.Id != entityDefinitionId)
+            return;
+
+        if (!checkAlive || !entity.IsDead())
+            count++;
     }
 
     public bool HealChase(Entity entity, EntityFrame healState, string healSound)

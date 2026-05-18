@@ -3,6 +3,7 @@ using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
+using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction.ACS;
@@ -91,5 +92,50 @@ public class AcsScripts
             World.Tick();
             messages.Count.Should().Be(0);
         });
+    }
+
+    [Fact(DisplayName = "ThingCount no tid")]
+    public void ThingCountNoTid()
+    {
+        var sector = GameActions.GetSectorByTag(World, 2);
+        var zombies = GameActions.GetEntities(World, "Zombieman");
+        zombies.Count.Should().Be(2);
+        sector.Floor.Z.Should().Be(64);
+        GameActions.ActivateLine(World, Player, 23, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 70);
+
+        sector.Floor.Z.Should().Be(64);
+        zombies[0].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        zombies[1].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.ActiveFloorMove.Should().NotBeNull();
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Floor.Z.Should().Be(8);
+    }
+
+    [Fact(DisplayName = "ThingCount tid")]
+    public void ThingCountTid()
+    {
+        var sector = GameActions.GetSectorByTag(World, 3);
+        var demons = GameActions.GetEntities(World, "Demon").OrderBy(x => x.ThingId).ToList();
+        demons.Count.Should().Be(3);
+        sector.Floor.Z.Should().Be(64);
+        GameActions.ActivateLine(World, Player, 36, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 70);
+
+        sector.Floor.Z.Should().Be(64);
+        demons[0].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        demons[1].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        demons[2].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.ActiveFloorMove.Should().NotBeNull();
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Floor.Z.Should().Be(8);
     }
 }
