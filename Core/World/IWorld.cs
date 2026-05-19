@@ -161,7 +161,8 @@ public interface IWorld : IDisposable
     void DisplayMessage(DisplayMessageArgs args);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
-    bool IsPositionBlocked(Entity entity);
+    bool IsPositionBlocked(Entity entity, Vec3D position);
+    bool IsPositionBlocked(Entity entity) => IsPositionBlocked(entity, entity.Position);
     void CreateTeleportFog(in Vec3D pos);
     void CreateTeleportFog(Entity entity);
     Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog);

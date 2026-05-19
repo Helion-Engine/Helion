@@ -3027,13 +3027,13 @@ public abstract partial class WorldBase : IWorld
         return blocked;
     }
 
-    public bool IsPositionBlocked(Entity entity)
+    public bool IsPositionBlocked(Entity entity, Vec3D position)
     {
-        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !WorldStatic.InfinitelyTallThings);
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, position, !WorldStatic.InfinitelyTallThings);
         if (blocked)
             return true;
 
-        if (!PhysicsManager.IsPositionValid(entity, entity.Position.X, entity.Position.Y))
+        if (!PhysicsManager.IsPositionValid(entity, position.X, position.Y))
             return true;
 
         return false;
