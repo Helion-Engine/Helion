@@ -1,3 +1,4 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -132,9 +133,9 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0I(193, "",        1, CF_PlayMovie);
         //AddCodeDataACS0V(194, "",        8, CF_SetFloorTrig);
         //AddCodeDataACS0V(195, "",        8, CF_SetCeilTrig);
-        //AddCodeDataACS0F(196, "",        1, CF_GetActorX);
-        //AddCodeDataACS0F(197, "",        1, CF_GetActorY);
-        //AddCodeDataACS0F(198, "",        1, CF_GetActorZ);
+        AddCodeDataACS0F(196, "",        1, CF_GetActorX);
+        AddCodeDataACS0F(197, "",        1, CF_GetActorY);
+        AddCodeDataACS0F(198, "",        1, CF_GetActorZ);
         //AddCodeDataACS0V(199, "",        1, CF_TransStart);
         //AddCodeDataACS0V(200, "",        4, CF_TransPalette);
         //AddCodeDataACS0V(201, "",        8, CF_TransRGB);
@@ -181,7 +182,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V(280, "",        7, CF_SpawnProjectile);
         //AddCodeDataACS0I(281, "",        1, CF_GetSectorLightLevel);
         //AddCodeDataACS0F(282, "",        1, CF_GetActorCeilingZ);
-        //AddCodeDataACS0I(283, "",        5, CF_SetActorPosition);
+        AddCodeDataACS0B(283, "",        5, CF_SetActorPosition);
         //AddCodeDataACS0V(284, "",        1, CF_ClrThingInv);
         //AddCodeDataACS0V(285, "",        3, CF_AddThingInv);
         //AddCodeDataACS0V(286, "",        3, CF_SubThingInv);
@@ -568,6 +569,53 @@ public class WorldExecutor : Executor
         return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), true) ? 1 : 0;
     }
 
+    public double CF_GetActorX(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.Position.X ?? 0;
+    }
+    
+    public double CF_GetActorY(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.Position.Y ?? 0;
+    }
+    
+    public double CF_GetActorZ(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.Position.Z ?? 0;
+    }
+
+    public bool CF_SetActorPosition(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        if (entity == null) return false;
+        var x = args.GetDouble(1);
+        var y = args.GetDouble(2);
+        var z = args.GetDouble(3);
+        var fog = args.GetBool(4);
+
+        var pos = new Vec3D(x, y, z);
+        if (m_world.IsPositionBlocked(entity, pos))
+        {
+            return false;
+        }
+
+        entity.UnlinkFromWorld();
+        var old = entity.Position;
+        entity.Position = pos;
+        m_world.Link(entity);
+        entity.PrevPosition = entity.Position;
+        if (fog)
+        {
+            m_world.CreateTeleportFog(old);
+            m_world.CreateTeleportFog(entity);
+        }
+
+        return true;
+    }
+    
     public int CF_UniqueTID(ThreadHandle thread, uint[] args)
     {
         while (true) {
@@ -577,6 +625,7 @@ public class WorldExecutor : Executor
             return potentialTid;
         }
     }
+    
     public bool CF_IsTIDUsed(ThreadHandle thread, uint[] args)
     {
         var tid = args.Get(0);
