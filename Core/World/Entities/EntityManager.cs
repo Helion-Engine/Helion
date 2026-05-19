@@ -66,6 +66,10 @@ public class EntityManager : IDisposable
     {
         return TidToEntity.TryGetValue(tid, out var entities) ? entities : EmptyLinkedList;
     }
+    public bool TidInUse(int tid)
+    {
+        return TidToEntity.ContainsKey(tid);
+    }
 
     public Entity? FindById(int id)
     {
