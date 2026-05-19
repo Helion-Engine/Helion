@@ -104,7 +104,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public double HighestFloorZ;
     public DynamicArray<Sector> IntersectSectors = new(arrayPool: true);
     public int Id;
-    public int ThingId;
+    public int ThingId { get; private set; }
     // Index in Blockmap.BlockLines
     public int BlockingBlockLineIndex;
     public Entity? BlockingEntity;
@@ -201,7 +201,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         World = world;
         Index = index;
         Id = id;
-        ThingId = thingId;
+        world.EntityManager.SetThingId(this, thingId);
         Definition = definition;
         Flags = definition.Flags;
         Properties = definition.Properties;
@@ -242,7 +242,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         Index = index;
         IsDisposed = false;
         Id = entityModel.Id;
-        ThingId = entityModel.ThingId;
+        world.EntityManager.SetThingId(this, entityModel.ThingId);
         Definition = definition;
         Flags = new EntityFlags(entityModel.Flags);
         Properties = definition.Properties;
@@ -1236,6 +1236,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         Id = int.MinValue;
         IsDisposed = true;
+        ThingId = EntityManager.NoTid;
         UnlinkFromWorld();
         Unlink();
 
@@ -1410,5 +1411,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             return false;
 
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetThingIdWithoutAddingToList(int thingId)
+    {
+        ThingId = thingId;
     }
 }

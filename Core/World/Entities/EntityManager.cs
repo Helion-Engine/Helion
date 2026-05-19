@@ -123,14 +123,9 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    public void Destroy(Entity entity, bool removeFromIdList = true)
+    private void RemoveEntityFromThingLookup(Entity entity)
     {
-        if (entity.IsDisposed)
-            return;
-
-        EntityCount--;
-
-        if (removeFromIdList && TidToEntity.TryGetValue(entity.ThingId, out var entities))
+        if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
         {
             var node = entities.Find(entity);
             if (node != null)
@@ -138,6 +133,19 @@ public class EntityManager : IDisposable
                 World.DataCache.FreeLinkedListNodeEntity(node);
                 entities.Remove(node);
             }
+        }
+    }
+
+    public void Destroy(Entity entity, bool removeFromIdList = true)
+    {
+        if (entity.IsDisposed)
+            return;
+
+        EntityCount--;
+
+        if (removeFromIdList)
+        {
+            RemoveEntityFromThingLookup(entity);
         }
 
         if (entity.Flags.IsTeleportSpot())
@@ -304,7 +312,7 @@ public class EntityManager : IDisposable
                 relinkEntities.Add(entity);
 
             if (isMusicChanger)
-                entity.ThingId = mapThing.EditorNumber - (int)EditorId.MusicChangerStart;
+                SetThingId(entity, mapThing.EditorNumber - (int)EditorId.MusicChangerStart);
         }
 
         //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
@@ -618,9 +626,6 @@ public class EntityManager : IDisposable
     {
         SpawnLocations.AddPossibleSpawnLocation(entity);
 
-        if (entity.ThingId != NoTid)
-            AddToThingLookup(entity, entity.ThingId);
-
         if (entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
             AddToThingLookup(entity, 0);
 
@@ -641,6 +646,20 @@ public class EntityManager : IDisposable
             var list = new LinkedList<Entity>();
             list.AddFirst(World.DataCache.GetLinkedListNodeEntity(entity));
             TidToEntity.Add(thingId, list);
+        }
+    }
+
+    public void SetThingId(Entity entity, int thingId)
+    {
+        if (entity.ThingId == thingId) return;
+        if (entity.ThingId != NoTid)
+        {
+            RemoveEntityFromThingLookup(entity);
+        }
+        entity.SetThingIdWithoutAddingToList(thingId);
+        if (entity.ThingId != NoTid)
+        {
+            AddToThingLookup(entity, entity.ThingId);
         }
     }
 
