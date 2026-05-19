@@ -98,7 +98,7 @@ public static class ActionSpecials
             if (entity == null)
                 continue;
 
-            entity.ThingId = newTid;
+            world.EntityManager.SetThingId(entity, newTid);
             var xy = Vec2D.UnitCircle(angle) * speedXY;
             entity.Velocity.X = xy.X;
             entity.Velocity.Y = xy.Y;
@@ -142,7 +142,7 @@ public static class ActionSpecials
                 continue;
 
             entity.Velocity = Vec3D.UnitSphere(angle, pitch) * speed;
-            entity.ThingId = newTid;
+            world.EntityManager.SetThingId(entity, newTid);
             success = true;
         }
 
@@ -377,7 +377,7 @@ public static class ActionSpecials
     {
         var targets = GetActivatorOrEntities(activator, world, args.Arg0);
         for (var target = targets.Current(); target != null; target = targets.Advance())
-            target.ThingId = args.Arg1;
+            world.EntityManager.SetThingId(target, args.Arg1);
         return true;
     }
 
@@ -599,7 +599,7 @@ public static class ActionSpecials
         }
 
         entity.AngleRadians = angle;
-        entity.ThingId = tid;
+        world.EntityManager.SetThingId(entity, tid);
         return true;
     }
 

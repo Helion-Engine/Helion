@@ -59,7 +59,7 @@ public class AcsScripts
             messages.Count.Should().Be(1);
             messages[0].Args.Message.Should().Be("Script 3 0");
 
-            Player.ThingId = 69;
+            World.EntityManager.SetThingId(Player, 69);
             GameActions.ActivateLine(World, Player, 9, ActivationContext.CrossLine).Should().BeTrue();
             World.Tick();
             messages.Count.Should().Be(2);
