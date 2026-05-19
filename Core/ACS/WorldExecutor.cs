@@ -269,8 +269,8 @@ public class WorldExecutor : Executor
         //AddFuncDataACS0V( 37, CF_AnnouncerSound);
         //AddFuncDataACS0B( 38, CF_SetPointer);
         // 39-45: ACSVM internal funcs.
-        //AddFuncDataACS0I( 46, CF_UniqueTID);
-        //AddFuncDataACS0B( 47, CF_IsTIDUsed);
+        AddFuncDataACS0I( 46, CF_UniqueTID);
+        AddFuncDataACS0B( 47, CF_IsTIDUsed);
         //AddFuncDataACS0I( 48, CF_Sqrt);
         //AddFuncDataACS0F( 49, CF_FixedSqrt);
         //AddFuncDataACS0F( 50, CF_VectorLength);
@@ -574,11 +574,13 @@ public class WorldExecutor : Executor
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Position.X ?? 0;
     }
+    
     public double CF_GetActorY(ThreadHandle thread, uint[] args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Position.Y ?? 0;
     }
+    
     public double CF_GetActorZ(ThreadHandle thread, uint[] args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
@@ -612,6 +614,22 @@ public class WorldExecutor : Executor
         }
 
         return true;
+    }
+    
+    public int CF_UniqueTID(ThreadHandle thread, uint[] args)
+    {
+        while (true) {
+            var potentialTid = m_world.Random.GenInt32Range(0, int.MaxValue);
+            // vanishingly unlikely given the 2^31 potential choices
+            if (m_world.EntityManager.TidInUse(potentialTid)) continue;
+            return potentialTid;
+        }
+    }
+    
+    public bool CF_IsTIDUsed(ThreadHandle thread, uint[] args)
+    {
+        var tid = args.Get(0);
+        return m_world.EntityManager.TidInUse(tid);
     }
 
     private int GetThingCount(int type, int tid)
