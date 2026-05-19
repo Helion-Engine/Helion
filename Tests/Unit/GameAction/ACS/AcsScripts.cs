@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
@@ -137,5 +138,84 @@ public class AcsScripts
         sector.ActiveFloorMove.Should().NotBeNull();
         GameActions.RunSectorPlaneSpecial(World, sector);
         sector.Floor.Z.Should().Be(8);
+    }
+
+    [Fact(DisplayName = "UniqueTid")]
+    public void UniqueTid()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 48, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages.Count.Should().Be(1);
+            int.TryParse(messages[0].Args.Message, out var tid).Should().BeTrue();
+            World.EntityManager.TidInUse(tid).Should().BeFalse();
+        });
+    }
+
+    [Fact(DisplayName = "IsTidUsed")]
+    public void IsTidUsed()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 52, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages.Count.Should().Be(4);
+            messages[0].Args.Message.Should().Be("Tid 1 in use");
+            messages[1].Args.Message.Should().Be("Tid 2 not in use");
+            messages[2].Args.Message.Should().Be("Tid 4 in use");
+            messages[3].Args.Message.Should().Be("Tid 42069 not in use");
+        });
+    }
+
+    [Fact(DisplayName = "ActorXYZ by activator")]
+    public void ActorXYZ_Activator()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.SetEntityPosition(World, Player, (2272, -176, 0));
+            GameActions.ActivateLine(World, Player, 60, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages.Count.Should().Be(1);
+            messages[0].Args.Message.Should().Be("2272, -176, 0");
+        });
+    }
+
+    [Fact(DisplayName = "ActorXYZ by tid")]
+    public void ActorXYZ_Tid()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 64, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages.Count.Should().Be(1);
+            messages[0].Args.Message.Should().Be("2368, 64, 0");
+        });
+    }
+
+    [Fact(DisplayName = "SetActorPosition by activator with fog")]
+    public void SetActorPositionActivator()
+    {
+        Player.Position.Should().NotBe(new Vec3D(2256, 192, 32));
+        GameActions.ActivateLine(World, Player, 68, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        Player.Position.Should().Be(new Vec3D(2256, 192, 32));
+        var fog = GameActions.GetEntities(World, "TeleportFog");
+        fog.Count.Should().Be(2);
+        GameActions.SetEntityOutOfBounds(World, Player);
+        GameActions.TickWorld(World, 70);
+    }
+
+    [Fact(DisplayName = "SetActorPosition by tid no fog")]
+    public void SetActorPositionTid()
+    {
+        var barrel = GameActions.GetEntityByTid(World, 6);
+        barrel.Position.Should().NotBe(new Vec3D(2256, 192, 32));
+        GameActions.ActivateLine(World, Player, 72, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        barrel.Position.Should().Be(new Vec3D(2256, 192, 32));
+        var fog = GameActions.GetEntities(World, "TeleportFog");
+        fog.Count.Should().Be(0);
+        GameActions.SetEntityOutOfBounds(World, barrel);
     }
 }
