@@ -562,10 +562,10 @@ public static class ActionSpecials
         return sectors.Count > 0;
     }
 
-    public static bool Spawn(IWorld world, string className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle)
+    public static bool Spawn(IWorld world, string className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle, bool force)
     {
         var pos = new Vec3D(MathHelper.FromFixed(xFixed), MathHelper.FromFixed(yFixed), MathHelper.FromFixed(zFixed));
-        return ExecuteSpawn(world, className, pos, tid, MathHelper.FromByteAngle(byteAngle), false);
+        return ExecuteSpawn(world, className, pos, tid, MathHelper.FromByteAngle(byteAngle), force);
     }
 
     public static bool SpawnSpot(IWorld world, Entity? activator, string className, int spotTid, int tid, double? angle, bool force)
