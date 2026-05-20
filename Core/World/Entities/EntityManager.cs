@@ -46,7 +46,7 @@ public class EntityManager : IDisposable
     public List<Entity> MusicChangers = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
     private readonly LookupArray<Entity?> EntityLookup = new(1024);
-    private readonly Dictionary<int, LinkedList<Entity>> TidToEntity = [];
+    private readonly Dictionary<int, LinkableList<Entity>> TidToEntity = [];
 
     public EntityManager(IWorld world)
     {
@@ -60,12 +60,13 @@ public class EntityManager : IDisposable
         return z != double.MinValue && z != 0.0;
     }
 
-    private static readonly LinkedList<Entity> EmptyLinkedList = new();
+    private static readonly LinkableList<Entity> EmptyLinkedList = new();
 
-    public LinkedList<Entity> FindByTid(int tid)
+    public LinkableList<Entity> FindByTid(int tid)
     {
         return TidToEntity.TryGetValue(tid, out var entities) ? entities : EmptyLinkedList;
     }
+
     public bool TidInUse(int tid)
     {
         return TidToEntity.ContainsKey(tid);
@@ -123,30 +124,20 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    private void RemoveEntityFromThingLookup(Entity entity)
+    private static void RemoveEntityFromThingLookup(Entity entity)
     {
-        if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
-        {
-            var node = entities.Find(entity);
-            if (node != null)
-            {
-                World.DataCache.FreeLinkedListNodeEntity(node);
-                entities.Remove(node);
-            }
-        }
+        entity.ThingIdNode?.Unlink();
+        entity.ThingIdNode = null;
     }
 
-    public void Destroy(Entity entity, bool removeFromIdList = true)
+    public void Destroy(Entity entity)
     {
         if (entity.IsDisposed)
             return;
 
         EntityCount--;
 
-        if (removeFromIdList)
-        {
-            RemoveEntityFromThingLookup(entity);
-        }
+        RemoveEntityFromThingLookup(entity);
 
         if (entity.Flags.IsTeleportSpot())
             TeleportSpots.Remove(entity);
@@ -159,15 +150,20 @@ public class EntityManager : IDisposable
         entity.Dispose();
     }
 
-    public void Destroy(LinkedList<Entity> entities)
+    public void Destroy(LinkableList<Entity> entities)
     {
-        for (var node = entities.First; node != null; node = node.Next)
-        {
-            Destroy(node.Value, false);
-            World.DataCache.FreeLinkedListNodeEntity(node);
-        }
+        //for (var node = entities.Head; node != null; node = node.Next)
+        //    Destroy(node.Value, false);
 
-        entities.Clear();
+        var node = entities.Head;
+        LinkableNode<Entity>? next = node?.Next;
+
+        while (node != null)
+        {
+            Destroy(node.Value);
+            node = next;
+            next = node?.Next;
+        }
     }
 
     public Player RespawnPlayer(int playerIndex, Entity spawnSpot) =>
@@ -639,28 +635,28 @@ public class EntityManager : IDisposable
     {
         if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
         {
-            entities.AddFirst(entity);
+            entity.ThingIdNode = entities.Add(entity);
         }
         else
         {
-            var list = new LinkedList<Entity>();
-            list.AddFirst(World.DataCache.GetLinkedListNodeEntity(entity));
+            var list = new LinkableList<Entity>();
+            entity.ThingIdNode = list.Add(entity);
             TidToEntity.Add(thingId, list);
         }
     }
 
     public void SetThingId(Entity entity, int thingId)
     {
-        if (entity.ThingId == thingId) return;
+        if (entity.ThingId == thingId)
+            return;
+
         if (entity.ThingId != NoTid)
-        {
             RemoveEntityFromThingLookup(entity);
-        }
+
         entity.SetThingIdWithoutAddingToList(thingId);
+
         if (entity.ThingId != NoTid)
-        {
             AddToThingLookup(entity, entity.ThingId);
-        }
     }
 
     private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)

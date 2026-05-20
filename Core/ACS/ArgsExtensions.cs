@@ -40,7 +40,7 @@ public static class ArgsExtensions
         {
             return thread.GetActivator(world);
         }
-        return world.FindByTid((int)tid).First?.Value;
+        return world.FindByTid((int)tid).Head?.Value;
     }
 
     public static double GetDouble(this uint[] args, uint index, double defaultValue = 0.0)

@@ -11,8 +11,7 @@ public class LinkableListTest
     public void CanAddValue()
     {
         LinkableList<int> list = new();
-        LinkableNode<int> node = new(5);
-        list.Add(node);
+        var node = list.Add(5);
 
         list.Head.Should().NotBeNull();
         list.Head.Should().BeSameAs(node);
@@ -27,15 +26,13 @@ public class LinkableListTest
     {
         LinkableList<int> list = new();
 
-        LinkableNode<int> first = new(5);
-        LinkableNode<int> second = new(10);
-        list.Add(first);
-        list.Add(second);
+        var first = list.Add(5);
+        var second = list.Add(10);
 
         second.Unlink();
 
         // This inserts at the front.
-        list.Add(second);
+        list.Add(second.Value);
 
         list.Head.Should().BeSameAs(second);
         second.Next.Should().BeSameAs(first);
@@ -45,8 +42,8 @@ public class LinkableListTest
     public void CheckContains()
     {
         LinkableList<int> list = new();
-        list.Add(new LinkableNode<int>(5));
-        list.Add(new LinkableNode<int>(10));
+        list.Add(5);
+        list.Add(10);
 
         list.Contains(5).Should().BeTrue();
         list.Contains(10).Should().BeTrue();
@@ -57,10 +54,8 @@ public class LinkableListTest
     public void CanUnlinkFront()
     {
         LinkableList<int> list = new();
-        LinkableNode<int> first = new(5);
-        LinkableNode<int> second = new(10);
-        list.Add(first);
-        list.Add(second);
+        var first = list.Add(5);
+        var second = list.Add(10);
 
         first.Unlink();
 
@@ -72,10 +67,8 @@ public class LinkableListTest
     public void CanUnlinkBack()
     {
         LinkableList<int> list = new();
-        LinkableNode<int> first = new(5);
-        LinkableNode<int> second = new(10);
-        list.Add(first);
-        list.Add(second);
+        var first = list.Add(5);
+        var second = list.Add(10);
 
         second.Unlink();
 

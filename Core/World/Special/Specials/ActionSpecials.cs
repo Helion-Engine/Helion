@@ -181,7 +181,7 @@ public static class ActionSpecials
     public static bool ThingRemove(IWorld world, in SpecialArgs args)
     {
         var removeEntities = world.FindByTid(args.Arg0);
-        if (removeEntities.First != null)
+        if (removeEntities.Head != null)
         {
             world.EntityManager.Destroy(removeEntities);
             return true;
@@ -310,7 +310,7 @@ public static class ActionSpecials
     public static bool ThingRaise(Entity activator, IWorld world, in SpecialArgs args)
     {
         var targets = world.FindByTid(args.Arg0);
-        for (var targetNode = targets.First; targetNode != null; targetNode = targetNode.Next)
+        for (var targetNode = targets.Head; targetNode != null; targetNode = targetNode.Next)
         {
             var target = targetNode.Value;
             if (target.IsDead())
@@ -626,7 +626,7 @@ public static class ActionSpecials
         if (tid == 0)
             return activator;
 
-        return world.FindByTid(tid).First?.Value;
+        return world.FindByTid(tid).Head?.Value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

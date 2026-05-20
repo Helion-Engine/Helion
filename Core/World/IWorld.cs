@@ -126,7 +126,7 @@ public interface IWorld : IDisposable
     void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
     IList<Sector> FindBySectorTag(int tag);
-    LinkedList<Entity> FindByTid(int tid);
+    LinkableList<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);
     void ExitLevel(ExitLevelArgs args);

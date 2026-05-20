@@ -600,10 +600,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public LinkableNode<Entity> Link(Entity entity)
     {
         //Precondition(!Entities.ContainsReference(entity), "Trying to link an entity to a sector twice");
-
-        LinkableNode<Entity> node = WorldStatic.DataCache.GetLinkableNodeEntity(entity);
-        Entities.Add(node);
-        return node;
+        return Entities.Add(entity);
     }
 
     public double ToFloorZ(in Vec2D position) => Floor.Plane.ToZ(position);
@@ -1031,11 +1028,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public void UnlinkFromWorld(IWorld world)
     {
         for (int i = 0; i < BlockmapNodes.Length; i++)
-        {
-            var node = BlockmapNodes[i];
-            node.Unlink();
-            world.DataCache.FreeLinkableNodeIsland(node);
-        }
+            BlockmapNodes[i].Unlink();
 
         BlockmapNodes.Clear();
 

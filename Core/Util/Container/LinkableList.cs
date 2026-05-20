@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Helion.Util.Container;
@@ -17,7 +18,7 @@ namespace Helion.Util.Container;
 /// having a pointer to the previous 'next pointer').
 /// </remarks>
 /// <typeparam name="T">The type contained in the nodes.</typeparam>
-public class LinkableList<T>
+public class LinkableList<T> : IEnumerable<T>
 {
     private readonly LinkableNode<T> m_dummyHead;
 
@@ -38,16 +39,18 @@ public class LinkableList<T>
     /// Adds a node to the front of the list.
     /// </summary>
     /// <param name="node">The node to add.</param>
-    public void Add(LinkableNode<T> node)
+    public LinkableNode<T> Add(T value)
     {
+        var node = LinkableNode<T>.Pool.Length > 0 ? LinkableNode<T>.Pool.RemoveLast() : new LinkableNode<T>(default!);
+        node.Value = value;
         var previous = m_dummyHead;
 
         node.Next = previous.Next;
         node.Previous = previous;
 
         previous.Next = node;
-        if (node.Next != null)
-            node.Next.Previous = node;
+        node.Next?.Previous = node;
+        return node;
     }
 
     /// <summary>
@@ -87,14 +90,38 @@ public class LinkableList<T>
         return false;
     }
 
-    public IEnumerable<T> Enumerate()
+    public Enumerator GetEnumerator() => new(this);
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public struct Enumerator : IEnumerator<T>
     {
-        LinkableNode<T>? node = Head;
-        while (node != null)
+        private readonly LinkableList<T> m_list;
+        private LinkableNode<T>? m_node;
+        private T? m_current;
+
+        internal Enumerator(LinkableList<T> list)
         {
-            yield return node.Value;
-            node = node.Next;
+            m_list = list;
+            m_node = list.Head;
+            m_current = default;
         }
+
+        public readonly T Current => m_current!;
+        readonly object? IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            if (m_node == null)
+                return false;
+
+            m_current = m_node.Value;
+            m_node = m_node.Next;
+            return true;
+        }
+
+        public void Reset() => m_node = m_list.Head;
+        public readonly void Dispose() { }
     }
 }
 
@@ -105,6 +132,8 @@ public class LinkableList<T>
 /// <typeparam name="T">The type to hold.</typeparam>
 public class LinkableNode<T>
 {
+    internal static readonly DynamicArray<LinkableNode<T>> Pool = new(1024, capacityAlloc: () => new LinkableNode<T>(default!));
+
     /// <summary>
     /// The value contained in this node.
     /// </summary>
@@ -168,8 +197,9 @@ public class LinkableNode<T>
     /// </summary>
     public void Unlink()
     {
-        if (Next != null)
-            Next.Previous = Previous!;
+        Next?.Previous = Previous!;
         Previous!.Next = Next;
+        Value = default!;
+        Pool.Add(this);
     }
 }

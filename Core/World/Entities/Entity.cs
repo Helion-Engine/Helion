@@ -138,7 +138,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new(arrayPool: true);
-    public readonly DynamicArray<int> IntersectMidTexLines = new(); 
+    public readonly DynamicArray<int> IntersectMidTexLines = new();
+    public LinkableNode<Entity>? ThingIdNode;
     public bool IsDisposed;
     public bool WaitSoundDispose;
 
@@ -478,9 +479,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     {
         for (int i = SectorNodes.Length - 1; i >= 0; i--)
         {
-            LinkableNode<Entity> node = SectorNodes[i];
-            node.Unlink();
-            WorldStatic.DataCache.FreeLinkableNodeEntity(node);
+            SectorNodes[i].Unlink();
             SectorNodes.Data[i] = null!;
         }
         SectorNodes.Clear();

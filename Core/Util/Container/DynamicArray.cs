@@ -56,7 +56,7 @@ public class DynamicArray<T> : IList<T>
     /// no value is provided it defaults to 8. This value should not be
     /// negative or zero. It will be clamped to being at least a value of
     /// 1 to avoid certain resizing issues.</param>
-    public DynamicArray(int capacity = 8, bool arrayPool = false)
+    public DynamicArray(int capacity = 8, bool arrayPool = false, Func<T>? capacityAlloc = null)
     {
         Precondition(capacity > 0, "Must have a positive capacity");
         capacity = Math.Max(1, capacity);
@@ -66,6 +66,13 @@ public class DynamicArray<T> : IList<T>
             Data = ArrayPool<T>.Shared.Rent(capacity);
         else
             Data = new T[capacity];
+
+        if (capacityAlloc != null)
+        {
+            for (int i = 0; i < Capacity; i++)
+                Data[i] = capacityAlloc();
+            Length = Capacity;
+        }
     }
 
     public DynamicArray(T[] data)

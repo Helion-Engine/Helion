@@ -1410,7 +1410,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Sector> FindBySectorTag(int tag) =>
         Geometry.FindBySectorTag(tag);
 
-    public LinkedList<Entity> FindByTid(int tid) =>
+    public LinkableList<Entity> FindByTid(int tid) =>
         EntityManager.FindByTid(tid);
 
     public IEnumerable<Line> FindByLineId(int lineId) =>
@@ -3862,7 +3862,7 @@ public abstract partial class WorldBase : IWorld
         {
             // If searching by thing id then pre-filter by tid list.
             var entities = EntityManager.FindByTid(tid);
-            for (var node = entities.First; node != null; node = node.Next)
+            for (var node = entities.Head; node != null; node = node.Next)
                 CountEntity(node.Value, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
 
             return count;
