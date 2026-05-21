@@ -1,4 +1,5 @@
 using Helion.Geometry.Vectors;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -9,6 +10,7 @@ using Helion.World.Special.Specials;
 using HelionACS;
 using NLog;
 using System;
+using System.Linq;
 
 namespace Helion.ACS;
 
@@ -61,8 +63,8 @@ public class WorldExecutor : Executor
         // 87-89: ACSVM internal codes.
         //AddCodeDataACS0I( 90, "",        0, CF_PlayerCount); TODO
         //AddCodeDataACS0I( 91, "",        0, CF_GameType); TODO
-        //AddCodeDataACS0I( 92, "",        0, CF_GameSkill); TODO
-        //AddCodeDataACS0I( 93, "",        0, CF_Timer); TODO
+        AddCodeDataACS0I( 92, "",        0, CF_GameSkill);
+        AddCodeDataACS0I( 93, "",        0, CF_Timer);
         //AddCodeDataACS0V( 94, "",        2, CF_SectorSound); TODO?
         //AddCodeDataACS0V( 95, "",        2, CF_AmbientSound); TODO?
         //AddCodeDataACS0V( 96, "",        1, CF_SoundSequence); TODO?
@@ -122,7 +124,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V(165, "",        1, CF_SetFont);
         //AddCodeDataACS0V(166, "WS",      0, CF_SetFont);
         // 167-173: ACSVM internal codes.
-        //AddCodeDataACS0I(174, "BB",      0, CF_Random);
+        AddCodeDataACS0I(174, "BB",      0, CF_Random);
         // 175-179: ACSVM internal codes.
         //AddCodeDataACS0V(180, "",        7, CF_SetThingSpecial);
         // 181-189: ACSVM internal codes.
@@ -141,9 +143,9 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V(202, "",        0, CF_TransEnd);
         // 203-217: ACSVM internal codes.
         // 218-219: Unused codes.
-        //AddCodeDataACS0F(220, "",        1, CF_Sin);
-        //AddCodeDataACS0F(221, "",        1, CF_Cos);
-        //AddCodeDataACS0F(222, "",        2, CF_VectorAngle);
+        AddCodeDataACS0F(220, "",        1, CF_Sin);
+        AddCodeDataACS0F(221, "",        1, CF_Cos);
+        AddCodeDataACS0F(222, "",        2, CF_VectorAngle);
         //AddCodeDataACS0I(223, "",        1, CF_CheckWeapon);
         //AddCodeDataACS0I(224, "",        1, CF_SetWeapon);
         // 225-243: ACSVM internal codes.
@@ -161,10 +163,10 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0I(255, "",        1, CF_GetCVar);
         // 256-257: ACSVM internal codes.
         //AddCodeDataACS0I(258, "",        0, CF_GetLineRowOffset);
-        //AddCodeDataACS0F(259, "",        1, CF_GetActorFloorZ);
-        //AddCodeDataACS0F(260, "",        1, CF_GetActorAngle);
-        //AddCodeDataACS0F(261, "",        3, CF_GetSectorFloorZ);
-        //AddCodeDataACS0F(262, "",        3, CF_GetSectorCeilingZ);
+        AddCodeDataACS0F(259, "",        1, CF_GetActorFloorZ);
+        AddCodeDataACS0F(260, "",        1, CF_GetActorAngle);
+        AddCodeDataACS0F(261, "",        3, CF_GetSectorFloorZ);
+        AddCodeDataACS0F(262, "",        3, CF_GetSectorCeilingZ);
         // 263-263: ACSVM internal codes.
         //AddCodeDataACS0I(264, "",        0, CF_GetSigilPieces);
         //AddCodeDataACS0I(265, "",        1, CF_GetLevelInfo);
@@ -180,13 +182,13 @@ public class WorldExecutor : Executor
         // 277-279: Unused codes.
         //AddCodeDataACS0V(280, "",        7, CF_SpawnProjectile);
         //AddCodeDataACS0I(281, "",        1, CF_GetSectorLightLevel);
-        //AddCodeDataACS0F(282, "",        1, CF_GetActorCeilingZ);
+        AddCodeDataACS0F(282, "",        1, CF_GetActorCeilingZ);
         AddCodeDataACS0B(283, "",        5, CF_SetActorPosition);
         //AddCodeDataACS0V(284, "",        1, CF_ClrThingInv);
         //AddCodeDataACS0V(285, "",        3, CF_AddThingInv);
         //AddCodeDataACS0V(286, "",        3, CF_SubThingInv);
         //AddCodeDataACS0I(287, "",        2, CF_GetThingInv);
-        //AddCodeDataACS0I(288, "",        2, CF_ThingCountName);
+        AddCodeDataACS0I(288, "",        2, CF_ThingCountName);
         AddCodeDataACS0I(289, "",        3, CF_SpawnSpotFacing);
         //AddCodeDataACS0I(290, "",        1, CF_PlayerClass);
         // 291-325: ACSVM internal codes.
@@ -237,9 +239,9 @@ public class WorldExecutor : Executor
         //AddFuncDataACS0F(  6, CF_GetSectorUDMFFixed);
         //AddFuncDataACS0I(  7, CF_GetSideUDMFInt);
         //AddFuncDataACS0F(  8, CF_GetSideUDMFFixed);
-        //AddFuncDataACS0F(  9, CF_GetActorVelX);
-        //AddFuncDataACS0F( 10, CF_GetActorVelY);
-        //AddFuncDataACS0F( 11, CF_GetActorVelZ);
+        AddFuncDataACS0F(  9, CF_GetActorVelX);
+        AddFuncDataACS0F( 10, CF_GetActorVelY);
+        AddFuncDataACS0F( 11, CF_GetActorVelZ);
         //AddFuncDataACS0V( 12, CF_SetActivator);
         //AddFuncDataACS0V( 13, CF_SetActivatorToTarget);
         //AddFuncDataACS0F( 14, CF_GetThingViewHeight);
@@ -251,7 +253,7 @@ public class WorldExecutor : Executor
         AddFuncDataACS0I( 20, CF_SpawnSpotForced);
         AddFuncDataACS0I( 21, CF_SpawnSpotFacingForced);
         //AddFuncDataACS0I( 22, CF_CheckActorProperty);
-        //AddFuncDataACS0V( 23, CF_SetActorVelocity);
+        AddFuncDataACS0V( 23, CF_SetActorVelocity);
         //AddFuncDataACS0I( 24, CF_SetThingUserVar);
         //AddFuncDataACS0I( 25, CF_GetThingUserVar);
         //AddFuncDataACS0I( 26, CF_Radius_Quake2);
@@ -264,15 +266,15 @@ public class WorldExecutor : Executor
         //AddFuncDataACS0F( 33, CF_GetPolyobjX);
         //AddFuncDataACS0F( 34, CF_GetPolyobjY);
         //AddFuncDataACS0I( 35, CF_CheckSight);
-        //AddFuncDataACS0I( 36, CF_SpawnForced);
+        AddFuncDataACS0I( 36, CF_SpawnForced);
         //AddFuncDataACS0V( 37, CF_AnnouncerSound);
         //AddFuncDataACS0B( 38, CF_SetPointer);
         // 39-45: ACSVM internal funcs.
         AddFuncDataACS0I( 46, CF_UniqueTID);
         AddFuncDataACS0B( 47, CF_IsTIDUsed);
-        //AddFuncDataACS0I( 48, CF_Sqrt);
-        //AddFuncDataACS0F( 49, CF_FixedSqrt);
-        //AddFuncDataACS0F( 50, CF_VectorLength);
+        AddFuncDataACS0I( 48, CF_Sqrt);
+        AddFuncDataACS0F( 49, CF_FixedSqrt);
+        AddFuncDataACS0F( 50, CF_VectorLength);
         //AddFuncDataACS0V( 51, CF_SetHudClipRect);
         //AddFuncDataACS0V( 52, CF_SetHudWrapWidth);
         //AddFuncDataACS0V( 53, CF_SetCVar);
@@ -329,9 +331,9 @@ public class WorldExecutor : Executor
         //AddFuncDataACS0S(204, CF_GetActorFloorTexture);
         //AddFuncDataACS0S(205, CF_GetActorFloorTerrain);
         //AddFuncDataACS0I(206, CF_StrArg);
-        //AddFuncDataACS0F(207, CF_Floor);
-        //AddFuncDataACS0F(208, CF_Round);
-        //AddFuncDataACS0F(209, CF_Ceil);
+        AddFuncDataACS0F(207, CF_Floor);
+        AddFuncDataACS0F(208, CF_Round);
+        AddFuncDataACS0F(209, CF_Ceil);
         //AddFuncDataACS0*(210, CF_ScriptCall);
         //AddFuncDataACS0V(211, CF_StartSlideshow);
         //AddFuncDataACS0I(212, CF_GetSectorHealth);
@@ -341,8 +343,8 @@ public class WorldExecutor : Executor
         //AddFuncDataACS0B(216, CF_SetActivatorByNetID);
 
         // 300-399 are from Eternity:
-        //AddFuncDataACS0F(300, CF_GetLineX);
-        //AddFuncDataACS0F(301, CF_GetLineY);
+        AddFuncDataACS0F(300, CF_GetLineX);
+        AddFuncDataACS0F(301, CF_GetLineY);
         //AddFuncDataACS0V(302, CF_SetAirFriction);
         //AddFuncDataACS0V(303, CF_SetPolyObjXY);
 
@@ -483,6 +485,10 @@ public class WorldExecutor : Executor
     {
         return GetThingCount(args.Get(0), args.Get(1));
     }
+    public int CF_ThingCountName(ThreadHandle thread, uint[] args)
+    {
+        return GetThingCount(args.GetString(thread, 0), args.Get(1));
+    }
 
     public int CF_PlayerNumber(ThreadHandle thread, uint[] args)
     {
@@ -531,7 +537,18 @@ public class WorldExecutor : Executor
         var z = args.Get(3);
         var tid = args.Get(4);
         var angle = args.Get(5);
-        return ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle) ? 1 : 0;
+        return ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle, false) ? 1 : 0;
+    }
+
+    public int CF_SpawnForced(ThreadHandle thread, uint[] args)
+    {
+        var className = args.GetString(thread, 0);
+        var x = args.Get(1);
+        var y = args.Get(2);
+        var z = args.Get(3);
+        var tid = args.Get(4);
+        var angle = args.Get(5);
+        return ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle, true) ? 1 : 0;
     }
 
     public int CF_SpawnSpot(ThreadHandle thread, uint[] args)
@@ -573,13 +590,11 @@ public class WorldExecutor : Executor
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Position.X ?? 0;
     }
-    
     public double CF_GetActorY(ThreadHandle thread, uint[] args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Position.Y ?? 0;
     }
-    
     public double CF_GetActorZ(ThreadHandle thread, uint[] args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
@@ -613,6 +628,36 @@ public class WorldExecutor : Executor
         }
 
         return true;
+    }
+
+    public double CF_GetActorVelX(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.Velocity.X ?? 0;
+    }
+    public double CF_GetActorVelY(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.Velocity.Y ?? 0;
+    }
+    public double CF_GetActorVelZ(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.Velocity.Z ?? 0;
+    }
+
+    public void CF_SetActorVelocity(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        var velx = args.GetDouble(1);
+        var vely = args.GetDouble(2);
+        var velz = args.GetDouble(3);
+        var add = args.GetBool(4);
+        // var setbob = args.GetBool(5); // not used (yet?), since there's no separated bob velocity from Boom
+        if (entity == null) return;
+
+        var vel = new Vec3D(velx, vely, velz);
+        entity.Velocity = (add ? entity.Velocity : Vec3D.Zero) + vel;
     }
     
     public int CF_UniqueTID(ThreadHandle thread, uint[] args)
@@ -670,6 +715,110 @@ public class WorldExecutor : Executor
         return activator.PlayerObj.Inventory.CheckInventory(className);
     }
 
+    enum GameSkillResult : int
+    {
+        VeryEasy = 0,
+        Easy = 1,
+        Normal = 2,
+        Hard = 3,
+        VeryHard = 4
+    }
+
+    public int CF_GameSkill(ThreadHandle thread, uint[] args) => 
+        (int)(m_world.SkillLevel switch {
+            SkillLevel.VeryEasy => GameSkillResult.VeryEasy,
+            SkillLevel.Easy => GameSkillResult.Easy,
+            SkillLevel.Medium => GameSkillResult.Normal,
+            SkillLevel.Hard => GameSkillResult.Hard,
+            SkillLevel.Nightmare => GameSkillResult.VeryHard,
+
+            _ => GameSkillResult.Normal
+        });
+
+    public int CF_Timer(ThreadHandle thread, uint[] args) => m_world.LevelTime;
+
+    private static double FixedAngleWraparound(double value) => value - Math.Floor(value);
+
+    // ACS trigonometry uses "fixed-point angles" instead of something normal like radians or degrees
+    public static double CF_Sin(ThreadHandle thread, uint[] args) => Math.Sin(args.GetDouble(0) * 2 * Math.PI);
+    public static double CF_Cos(ThreadHandle thread, uint[] args) => Math.Cos(args.GetDouble(0) * 2 * Math.PI);
+    public static double CF_VectorAngle(ThreadHandle thread, uint[] args) => FixedAngleWraparound(Math.Atan2(args.GetDouble(1), args.GetDouble(0)) / (2 * Math.PI));
+
+    public static int CF_Sqrt(ThreadHandle thread, uint[] args) => (int)Math.Sqrt(args.Get(0));
+    public static double CF_FixedSqrt(ThreadHandle thread, uint[] args) => Math.Sqrt(args.GetDouble(0));
+    public static double CF_VectorLength(ThreadHandle thread, uint[] args) => new Vec2D(args.GetDouble(0), args.GetDouble(1)).Length();
+
+    // these can be done with fixed-point bit manipulation but it's harder to read than the double version for questionable benefit on modern hardware
+    public static double CF_Floor(ThreadHandle thread, uint[] args) => Math.Floor(args.GetDouble(0));
+    public static double CF_Round(ThreadHandle thread, uint[] args) => Math.Round(args.GetDouble(0));
+    public static double CF_Ceil(ThreadHandle thread, uint[] args) => Math.Ceiling(args.GetDouble(0));
+
+    private Vec2D GetLineInner(int lineId, double interpolationT, double normalOffset)
+    {
+        var line = m_world.FindByLineId(lineId).First();
+        if (line == null) return Vec2D.Zero;
+
+        var point = line.Segment.FromTime(interpolationT);
+        if (normalOffset != 0.0)
+        {
+            var normal = new Vec2D(line.Segment.Delta.Y, -line.Segment.Delta.X).Unit();
+            point += point + normal * normalOffset;
+        }
+        return point;
+    }
+    public double CF_GetLineX(ThreadHandle thread, uint[] args)
+    {
+        var lineId = args.Get(0);
+        var interpolationT = args.GetDouble(1);
+        var normalOffset = args.GetDouble(2);
+        return GetLineInner(lineId, interpolationT, normalOffset).X;
+    }
+
+    public double CF_GetLineY(ThreadHandle thread, uint[] args)
+    {
+        var lineId = args.Get(0);
+        var interpolationT = args.GetDouble(1);
+        var normalOffset = args.GetDouble(2);
+        return GetLineInner(lineId, interpolationT, normalOffset).Y;
+    }
+
+    public double CF_GetActorFloorZ(ThreadHandle thread, uint[] args)
+    {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.HighestFloorZ ?? 0.0;
+    }
+
+    public double CF_GetActorCeilingZ(ThreadHandle thread, uint[] args) {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return entity?.LowestCeilingZ ?? 0.0;
+    }
+
+    public double CF_GetActorAngle(ThreadHandle thread, uint[] args) {
+        var entity = args.GetTidOrActivator(thread, m_world, 0);
+        return FixedAngleWraparound((entity?.AngleRadians ?? 0.0) / (2 * Math.PI));
+    }
+
+    private Sector? GetSectorForTagOrPoint(int tag, double x, double y) =>
+        (tag != 0) ? m_world.FindBySectorTag(tag).First() : m_world.ToSubsector(x, y).Sector;
+
+    public double CF_GetSectorFloorZ(ThreadHandle thread, uint[] args)
+    {
+        var tag = args.Get(0);
+        // NOTE: intentionally not `GetDouble`. idk why but that's how the function works.
+        var x = args.Get(1);
+        var y = args.Get(2);
+        return GetSectorForTagOrPoint(tag, x, y)?.Floor?.Plane.ToZ(new Vec2D(x, y)) ?? 0.0;
+    }
+
+    public double CF_GetSectorCeilingZ(ThreadHandle thread, uint[] args)
+    {
+        var tag = args.Get(0);
+        // NOTE: intentionally not `GetDouble`. idk why but that's how the function works.
+        var x = args.Get(1);
+        var y = args.Get(2);
+        return GetSectorForTagOrPoint(tag, x, y)?.Ceiling?.Plane.ToZ(new Vec2D(x, y)) ?? 0.0;
+    }
+
     private int GetThingCount(int type, int tid)
     {
         // Check any type by tid only
@@ -680,6 +829,14 @@ public class WorldExecutor : Executor
             return 0;
 
         var def = m_world.EntityManager.DefinitionComposer.GetByName(definitionName);
+        if (def == null)
+            return 0;
+
+        return m_world.EntityAliveCount(def.Id, tid);
+    }
+    private int GetThingCount(string name, int tid)
+    {
+        var def = m_world.EntityManager.DefinitionComposer.GetByName(name);
         if (def == null)
             return 0;
 

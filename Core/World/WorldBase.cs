@@ -769,7 +769,7 @@ public abstract partial class WorldBase : IWorld
         if (worldModel == null)
         {
             StartScript(HelionACS.ScriptType.Open, [], null);
-            StartScript(HelionACS.ScriptType.Enter, [], null);
+            StartScript(HelionACS.ScriptType.Enter, [], Player);
         }
 
         SetEntityLightSectors();
