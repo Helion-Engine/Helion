@@ -31,6 +31,7 @@ public class EntityDefinitionComposer
     private readonly ArchiveCollection m_archiveCollection;
     private readonly AvailableIndexTracker m_indexTracker = new();
     private readonly Dictionary<string, EntityDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, EntityDefinition>.AlternateLookup<ReadOnlySpan<char>> m_definitionsBySpan;
     private readonly List<EntityDefinition> m_listDefinitions = new();
     private readonly List<EntityDefinition> m_ammoDefinitions = new();
     private readonly List<EntityDefinition> m_keyDefinitions = new();
@@ -42,6 +43,7 @@ public class EntityDefinitionComposer
     public EntityDefinitionComposer(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
+        m_definitionsBySpan = m_definitions.GetAlternateLookup<ReadOnlySpan<char>>();
     }
 
     public void LoadAllDefinitions()
@@ -59,12 +61,12 @@ public class EntityDefinitionComposer
         BulletPuffDefinition = GetByName("BulletPuff");
     }
 
-    public EntityDefinition GetByNameOrDefault(string name) =>
+    public EntityDefinition GetByNameOrDefault(ReadOnlySpan<char> name) =>
         GetByName(name) ?? EntityDefinition.Default;
 
-    public EntityDefinition? GetByName(string name)
+    public EntityDefinition? GetByName(ReadOnlySpan<char> name)
     {
-        if (m_definitions.TryGetValue(name, out EntityDefinition? definition))
+        if (m_definitionsBySpan.TryGetValue(name, out EntityDefinition? definition))
             return definition;
 
         ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];

@@ -2409,7 +2409,7 @@ public abstract partial class WorldBase : IWorld
         player.Inventory.Clear();
     }
 
-    public virtual bool GiveInventory(Player player, string className, int amount)
+    public virtual bool GiveInventory(Player player, ReadOnlySpan<char> className, int amount)
     {
         var def = EntityManager.DefinitionComposer.GetByName(className);
         if (def == null)
@@ -2418,7 +2418,7 @@ public abstract partial class WorldBase : IWorld
         return player.GiveItem(def, null, pickupFlash: false, amount: amount);
     }
 
-    public virtual void TakeInventory(Player player, string className, int amount)
+    public virtual void TakeInventory(Player player, ReadOnlySpan<char> className, int amount)
     {
         player.Inventory.Remove(className, amount);
     }

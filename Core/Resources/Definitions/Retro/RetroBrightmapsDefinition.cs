@@ -17,8 +17,14 @@ public class RetroBrightmapsDefinition
     private readonly Dictionary<string, bool[]> m_nameToFullbright = [];
     private readonly Dictionary<BrightmapKey, string> m_textureToBrightmap = [];
     private readonly Dictionary<string, string> m_spriteToBrightmap = [];
+    private readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> m_spriteToBrightmapBySpan;
     private readonly Dictionary<int, string> m_stateToBrightmap = [];
     private readonly Dictionary<SpriteKey, BrightmapDefinition> m_spriteToBrightmapDefinition = [];
+
+    public RetroBrightmapsDefinition()
+    {
+        m_spriteToBrightmapBySpan = m_spriteToBrightmap.GetAlternateLookup<ReadOnlySpan<char>>();
+    }
 
     public bool TryGetFullBright(string name, out bool[]? fullBrightLookup) => m_nameToFullbright.TryGetValue(name, out fullBrightLookup);
 
@@ -28,8 +34,7 @@ public class RetroBrightmapsDefinition
         if (type == ResourceNamespace.Sprites)
         {
             var sprite = name.Length >= 4 ? name.AsSpan(0, 4) : name.AsSpan();
-            var lookup = m_spriteToBrightmap.GetAlternateLookup<ReadOnlySpan<char>>();
-            if (!lookup.TryGetValue(sprite, out var spriteBrightmapName))
+            if (!m_spriteToBrightmapBySpan.TryGetValue(sprite, out var spriteBrightmapName))
                 return false;
 
             return m_nameToFullbright.TryGetValue(spriteBrightmapName, out fullBrightLookup);

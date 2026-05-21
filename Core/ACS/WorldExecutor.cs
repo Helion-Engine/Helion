@@ -689,7 +689,7 @@ public class WorldExecutor : Executor
         if (activator?.PlayerObj == null)
             return;
 
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var amount = args.Get(1);
         m_world.GiveInventory(activator.PlayerObj, className, amount);
     }
@@ -700,7 +700,7 @@ public class WorldExecutor : Executor
         if (activator?.PlayerObj == null)
             return;
 
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var amount = args.Get(1);
         m_world.TakeInventory(activator.PlayerObj, className, amount);
     }
@@ -711,7 +711,7 @@ public class WorldExecutor : Executor
         if (activator?.PlayerObj == null)
             return 0;
 
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         return activator.PlayerObj.Inventory.CheckInventory(className);
     }
 

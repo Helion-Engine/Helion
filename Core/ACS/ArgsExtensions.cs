@@ -2,6 +2,7 @@
 using Helion.World;
 using Helion.World.Entities;
 using HelionACS;
+using System;
 
 namespace Helion.ACS;
 
@@ -27,6 +28,15 @@ public static class ArgsExtensions
             return defaultValue;
 
         var str = thread.GetString(args[index]);
+        return str;
+    }
+
+    public static ReadOnlySpan<char> GetStringSpan(this uint[] args, ThreadHandle thread, uint index, string defaultValue = "")
+    {
+        if (index >= args.Length)
+            return defaultValue;
+
+        var str = thread.GetStringSpan(index, args[index]);
         return str;
     }
 

@@ -308,7 +308,7 @@ public class DehackedApplier
             if (weaponSlot.Value.Count == 0)
                 continue;
 
-            var weaponDefs = weaponSlot.Value.Select(composer.GetByName).Where(x => x != null).OrderBy(x => x!.Properties.Weapons.SlotPriority).ToArray();
+            var weaponDefs = weaponSlot.Value.Select(x => composer.GetByName(x.AsSpan())).Where(x => x != null).OrderBy(x => x!.Properties.Weapons.SlotPriority).ToArray();
             for (int i = 0; i < weaponDefs.Length; i++)
             {
                 var weaponDef = weaponDefs[i];
@@ -1036,7 +1036,7 @@ public class DehackedApplier
     {
         List<EntityDefinition[]> weaponDefs = [];
         foreach (var weaponNames in dehacked.AmmoToWeaponNames)
-            weaponDefs.Add(weaponNames.Select(composer.GetByNameOrDefault).ToArray());
+            weaponDefs.Add([.. weaponNames.Select(x => composer.GetByNameOrDefault(x.AsSpan()))]);
         return weaponDefs;
     }
 

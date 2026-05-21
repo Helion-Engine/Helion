@@ -51,6 +51,7 @@ public sealed class Inventory
     /// item (ex: weapons, which need more logic).
     /// </summary>
     private readonly Dictionary<string, InventoryItem> Items = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, InventoryItem>.AlternateLookup<ReadOnlySpan<char>> ItemsBySpan;
     private readonly LookupArray<InventoryItem?> ItemsById = new();
     private readonly List<InventoryItem> ItemList = [];
     private readonly List<InventoryItem> Keys = [];
@@ -72,6 +73,7 @@ public sealed class Inventory
         Owner = owner;
         EntityDefinitionComposer = composer;
         Weapons = new Weapons(this, WorldStatic.World.GameInfo.WeaponSlots, composer);
+        ItemsBySpan = Items.GetAlternateLookup<ReadOnlySpan<char>>();
     }
 
     public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
@@ -508,9 +510,9 @@ public sealed class Inventory
     }
 
     // Returns the amount owned. If it's an owned weapon then 1 is returned.
-    public int CheckInventory(string name)
+    public int CheckInventory(ReadOnlySpan<char> name)
     {
-        if (Items.TryGetValue(name, out var item))
+        if (ItemsBySpan.TryGetValue(name, out var item))
             return item.Amount;
 
         var weapon = Weapons.GetWeapon(name);
@@ -527,12 +529,12 @@ public sealed class Inventory
         return item.Amount;
     }
 
-    public void Remove(string name, int amount)
+    public void Remove(ReadOnlySpan<char> name, int amount)
     {
         if (amount <= 0)
             return;
 
-        if (Items.TryGetValue(name, out InventoryItem? item))
+        if (ItemsBySpan.TryGetValue(name, out InventoryItem? item))
         {
             if (amount < item.Amount)
                 item.Amount -= amount;
@@ -579,13 +581,13 @@ public sealed class Inventory
         return i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value);
     }
 
-    private void RemoveItem(string name)
+    private void RemoveItem(ReadOnlySpan<char> name)
     {
-        if (!Items.TryGetValue(name, out InventoryItem? item))
+        if (!ItemsBySpan.TryGetValue(name, out InventoryItem? item))
             return;
 
         ItemsById.Set(item.Definition.Id, null);
-        Items.Remove(name);
+        ItemsBySpan.Remove(name);
         ItemList.Remove(item);
     }
 
