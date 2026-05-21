@@ -41,7 +41,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
         return data.Length > 14 && data[0] == 'B' && data[1] == 'M';
     }
 
-    public Image? Get(string name, ResourceNamespace priorityNamespace, GetImageOptions options = GetImageOptions.Default)
+    public Image? Get(ReadOnlySpan<char> name, ResourceNamespace priorityNamespace, GetImageOptions options = GetImageOptions.Default)
     {
         Image? compiledImage = m_compiledImages.Get(name, priorityNamespace);
         if (compiledImage != null)
@@ -71,10 +71,10 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
             .ToList();
     }
 
-    public Image? GetOnly(string name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default) =>
+    public Image? GetOnly(ReadOnlySpan<char> name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default) =>
         GetOnlyMapped(name, name, targetNamespace, null, options);
 
-    public Image? GetOnlyMapped(string mappedName, string entryName, ResourceNamespace targetNamespace, byte[]? colorTranslation, GetImageOptions options = GetImageOptions.Default)
+    public Image? GetOnlyMapped(ReadOnlySpan<char> mappedName, ReadOnlySpan<char> entryName, ResourceNamespace targetNamespace, byte[]? colorTranslation, GetImageOptions options = GetImageOptions.Default)
     {
         Image? compiledImage = m_compiledImages.GetOnly(mappedName, targetNamespace);
         if (compiledImage != null)

@@ -550,7 +550,7 @@ public static class ActionSpecials
         }
     }
 
-    public static bool ChangeFlat(IWorld world, int tag, string texture, SectorPlaneFace face)
+    public static bool ChangeFlat(IWorld world, int tag, ReadOnlySpan<char> texture, SectorPlaneFace face)
     {
         var textureHandle = world.TextureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
         var sectors = world.FindBySectorTag(tag);

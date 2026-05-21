@@ -519,14 +519,14 @@ public class WorldExecutor : Executor
     public void CF_ChangeFloor(ThreadHandle thread, uint[] args)
     {
         var tag = args.Get(0);
-        var flat = args.GetString(thread, 1);
+        var flat = args.GetStringSpan(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Floor);
     }
 
     public void CF_ChangeCeiling(ThreadHandle thread, uint[] args)
     {
         var tag = args.Get(0);
-        var flat = args.GetString(thread, 1);
+        var flat = args.GetStringSpan(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Ceiling);
     }
 

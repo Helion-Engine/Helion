@@ -1,7 +1,8 @@
-using System.Collections.Generic;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
 using NLog;
+using System;
+using System.Collections.Generic;
 
 namespace Helion.Resources.Definitions.Texture;
 
@@ -60,13 +61,13 @@ public class PnamesTextureXCollection
             Log.Warn("Unable to parse TextureX from {0}", entry.Path);
     }
 
-    public bool HasPatch(string name)
+    public bool HasPatch(ReadOnlySpan<char> name)
     {
         foreach (var pnames in Pnames)
         {
             foreach (var patchName in pnames.Names)
             {
-                if (patchName.EqualsIgnoreCase(name))
+                if (name.EqualsIgnoreCase(patchName))
                     return true;
             }
         }

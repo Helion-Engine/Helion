@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -104,6 +105,23 @@ public class HashTable<K1, K2, V> where V : class
         return null;
     }
 
+    public V? Get(K1 firstKey, ReadOnlySpan<char> secondKey)
+    {
+        if (m_table.TryGetValue(firstKey, out var map))
+        {
+            if (typeof(K2) == typeof(string))
+            {
+                var lookup = ((Dictionary<string, V>)(object)map)
+                    .GetAlternateLookup<ReadOnlySpan<char>>();
+
+                if (lookup.TryGetValue(secondKey, out var value))
+                    return value;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Tries to get the value and if it exists, sets the out value. If it
     /// fails to find it, then the out parameter is set to its default.
@@ -118,6 +136,23 @@ public class HashTable<K1, K2, V> where V : class
         if (m_table.TryGetValue(firstKey, out var map))
             if (map.TryGetValue(secondKey, out value))
                 return true;
+
+        value = default;
+        return false;
+    }
+
+    public bool TryGet(K1 firstKey, ReadOnlySpan<char> secondKey, ref V? value)
+    {
+        if (m_table.TryGetValue(firstKey, out var map))
+        {
+            if (typeof(K2) == typeof(string))
+            {
+                var lookup = ((Dictionary<string, V>)(object)map)
+                    .GetAlternateLookup<ReadOnlySpan<char>>();
+
+                return lookup.TryGetValue(secondKey, out value);
+            }
+        }
 
         value = default;
         return false;
