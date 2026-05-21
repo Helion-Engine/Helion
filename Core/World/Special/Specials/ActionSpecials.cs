@@ -8,6 +8,7 @@ using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
@@ -562,13 +563,13 @@ public static class ActionSpecials
         return sectors.Count > 0;
     }
 
-    public static bool Spawn(IWorld world, string className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle, bool force)
+    public static bool Spawn(IWorld world, ReadOnlySpan<char> className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle, bool force)
     {
         var pos = new Vec3D(MathHelper.FromFixed(xFixed), MathHelper.FromFixed(yFixed), MathHelper.FromFixed(zFixed));
         return ExecuteSpawn(world, className, pos, tid, MathHelper.FromByteAngle(byteAngle), force);
     }
 
-    public static bool SpawnSpot(IWorld world, Entity? activator, string className, int spotTid, int tid, double? angle, bool force)
+    public static bool SpawnSpot(IWorld world, Entity? activator, ReadOnlySpan<char> className, int spotTid, int tid, double? angle, bool force)
     {
         var success = false;
         if (spotTid != 0)
@@ -585,7 +586,7 @@ public static class ActionSpecials
         return success;
     }
 
-    private static bool ExecuteSpawn(IWorld world, string className, Vec3D pos, int tid, double angle, bool force)
+    private static bool ExecuteSpawn(IWorld world, ReadOnlySpan<char> className, Vec3D pos, int tid, double angle, bool force)
     {
         var entity = world.EntityManager.Create(className, pos);
 

@@ -79,7 +79,7 @@ public class EntityManager : IDisposable
         return null;
     }
 
-    public Entity? Create(string className, in Vec3D pos, bool initSpawn = false)
+    public Entity? Create(ReadOnlySpan<char> className, in Vec3D pos, bool initSpawn = false)
     {
         var def = DefinitionComposer.GetByName(className);
         return def != null ? Create(def, pos, 0.0, 0.0, 0, default, initSpawn: initSpawn) : null;

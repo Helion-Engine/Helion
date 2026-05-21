@@ -485,9 +485,10 @@ public class WorldExecutor : Executor
     {
         return GetThingCount(args.Get(0), args.Get(1));
     }
+
     public int CF_ThingCountName(ThreadHandle thread, uint[] args)
     {
-        return GetThingCount(args.GetString(thread, 0), args.Get(1));
+        return GetThingCount(args.GetStringSpan(thread, 0), args.Get(1));
     }
 
     public int CF_PlayerNumber(ThreadHandle thread, uint[] args)
@@ -531,7 +532,7 @@ public class WorldExecutor : Executor
 
     public int CF_Spawn(ThreadHandle thread, uint[] args)
     {
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var x = args.Get(1);
         var y = args.Get(2);
         var z = args.Get(3);
@@ -542,7 +543,7 @@ public class WorldExecutor : Executor
 
     public int CF_SpawnForced(ThreadHandle thread, uint[] args)
     {
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var x = args.Get(1);
         var y = args.Get(2);
         var z = args.Get(3);
@@ -553,7 +554,7 @@ public class WorldExecutor : Executor
 
     public int CF_SpawnSpot(ThreadHandle thread, uint[] args)
     {
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
         var tid = args.Get(2);
         var angle = args.Get(3);
@@ -562,7 +563,7 @@ public class WorldExecutor : Executor
 
     public int CF_SpawnSpotFacing(ThreadHandle thread, uint[] args)
     {
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
         var tid = args.Get(2);
         return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, false) ? 1 : 0;
@@ -570,7 +571,7 @@ public class WorldExecutor : Executor
 
     public int CF_SpawnSpotFacingForced(ThreadHandle thread, uint[] args)
     {
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
         var tid = args.Get(2);
         return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, true) ? 1 : 0;
@@ -578,7 +579,7 @@ public class WorldExecutor : Executor
 
     public int CF_SpawnSpotForced(ThreadHandle thread, uint[] args)
     {
-        var className = args.GetString(thread, 0);
+        var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
         var tid = args.Get(2);
         var angle = args.Get(3);
@@ -834,7 +835,8 @@ public class WorldExecutor : Executor
 
         return m_world.EntityAliveCount(def.Id, tid);
     }
-    private int GetThingCount(string name, int tid)
+
+    private int GetThingCount(ReadOnlySpan<char> name, int tid)
     {
         var def = m_world.EntityManager.DefinitionComposer.GetByName(name);
         if (def == null)
