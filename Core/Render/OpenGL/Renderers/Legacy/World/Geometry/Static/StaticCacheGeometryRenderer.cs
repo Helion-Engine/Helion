@@ -1258,13 +1258,43 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)
     {
-        // TODO make changing 3d sector wall work
         ClearSideGeometryVertices(e.Side, e.Wall);
+
         if (e.Wall.Static.GeometryData != null)
             m_freeManager.Add(e.Wall.Static, GetWallType(e.Side, e.Wall, null), GetRepeatY(e.Side, e.Wall));
         e.Wall.Static.GeometryData = null;
+
+        if (e.Side.PartnerSide != null && (e.Wall.Location == WallLocation.Upper || e.Wall.Location == WallLocation.Lower) &&
+            (e.TextureHandle <= Constants.NullCompatibilityTextureIndex || e.PreviousTextureHandle <= Constants.NullCompatibilityTextureIndex))
+        {
+            CheckForFloodFill(e.Side, e.Side.PartnerSide, e.Side.Sector, e.Side.PartnerSide.Sector, e.Side.IsFront);
+        }
+
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
         AddLine(e.Side.Line, update: true);
+
+        if (WorldStatic.Sector3D && e.Wall.Location == WallLocation.Middle && e.Side.Sector.TaggedSectors3D.Length > 0)
+        {
+            for (int i = 0; i < e.Side.Sector.TaggedSectors3D.Length; i++)
+            {
+                var sector3D = e.Side.Sector.TaggedSectors3D[i];
+                for (int j = 0; j < sector3D.FakeSector.Lines.Length; j++)
+                {
+                    var line = sector3D.FakeSector.Lines[j];
+                    var wall = line.Front.Middle;
+                    wall.TextureHandle = e.TextureHandle;
+
+                    ClearSideGeometryVertices(line.Front, wall);
+
+                    if (wall.Static.GeometryData != null)
+                        m_freeManager.Add(wall.Static, GetWallType(line.Front, wall, sector3D), GetRepeatY(e.Side, e.Wall));
+
+                    wall.Static.GeometryData = null;
+                }
+
+                AddSector3D(sector3D, SectorPlanes.None, true);
+            }
+        }
     }
 
     private static bool GetRepeatY(Side side, Wall wall)
