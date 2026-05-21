@@ -1171,7 +1171,7 @@ public class Player : Entity
         return Inventory.Weapons.OwnsWeapon(definition);
     }
 
-    public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
+    public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true, int amount = -1)
     {
         if (IsDead())
             return false;
@@ -1180,7 +1180,7 @@ public class Player : Entity
         if (!success)
             success = GiveWeapon(definition, flags);
         if (!success)
-            success = GiveItemBase(definition, flags);
+            success = GiveItemBase(definition, flags, amount: amount);
 
         if (success && pickupFlash)
             BonusCount = definition.Properties.Inventory.PickupBonusCount;

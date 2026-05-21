@@ -19,6 +19,8 @@ public class AcsScripts
     {
         World = WorldAllocator.LoadMap("Resources/acs-scripts.zip", "acs-scripts.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
         World.MapInfo.SecretNext = "MAP03";
+        World.Player.Inventory.Clear();
+        World.Player.SetDefaultInventory();
     }
 
     [Fact(DisplayName = "PlayerNumber")]
@@ -217,5 +219,72 @@ public class AcsScripts
         var fog = GameActions.GetEntities(World, "TeleportFog");
         fog.Count.Should().Be(0);
         GameActions.SetEntityOutOfBounds(World, barrel);
+    }
+
+    [Fact(DisplayName = "ClearInventory")]
+    public void ClearInventory()
+    {
+        Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeTrue();
+        Player.Inventory.Weapons.OwnsWeapon("Fist").Should().BeTrue();
+        Player.Inventory.Amount("Clip").Should().Be(50);
+        GameActions.ActivateLine(World, Player, 80, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeFalse();
+        Player.Inventory.Weapons.OwnsWeapon("Fist").Should().BeFalse();
+        Player.Inventory.Amount("Clip").Should().Be(0);
+    }
+
+    [Fact(DisplayName = "GiveInventory")]
+    public void GiveInventory()
+    {
+        Player.Inventory.Clear();
+        Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeFalse();
+        GameActions.ActivateLine(World, Player, 84, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeTrue();
+        Player.Inventory.Amount("Clip").Should().Be(20);
+
+        GameActions.ActivateLine(World, Player, 88, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        Player.Inventory.Amount("Clip").Should().Be(21);
+    }
+
+    [Fact(DisplayName = "CheckInventory")]
+    public void CheckInventory()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 92, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages[^1].Args.Message.Should().Be("You have 50 bullets");
+
+            GameActions.ActivateLine(World, Player, 93, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages[^1].Args.Message.Should().Be("You have the pistol!");
+
+            Player.Inventory.Clear();
+
+            GameActions.ActivateLine(World, Player, 92, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages[^1].Args.Message.Should().Be("You have no bullets :(");
+
+            GameActions.ActivateLine(World, Player, 93, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 1);
+            messages[^1].Args.Message.Should().Be("You don't have the pistol :(");
+        });
+    }
+
+    [Fact(DisplayName = "TakeInventory")]
+    public void TakeInventory()
+    {
+        Player.Inventory.Amount("Clip").Should().Be(50);
+
+        GameActions.ActivateLine(World, Player, 94, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        Player.Inventory.Amount("Clip").Should().Be(48);
+
+        GameActions.ActivateLine(World, Player, 94, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        Player.Inventory.Amount("Clip").Should().Be(46);
     }
 }

@@ -3,7 +3,6 @@ using Helion.Maps.Specials;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
@@ -98,13 +97,13 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V(139, "W",       0, CF_SetGravity);
         //AddCodeDataACS0V(140, "",        1, CF_SetAirControl);
         //AddCodeDataACS0V(141, "W",       0, CF_SetAirControl);
-        //AddCodeDataACS0V(142, "",        0, CF_ClearInventory);
-        //AddCodeDataACS0V(143, "",        2, CF_GiveInventory);
-        //AddCodeDataACS0V(144, "WSW",     0, CF_GiveInventory);
-        //AddCodeDataACS0V(145, "",        2, CF_TakeInventory);
-        //AddCodeDataACS0V(146, "WSW",     0, CF_TakeInventory);
-        //AddCodeDataACS0I(147, "",        1, CF_CheckInventory);
-        //AddCodeDataACS0I(148, "WS",      0, CF_CheckInventory);
+        AddCodeDataACS0V(142, "",        0, CF_ClearInventory);
+        AddCodeDataACS0V(143, "",        2, CF_GiveInventory);
+        AddCodeDataACS0V(144, "WSW",     0, CF_GiveInventory);
+        AddCodeDataACS0V(145, "",        2, CF_TakeInventory);
+        AddCodeDataACS0V(146, "WSW",     0, CF_TakeInventory);
+        AddCodeDataACS0I(147, "",        1, CF_CheckInventory);
+        AddCodeDataACS0I(148, "WS",      0, CF_CheckInventory);
         AddCodeDataACS0I(149, "",        6, CF_Spawn);
         AddCodeDataACS0I(150, "WSWWWWW", 0, CF_Spawn);
         AddCodeDataACS0I(151, "",        4, CF_SpawnSpot);
@@ -630,6 +629,45 @@ public class WorldExecutor : Executor
     {
         var tid = args.Get(0);
         return m_world.EntityManager.TidInUse(tid);
+    }
+
+    public void CF_ClearInventory(ThreadHandle thread, uint[] args)
+    {
+        var activator = thread.GetActivator(m_world);
+        if (activator?.PlayerObj != null)
+            m_world.ClearInventory(activator.PlayerObj);
+    }
+
+    public void CF_GiveInventory(ThreadHandle thread, uint[] args)
+    {
+        var activator = thread.GetActivator(m_world);
+        if (activator?.PlayerObj == null)
+            return;
+
+        var className = args.GetString(thread, 0);
+        var amount = args.Get(1);
+        m_world.GiveInventory(activator.PlayerObj, className, amount);
+    }
+
+    public void CF_TakeInventory(ThreadHandle thread, uint[] args)
+    {
+        var activator = thread.GetActivator(m_world);
+        if (activator?.PlayerObj == null)
+            return;
+
+        var className = args.GetString(thread, 0);
+        var amount = args.Get(1);
+        m_world.TakeInventory(activator.PlayerObj, className, amount);
+    }
+
+    public int CF_CheckInventory(ThreadHandle thread, uint[] args)
+    {
+        var activator = thread.GetActivator(m_world);
+        if (activator?.PlayerObj == null)
+            return 0;
+
+        var className = args.GetString(thread, 0);
+        return activator.PlayerObj.Inventory.CheckInventory(className);
     }
 
     private int GetThingCount(int type, int tid)

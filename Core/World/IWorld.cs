@@ -147,6 +147,9 @@ public interface IWorld : IDisposable
     void ApplyVelocity(Entity entity, Vec3D velocity);
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
     void PerformItemPickup(Entity entity, Entity item);
+    void ClearInventory(Player player);
+    bool GiveInventory(Player player, string className, int amount);
+    void TakeInventory(Player player, string className, int amount);
     void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
     void HandleEntityClipPlane(Entity entity, SectorPlane plane);
     void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);

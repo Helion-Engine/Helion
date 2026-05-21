@@ -2404,6 +2404,25 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
+    public virtual void ClearInventory(Player player)
+    {
+        player.Inventory.Clear();
+    }
+
+    public virtual bool GiveInventory(Player player, string className, int amount)
+    {
+        var def = EntityManager.DefinitionComposer.GetByName(className);
+        if (def == null)
+            return false;
+
+        return player.GiveItem(def, null, pickupFlash: false, amount: amount);
+    }
+
+    public virtual void TakeInventory(Player player, string className, int amount)
+    {
+        player.Inventory.Remove(className, amount);
+    }
+
     private void ActivateEntitySpecial(Entity activator, Entity entity)
     {
         if (entity.Special != ZDoomLineSpecialType.None)

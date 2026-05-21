@@ -507,6 +507,16 @@ public sealed class Inventory
         return false;
     }
 
+    // Returns the amount owned. If it's an owned weapon then 1 is returned.
+    public int CheckInventory(string name)
+    {
+        if (Items.TryGetValue(name, out var item))
+            return item.Amount;
+
+        var weapon = Weapons.GetWeapon(name);
+        return weapon == null ? 0 : 1;
+    }
+
     public int Amount(string name) => Items.TryGetValue(name, out var item) ? item.Amount : 0;
 
     public int Amount(EntityDefinition definition)
