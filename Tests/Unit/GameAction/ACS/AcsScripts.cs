@@ -274,8 +274,8 @@ public class AcsScripts
         });
     }
 
-    [Fact(DisplayName = "TakeInventory")]
-    public void TakeInventory()
+    [Fact(DisplayName = "TakeInventory ammo")]
+    public void TakeInventoryAmmo()
     {
         Player.Inventory.Amount("Clip").Should().Be(50);
 
@@ -286,5 +286,14 @@ public class AcsScripts
         GameActions.ActivateLine(World, Player, 94, ActivationContext.UseLine).Should().BeTrue();
         GameActions.TickWorld(World, 1);
         Player.Inventory.Amount("Clip").Should().Be(46);
+    }
+
+    [Fact(DisplayName = "TakeInventory weapon")]
+    public void TakeInventoryWeapon()
+    {
+        Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeTrue();
+        GameActions.ActivateLine(World, Player, 99, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 1);
+        Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeFalse();
     }
 }
