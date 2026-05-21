@@ -522,7 +522,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 result = new(sideVertices, null, null);
             }
 
-            SetSideVertices(side, side.Middle, update, result.Vertices, true, repeatY: side.Flags.WrapMidTex, null);
+            SetSideVertices(side, side.Middle, update, result.Vertices, true, repeatY: GetRepeatY(side, side.Middle), null);
 
             var sideVisibility = SideTexture.None;
             if (upperVisible)
@@ -1258,19 +1258,28 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)
     {
+        // TODO make changing 3d sector wall work
         ClearSideGeometryVertices(e.Side, e.Wall);
         if (e.Wall.Static.GeometryData != null)
-            m_freeManager.Add(e.Wall.Static);
+            m_freeManager.Add(e.Wall.Static, GetWallType(e.Side, e.Wall, null), GetRepeatY(e.Side, e.Wall));
         e.Wall.Static.GeometryData = null;
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
         AddLine(e.Side.Line, update: true);
+    }
+
+    private static bool GetRepeatY(Side side, Wall wall)
+    {
+        if (wall.Location == WallLocation.Middle)
+            return side.Flags.WrapMidTex;
+
+        return true;
     }
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
         SkyGeometryManager.ClearGeometryVertices(e.Plane);
         if (e.Plane.Static.GeometryData != null && ClearGeometryVertices(e.Plane.Static))
-            m_freeManager.Add(e.Plane.Static);
+            m_freeManager.Add(e.Plane.Static, GeometryType.Flat, repeatY: true);
 
         e.Plane.Static.GeometryData = null;
 
@@ -1284,7 +1293,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
                 var plane3D = sector3D.FakeSector.GetSectorPlane(e.Plane.Facing.Flip());
                 if (plane3D.Static.GeometryData != null && ClearGeometryVertices(plane3D.Static))
-                    m_freeManager.Add(plane3D.Static);
+                    m_freeManager.Add(plane3D.Static, GeometryType.Flat, repeatY: true);
 
                 plane3D.Static.GeometryData = null;
                 plane3D.TextureHandle = e.TextureHandle;
@@ -1319,7 +1328,10 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         // If this surface generated more vertices than previously cached, release so a new one can be requested. (happens with 3D sectors)
         if (staticGeometry.GeometryData != null && staticGeometry.Length < vertices.Length)
         {
-            m_freeManager.Add(staticGeometry);
+            if (plane != null)
+                m_freeManager.Add(staticGeometry, GeometryType.Flat, repeatY: true);
+            else if (side != null && wall != null)
+                m_freeManager.Add(staticGeometry, GetWallType(side, wall, sector3D), GetRepeatY(side, wall));
             staticGeometry.GeometryData = null;
         }
          
@@ -1440,37 +1452,37 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
     }
 
-    private void AddNewGeometry(int textureHandle, Span<DynamicVertex> vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat, 
+    private void AddNewGeometry(int textureHandle, Span<DynamicVertex> vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeatY, 
         GLLegacyTexture? texture, Sector3D? sector3D)
     {
-        if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
+        if (m_freeManager.GetAndRemove(textureHandle, geometryType, repeatY, vertices.Length, out StaticGeometryData? existing))
         {
             if (plane != null)
             {
                 plane.Static = existing.Value;
-                UpdateVertices(ref plane.Static, textureHandle, vertices, plane, side, wall, repeat, texture, sector3D);
+                UpdateVertices(ref plane.Static, textureHandle, vertices, plane, side, wall, repeatY, texture, sector3D);
             }
             else if (wall != null)
             {
                 wall.Static = existing.Value;
-                UpdateVertices(ref wall.Static, textureHandle, vertices, plane, side, wall, repeat, texture, sector3D);
+                UpdateVertices(ref wall.Static, textureHandle, vertices, plane, side, wall, repeatY, texture, sector3D);
             }
 
             return;
         }
 
         // This texture exists, append to the vbo
-        if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeat, out GeometryData? data))
+        if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeatY, out GeometryData? data))
         {
-            SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat, sector3D);
+            SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeatY, sector3D);
             AddVertices(data.Vbo.Data, vertices);
             // TODO this causes the entire vbo to be uploaded when we could use sub-buffer
             data.Vbo.SetNotUploaded();
             return;
         }
 
-        data = AllocateGeometryData(geometryType, textureHandle, repeat, overrideTexture: texture);
-        SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat, sector3D);
+        data = AllocateGeometryData(geometryType, textureHandle, repeatY, overrideTexture: texture);
+        SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeatY, sector3D);
         AddVertices(data.Vbo.Data, vertices);
         data.Vbo.SetNotUploaded();
     }

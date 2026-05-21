@@ -6,9 +6,11 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Walls;
 using Helion.World.Special.Specials;
 using HelionACS;
 using NLog;
+using OpenTK.Graphics.ES11;
 using System;
 using System.Linq;
 
@@ -68,7 +70,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V( 94, "",        2, CF_SectorSound); TODO?
         //AddCodeDataACS0V( 95, "",        2, CF_AmbientSound); TODO?
         //AddCodeDataACS0V( 96, "",        1, CF_SoundSequence); TODO?
-        //AddCodeDataACS0V( 97, "",        4, CF_SetLineTexture); TODO
+        AddCodeDataACS0V( 97, "",        4, CF_SetLineTexture);
         //AddCodeDataACS0V( 98, "",        2, CF_SetLineBlocking); TODO
         //AddCodeDataACS0V( 99, "",        7, CF_SetLineSpecial); TODO
         //AddCodeDataACS0V(100, "",        3, CF_ThingSound); TODO
@@ -528,6 +530,27 @@ public class WorldExecutor : Executor
         var tag = args.Get(0);
         var flat = args.GetStringSpan(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Ceiling);
+    }
+
+    public void CF_SetLineTexture(ThreadHandle thread, uint[] args)
+    {
+        var lineId = args.Get(0);
+        var side = args.Get(1);
+        var location = GetWallLocation(args.Get(2));
+        var textureName = args.GetStringSpan(thread, 3);
+        if (location != WallLocation.None)
+            ActionSpecials.SetLineTexture(m_world, lineId, !Convert.ToBoolean(side), location, textureName);
+    }
+
+    private static WallLocation GetWallLocation(int sideTexture)
+    {
+        return sideTexture switch
+        {
+            0 => WallLocation.Upper,
+            1 => WallLocation.Middle,
+            2 => WallLocation.Lower,
+            _ => WallLocation.None,
+        };
     }
 
     public int CF_Spawn(ThreadHandle thread, uint[] args)

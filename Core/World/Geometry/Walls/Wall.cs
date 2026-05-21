@@ -39,4 +39,6 @@ public sealed class Wall
         Static = default;
         TextureHandle = m_initialTextureHandle;
     }
+
+    public override string ToString() => $"Location={Location} Texture={TextureHandle}";
 }

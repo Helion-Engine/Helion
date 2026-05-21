@@ -1,26 +1,50 @@
 ﻿using Helion.Util.Assertion;
 using Helion.World.Static;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
+readonly struct GeometryKey(int textureHandle, GeometryType type, bool repeatY) : IEquatable<GeometryKey>
+{
+    public readonly int TextureHandle = textureHandle;
+    public readonly GeometryType Type = type;
+    public readonly bool RepeatY = repeatY;
+
+    public bool Equals(GeometryKey other)
+    {
+        return TextureHandle == other.TextureHandle && Type == other.Type && RepeatY == other.RepeatY;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(TextureHandle, (int)Type, RepeatY);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is GeometryKey key && Equals(key);
+    }
+}
+
 public class FreeGeometryManager
 {
-    private readonly Dictionary<int, FreeGeometryList> m_data = new(128);
+    private readonly Dictionary<GeometryKey, FreeGeometryList> m_data = new(128);
 
-    public void Add(in StaticGeometryData geometryData)
+    public void Add(in StaticGeometryData geometryData, GeometryType type, bool repeatY)
     {
         if (geometryData.GeometryData == null)
             return;
 
         var textureHandle = geometryData.GeometryData.TextureHandle;
+        var key = new GeometryKey(textureHandle, type, repeatY);
 
-        if (!m_data.TryGetValue(textureHandle, out var list))
+        if (!m_data.TryGetValue(key, out var list))
         {
             list = new();
-            m_data[textureHandle] = list;
+            m_data[key] = list;
         }
 
         AssertDuplicate(list, geometryData);
@@ -58,12 +82,13 @@ public class FreeGeometryManager
         }
     }
 
-    public bool GetAndRemove(int textureHandle, int vertexLength, [NotNullWhen(true)] out StaticGeometryData? data)
+    public bool GetAndRemove(int textureHandle, GeometryType type, bool repeatY, int vertexLength, [NotNullWhen(true)] out StaticGeometryData? data)
     {
         int minLength = int.MaxValue;
         int minIndex = -1;
+        var key = new GeometryKey(textureHandle, type, repeatY);
 
-        if (!m_data.TryGetValue(textureHandle, out var list))
+        if (!m_data.TryGetValue(key, out var list))
         {
             data = null;
             return false;

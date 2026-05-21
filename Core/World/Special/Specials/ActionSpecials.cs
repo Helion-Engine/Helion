@@ -7,6 +7,7 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using System;
 using System.Runtime.CompilerServices;
@@ -561,6 +562,19 @@ public static class ActionSpecials
         }
 
         return sectors.Count > 0;
+    }
+
+    public static void SetLineTexture(IWorld world, int lineId, bool front, WallLocation location, ReadOnlySpan<char> texture)
+    {
+        var textureHandle = world.TextureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
+        var lines = world.FindByLineId(lineId);
+        foreach (var line in lines)
+        {
+            if (front)
+                world.SetSideTexture(line.Front, location, textureHandle);
+            else if (line.Back != null)
+                world.SetSideTexture(line.Back, location, textureHandle);
+        }
     }
 
     public static bool Spawn(IWorld world, ReadOnlySpan<char> className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle, bool force)
