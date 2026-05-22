@@ -212,8 +212,8 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0I(339, "",        2, CF_CheckActorFloorTexture);
         //AddCodeDataACS0I(340, "",        1, CF_GetActorLightLevel);
         //AddCodeDataACS0V(341, "",        1, CF_SetMugState);
-        //AddCodeDataACS0I(342, "",        3, CF_ThingCountSector);
-        //AddCodeDataACS0I(343, "",        3, CF_ThingCountNameSector);
+        AddCodeDataACS0I(342, "",        3, CF_ThingCountSector);
+        AddCodeDataACS0I(343, "",        3, CF_ThingCountNameSector);
         //AddCodeDataACS0I(344, "",        1, CF_GetPlayerCam);
         //AddCodeDataACS0I(345, "",        7, CF_MorphThing);
         //AddCodeDataACS0I(346, "",        2, CF_UnmorphThing);
@@ -487,12 +487,22 @@ public class WorldExecutor : Executor
 
     public int CF_ThingCount(ThreadHandle thread, uint[] args)
     {
-        return GetThingCount(args.Get(0), args.Get(1));
+        return GetThingCount(args.Get(0), args.Get(1), Sector.NoTag);
     }
 
     public int CF_ThingCountName(ThreadHandle thread, uint[] args)
     {
-        return GetThingCount(args.GetStringSpan(thread, 0), args.Get(1));
+        return GetThingCount(args.GetStringSpan(thread, 0), args.Get(1), Sector.NoTag);
+    }
+
+    public int CF_ThingCountSector(ThreadHandle thread, uint[] args)
+    {
+        return GetThingCount(args.Get(0), args.Get(1), args.Get(2));
+    }
+
+    public int CF_ThingCountNameSector(ThreadHandle thread, uint[] args)
+    {
+        return GetThingCount(args.GetStringSpan(thread, 0), args.Get(1), args.Get(2));
     }
 
     public int CF_PlayerNumber(ThreadHandle thread, uint[] args)
@@ -919,11 +929,11 @@ public class WorldExecutor : Executor
             ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 2))
             ?? 0;
 
-    private int GetThingCount(int type, int tid)
+    private int GetThingCount(int type, int tid, int sectorTag)
     {
         // Check any type by tid only
         if (type == 0)
-            return m_world.EntityAliveCount(tid);
+            return m_world.EntityAliveCount(-1, tid, sectorTag);
 
         if (!ThingSpawnTypes.Lookup.TryGetValue(type, out var definitionName))
             return 0;
@@ -932,16 +942,16 @@ public class WorldExecutor : Executor
         if (def == null)
             return 0;
 
-        return m_world.EntityAliveCount(def.Id, tid);
+        return m_world.EntityAliveCount(def.Id, tid, sectorTag);
     }
 
-    private int GetThingCount(ReadOnlySpan<char> name, int tid)
+    private int GetThingCount(ReadOnlySpan<char> name, int tid, int sectorTag)
     {
         var def = m_world.EntityManager.DefinitionComposer.GetByName(name);
         if (def == null)
             return 0;
 
-        return m_world.EntityAliveCount(def.Id, tid);
+        return m_world.EntityAliveCount(def.Id, tid, sectorTag);
     }
 
     private void DoPrint(ThreadHandle thread, uint[] args)

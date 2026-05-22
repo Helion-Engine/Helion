@@ -6,6 +6,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special;
 
@@ -29,7 +30,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         if (m_destroyed)
             return SpecialTickStatus.Destroy;
 
-        if (m_world.EntityAliveCount(EntityDefinitionId, 0, ignoreEntity) == 0)
+        if (m_world.EntityAliveCount(EntityDefinitionId, EntityManager.NoTid, Sector.NoTag, ignoreEntity) == 0)
         {
             m_destroyed = true;
             ExecuteSpecial();

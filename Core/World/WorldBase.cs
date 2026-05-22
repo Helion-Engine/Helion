@@ -3878,18 +3878,27 @@ public abstract partial class WorldBase : IWorld
     }
 
     public int EntityCount(int entityDefinitionId) =>
-        EntityCount(entityDefinitionId, 0, false);
+        EntityCount(entityDefinitionId, EntityManager.NoTid, Sector.NoTag, false);
 
-    public int EntityAliveCount(int tid, Entity? ignoreEntity = null) =>
-        EntityCount(-1, tid, true, ignoreEntity);
+    public int EntityAliveCount(int entityDefinitionId, int tid, int sectorTag, Entity? ignoreEntity = null) =>
+        EntityCount(entityDefinitionId, tid, sectorTag, true, ignoreEntity);
 
-    public int EntityAliveCount(int entityDefinitionId, int tid, Entity? ignoreEntity = null) =>
-        EntityCount(entityDefinitionId, tid, true, ignoreEntity);
-
-    private int EntityCount(int entityDefinitionId, int tid, bool checkAlive, Entity? ignoreEntity = null)
+    private int EntityCount(int entityDefinitionId, int tid, int sectorTag, bool checkAlive, Entity? ignoreEntity = null)
     {
         int count = 0;
-        if (tid != 0)
+        if (sectorTag != Sector.NoTag)
+        {
+            var sectors = FindBySectorTag(sectorTag);
+            foreach (var sector in sectors)
+            {
+                for (var node = sector.Entities.Head; node != null; node = node.Next)
+                    CountEntity(node.Value, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+            }
+
+            return count;
+        }
+
+        if (tid != EntityManager.NoTid)
         {
             // If searching by thing id then pre-filter by tid list.
             var entities = EntityManager.FindByTid(tid);

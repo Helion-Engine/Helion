@@ -142,6 +142,96 @@ public class AcsScripts
         sector.Floor.Z.Should().Be(8);
     }
 
+    [Fact(DisplayName = "ThingCountSector no tid")]
+    public void ThingCountSectorNoTid()
+    {
+        var sector = GameActions.GetSectorByTag(World, 15);
+        var shotgunGuys = GameActions.GetSectorEntities(World, 40, "ShotgunGuy");
+        shotgunGuys.Count.Should().Be(2);
+        sector.Floor.Z.Should().Be(64);
+        GameActions.ActivateLine(World, Player, 169, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 70);
+
+        sector.Floor.Z.Should().Be(64);
+        shotgunGuys[0].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        shotgunGuys[1].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.ActiveFloorMove.Should().NotBeNull();
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Floor.Z.Should().Be(8);
+    }
+
+    [Fact(DisplayName = "ThingCountSector tid")]
+    public void ThingCountSectorTid()
+    {
+        var sector = GameActions.GetSectorByTag(World, 17);
+        var shotgunGuys = GameActions.GetSectorEntities(World, 44, "ShotgunGuy").OrderBy(x => x.ThingId).ToList();
+        shotgunGuys.Count.Should().Be(3);
+        sector.Floor.Z.Should().Be(64);
+        GameActions.ActivateLine(World, Player, 185, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 70);
+
+        sector.Floor.Z.Should().Be(64);
+        shotgunGuys[0].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        shotgunGuys[1].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        shotgunGuys[2].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.ActiveFloorMove.Should().NotBeNull();
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Floor.Z.Should().Be(8);
+    }
+
+    [Fact(DisplayName = "ThingCountNameSector no tid")]
+    public void ThingCountSectorNameNoTid()
+    {
+        var sector = GameActions.GetSectorByTag(World, 20);
+        var souls = GameActions.GetSectorEntities(World, 47, "LostSoul");
+        souls.Count.Should().Be(2);
+        sector.Floor.Z.Should().Be(64);
+        GameActions.ActivateLine(World, Player, 197, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 70);
+
+        sector.Floor.Z.Should().Be(64);
+        souls[0].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        souls[1].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.ActiveFloorMove.Should().NotBeNull();
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Floor.Z.Should().Be(8);
+    }
+
+    [Fact(DisplayName = "ThingCountNameSector tid")]
+    public void ThingCountSectorNameTid()
+    {
+        var sector = GameActions.GetSectorByTag(World, 22);
+        var souls = GameActions.GetSectorEntities(World, 50, "LostSoul").OrderBy(x => x.ThingId).ToList();
+        souls.Count.Should().Be(3);
+        sector.Floor.Z.Should().Be(64);
+        GameActions.ActivateLine(World, Player, 209, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 70);
+
+        sector.Floor.Z.Should().Be(64);
+        souls[0].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        souls[1].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.Floor.Z.Should().Be(64);
+        souls[2].Kill(null);
+        GameActions.TickWorld(World, 10);
+        sector.ActiveFloorMove.Should().NotBeNull();
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Floor.Z.Should().Be(8);
+    }
+
     [Fact(DisplayName = "UniqueTid")]
     public void UniqueTid()
     {
