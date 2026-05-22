@@ -2,6 +2,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
@@ -103,6 +104,8 @@ public sealed class Sector : IFloorCeilingAnchor
     public Sector TransferCeilingLightSector;
     public Sector SetTransferFloorLightSector;
     public Sector SetTransferCeilingLightSector;
+
+    public MapUserProperties UserProperties;
 
 #if DEBUG
     public SectorDamageSpecial? SectorDamageSpecial { get; private set; }

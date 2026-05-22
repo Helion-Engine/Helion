@@ -1,4 +1,5 @@
 ﻿using Helion.Maps.Components;
+using Helion.Maps.Shared;
 using Helion.Util;
 
 namespace Helion.Maps.Udmf.Components;
@@ -39,4 +40,6 @@ public class UdmfSector : ISector
     public int FogDensity;
     public string SkyFloor = string.Empty;
     public string SkyCeiling = string.Empty;
+
+    public MapUserProperties UserProperties;
 }

@@ -283,7 +283,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("x"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                thing.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("x"))
                 x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
                 y = parser.ParseDouble(prop.Value);
@@ -381,7 +383,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("sector"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                side.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("sector"))
                 side.SectorId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
                 side.UpperTexture = GetString(stringLookup, prop.Value);
@@ -451,7 +455,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("heightfloor"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                sector.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("heightfloor"))
                 sector.FloorZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("heightceiling"))
                 sector.CeilingZ = (short)parser.ParseInt(prop.Value);
@@ -566,7 +572,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("v1"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                line.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("v1"))
                 line.StartVertex = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("v2"))
                 line.EndVertex = parser.ParseInt(prop.Value);

@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
+using Helion.Maps.Shared;
 using Helion.Util;
 
 namespace Helion.Maps.Udmf.Components;
@@ -41,4 +42,6 @@ public class UdmfSide : ISide
     public UdmfSector Sector = null!;
 
     public ISector GetSector() => Sector;
+
+    public MapUserProperties UserProperties;
 }

@@ -56,6 +56,12 @@ public static class StringExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool StartsWithIgnoreCase(this ReadOnlySpan<char> text, string other)
+    {
+        return text.StartsWith(other, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EndsWithIgnoreCase(this string text, string other)
     {
         return text.EndsWith(other, StringComparison.OrdinalIgnoreCase);
