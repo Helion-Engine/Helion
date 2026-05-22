@@ -21,7 +21,7 @@ public partial class StaticCacheGeometryRenderer
             AddSector3D(sector.Sectors3D[i], SectorPlanes.Floor | SectorPlanes.Ceiling, update);
     }
 
-    private void AddSector3D(Sector3D sector3D, SectorPlanes planes, bool update)
+    private void AddSector3D(Sector3D sector3D, SectorPlanes planes, bool update, bool clearWallVertices = false)
     {
         AddSectorPlanes3D(sector3D, planes, update);
 
@@ -36,6 +36,17 @@ public partial class StaticCacheGeometryRenderer
             var dynamic = side.IsDynamic || sector3D.ControlSector.IsMoving;
             if (dynamic && (sector3D.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3D.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
                 continue;
+
+            if (clearWallVertices)
+            {
+                var wall = sectorLine.Front.Middle;
+                ClearSideGeometryVertices(sectorLine.Front, wall);
+
+                if (wall.Static.GeometryData != null)
+                    m_freeManager.Add(wall.Static, GetWallType(sectorLine.Front, wall, sector3D), GetRepeatY(sectorLine.Front, wall));
+
+                wall.Static.GeometryData = null;
+            }
 
             m_geometryRenderer.RenderSectorLine3D(sector3D, i, true, true, m_renderSectorWallVertices3D);
         }

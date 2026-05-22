@@ -1273,36 +1273,34 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
         AddLine(e.Side.Line, update: true);
 
-        if (WorldStatic.Sector3D && e.Wall.Location == WallLocation.Middle && e.Side.Sector.TaggedSectors3D.Length > 0)
+        if (WorldStatic.Sector3D)
         {
-            for (int i = 0; i < e.Side.Sector.TaggedSectors3D.Length; i++)
+            if (e.Side.Sector.TaggedSectors3D.Length > 0)
             {
-                var sector3D = e.Side.Sector.TaggedSectors3D[i];
-                for (int j = 0; j < sector3D.FakeSector.Lines.Length; j++)
+                for (int i = 0; i < e.Side.Sector.TaggedSectors3D.Length; i++)
                 {
-                    var line = sector3D.FakeSector.Lines[j];
-                    var wall = line.Front.Middle;
-                    wall.TextureHandle = e.TextureHandle;
-
-                    ClearSideGeometryVertices(line.Front, wall);
-
-                    if (wall.Static.GeometryData != null)
-                        m_freeManager.Add(wall.Static, GetWallType(line.Front, wall, sector3D), GetRepeatY(e.Side, e.Wall));
-
-                    wall.Static.GeometryData = null;
+                    var sector3D = e.Side.Sector.TaggedSectors3D[i];
+                    if (sector3D.GetLogicalWallLocation() == e.Wall.Location)
+                        AddSector3D(sector3D, SectorPlanes.None, update: true, clearWallVertices: true);
                 }
+            }
 
-                AddSector3D(sector3D, SectorPlanes.None, true);
+            if (e.Side.PartnerSide != null && e.Side.PartnerSide.Sector.Sectors3D.Length > 0)
+            {
+                for (int i = 0; i < e.Side.PartnerSide.Sector.Sectors3D.Length; i++)
+                {
+                    var sector3D = e.Side.PartnerSide.Sector.Sectors3D[i];
+                    if (sector3D.GetLogicalWallLocation() == e.Wall.Location)
+                        AddSector3D(sector3D, SectorPlanes.None, update: true, clearWallVertices: true);
+                }
             }
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool GetRepeatY(Side side, Wall wall)
     {
-        if (wall.Location == WallLocation.Middle)
-            return side.Flags.WrapMidTex;
-
-        return true;
+        return wall.Location != WallLocation.Middle || side.Flags.WrapMidTex;
     }
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)

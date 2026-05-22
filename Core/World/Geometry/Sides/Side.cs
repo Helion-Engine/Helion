@@ -139,6 +139,18 @@ public sealed class Side
         Line.DataChanges |= LineDataTypes.Texture;
     }
 
+    public int GetMiddleTextureHandle() => Middle.TextureHandle;
+
+    public Wall GetWall(WallLocation location)
+    {
+        return location switch
+        {
+            WallLocation.Upper => Upper,
+            WallLocation.Lower => Lower,
+            _ => Middle,
+        };
+    }
+
     public override string ToString() => $"Id={Id} {GetSideToString()} | Line-{Line}";
 
     private string GetSideToString()

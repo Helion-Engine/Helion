@@ -4,10 +4,10 @@ using System;
 
 namespace Helion.World.Geometry.Walls;
 
-public sealed class Wall
+public class Wall
 {
     public WallLocation Location;
-    public int TextureHandle;
+    public virtual int TextureHandle { get; set; }
     public byte LightLevel;
     public bool LightLevelAbsolute;
 
