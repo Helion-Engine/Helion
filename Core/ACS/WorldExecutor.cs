@@ -371,7 +371,7 @@ public class WorldExecutor : Executor
         var arg4 = args.Get(4);
         m_world.SpecialManager.AddActivatedLineSpecial(
             thread.GetActivator(m_world) ?? m_world.Player,
-            (Maps.Specials.ZDoom.ZDoomLineSpecialType)spec,
+            (ZDoomLineSpecialType)spec,
             new SpecialArgs(arg0, arg1, arg2, arg3, arg4)
         );
         return 0;
@@ -561,18 +561,18 @@ public class WorldExecutor : Executor
                 break;
         }
 
-        var lines = m_world.FindByLineId(lineId);
-        foreach (var line in lines)
-            m_world.SetLineBlockFlags(line.Id, setType, (ZDoomLineBlockFlags)0xFFFFFF);
+        var clearFlags = type == LineBlockType.Nothing ? ZDoomLineBlockFlags.All : ZDoomLineBlockFlags.None;
+        foreach (var line in m_world.FindByLineId(lineId))
+            m_world.SetLineBlockFlags(line.Id, setType, clearFlags);
     }
 
     public void CF_SetLineMonsterBlocking(ThreadHandle thread, uint[] args)
     {
         var lineId = args.Get(0);
         var setType = args.Get(1) == 0 ? ZDoomLineBlockFlags.Monsters : ZDoomLineBlockFlags.None;
-        var lines = m_world.FindByLineId(lineId);
-        foreach (var line in lines)
-            m_world.SetLineBlockFlags(line.Id, setType, (ZDoomLineBlockFlags)0xFFFFFF);
+
+        foreach (var line in m_world.FindByLineId(lineId))
+            m_world.SetLineBlockFlags(line.Id, setType, ZDoomLineBlockFlags.None);
     }
 
     private static WallLocation GetWallLocation(int sideTexture)
@@ -661,23 +661,16 @@ public class WorldExecutor : Executor
     public bool CF_SetActorPosition(ThreadHandle thread, uint[] args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
-        if (entity == null) return false;
+        if (entity == null)
+            return false;
+
         var x = args.GetDouble(1);
         var y = args.GetDouble(2);
         var z = args.GetDouble(3);
         var fog = args.GetBool(4);
-
-        var pos = new Vec3D(x, y, z);
-        if (m_world.IsPositionBlocked(entity, pos))
-        {
-            return false;
-        }
-
-        entity.UnlinkFromWorld();
         var old = entity.Position;
-        entity.Position = pos;
-        m_world.Link(entity);
-        entity.PrevPosition = entity.Position;
+        m_world.SetEntityPosition(entity, new Vec3D(x, y, z));
+
         if (fog)
         {
             m_world.CreateTeleportFog(old);
@@ -692,11 +685,13 @@ public class WorldExecutor : Executor
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Velocity.X ?? 0;
     }
+
     public double CF_GetActorVelY(ThreadHandle thread, uint[] args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Velocity.Y ?? 0;
     }
+
     public double CF_GetActorVelZ(ThreadHandle thread, uint[] args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
@@ -711,18 +706,21 @@ public class WorldExecutor : Executor
         var velz = args.GetDouble(3);
         var add = args.GetBool(4);
         // var setbob = args.GetBool(5); // not used (yet?), since there's no separated bob velocity from Boom
-        if (entity == null) return;
+        if (entity == null)
+            return;
 
         var vel = new Vec3D(velx, vely, velz);
-        entity.Velocity = (add ? entity.Velocity : Vec3D.Zero) + vel;
+        m_world.ApplyVelocity(entity, (add ? entity.Velocity : Vec3D.Zero) + vel);
     }
     
     public int CF_UniqueTID(ThreadHandle thread, uint[] args)
     {
-        while (true) {
+        while (true)
+        {
             var potentialTid = m_world.Random.GenInt32Range(0, int.MaxValue);
             // vanishingly unlikely given the 2^31 potential choices
-            if (m_world.EntityManager.TidInUse(potentialTid)) continue;
+            if (m_world.EntityManager.TidInUse(potentialTid))
+                continue;
             return potentialTid;
         }
     }

@@ -15,4 +15,5 @@ public enum ZDoomLineBlockFlags
     HitScan = 512,
     Sound = 1024,
     LandMonsters = 2048,
+    All = 0xFFFFFF
 }

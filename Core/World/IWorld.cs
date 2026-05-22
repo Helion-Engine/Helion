@@ -145,6 +145,7 @@ public interface IWorld : IDisposable
     Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage, HitScanOptions options = HitScanOptions.Default);
     bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
     void ApplyVelocity(Entity entity, Vec3D velocity);
+    bool SetPosition(Entity entity, Vec3D position, bool checkBlocking);
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
     void PerformItemPickup(Entity entity, Entity item);
     void ClearInventory(Player player);

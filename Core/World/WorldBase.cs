@@ -2314,6 +2314,18 @@ public abstract partial class WorldBase : IWorld
         entity.Velocity = velocity;
     }
 
+    public virtual bool SetPosition(Entity entity, Vec3D pos, bool checkBlocking)
+    {
+        if (IsPositionBlocked(entity, pos))
+            return false;
+
+        entity.UnlinkFromWorld();
+        entity.Position = pos;
+        Link(entity);
+        entity.PrevPosition = entity.Position;
+        return true;
+    }
+
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
         if (!item.Definition.IgnoreVanillaSpriteLookup &&
