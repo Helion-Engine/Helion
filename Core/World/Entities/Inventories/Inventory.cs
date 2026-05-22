@@ -81,6 +81,7 @@ public sealed class Inventory
         Owner = owner;
         EntityDefinitionComposer = composer;
         Weapons = new Weapons(this, WorldStatic.World.GameInfo.WeaponSlots, composer);
+        ItemsBySpan = Items.GetAlternateLookup<ReadOnlySpan<char>>();
 
         for (int i = 0; i < playerModel.Inventory.Items.Count; i++)
         {
