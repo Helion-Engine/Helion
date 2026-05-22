@@ -2,6 +2,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Shared;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Resources;
@@ -44,6 +45,8 @@ public sealed class Line
     public string? MusicChangeBack;
     public LineBlockFlags InitialLineBlockFlags;
     public float InitialAlpha;
+
+    public MapUserProperties UserProperties;
 
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;

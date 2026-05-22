@@ -36,6 +36,8 @@ public class UdmfLine : ILine
     public bool DeathSpecial;
     public bool WrapMidTex;
 
+    public MapUserProperties UserProperties;
+
     public ISide GetFront() => Front;
 
     public ISide? GetBack() => Back;

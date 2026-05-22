@@ -78,7 +78,8 @@ public class UdmfGeometryBuilder
                 SkyFloor = mapSector.SkyFloor,
                 SkyCeiling = mapSector.SkyCeiling,
                 DamageInterval = mapSector.DamageInterval == 0 ? SectorDamageSpecial.DefaultDamageInterval : mapSector.DamageInterval,
-                MoreTags = mapSector.MoreTags
+                MoreTags = mapSector.MoreTags,
+                UserProperties = mapSector.UserProperties
             };
 
             if (mapSector.DamageAmount != 0)
@@ -129,7 +130,8 @@ public class UdmfGeometryBuilder
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args)
             {
                 LockNumber = mapLine.LockNumber,
-                MapLineId = mapLine.LineId
+                MapLineId = mapLine.LineId,
+                UserProperties = mapLine.UserProperties
             };
 
             if (needsTranslation)
@@ -224,7 +226,10 @@ public class UdmfGeometryBuilder
         Wall lower = new(lowerTexture.Index, WallLocation.Lower, side.LightLevelLower, side.LightLevelLowerAbsolute, side.BottomOffset, side.BottomScale);
 
         Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector, side.LightLevel, side.LightLevelAbsolute, side.NoFakeConstrast, side.SmoothLighting, 
-            line.WrapMidTex || side.WrapMidTex);
+            line.WrapMidTex || side.WrapMidTex)
+        {
+            UserProperties = side.UserProperties
+        };
         builder.Sides.Add(addSide);
 
 

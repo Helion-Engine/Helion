@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Shared;
 using Helion.Models;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Resources.Definitions.MapInfo;
@@ -151,6 +152,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public int MaxTargetRange;
     public int MinMissileChance;
     public int MeleeThreshold;
+
+    public MapUserProperties UserProperties;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsFrozen() => FrozenTics > 0;
@@ -1291,6 +1294,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         Special = ZDoomLineSpecialType.None;
         WaterSubmersionLevel = SubmersionLevel.None;
         WaterControlSector = null;
+        UserProperties = new();
     }
 
     private void FreeToDataCache()

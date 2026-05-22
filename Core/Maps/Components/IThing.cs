@@ -21,4 +21,6 @@ public interface IThing
     float? Alpha { get; }
     float Gravity { get; }
     int? Health { get; }
+
+    MapUserProperties GetUserProperties() { return new(); }
 }
