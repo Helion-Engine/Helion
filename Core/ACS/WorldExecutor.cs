@@ -1,6 +1,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -10,7 +11,6 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Special.Specials;
 using HelionACS;
 using NLog;
-using OpenTK.Graphics.ES11;
 using System;
 using System.Linq;
 
@@ -71,13 +71,13 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V( 95, "",        2, CF_AmbientSound); TODO?
         //AddCodeDataACS0V( 96, "",        1, CF_SoundSequence); TODO?
         AddCodeDataACS0V( 97, "",        4, CF_SetLineTexture);
-        //AddCodeDataACS0V( 98, "",        2, CF_SetLineBlocking); TODO
+        AddCodeDataACS0V( 98, "",        2, CF_SetLineBlocking);
         //AddCodeDataACS0V( 99, "",        7, CF_SetLineSpecial); TODO
         //AddCodeDataACS0V(100, "",        3, CF_ThingSound); TODO
         AddCodeDataACS0V(101, "",        0, CF_EndPrintBold);
         //AddCodeDataACS0V(102, "",        2, CF_ActivatorSound);
         //AddCodeDataACS0V(103, "",        2, CF_LocalAmbientSound);
-        //AddCodeDataACS0V(104, "",        2, CF_SetLineMonsterBlocking);
+        AddCodeDataACS0V(104, "",        2, CF_SetLineMonsterBlocking);
         // 105-118: Unused codes.
         //AddCodeDataACS0I(119, "",        0, CF_ActivatorTeam);
         //AddCodeDataACS0I(120, "",        0, CF_PlayerHealth);
@@ -540,6 +540,39 @@ public class WorldExecutor : Executor
         var textureName = args.GetStringSpan(thread, 3);
         if (location != WallLocation.None)
             ActionSpecials.SetLineTexture(m_world, lineId, !Convert.ToBoolean(side), location, textureName);
+    }
+
+    public void CF_SetLineBlocking(ThreadHandle thread, uint[] args)
+    {
+        var lineId = args.Get(0);
+        var type = (LineBlockType)args.Get(1);
+        var setType = ZDoomLineBlockFlags.None;
+
+        switch(type)
+        {
+            case LineBlockType.Creatures:
+                setType = ZDoomLineBlockFlags.Creatures;
+                break;
+            case LineBlockType.Everything:
+                setType = ZDoomLineBlockFlags.Everything;
+                break;
+            case LineBlockType.Players:
+                setType = ZDoomLineBlockFlags.Players;
+                break;
+        }
+
+        var lines = m_world.FindByLineId(lineId);
+        foreach (var line in lines)
+            m_world.SetLineBlockFlags(line.Id, setType, (ZDoomLineBlockFlags)0xFFFFFF);
+    }
+
+    public void CF_SetLineMonsterBlocking(ThreadHandle thread, uint[] args)
+    {
+        var lineId = args.Get(0);
+        var setType = args.Get(1) == 0 ? ZDoomLineBlockFlags.Monsters : ZDoomLineBlockFlags.None;
+        var lines = m_world.FindByLineId(lineId);
+        foreach (var line in lines)
+            m_world.SetLineBlockFlags(line.Id, setType, (ZDoomLineBlockFlags)0xFFFFFF);
     }
 
     private static WallLocation GetWallLocation(int sideTexture)

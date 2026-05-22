@@ -4079,11 +4079,11 @@ public abstract partial class WorldBase : IWorld
         var updated = false;
         var line = Lines[lineId];
 
-        if (setFlags != 0)
-            SetLineBlockFlags(line, setFlags, true, ref updated);
-
         if (clearFlags != 0)
             SetLineBlockFlags(line, clearFlags, false, ref updated);
+
+        if (setFlags != 0)
+            SetLineBlockFlags(line, setFlags, true, ref updated);
 
         if (updated)
             SetLineBlockFlags(line, line.Flags.Blocking);

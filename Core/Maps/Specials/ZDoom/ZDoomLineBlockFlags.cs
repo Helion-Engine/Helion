@@ -2,6 +2,7 @@
 
 public enum ZDoomLineBlockFlags
 {
+    None,
     Creatures = 1,
     Monsters = 2,
     Players = 4,
