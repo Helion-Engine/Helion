@@ -370,8 +370,11 @@ public class SinglePlayerWorld : WorldBase
             m_automapMarker.Start(this);
     }
 
-    public override bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)
+    public override bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop, Entity? activator = null)
     {
+        if (activator != null && activator.PlayerObj != Player)
+            return false;
+
         base.PlayLevelMusic(name, data, flags);
         GetMusicEntry(name, out var lookup, out var entry);
 

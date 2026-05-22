@@ -6,15 +6,17 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
+using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Walls;
 using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Special.Specials;
 using HelionACS;
 using NLog;
 using System;
 using System.Linq;
+using ZMusicWrapper.Generated;
 
 namespace Helion.ACS;
 
@@ -94,7 +96,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0I(129, "",        0, CF_GetInvasionWave);
         //AddCodeDataACS0I(130, "",        0, CF_GetInvasionState);
         AddCodeDataACS0V(131, "",        0, CF_PrintName);
-        //AddCodeDataACS0V(132, "",        2, CF_SetMusic);
+        AddCodeDataACS0V(132, "",        2, CF_SetMusic);
         //AddCodeDataACS0V(133, "WSWW",    0, CF_ConsoleCommand);
         //AddCodeDataACS0V(134, "",        3, CF_ConsoleCommand);
         //AddCodeDataACS0I(135, "",        0, CF_SinglePlayer);
@@ -114,10 +116,10 @@ public class WorldExecutor : Executor
         AddCodeDataACS0I(150, "WSWWWWW", 0, CF_Spawn);
         AddCodeDataACS0I(151, "",        4, CF_SpawnSpot);
         AddCodeDataACS0I(152, "WSWWW",   0, CF_SpawnSpot);
-        //AddCodeDataACS0V(153, "",        3, CF_SetMusic);
-        //AddCodeDataACS0V(154, "WSWW",    0, CF_SetMusic);
-        //AddCodeDataACS0V(155, "",        3, CF_LocalSetMusic);
-        //AddCodeDataACS0V(156, "WSWW",    0, CF_LocalSetMusic);
+        AddCodeDataACS0V(153, "",        3, CF_SetMusic);
+        AddCodeDataACS0V(154, "WSWW",    0, CF_SetMusic);
+        AddCodeDataACS0V(155, "",        3, CF_LocalSetMusic);
+        AddCodeDataACS0V(156, "WSWW",    0, CF_LocalSetMusic);
         // 157-157: ACSVM internal codes.
         //AddCodeDataACS0V(158, "",        1, CF_PrintLocale);
         //AddCodeDataACS0V(159, "",        0, CF_PrintHudMore);
@@ -477,6 +479,24 @@ public class WorldExecutor : Executor
 
         if (print != null && print.Length > 0)
             thread.AppendToPrintBuf(print);
+    }
+
+    public void CF_SetMusic(ThreadHandle thread, uint[] args)
+    {
+        PlayMusic(null, args.GetString(thread, 0), args.Get(1));
+    }
+
+    public void CF_LocalSetMusic(ThreadHandle thread, uint[] args)
+    {
+        PlayMusic(thread.GetActivator(m_world), args.GetString(thread, 0), args.Get(1));
+    }
+
+    // TODO order arg
+    private void PlayMusic(Entity? activator, string music, int order)
+    {
+        if (music == "*")
+            music = m_world.MapInfo.Music;
+        m_world.PlayLevelMusic(music, null, activator: activator);
     }
 
     public static CallFuncResult CF_TagWait(ThreadHandle thread, uint[] args)

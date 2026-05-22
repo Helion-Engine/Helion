@@ -203,7 +203,7 @@ public interface IWorld : IDisposable
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
     void EntityTeleported(Entity entity);
-    bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop);
+    bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop, Entity? activator = null);
     void FindKeys();
     void FindKeyLines(FindKeyLineOptions options);
     void FindExits();

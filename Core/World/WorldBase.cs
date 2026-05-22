@@ -1056,7 +1056,7 @@ public abstract partial class WorldBase : IWorld
             attenuationFactor: info.Attenuation));
     }
 
-    public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)
+    public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop, Entity? activator = null)
     {
         m_activeMusic = name;
         return true;
