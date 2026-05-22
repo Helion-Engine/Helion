@@ -277,6 +277,8 @@ public class EntityManager : IDisposable
             entity.Special = mapThing.Special;
             entity.Gravity = mapThing.Gravity;
 
+            entity.UserProperties = mapThing.GetUserProperties();
+
             if (mapThing.Alpha.HasValue)
                 entity.Alpha = mapThing.Alpha.Value;
 

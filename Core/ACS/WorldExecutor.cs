@@ -5,8 +5,10 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
+using Helion.World.Geometry.Sides;
 using Helion.World.Special.Specials;
 using HelionACS;
 using NLog;
@@ -233,14 +235,14 @@ public class WorldExecutor : Executor
         // 
 
         // 0-0: ACSVM internal funcs.
-        //AddFuncDataACS0I(  1, CF_GetLineUDMFInt);
-        //AddFuncDataACS0F(  2, CF_GetLineUDMFFixed);
-        //AddFuncDataACS0I(  3, CF_GetThingUDMFInt);
-        //AddFuncDataACS0F(  4, CF_GetThingUDMFFixed);
-        //AddFuncDataACS0I(  5, CF_GetSectorUDMFInt);
-        //AddFuncDataACS0F(  6, CF_GetSectorUDMFFixed);
-        //AddFuncDataACS0I(  7, CF_GetSideUDMFInt);
-        //AddFuncDataACS0F(  8, CF_GetSideUDMFFixed);
+        AddFuncDataACS0I(  1, CF_GetLineUDMFInt);
+        AddFuncDataACS0F(  2, CF_GetLineUDMFFixed);
+        AddFuncDataACS0I(  3, CF_GetThingUDMFInt);
+        AddFuncDataACS0F(  4, CF_GetThingUDMFFixed);
+        AddFuncDataACS0I(  5, CF_GetSectorUDMFInt);
+        AddFuncDataACS0F(  6, CF_GetSectorUDMFFixed);
+        AddFuncDataACS0I(  7, CF_GetSideUDMFInt);
+        AddFuncDataACS0F(  8, CF_GetSideUDMFFixed);
         AddFuncDataACS0F(  9, CF_GetActorVelX);
         AddFuncDataACS0F( 10, CF_GetActorVelY);
         AddFuncDataACS0F( 11, CF_GetActorVelZ);
@@ -842,6 +844,49 @@ public class WorldExecutor : Executor
         var y = args.Get(2);
         return GetSectorForTagOrPoint(tag, x, y)?.Ceiling?.Plane.ToZ(new Vec2D(x, y)) ?? 0.0;
     }
+
+    public int CF_GetLineUDMFInt(ThreadHandle thread, uint[] args) =>
+        m_world.FindByLineId(args.Get(0))
+            .First()
+            ?.UserProperties.GetInteger(args.GetStringSpan(thread, 1))
+            ?? 0;
+    public double CF_GetLineUDMFFixed(ThreadHandle thread, uint[] args) =>
+        m_world.FindByLineId(args.Get(0))
+            .First()
+            ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 1))
+            ?? 0;
+
+    public int CF_GetThingUDMFInt(ThreadHandle thread, uint[] args) =>
+        m_world.FindByTid(args.Get(0))
+            .First()
+            ?.UserProperties.GetInteger(args.GetStringSpan(thread, 1))
+            ?? 0;
+    public double CF_GetThingUDMFFixed(ThreadHandle thread, uint[] args) =>
+        m_world.FindByTid(args.Get(0))
+        .First()
+        ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 1))
+        ?? 0;
+
+    public int CF_GetSectorUDMFInt(ThreadHandle thread, uint[] args) =>
+        m_world.FindBySectorTag(args.Get(0))
+        .First()
+        ?.UserProperties.GetInteger(args.GetStringSpan(thread, 1))
+        ?? 0;
+    public double CF_GetSectorUDMFFixed(ThreadHandle thread, uint[] args) =>
+        m_world.FindBySectorTag(args.Get(0))
+        .First()
+        ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 1))
+        ?? 0;
+
+    private static Side? GetLineSide(Line? line, bool back) => back ? line?.Back : line?.Front;
+    public int CF_GetSideUDMFInt(ThreadHandle thread, uint[] args) =>
+        GetLineSide(m_world.FindByLineId(args.Get(0)).First(), args.GetBool(1))
+            ?.UserProperties.GetInteger(args.GetStringSpan(thread, 2))
+            ?? 0;
+    public double CF_GetSideUDMFFixed(ThreadHandle thread, uint[] args) =>
+        GetLineSide(m_world.FindByLineId(args.Get(0)).First(), args.GetBool(1))
+            ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 2))
+            ?? 0;
 
     private int GetThingCount(int type, int tid)
     {
