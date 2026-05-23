@@ -191,7 +191,7 @@ public class SinglePlayerWorld : WorldBase
         foreach (var sound in sounds)
             SoundManager.CacheSound(sound.Name);
 
-        foreach (var sound in MapInfo.PrecacheSounds)
+        foreach (var sound in GetPreCacheSoundNames())
             SoundManager.CacheSound(sound);
     }
 

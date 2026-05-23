@@ -4648,4 +4648,16 @@ public abstract partial class WorldBase : IWorld
     }
 
     public bool UseAverageScrollCarry() => m_averageScrollCarry;
+
+    public IEnumerable<string> GetPreCacheTextureNames() =>
+        MapInfo.PrecacheTextures.Union(GetFilteredAcsStrings(), StringComparer.OrdinalIgnoreCase);
+
+    public IEnumerable<string> GetPreCacheSoundNames() =>
+        MapInfo.PrecacheSounds.Union(GetFilteredAcsStrings(), StringComparer.OrdinalIgnoreCase);
+
+    // Add ACS strings without spaces and less than 20 characters.
+    // This lets the functions check if they are valid data to cache for ACS functions since it's difficult to get the context they may be used in.
+    private IEnumerable<string> GetFilteredAcsStrings() =>
+        AcsExecutor.GetStringTable().Where(x => x.Length < 20 && !x.Contains(' '));
+
 }

@@ -15,6 +15,7 @@ using Helion.World.Special.Specials;
 using HelionACS;
 using NLog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Helion.ACS;
@@ -363,6 +364,13 @@ public class WorldExecutor : Executor
     public void UpdateWorld(IWorld world)
     {
         m_world = world;
+    }
+
+    public IEnumerable<string> GetStringTable()
+    {
+        var length = GetTableStringLength();
+        for (uint i = 0; i < length; i++)
+            yield return GetTableString(i);
     }
 
     public override uint CallSpecImpl(ThreadHandle thread, uint spec, ReadOnlySpan<uint> args)
