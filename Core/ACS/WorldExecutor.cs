@@ -131,7 +131,7 @@ public class WorldExecutor : Executor
         // 167-173: ACSVM internal codes.
         AddCodeDataACS0I(174, "BB",      0, CF_Random);
         // 175-179: ACSVM internal codes.
-        //AddCodeDataACS0V(180, "",        7, CF_SetThingSpecial);
+        AddCodeDataACS0V(180, "",        7, CF_SetThingSpecial);
         // 181-189: ACSVM internal codes.
         //AddCodeDataACS0V(190, "",        5, CF_FadeTo);
         //AddCodeDataACS0V(191, "",        9, CF_FadeRange);
@@ -743,7 +743,20 @@ public class WorldExecutor : Executor
         var vel = new Vec3D(velx, vely, velz);
         m_world.ApplyVelocity(entity, (add ? entity.Velocity : Vec3D.Zero) + vel);
     }
-    
+
+    public void CF_SetThingSpecial(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var tid = args.Get(0);
+        var special = (ZDoomLineSpecialType)args.Get(1);
+        var arg0 = args.Get(2);
+        var arg1 = args.Get(3);
+        var arg2 = args.Get(4);
+        var arg3 = args.Get(5);
+        var arg4 = args.Get(6);
+        var activator = thread.GetActivator(m_world) ?? m_world.Player;
+        ActionSpecials.ThingSetSpecial(activator, m_world, tid, special, arg0, arg1, arg2, arg3, arg4);
+    }
+
     public int CF_UniqueTID(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         while (true)

@@ -396,6 +396,16 @@ public static class ActionSpecials
         return true;
     }
 
+    public static void ThingSetSpecial(Entity activator, IWorld world, int tid, ZDoomLineSpecialType special, int arg0, int arg1, int arg2, int arg3, int arg4)
+    {
+        var entities = GetActivatorOrEntities(activator, world, tid);
+        for (var entity = entities.Current(); entity != null; entity = entities.Advance())
+        {
+            entity.Special = special;
+            entity.Args = new(arg0, arg1, arg2, arg3, arg4);
+        }
+    }
+
     public static bool RadiusQuake(Entity activator, IWorld world, in SpecialArgs args)
     {
         var entity = GetActivator(activator, world, args.Arg4);
