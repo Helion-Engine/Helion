@@ -2,13 +2,14 @@
 
 using Helion.Audio;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using NLog;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using ZMusicWrapper;
@@ -17,7 +18,7 @@ public class MusicPlayer : IMusicPlayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private UInt128 m_lastDataHash;
+    private string m_lastEntryPath = string.Empty;
     private bool m_disposed;
 
     private readonly PathsManager m_pathsManager;
@@ -27,10 +28,8 @@ public class MusicPlayer : IMusicPlayer
     private readonly CancellationTokenSource m_cancelPlayQueue = new();
     private readonly Task m_playQueueTask;
     private readonly AudioStreamFactory m_audioStreamFactory = new();
-    private ZMusicPlayer m_zMusicPlayer;
-#pragma warning disable CA5351
-    private readonly MD5 m_md5 = MD5.Create();
-#pragma warning restore CA5351
+    private readonly ZMusicPlayer m_zMusicPlayer;
+    private readonly Dictionary<string, byte[]> m_musicLookup = [];
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
     private bool m_isMidi;
@@ -108,22 +107,21 @@ public class MusicPlayer : IMusicPlayer
         m_zMusicPlayer.OnDeviceChanged();
     }
 
-    private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
+    private readonly struct PlayParams(Entry entry, MusicPlayerOptions options)
     {
-        public readonly byte[] Data = data;
+        public readonly Entry Entry = entry;
         public readonly MusicPlayerOptions Options = options;
     }
 
-    public bool Play(byte[] data, MusicPlayerOptions options)
+    public bool Play(Entry entry, MusicPlayerOptions options)
     {
         if (m_disposed || !m_enabled)
             return false;
 
         m_playQueue.Clear();
-        m_playQueue.Enqueue(new PlayParams(data, options));
+        m_playQueue.Enqueue(new PlayParams(entry, options));
         return true;
     }
-
     public void ChangeSoundFont()
     {
         if (m_disposed)
@@ -143,15 +141,8 @@ public class MusicPlayer : IMusicPlayer
         if (isPlaying && m_currentTrack.HasValue)
         {
             var track = m_currentTrack.Value;
-            m_playQueue.Enqueue(new(track.Data, track.Options | MusicPlayerOptions.Reload));
+            m_playQueue.Enqueue(new(track.Entry, track.Options | MusicPlayerOptions.Reload));
         }
-    }
-
-    private void RestartZMusicPlayer()
-    {
-        m_zMusicPlayer.Stop();
-        if (m_currentTrack.HasValue)
-            PlayMusic(m_currentTrack.Value, m_currentTrack.Value.Data);
     }
 
     public void SetSynthesizer(ZMusicPlayer player)
@@ -169,10 +160,10 @@ public class MusicPlayer : IMusicPlayer
         if (currentDevice != newDevice)
         {
             player.PreferredDevice = newDevice;
-            if (m_currentTrack?.Data != null)
+            if (m_currentTrack?.Entry != null)
             {
                 var newOptions = (m_currentTrack?.Options ?? MusicPlayerOptions.None) | MusicPlayerOptions.Reload;
-                Play(m_currentTrack?.Data!, newOptions);
+                Play(m_currentTrack!.Value.Entry, newOptions);
             }
         }
     }
@@ -186,6 +177,11 @@ public class MusicPlayer : IMusicPlayer
             options |= FluidMidiOptions.Reverb;
 
         m_zMusicPlayer.SetFluidMidiOptions(options);
+    }
+
+    public void ClearCachedData()
+    {
+        m_musicLookup.Clear();
     }
 
     private void PlayQueueTask()
@@ -215,18 +211,20 @@ public class MusicPlayer : IMusicPlayer
         if (!m_enabled)
             return;
 
-        m_currentTrack = new(playParams.Data, playParams.Options & ~MusicPlayerOptions.Reload);
-        var data = playParams.Data;
-        var options = playParams.Options;
-        UInt128 hash = BitConverter.ToUInt128(m_md5.ComputeHash(data));
+        m_currentTrack = new(playParams.Entry, playParams.Options & ~MusicPlayerOptions.Reload);
 
-        if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0 && (options & MusicPlayerOptions.Reload) == 0)
+        var options = playParams.Options;
+        var fullPath = playParams.Entry.Path.FullPath;
+        if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0 && (options & MusicPlayerOptions.Reload) == 0 && fullPath == m_lastEntryPath)
+            return;
+
+        if (!m_musicLookup.TryGetValue(fullPath, out var data))
         {
-            if (hash == m_lastDataHash)
-                return;
+            data = playParams.Entry.ReadData();
+            m_musicLookup[fullPath] = data;
         }
 
-        m_lastDataHash = hash;
+        m_lastEntryPath = fullPath;
 
         Stop();
 
@@ -301,7 +299,6 @@ public class MusicPlayer : IMusicPlayer
         m_playQueueTask.Wait(1000);
 
         m_zMusicPlayer.Dispose();
-        m_md5.Dispose();
         m_disposed = true;
     }
 

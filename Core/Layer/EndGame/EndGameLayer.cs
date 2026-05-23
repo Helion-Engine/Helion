@@ -169,7 +169,7 @@ public partial class EndGameLayer : IGameLayer
             return;
         }
 
-        m_musicPlayer.Play(entry.ReadData());
+        m_musicPlayer.Play(entry);
     }
 
     public void Dispose()

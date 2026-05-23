@@ -126,7 +126,7 @@ public partial class IntermissionLayer : IGameLayer
             return;
         }
 
-        m_musicPlayer.Play(entry.ReadData());
+        m_musicPlayer.Play(entry);
     }
 
     public void Dispose()

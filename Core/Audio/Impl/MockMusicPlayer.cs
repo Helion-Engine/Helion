@@ -1,4 +1,5 @@
 ﻿using Helion.Audio;
+using Helion.Resources.Archives.Entries;
 
 namespace Helion.Audio.Impl
 {
@@ -10,6 +11,11 @@ namespace Helion.Audio.Impl
         }
 
         public bool Play(byte[] data, MusicPlayerOptions options)
+        {
+            return true;
+        }
+
+        public bool Play(Entry entry, MusicPlayerOptions options)
         {
             return true;
         }
@@ -30,6 +36,11 @@ namespace Helion.Audio.Impl
         }
 
         public void OutputChanged()
+        {
+
+        }
+
+        public void ClearCachedData()
         {
 
         }

@@ -9,6 +9,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -203,7 +204,7 @@ public interface IWorld : IDisposable
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
     void EntityTeleported(Entity entity);
-    bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop, Entity? activator = null);
+    bool PlayLevelMusic(string name, MusicFlags flags = MusicFlags.Loop, Entity? activator = null);
     void FindKeys();
     void FindKeyLines(FindKeyLineOptions options);
     void FindExits();

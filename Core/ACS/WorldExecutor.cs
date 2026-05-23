@@ -495,7 +495,7 @@ public class WorldExecutor : Executor
     {
         if (music == "*")
             music = m_world.MapInfo.Music;
-        m_world.PlayLevelMusic(music, null, activator: activator);
+        m_world.PlayLevelMusic(music, activator: activator);
     }
 
     public static CallFuncResult CF_TagWait(ThreadHandle thread, ReadOnlySpan<uint> args)

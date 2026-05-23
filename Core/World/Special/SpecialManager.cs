@@ -1468,7 +1468,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             musicFlags |= MusicFlags.Loop;
         }
 
-        m_world.PlayLevelMusic(music, null, musicFlags);
+        m_world.PlayLevelMusic(music, musicFlags);
     }
 
     private bool HandleSectorLineSpecial(in EntityActivateSpecial args, LineSpecial special)

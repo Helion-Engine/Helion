@@ -521,11 +521,6 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             m_sectorToMusicChange[entity.Sector.Id] = musInfo;
-
-            // Cache the entry to prevent stutters
-            Entry? entry = ArchiveCollection.Entries.FindByName(musInfo.Name);
-            if (entry != null)
-                musInfo.MusicData = entry.ReadData();
         }
     }
 
@@ -1009,8 +1004,8 @@ public abstract partial class WorldBase : IWorld
                 if (m_changeMusicTicks > 0)
                 {
                     m_changeMusicTicks--;
-                    if (m_changeMusicTicks == 0 && m_lastMusicChange?.MusicData != null)
-                        PlayLevelMusic(m_lastMusicChange.Name, m_lastMusicChange.MusicData);
+                    if (m_changeMusicTicks == 0 && m_lastMusicChange != null)
+                        PlayLevelMusic(m_lastMusicChange.Name);
                 }
 
                 ArchiveCollection.TextureManager.Tick();
@@ -1056,7 +1051,7 @@ public abstract partial class WorldBase : IWorld
             attenuationFactor: info.Attenuation));
     }
 
-    public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop, Entity? activator = null)
+    public virtual bool PlayLevelMusic(string name, MusicFlags flags = MusicFlags.Loop, Entity? activator = null)
     {
         m_activeMusic = name;
         return true;
@@ -3202,7 +3197,7 @@ public abstract partial class WorldBase : IWorld
         if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
             return false;
 
-        return PlayLevelMusic(mapInfoDef.Music, null);
+        return PlayLevelMusic(mapInfoDef.Music);
     }
 
     protected void ResetLevel(bool loadLastWorldModel)
