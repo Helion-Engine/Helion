@@ -562,7 +562,7 @@ public partial class GeometryRenderer : IDisposable
 
         foreach (var textureName in world.MapInfo.PrecacheTextures)
         {
-            var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Flats, ResourceNamespace.Textures);
+            var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Global, ResourceNamespace.Textures);
             if (texture.Index > 0)
                 textures.Add(texture.Index);
         }
