@@ -177,6 +177,15 @@ public partial class MapInfoDefinition
                 if (parser.GetCurrentLine() == line)
                     parser.ConsumeLine();
             }
+            else if (item.EqualsIgnoreCase("precachesounds"))
+            {
+                mapDef.PrecacheSounds = GetStringList(parser);
+            }
+            else if (item.EqualsIgnoreCase("precachetextures"))
+            {
+                ConsumeEquals(parser);
+                mapDef.PrecacheTextures = GetStringList(parser);
+            }
             else
             {
                 WarnMissing("map", item, line);

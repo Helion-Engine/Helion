@@ -560,6 +560,13 @@ public partial class GeometryRenderer : IDisposable
                 textures.Add(sector.CeilingSkyTextureHandle.Value);
         }
 
+        foreach (var textureName in world.MapInfo.PrecacheTextures)
+        {
+            var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Flats, ResourceNamespace.Textures);
+            if (texture.Index > 0)
+                textures.Add(texture.Index);
+        }
+
         TextureManager.LoadTextureImages(textures);
     }
 

@@ -189,6 +189,9 @@ public class SinglePlayerWorld : WorldBase
         ArchiveCollection.Definitions.SoundInfo.GetSounds(sounds);
         foreach (var sound in sounds)
             SoundManager.CacheSound(sound.Name);
+
+        foreach (var sound in MapInfo.PrecacheSounds)
+            SoundManager.CacheSound(sound);
     }
 
     private void CacheMusic()
