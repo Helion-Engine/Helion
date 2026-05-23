@@ -16,7 +16,6 @@ using HelionACS;
 using NLog;
 using System;
 using System.Linq;
-using ZMusicWrapper.Generated;
 
 namespace Helion.ACS;
 
@@ -366,7 +365,7 @@ public class WorldExecutor : Executor
         m_world = world;
     }
 
-    public override uint CallSpecImpl(ThreadHandle thread, uint spec, uint[] args)
+    public override uint CallSpecImpl(ThreadHandle thread, uint spec, ReadOnlySpan<uint> args)
     {
         var arg0 = args.Get(0);
         var arg1 = args.Get(1);
@@ -412,24 +411,24 @@ public class WorldExecutor : Executor
         return true;
     }
 
-    public int CF_Random(ThreadHandle thread, uint[] args)
+    public int CF_Random(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var min = args.Get(0);
         var max = args.Get(1);
         return m_world.Random.GenInt32Range(min, max);
     }
 
-    public void CF_EndPrint(ThreadHandle thread, uint[] args)
+    public void CF_EndPrint(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         DoPrint(thread, args);
     }
 
-    public void CF_EndPrintBold(ThreadHandle thread, uint[] args)
+    public void CF_EndPrintBold(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         DoPrint(thread, args);
     }
 
-    public void CF_PrintName(ThreadHandle thread, uint[] args)
+    public void CF_PrintName(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var stackValue = (int)thread.GetStack(1);
         string? print = null;
@@ -481,12 +480,12 @@ public class WorldExecutor : Executor
             thread.AppendToPrintBuf(print);
     }
 
-    public void CF_SetMusic(ThreadHandle thread, uint[] args)
+    public void CF_SetMusic(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         PlayMusic(null, args.GetString(thread, 0), args.Get(1));
     }
 
-    public void CF_LocalSetMusic(ThreadHandle thread, uint[] args)
+    public void CF_LocalSetMusic(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         PlayMusic(thread.GetActivator(m_world), args.GetString(thread, 0), args.Get(1));
     }
@@ -499,33 +498,33 @@ public class WorldExecutor : Executor
         m_world.PlayLevelMusic(music, null, activator: activator);
     }
 
-    public static CallFuncResult CF_TagWait(ThreadHandle thread, uint[] args)
+    public static CallFuncResult CF_TagWait(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         thread.MakeTagWait(0, args.GetU(0));
         return CallFuncResult.ReevaluateState;
     }
 
-    public int CF_ThingCount(ThreadHandle thread, uint[] args)
+    public int CF_ThingCount(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         return GetThingCount(args.Get(0), args.Get(1), Sector.NoTag);
     }
 
-    public int CF_ThingCountName(ThreadHandle thread, uint[] args)
+    public int CF_ThingCountName(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         return GetThingCount(args.GetStringSpan(thread, 0), args.Get(1), Sector.NoTag);
     }
 
-    public int CF_ThingCountSector(ThreadHandle thread, uint[] args)
+    public int CF_ThingCountSector(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         return GetThingCount(args.Get(0), args.Get(1), args.Get(2));
     }
 
-    public int CF_ThingCountNameSector(ThreadHandle thread, uint[] args)
+    public int CF_ThingCountNameSector(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         return GetThingCount(args.GetStringSpan(thread, 0), args.Get(1), args.Get(2));
     }
 
-    public int CF_PlayerNumber(ThreadHandle thread, uint[] args)
+    public int CF_PlayerNumber(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
         if (activator == null)
@@ -539,7 +538,7 @@ public class WorldExecutor : Executor
             return -1;
     }
 
-    public int CF_ActivatorTID(ThreadHandle thread, uint[] args)
+    public int CF_ActivatorTID(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
         if (activator == null)
@@ -550,21 +549,21 @@ public class WorldExecutor : Executor
         return activator.ThingId;
     }
 
-    public void CF_ChangeFloor(ThreadHandle thread, uint[] args)
+    public void CF_ChangeFloor(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var tag = args.Get(0);
         var flat = args.GetStringSpan(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Floor);
     }
 
-    public void CF_ChangeCeiling(ThreadHandle thread, uint[] args)
+    public void CF_ChangeCeiling(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var tag = args.Get(0);
         var flat = args.GetStringSpan(thread, 1);
         ActionSpecials.ChangeFlat(m_world, tag, flat, SectorPlaneFace.Ceiling);
     }
 
-    public void CF_SetLineTexture(ThreadHandle thread, uint[] args)
+    public void CF_SetLineTexture(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var lineId = args.Get(0);
         var side = args.Get(1);
@@ -574,7 +573,7 @@ public class WorldExecutor : Executor
             ActionSpecials.SetLineTexture(m_world, lineId, !Convert.ToBoolean(side), location, textureName);
     }
 
-    public void CF_SetLineBlocking(ThreadHandle thread, uint[] args)
+    public void CF_SetLineBlocking(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var lineId = args.Get(0);
         var type = (LineBlockType)args.Get(1);
@@ -598,7 +597,7 @@ public class WorldExecutor : Executor
             m_world.SetLineBlockFlags(line.Id, setType, clearFlags);
     }
 
-    public void CF_SetLineMonsterBlocking(ThreadHandle thread, uint[] args)
+    public void CF_SetLineMonsterBlocking(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var lineId = args.Get(0);
         var setType = args.Get(1) == 0 ? ZDoomLineBlockFlags.Monsters : ZDoomLineBlockFlags.None;
@@ -618,7 +617,7 @@ public class WorldExecutor : Executor
         };
     }
 
-    public int CF_Spawn(ThreadHandle thread, uint[] args)
+    public int CF_Spawn(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var className = args.GetStringSpan(thread, 0);
         var x = args.Get(1);
@@ -629,7 +628,7 @@ public class WorldExecutor : Executor
         return ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle, false) ? 1 : 0;
     }
 
-    public int CF_SpawnForced(ThreadHandle thread, uint[] args)
+    public int CF_SpawnForced(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var className = args.GetStringSpan(thread, 0);
         var x = args.Get(1);
@@ -640,7 +639,7 @@ public class WorldExecutor : Executor
         return ActionSpecials.Spawn(m_world, className, x, y, z, tid, angle, true) ? 1 : 0;
     }
 
-    public int CF_SpawnSpot(ThreadHandle thread, uint[] args)
+    public int CF_SpawnSpot(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
@@ -649,7 +648,7 @@ public class WorldExecutor : Executor
         return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), false) ? 1 : 0;
     }
 
-    public int CF_SpawnSpotFacing(ThreadHandle thread, uint[] args)
+    public int CF_SpawnSpotFacing(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
@@ -657,7 +656,7 @@ public class WorldExecutor : Executor
         return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, false) ? 1 : 0;
     }
 
-    public int CF_SpawnSpotFacingForced(ThreadHandle thread, uint[] args)
+    public int CF_SpawnSpotFacingForced(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
@@ -665,7 +664,7 @@ public class WorldExecutor : Executor
         return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, null, true) ? 1 : 0;
     }
 
-    public int CF_SpawnSpotForced(ThreadHandle thread, uint[] args)
+    public int CF_SpawnSpotForced(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var className = args.GetStringSpan(thread, 0);
         var spotTid = args.Get(1);
@@ -674,23 +673,23 @@ public class WorldExecutor : Executor
         return ActionSpecials.SpawnSpot(m_world, thread.GetActivator(m_world), className, spotTid, tid, MathHelper.FromByteAngle(angle), true) ? 1 : 0;
     }
 
-    public double CF_GetActorX(ThreadHandle thread, uint[] args)
+    public double CF_GetActorX(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Position.X ?? 0;
     }
-    public double CF_GetActorY(ThreadHandle thread, uint[] args)
+    public double CF_GetActorY(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Position.Y ?? 0;
     }
-    public double CF_GetActorZ(ThreadHandle thread, uint[] args)
+    public double CF_GetActorZ(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Position.Z ?? 0;
     }
 
-    public bool CF_SetActorPosition(ThreadHandle thread, uint[] args)
+    public bool CF_SetActorPosition(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         if (entity == null)
@@ -712,25 +711,25 @@ public class WorldExecutor : Executor
         return true;
     }
 
-    public double CF_GetActorVelX(ThreadHandle thread, uint[] args)
+    public double CF_GetActorVelX(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Velocity.X ?? 0;
     }
 
-    public double CF_GetActorVelY(ThreadHandle thread, uint[] args)
+    public double CF_GetActorVelY(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Velocity.Y ?? 0;
     }
 
-    public double CF_GetActorVelZ(ThreadHandle thread, uint[] args)
+    public double CF_GetActorVelZ(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.Velocity.Z ?? 0;
     }
 
-    public void CF_SetActorVelocity(ThreadHandle thread, uint[] args)
+    public void CF_SetActorVelocity(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         var velx = args.GetDouble(1);
@@ -745,7 +744,7 @@ public class WorldExecutor : Executor
         m_world.ApplyVelocity(entity, (add ? entity.Velocity : Vec3D.Zero) + vel);
     }
     
-    public int CF_UniqueTID(ThreadHandle thread, uint[] args)
+    public int CF_UniqueTID(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         while (true)
         {
@@ -757,20 +756,20 @@ public class WorldExecutor : Executor
         }
     }
     
-    public bool CF_IsTIDUsed(ThreadHandle thread, uint[] args)
+    public bool CF_IsTIDUsed(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var tid = args.Get(0);
         return m_world.EntityManager.TidInUse(tid);
     }
 
-    public void CF_ClearInventory(ThreadHandle thread, uint[] args)
+    public void CF_ClearInventory(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
         if (activator?.PlayerObj != null)
             m_world.ClearInventory(activator.PlayerObj);
     }
 
-    public void CF_GiveInventory(ThreadHandle thread, uint[] args)
+    public void CF_GiveInventory(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
         if (activator?.PlayerObj == null)
@@ -781,7 +780,7 @@ public class WorldExecutor : Executor
         m_world.GiveInventory(activator.PlayerObj, className, amount);
     }
 
-    public void CF_TakeInventory(ThreadHandle thread, uint[] args)
+    public void CF_TakeInventory(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
         if (activator?.PlayerObj == null)
@@ -792,7 +791,7 @@ public class WorldExecutor : Executor
         m_world.TakeInventory(activator.PlayerObj, className, amount);
     }
 
-    public int CF_CheckInventory(ThreadHandle thread, uint[] args)
+    public int CF_CheckInventory(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
         if (activator?.PlayerObj == null)
@@ -811,7 +810,7 @@ public class WorldExecutor : Executor
         VeryHard = 4
     }
 
-    public int CF_GameSkill(ThreadHandle thread, uint[] args) => 
+    public int CF_GameSkill(ThreadHandle thread, ReadOnlySpan<uint> args) => 
         (int)(m_world.SkillLevel switch {
             SkillLevel.VeryEasy => GameSkillResult.VeryEasy,
             SkillLevel.Easy => GameSkillResult.Easy,
@@ -822,23 +821,23 @@ public class WorldExecutor : Executor
             _ => GameSkillResult.Normal
         });
 
-    public int CF_Timer(ThreadHandle thread, uint[] args) => m_world.LevelTime;
+    public int CF_Timer(ThreadHandle thread, ReadOnlySpan<uint> args) => m_world.LevelTime;
 
     private static double FixedAngleWraparound(double value) => value - Math.Floor(value);
 
     // ACS trigonometry uses "fixed-point angles" instead of something normal like radians or degrees
-    public static double CF_Sin(ThreadHandle thread, uint[] args) => Math.Sin(args.GetDouble(0) * 2 * Math.PI);
-    public static double CF_Cos(ThreadHandle thread, uint[] args) => Math.Cos(args.GetDouble(0) * 2 * Math.PI);
-    public static double CF_VectorAngle(ThreadHandle thread, uint[] args) => FixedAngleWraparound(Math.Atan2(args.GetDouble(1), args.GetDouble(0)) / (2 * Math.PI));
+    public static double CF_Sin(ThreadHandle thread, ReadOnlySpan<uint> args) => Math.Sin(args.GetDouble(0) * 2 * Math.PI);
+    public static double CF_Cos(ThreadHandle thread, ReadOnlySpan<uint> args) => Math.Cos(args.GetDouble(0) * 2 * Math.PI);
+    public static double CF_VectorAngle(ThreadHandle thread, ReadOnlySpan<uint> args) => FixedAngleWraparound(Math.Atan2(args.GetDouble(1), args.GetDouble(0)) / (2 * Math.PI));
 
-    public static int CF_Sqrt(ThreadHandle thread, uint[] args) => (int)Math.Sqrt(args.Get(0));
-    public static double CF_FixedSqrt(ThreadHandle thread, uint[] args) => Math.Sqrt(args.GetDouble(0));
-    public static double CF_VectorLength(ThreadHandle thread, uint[] args) => new Vec2D(args.GetDouble(0), args.GetDouble(1)).Length();
+    public static int CF_Sqrt(ThreadHandle thread, ReadOnlySpan<uint> args) => (int)Math.Sqrt(args.Get(0));
+    public static double CF_FixedSqrt(ThreadHandle thread, ReadOnlySpan<uint> args) => Math.Sqrt(args.GetDouble(0));
+    public static double CF_VectorLength(ThreadHandle thread, ReadOnlySpan<uint> args) => new Vec2D(args.GetDouble(0), args.GetDouble(1)).Length();
 
     // these can be done with fixed-point bit manipulation but it's harder to read than the double version for questionable benefit on modern hardware
-    public static double CF_Floor(ThreadHandle thread, uint[] args) => Math.Floor(args.GetDouble(0));
-    public static double CF_Round(ThreadHandle thread, uint[] args) => Math.Round(args.GetDouble(0));
-    public static double CF_Ceil(ThreadHandle thread, uint[] args) => Math.Ceiling(args.GetDouble(0));
+    public static double CF_Floor(ThreadHandle thread, ReadOnlySpan<uint> args) => Math.Floor(args.GetDouble(0));
+    public static double CF_Round(ThreadHandle thread, ReadOnlySpan<uint> args) => Math.Round(args.GetDouble(0));
+    public static double CF_Ceil(ThreadHandle thread, ReadOnlySpan<uint> args) => Math.Ceiling(args.GetDouble(0));
 
     private Vec2D GetLineInner(int lineId, double interpolationT, double normalOffset)
     {
@@ -853,7 +852,7 @@ public class WorldExecutor : Executor
         }
         return point;
     }
-    public double CF_GetLineX(ThreadHandle thread, uint[] args)
+    public double CF_GetLineX(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var lineId = args.Get(0);
         var interpolationT = args.GetDouble(1);
@@ -861,7 +860,7 @@ public class WorldExecutor : Executor
         return GetLineInner(lineId, interpolationT, normalOffset).X;
     }
 
-    public double CF_GetLineY(ThreadHandle thread, uint[] args)
+    public double CF_GetLineY(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var lineId = args.Get(0);
         var interpolationT = args.GetDouble(1);
@@ -869,18 +868,18 @@ public class WorldExecutor : Executor
         return GetLineInner(lineId, interpolationT, normalOffset).Y;
     }
 
-    public double CF_GetActorFloorZ(ThreadHandle thread, uint[] args)
+    public double CF_GetActorFloorZ(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.HighestFloorZ ?? 0.0;
     }
 
-    public double CF_GetActorCeilingZ(ThreadHandle thread, uint[] args) {
+    public double CF_GetActorCeilingZ(ThreadHandle thread, ReadOnlySpan<uint> args) {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return entity?.LowestCeilingZ ?? 0.0;
     }
 
-    public double CF_GetActorAngle(ThreadHandle thread, uint[] args) {
+    public double CF_GetActorAngle(ThreadHandle thread, ReadOnlySpan<uint> args) {
         var entity = args.GetTidOrActivator(thread, m_world, 0);
         return FixedAngleWraparound((entity?.AngleRadians ?? 0.0) / (2 * Math.PI));
     }
@@ -888,7 +887,7 @@ public class WorldExecutor : Executor
     private Sector? GetSectorForTagOrPoint(int tag, double x, double y) =>
         (tag != 0) ? m_world.FindBySectorTag(tag).First() : m_world.ToSubsector(x, y).Sector;
 
-    public double CF_GetSectorFloorZ(ThreadHandle thread, uint[] args)
+    public double CF_GetSectorFloorZ(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var tag = args.Get(0);
         // NOTE: intentionally not `GetDouble`. idk why but that's how the function works.
@@ -897,7 +896,7 @@ public class WorldExecutor : Executor
         return GetSectorForTagOrPoint(tag, x, y)?.Floor?.Plane.ToZ(new Vec2D(x, y)) ?? 0.0;
     }
 
-    public double CF_GetSectorCeilingZ(ThreadHandle thread, uint[] args)
+    public double CF_GetSectorCeilingZ(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var tag = args.Get(0);
         // NOTE: intentionally not `GetDouble`. idk why but that's how the function works.
@@ -906,45 +905,45 @@ public class WorldExecutor : Executor
         return GetSectorForTagOrPoint(tag, x, y)?.Ceiling?.Plane.ToZ(new Vec2D(x, y)) ?? 0.0;
     }
 
-    public int CF_GetLineUDMFInt(ThreadHandle thread, uint[] args) =>
+    public int CF_GetLineUDMFInt(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         m_world.FindByLineId(args.Get(0))
             .First()
             ?.UserProperties.GetInteger(args.GetStringSpan(thread, 1))
             ?? 0;
-    public double CF_GetLineUDMFFixed(ThreadHandle thread, uint[] args) =>
+    public double CF_GetLineUDMFFixed(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         m_world.FindByLineId(args.Get(0))
             .First()
             ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 1))
             ?? 0;
 
-    public int CF_GetThingUDMFInt(ThreadHandle thread, uint[] args) =>
+    public int CF_GetThingUDMFInt(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         m_world.FindByTid(args.Get(0))
             .First()
             ?.UserProperties.GetInteger(args.GetStringSpan(thread, 1))
             ?? 0;
-    public double CF_GetThingUDMFFixed(ThreadHandle thread, uint[] args) =>
+    public double CF_GetThingUDMFFixed(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         m_world.FindByTid(args.Get(0))
         .First()
         ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 1))
         ?? 0;
 
-    public int CF_GetSectorUDMFInt(ThreadHandle thread, uint[] args) =>
+    public int CF_GetSectorUDMFInt(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         m_world.FindBySectorTag(args.Get(0))
         .First()
         ?.UserProperties.GetInteger(args.GetStringSpan(thread, 1))
         ?? 0;
-    public double CF_GetSectorUDMFFixed(ThreadHandle thread, uint[] args) =>
+    public double CF_GetSectorUDMFFixed(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         m_world.FindBySectorTag(args.Get(0))
         .First()
         ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 1))
         ?? 0;
 
     private static Side? GetLineSide(Line? line, bool back) => back ? line?.Back : line?.Front;
-    public int CF_GetSideUDMFInt(ThreadHandle thread, uint[] args) =>
+    public int CF_GetSideUDMFInt(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         GetLineSide(m_world.FindByLineId(args.Get(0)).First(), args.GetBool(1))
             ?.UserProperties.GetInteger(args.GetStringSpan(thread, 2))
             ?? 0;
-    public double CF_GetSideUDMFFixed(ThreadHandle thread, uint[] args) =>
+    public double CF_GetSideUDMFFixed(ThreadHandle thread, ReadOnlySpan<uint> args) =>
         GetLineSide(m_world.FindByLineId(args.Get(0)).First(), args.GetBool(1))
             ?.UserProperties.GetDecimal(args.GetStringSpan(thread, 2))
             ?? 0;
@@ -974,7 +973,7 @@ public class WorldExecutor : Executor
         return m_world.EntityAliveCount(def.Id, tid, sectorTag);
     }
 
-    private void DoPrint(ThreadHandle thread, uint[] args)
+    private void DoPrint(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
         var printBuf = thread.GetPrintBuf()!;

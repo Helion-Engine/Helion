@@ -8,44 +8,44 @@ namespace Helion.ACS;
 
 public static class ArgsExtensions
 {
-    public static int Get(this uint[] args, int index, int defaultValue = 0)
+    public static int Get(this ReadOnlySpan<uint> args, int index, int defaultValue = 0)
     {
         if (index >= args.Length)
             return defaultValue;
         return (int)args[index];
     }
 
-    public static uint GetU(this uint[] args, int index, uint defaultValue = 0u)
+    public static uint GetU(this ReadOnlySpan<uint> args, int index, uint defaultValue = 0u)
     {
         if (index >= args.Length)
             return defaultValue;
         return args[index];
     }
 
-    public static string GetString(this uint[] args, ThreadHandle thread, uint index, string defaultValue = "")
+    public static string GetString(this ReadOnlySpan<uint> args, ThreadHandle thread, uint index, string defaultValue = "")
     {
         if (index >= args.Length)
             return defaultValue;
 
-        var str = thread.GetString(args[index]);
+        var str = thread.GetString(args[(int)index]);
         return str;
     }
 
-    public static ReadOnlySpan<char> GetStringSpan(this uint[] args, ThreadHandle thread, uint index, string defaultValue = "")
+    public static ReadOnlySpan<char> GetStringSpan(this ReadOnlySpan<uint> args, ThreadHandle thread, uint index, string defaultValue = "")
     {
         if (index >= args.Length)
             return defaultValue;
 
-        var str = thread.GetStringSpan(index, args[index]);
+        var str = thread.GetStringSpan(index, args[(int)index]);
         return str;
     }
 
-    public static Entity? GetTidOrActivator(this uint[] args, ThreadHandle thread, IWorld world, uint index)
+    public static Entity? GetTidOrActivator(this ReadOnlySpan<uint> args, ThreadHandle thread, IWorld world, uint index)
     {
         if (index >= args.Length)
             return null;
 
-        var tid = args[index];
+        var tid = args[(int)index];
         if (tid == 0)
         {
             return thread.GetActivator(world);
@@ -53,19 +53,19 @@ public static class ArgsExtensions
         return world.FindByTid((int)tid).Head?.Value;
     }
 
-    public static double GetDouble(this uint[] args, uint index, double defaultValue = 0.0)
+    public static double GetDouble(this ReadOnlySpan<uint> args, uint index, double defaultValue = 0.0)
     {
         if (index >= args.Length)
             return defaultValue;
 
-        return MathHelper.FromFixed(unchecked((int)args[index]));
+        return MathHelper.FromFixed(unchecked((int)args[(int)index]));
     }
 
-    public static bool GetBool(this uint[] args, uint index, bool defaultValue = false)
+    public static bool GetBool(this ReadOnlySpan<uint> args, uint index, bool defaultValue = false)
     {
         if (index >= args.Length)
             return defaultValue;
 
-        return args[index] != 0;
+        return args[(int)index] != 0;
     }
 }
