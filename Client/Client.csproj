@@ -31,6 +31,17 @@
     <AllowedReferenceRelatedFileExtensions Condition="'$(Configuration)'=='Release'">none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
+  <Target Name="ResolveNative" BeforeTargets="Build">
+    <MSBuild Projects="..\Core\Core.csproj" Targets="GetNativePaths" BuildInParallel="false">
+      <Output TaskParameter="TargetOutputs" ItemName="NativeLibraryPath" />
+    </MSBuild>
+
+    <ItemGroup Condition="'$(AOT)' == 'true'">
+      <DirectPInvoke Include="HelionACS-native" />
+      <NativeLibrary Include="@(NativeLibraryPath)" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup Condition="'$(AOT)' == 'true'">
     <DirectPInvoke Include="zmusic.dll" />
     <DirectPInvoke Include="glfw3.dll" />

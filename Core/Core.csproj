@@ -31,6 +31,13 @@
     <PackageReference Include="ini-parser-net8" Version="2.6.2.1" />
     <PackageReference Include="xBRZNet" Version="1.2.0" />
     <PackageReference Include="zdbspSharp" Version="1.0.8" />
-    <PackageReference Include="Gutawer.HelionACS" Version="0.1.1-pre.29" GeneratePathProperty="true" />
+    <PackageReference Include="Gutawer.HelionACS" Version="0.1.1-pre.38" GeneratePathProperty="true" />
   </ItemGroup>
+
+  <Target Name="GetNativePaths" Returns="@(NativeLibraryPath)">
+    <ItemGroup>
+      <NativeLibraryPath Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="$(PkgGutawer_HelionACS)\runtimes\win-x64\native\HelionACS-native-static.lib" />
+      <NativeLibraryPath Condition="'$(RuntimeIdentifier)'=='linux-x64'" Include="$(PkgGutawer_HelionACS)\runtimes\linux-x64\native\libHelionACS-native-static.a" />
+    </ItemGroup>
+  </Target>
 </Project>
