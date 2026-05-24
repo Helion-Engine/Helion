@@ -197,7 +197,10 @@ public interface IWorld : IDisposable
     void SetSectorPlaneAngle(SectorPlane plane, double angleRadians);
     void SetSectorPlaneScale(SectorPlane plane, Vec2D scale);
     void SetSectorGravity(Sector sector, double gravity);
+    void SetSectorSound(Sector sector, ReadOnlySpan<char> sound, float volume);
     void SetEntityPosition(Entity entity, Vec3D pos);
+    void SetEntitySound(Entity entity, ReadOnlySpan<char> sound, float volume);
+    void PlayStaticSound(Player? player, ReadOnlySpan<char> sound, float volume);
     void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags);
     void SetLineBlockFlags(Line line, in LineBlockFlags flags);
     void ToggleChaseCameraMode();

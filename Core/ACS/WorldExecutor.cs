@@ -25,6 +25,12 @@ public class WorldExecutor : Executor
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private IWorld m_world;
 
+    public static ThreadInfoData CreateThreadInfoData(Entity? activator, Line? line, bool frontSide)
+    {
+        int side = line == null ? -1 : frontSide ? 0 : 1;
+        return new ThreadInfoData(activator?.Id ?? -1, line?.Id ?? -1, side, -1);
+    }
+
     public WorldExecutor(IWorld world)
     {
         m_world = world;
@@ -71,16 +77,16 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0I( 91, "",        0, CF_GameType); TODO
         AddCodeDataACS0I( 92, "",        0, CF_GameSkill);
         AddCodeDataACS0I( 93, "",        0, CF_Timer);
-        //AddCodeDataACS0V( 94, "",        2, CF_SectorSound); TODO?
-        //AddCodeDataACS0V( 95, "",        2, CF_AmbientSound); TODO?
+        AddCodeDataACS0V( 94, "",        2, CF_SectorSound);
+        AddCodeDataACS0V( 95, "",        2, CF_AmbientSound);
         //AddCodeDataACS0V( 96, "",        1, CF_SoundSequence); TODO?
         AddCodeDataACS0V( 97, "",        4, CF_SetLineTexture);
         AddCodeDataACS0V( 98, "",        2, CF_SetLineBlocking);
         //AddCodeDataACS0V( 99, "",        7, CF_SetLineSpecial); TODO
-        //AddCodeDataACS0V(100, "",        3, CF_ThingSound); TODO
+        AddCodeDataACS0V(100, "",        3, CF_ThingSound);
         AddCodeDataACS0V(101, "",        0, CF_EndPrintBold);
-        //AddCodeDataACS0V(102, "",        2, CF_ActivatorSound);
-        //AddCodeDataACS0V(103, "",        2, CF_LocalAmbientSound);
+        AddCodeDataACS0V(102, "",        2, CF_ActivatorSound);
+        AddCodeDataACS0V(103, "",        2, CF_LocalAmbientSound);
         AddCodeDataACS0V(104, "",        2, CF_SetLineMonsterBlocking);
         // 105-118: Unused codes.
         //AddCodeDataACS0I(119, "",        0, CF_ActivatorTeam);
@@ -820,6 +826,48 @@ public class WorldExecutor : Executor
 
         var className = args.GetStringSpan(thread, 0);
         return activator.PlayerObj.Inventory.CheckInventory(className);
+    }
+
+    public void CF_SectorSound(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var line = thread.GetLine(m_world);
+        var sound = args.GetStringSpan(thread, 0);
+        var volume = args.GetNormalizedVolume(1);
+
+        if (line == null)
+        {
+            // If this is called without a source line then play a global static sound
+            m_world.PlayStaticSound(null, sound, volume);
+            return;
+        }
+
+        m_world.SetSectorSound(line.Front.Sector, sound, volume);
+    }
+
+    public void CF_ThingSound(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        ActionSpecials.ThingSound(m_world, args.Get(0), args.GetStringSpan(thread, 1), args.GetNormalizedVolume(2));
+    }
+
+    public void CF_ActivatorSound(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var activator = thread.GetActivator(m_world);
+        if (activator == null)
+            return;
+
+        m_world.SetEntitySound(activator, args.GetStringSpan(thread, 0), args.GetNormalizedVolume(1));
+    }
+
+    public void CF_AmbientSound(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        m_world.PlayStaticSound(null, args.GetStringSpan(thread, 0), args.GetNormalizedVolume(1));
+    }
+
+    public void CF_LocalAmbientSound(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var activator = thread.GetActivator(m_world);
+        if (activator?.PlayerObj != null)
+            m_world.PlayStaticSound(activator.PlayerObj, args.GetStringSpan(thread, 0), args.GetNormalizedVolume(1));
     }
 
     enum GameSkillResult : int

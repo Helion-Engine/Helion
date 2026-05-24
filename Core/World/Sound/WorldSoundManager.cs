@@ -2,6 +2,7 @@ using System;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.RandomGenerators;
@@ -12,6 +13,7 @@ namespace Helion.World.Sound;
 
 public class WorldSoundManager : SoundManager, ITickable
 {
+    private readonly SpanString m_spanString = new();
     private IWorld m_world;
 
     public WorldSoundManager(IWorld world, IAudioSystem audioSystem) : base(audioSystem, world.ArchiveCollection)
@@ -77,14 +79,14 @@ public class WorldSoundManager : SoundManager, ITickable
         UnregisterEvents(m_world);
     }
 
-    public override IAudioSource? PlayStaticSound(string sound)
+    public override IAudioSource? PlayStaticSound(ReadOnlySpan<char> sound, float volume = 1f)
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
         return m_world.SoundManager.CreateSoundOn(soundSource, sound,
-            new SoundParams(soundSource, attenuation: Attenuation.None));
+            new SoundParams(soundSource, attenuation: Attenuation.None, volume: volume));
     }
 
-    public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundParams soundParams)
+    public IAudioSource? CreateSoundOn(ISoundSource soundSource, ReadOnlySpan<char> sound, SoundParams soundParams)
     {
         if (!soundSource.CanMakeSound())
             return null;
@@ -189,18 +191,20 @@ public class WorldSoundManager : SoundManager, ITickable
         return 2;
     }
 
-    protected override SoundInfo? GetSoundInfo(ISoundSource? source, string sound)
+    protected override SoundInfo? GetSoundInfo(ISoundSource? source, ReadOnlySpan<char> sound)
     {
         if (source is Player player)
         {
-            string playerSound = SoundInfoDefinition.GetPlayerSound(player.Info.GetGender(), sound);
-            SoundInfo? soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(playerSound, m_world.Random);
+            m_spanString.Clear();
+            SoundInfoDefinition.GetPlayerSound(player.Info.GetGender(), sound, m_spanString);
+            SoundInfo? soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(m_spanString.AsSpan(), m_world.Random);
             if (soundInfo != null && ArchiveCollection.Entries.FindByName(soundInfo.EntryName) != null)
                 return soundInfo;
 
             // Sound likely does not exist for user selected gender - fallback to default
-            playerSound = SoundInfoDefinition.GetPlayerSound("male", sound);
-            soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(playerSound, m_world.Random);
+            m_spanString.Clear();
+            SoundInfoDefinition.GetPlayerSound("male", sound, m_spanString);
+            soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(m_spanString.AsSpan(), m_world.Random);
             if (soundInfo != null)
                 return soundInfo;
 

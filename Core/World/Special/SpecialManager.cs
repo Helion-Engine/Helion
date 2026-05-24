@@ -1425,7 +1425,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 return ActionSpecials.ThingSetSpecial(args.Entity, world, line.Args);
 
             case ZDoomLineSpecialType.ScriptRun:
-                return ActionSpecials.AcsExecute(args.Entity, world, line.Args);
+                return ActionSpecials.AcsExecute(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
 
             case ZDoomLineSpecialType.RadiusQuake:
                 return ActionSpecials.RadiusQuake(args.Entity, world, line.Args);

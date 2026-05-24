@@ -27,7 +27,7 @@ using Vector2D = Helion.Models.Vector2D;
 
 namespace Helion.World.Geometry.Sectors;
 
-public sealed class Sector : IFloorCeilingAnchor
+public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 {
     public static readonly Sector Default = CreateDefault();
 
@@ -121,6 +121,7 @@ public sealed class Sector : IFloorCeilingAnchor
     private Color m_initialLightColor;
     private Color m_initialFogColor;
     private float m_initialFogDensity;
+    public override Sector SoundSector => this;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,

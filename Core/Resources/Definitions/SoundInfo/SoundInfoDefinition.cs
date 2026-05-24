@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Strings;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
@@ -12,16 +13,35 @@ public class SoundInfoDefinition
     private readonly Dictionary<string, SoundInfo> m_lookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<string>> m_randomLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> m_playerCompatLookup = new(StringComparer.OrdinalIgnoreCase);
+
+
+    private readonly Dictionary<string, SoundInfo>.AlternateLookup<ReadOnlySpan<char>> m_lookupBySpan;
+    private readonly Dictionary<string, List<string>>.AlternateLookup<ReadOnlySpan<char>> m_randomLookupBySpan;
+    private readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> m_playerCompatLookupBySpan;
+
     private readonly Dictionary<int, AmbientSoundInfo> m_ambientSoundLookup = [];
 
     private int m_pitchShiftRange;
 
-    public static string GetPlayerSound(string gender, string sound)
+    public SoundInfoDefinition()
+    {
+        m_lookupBySpan = m_lookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        m_randomLookupBySpan = m_randomLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        m_playerCompatLookupBySpan = m_playerCompatLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+    }
+
+    public static void GetPlayerSound(ReadOnlySpan<char> gender, ReadOnlySpan<char> sound, SpanString setBuffer)
     {
         if (sound.Length > 0 && sound[0] == '*')
-            return $"player/{gender}/{sound}";
+        {
+            setBuffer.Append("player/");
+            setBuffer.Append(gender);
+            setBuffer.Append('/');
+            setBuffer.Append(sound);
+            return;
+        }
 
-        return sound;
+        setBuffer.Append(sound);
     }
 
     public void GetSounds(List<SoundInfo> list)
@@ -33,12 +53,12 @@ public class SoundInfoDefinition
     public void Add(string name, SoundInfo soundInfo) =>
         m_lookup[name] = soundInfo;
 
-    public SoundInfo? Lookup(string name, IRandom random)
+    public SoundInfo? Lookup(ReadOnlySpan<char> name, IRandom random)
     {
         if (!LookupInternal(name, out var sndInfo))
             return null;
 
-        if (sndInfo.Random && m_randomLookup.TryGetValue(name, out var sounds) && sounds.Count > 0)
+        if (sndInfo.Random && m_randomLookupBySpan.TryGetValue(name, out var sounds) && sounds.Count > 0)
         {
             name = sounds[random.NextByte() % sounds.Count];
             if (LookupInternal(name, out sndInfo))
@@ -48,13 +68,13 @@ public class SoundInfoDefinition
         return sndInfo;
     }
 
-    private bool LookupInternal(string name, [NotNullWhen(true)] out SoundInfo? sndInfo)
+    private bool LookupInternal(ReadOnlySpan<char> name, [NotNullWhen(true)] out SoundInfo? sndInfo)
     {
         if (name.StartsWith("player/", StringComparison.OrdinalIgnoreCase) &&
-            m_playerCompatLookup.TryGetValue(name, out string? playerCompat) && playerCompat != null)
+            m_playerCompatLookupBySpan.TryGetValue(name, out string? playerCompat) && playerCompat != null)
             name = playerCompat;
 
-        return m_lookup.TryGetValue(name, out sndInfo);
+        return m_lookupBySpan.TryGetValue(name, out sndInfo);
     }
 
     public bool GetSound(string name, out SoundInfo? soundInfo) => m_lookup.TryGetValue(name, out soundInfo);

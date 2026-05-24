@@ -1,3 +1,4 @@
+using Helion.ACS;
 using Helion.Audio;
 using Helion.Dehacked;
 using Helion.Geometry.Boxes;
@@ -763,8 +764,8 @@ public abstract partial class WorldBase : IWorld
 
         if (worldModel == null)
         {
-            StartScript(HelionACS.ScriptType.Open, [], null);
-            StartScript(HelionACS.ScriptType.Enter, [], Player);
+            StartScript(HelionACS.ScriptType.Open, [], null, null, false);
+            StartScript(HelionACS.ScriptType.Enter, [], Player, null, false);
         }
 
         SetEntityLightSectors();
@@ -773,10 +774,10 @@ public abstract partial class WorldBase : IWorld
         SpecialManager.SectorMoveComplete += SpecialManager_SectorMoveComplete;
     }
 
-    private void StartScript(HelionACS.ScriptType type, uint[] args, Entity? activator)
+    private void StartScript(HelionACS.ScriptType type, uint[] args, Entity? activator, Line? line, bool frontSide)
     {
         if (m_map.HasBehavior)
-            AcsExecutor.ScriptStartType(type, args, new HelionACS.ThreadInfoData(activator == null ? -1 : activator.Id));
+            AcsExecutor.ScriptStartType(type, args, WorldExecutor.CreateThreadInfoData(activator, line, frontSide));
     }
 
     private void SetEntityLightSectors()
@@ -2919,7 +2920,7 @@ public abstract partial class WorldBase : IWorld
         {
             HandleObituary(deathEntity.PlayerObj, deathSource, damageType);
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
-            StartScript(HelionACS.ScriptType.Death, [], deathEntity);
+            StartScript(HelionACS.ScriptType.Death, [], deathEntity, null, false);
         }
 
         ActivateEntitySpecial(deathSource ?? deathEntity, deathEntity);
@@ -4090,6 +4091,17 @@ public abstract partial class WorldBase : IWorld
         Link(entity);
     }
 
+    public void SetEntitySound(Entity entity, ReadOnlySpan<char> sound, float volume)
+    {
+        SoundManager.CreateSoundOn(entity, sound, new SoundParams(entity, volume: volume));
+    }
+
+    public void PlayStaticSound(Player? player, ReadOnlySpan<char> sound, float volume)
+    {
+        if (player == null || player == Player)
+            SoundManager.PlayStaticSound(sound, volume);
+    }
+
     public void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags)
     {
         var updated = false;
@@ -4507,6 +4519,11 @@ public abstract partial class WorldBase : IWorld
         sector.Gravity = gravity;
     }
 
+    public void SetSectorSound(Sector sector, ReadOnlySpan<char> sound, float volume)
+    {
+        SoundManager.CreateSoundOn(sector, sound, new SoundParams(sector, volume: volume));
+    }
+
     private bool EntityActivatedSpecial(in EntityActivateSpecial args) =>
         SpecialManager.TryAddActivatedLineSpecial(args);
 
@@ -4580,7 +4597,7 @@ public abstract partial class WorldBase : IWorld
         player.SetDefaultInventory();
 
         CreateTeleportFog(player);
-        StartScript(HelionACS.ScriptType.Respawn, [], player);
+        StartScript(HelionACS.ScriptType.Respawn, [], player, null, false);
         return player;
     }
 

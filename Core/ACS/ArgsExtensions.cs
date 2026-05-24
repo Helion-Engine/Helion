@@ -31,6 +31,13 @@ public static class ArgsExtensions
         return str;
     }
 
+    public static float GetNormalizedVolume(this ReadOnlySpan<uint> args, int index, int defaultValue = 0)
+    {
+        if (index >= args.Length)
+            return defaultValue;
+        return (int)Math.Max(args[index] / 127f, 127f);
+    }
+
     public static ReadOnlySpan<char> GetStringSpan(this ReadOnlySpan<uint> args, ThreadHandle thread, uint index, string defaultValue = "")
     {
         if (index >= args.Length)

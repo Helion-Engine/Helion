@@ -1,4 +1,5 @@
-﻿using Helion.Audio;
+﻿using Helion.ACS;
+using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
@@ -6,6 +7,7 @@ using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
@@ -406,6 +408,13 @@ public static class ActionSpecials
         }
     }
 
+    public static void ThingSound(IWorld world, int tid, ReadOnlySpan<char> sound, float volume)
+    {
+        var entities = GetEntities(world, tid);
+        for (var entity = entities.Current(); entity != null; entity = entities.Advance())
+            world.SetEntitySound(entity, sound, volume);
+    }
+
     public static bool RadiusQuake(Entity activator, IWorld world, in SpecialArgs args)
     {
         var entity = GetActivator(activator, world, args.Arg4);
@@ -546,9 +555,9 @@ public static class ActionSpecials
         return success;
     }
 
-    public static bool AcsExecute(Entity activator, IWorld world, in SpecialArgs args)
+    public static bool AcsExecute(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
     {
-        var threadInfo = new HelionACS.ThreadInfoData(activator.Id);
+        var threadInfo = WorldExecutor.CreateThreadInfoData(activator, line, frontSide);
         var mapId = (args.Arg1 == 0) ? (uint)world.MapInfo.LevelNumber : (uint)args.Arg1;
         var scriptArgs = (uint[])[(uint)args.Arg2, (uint)args.Arg3, (uint)args.Arg4];
         if (args.Arg0Str != null)

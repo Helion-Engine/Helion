@@ -406,14 +406,14 @@ public class SoundManager : IDisposable
         return true;
     }
 
-    public virtual IAudioSource? PlayStaticSound(string sound)
+    public virtual IAudioSource? PlayStaticSound(ReadOnlySpan<char> sound, float volume = 1f)
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
         return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, 0, sound,
             new SoundParams(soundSource, attenuation: Attenuation.None), out _);
     }
 
-    protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, float offset, string sound,
+    protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, float offset, ReadOnlySpan<char> sound,
         SoundParams soundParams, out SoundInfo? soundInfo)
     {
         Precondition((int)soundParams.Channel < Constants.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
@@ -584,7 +584,7 @@ public class SoundManager : IDisposable
         return attenuation == Attenuation.None || distanceSquared <= Constants.MaxSoundDistance * Constants.MaxSoundDistance;
     }
 
-    protected virtual SoundInfo? GetSoundInfo(ISoundSource? source, string sound)
+    protected virtual SoundInfo? GetSoundInfo(ISoundSource? source, ReadOnlySpan<char> sound)
     {
         return ArchiveCollection.Definitions.SoundInfo.Lookup(sound, GetRandom());
     }

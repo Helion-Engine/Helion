@@ -26,7 +26,7 @@ public class Music
 
     private static void WorldInit(IWorld world)
     {
-        world.PlayLevelMusic(DefaultMusic, null);
+        world.PlayLevelMusic(DefaultMusic);
     }
 
     [Fact(DisplayName = "2057 - W1 ChangeMusicAndLoop")]
