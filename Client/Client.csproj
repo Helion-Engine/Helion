@@ -132,6 +132,8 @@
   <Target Name="GetFilesForPostPublishCopy" DependsOnTargets="PublishItemsOutputGroup">
     <ItemGroup>
       <PostPublishFiles Include="@(Content)" Destination="$(PublishDir)%(Link)" Condition="'%(CopyToOutputDirectory)' != 'Never'" />
+      <!-- Deal with an annoying case where redoing a single-file publish deletes openal32.dll and some other native files -->
+      <PostPublishFiles Include="@(NativeCopyLocalItems)" Destination="$(PublishDir)%(NativeCopyLocalItems.DestinationSubPath)" />
     </ItemGroup>
   </Target>
 
