@@ -288,7 +288,7 @@ public abstract partial class WorldBase : IWorld
         m_checkRadiusEntity = new Entity();
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
-        AcsExecutor = CreateAcsExecutor();
+        AcsExecutor = GlobalData.GetOrCreateAcsExecutor(this, worldModel != null && !sameAsPreviousMap);
         LoadAcsHubMap(map, 0);
 
         if (worldModel != null)
@@ -326,11 +326,6 @@ public abstract partial class WorldBase : IWorld
     private void LoadAcsHubMap(IMap map, uint hubId)
     {
         AcsExecutor.LoadHubMap(hubId, (uint)MapInfo.LevelNumber, map.HasBehavior ? [$"BEHAVIOR:{MapInfo.MapName}"] : []);
-    }
-
-    private ACS.WorldExecutor CreateAcsExecutor()
-    {
-        return GlobalData.CreateAcsExecutor(this);
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)

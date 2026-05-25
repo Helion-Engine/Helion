@@ -11,9 +11,9 @@ public class GlobalData
     public int TotalTime { get; set; }
     private ACS.WorldExecutor? AcsExecutor;
 
-    public ACS.WorldExecutor CreateAcsExecutor(IWorld world)
+    public ACS.WorldExecutor GetOrCreateAcsExecutor(IWorld world, bool reallocate)
     {
-        if (AcsExecutor == null)
+        if (AcsExecutor == null || reallocate)
             AcsExecutor = new ACS.WorldExecutor(world);
         else
             AcsExecutor.UpdateWorld(world);
