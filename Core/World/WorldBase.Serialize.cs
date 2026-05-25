@@ -35,6 +35,7 @@ public partial class WorldBase
         s_fileModels.Clear();
         s_visitedMaps.Clear();
         s_specialModelData.Clear();
+        s_worldModel.AcsState = [];
 
         // This may need to change later but don't waste time on maps that don't have ACS
         if (m_map.HasBehavior)
