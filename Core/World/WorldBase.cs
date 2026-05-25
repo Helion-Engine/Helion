@@ -61,7 +61,6 @@ using Helion.World.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -318,13 +317,10 @@ public abstract partial class WorldBase : IWorld
             SpecialManager.InitSectors3D();
     }
 
-    private void LoadAcsState(uint hubId, uint mapId, byte[] acsState)
+    private void LoadAcsState(uint hubId, uint mapId, ReadOnlyMemory<byte> acsState)
     {
-        var file = TempFileManager.GetFile();
-        File.WriteAllBytes(file, acsState);
-        if (!AcsExecutor.LoadState(hubId, mapId, file))
+        if (!AcsExecutor.LoadStateFromBuffer(hubId, mapId, acsState))
             HelionLog.Error("Failed load ACS state.");
-        TempFileManager.DeleteFile(file);
     }
 
     private void LoadAcsHubMap(IMap map, uint hubId)

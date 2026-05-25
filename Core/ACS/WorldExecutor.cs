@@ -23,6 +23,7 @@ namespace Helion.ACS;
 public class WorldExecutor : Executor
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private byte[] SaveBuffer = new byte[1024 * 1024];
     private IWorld m_world;
 
     public static ThreadInfoData CreateThreadInfoData(Entity? activator, Line? line, bool frontSide)
@@ -377,6 +378,18 @@ public class WorldExecutor : Executor
         var length = GetTableStringLength();
         for (uint i = 0; i < length; i++)
             yield return GetTableString(i);
+    }
+
+    public ReadOnlyMemory<byte> GetSaveState()
+    {
+        // If the save fails because the buffer is too small then the requiredSize will be full size needed to allocate
+        if (!SaveStateToBuffer(SaveBuffer, out var requiredSize))
+        {
+            Array.Resize(ref SaveBuffer, requiredSize * 2);
+            SaveStateToBuffer(SaveBuffer, out requiredSize);
+        }
+
+        return SaveBuffer.AsMemory(0, requiredSize);
     }
 
     public override uint CallSpecImpl(ThreadHandle thread, uint spec, ReadOnlySpan<uint> args)
