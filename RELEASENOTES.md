@@ -54,3 +54,7 @@
 - Update order independent transparency weight to be more stable across a higher range.
 - Use ColorAdd render style for Revenant fireball to match UZDoom.
 - Always load Helion's minimal and detailed HUDs when loading a mod that loads an SBARDEF.
+- Replace checked-in binaries for SDL, OpenAL-Soft, ZMusic, and GLFW with Nuget packages built via GitHub pipeline
+- Update SDL dependency to 2.32.10
+- Update OpenAL-Soft dependency to 1.25.2
+- Update SDL controller database support file (for button mappings, etc.)
