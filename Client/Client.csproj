@@ -31,14 +31,17 @@
     <AllowedReferenceRelatedFileExtensions Condition="'$(Configuration)'=='Release'">none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Helion.SDLControllerWrapper" Version="3.0.0" />
+    <PackageReference Include="Helion.GLFW" Version="3.4.0" />
+    <PackageReference Include="Helion.OpenALSoft" Version="1.25.2" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(AOT)' == 'true'">
     <DirectPInvoke Include="zmusic.dll" />
     <DirectPInvoke Include="glfw3.dll" />
     <DirectPInvoke Include="SDL2.dll" />
     <DirectPInvoke Include="AL" />
-
-    <NativeLibrary Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="Unmanaged\lib\win-x64\*.lib" />
-    <NativeLibrary Condition="'$(RuntimeIdentifier)'=='linux-x64'" Include="Unmanaged\lib\linux-x64\*.a" />
   </ItemGroup>
 
   <ItemGroup Condition="('$(AOT)' == 'true') AND ('$(RuntimeIdentifier)'=='win-x64')">
@@ -64,6 +67,25 @@
     <LinkerArg Include="-lglib-2.0" />
   </ItemGroup>
 
+  <Target Name="HandleNativeLibraries" BeforeTargets="ResolveLockFileCopyLocalFiles">
+    <ItemGroup Condition="('$(AOT)' == 'true')">
+      <NativeLibrary Include="@(NativeCopyLocalItems)" Condition="('%(Extension)'=='.lib') AND ('$(RuntimeIdentifier)'=='win-x64')" />
+      <NativeLibrary Include="@(NativeCopyLocalItems)" Condition="('%(Extension)'=='.a') AND ('$(RuntimeIdentifier)'=='linux-x64')" />
+
+      <!-- Don't copy shared libs if we're doing an AOT build, we are doing static linking here -->
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
+    </ItemGroup>
+
+    <!-- Ensure that we never propagate .lib or .a files to the output directory; nobody's going to need those for anything other than native linking -->
+    <ItemGroup>
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" Condition="'%(Extension)'=='.lib'" />
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" Condition="'%(Extension)'=='.a'" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="'%(Extension)'=='.lib'" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="'%(Extension)'=='.a'" />
+    </ItemGroup>
+  </Target>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
@@ -73,21 +95,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Unmanaged\**\*" />
     <None Remove="SoundFonts\*" />
 
     <Content Include="helion.ico" Link="%(Filename)%(Extension)" CopyToOutputDirectory="Never" />
     <Content Include="$(HelionRootDir)Assets\Documentation\README.md" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)SoundFonts\*" Link="SoundFonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-
-    <!-- Native libs, like ZMusic, OpenAL, etc. -->
-    <Content Include="$(ProjectDir)Unmanaged\binary\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.dll" Link="%(Filename)%(Extension)" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' != 'true')" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.so*" Link="%(Filename)%(Extension)" Condition="('$(RuntimeIdentifier)' == 'linux-x64') AND ('$(AOT)' != 'true')" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Helion.SDLControllerWrapper" Version="2.0.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -100,14 +112,6 @@
       <PublishDir Condition="'$(AOT)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_AOT\</PublishDir>
       <PublishDir Condition="'$(SelfContainedRelease)' != 'true' AND '$(AOT)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
     </PropertyGroup>
-  </Target>
-
-  <Target Name="RemoveGLFW3ForAOT" BeforeTargets="ResolveLockFileCopyLocalFiles" Condition="('$(AOT)' == 'true')">
-    <!-- Win AOT build is fully static and does not need a local copy of GLFW.  Note that this effectively clears out the entire NativeCopyLocalItems group. -->
-    <!-- Linux AOT build also statically links GLFW -->
-    <ItemGroup>
-      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
-    </ItemGroup>
   </Target>
 
   <Target Name="GetAssetsIncludeFiles">
