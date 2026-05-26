@@ -2,6 +2,8 @@
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using System.Linq;
@@ -385,5 +387,83 @@ public class AcsScripts
         GameActions.ActivateLine(World, Player, 99, ActivationContext.UseLine).Should().BeTrue();
         GameActions.TickWorld(World, 1);
         Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "ChangeFloor")]
+    public void ChangeFloor()
+    {
+        var sector = GameActions.GetSectorsByTag(World, 8).First();
+        GameActions.AssertTexture(World, sector.Floor.TextureHandle, "RROCK19");
+
+        GameActions.ActivateLine(World, Player, 107, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, sector.Floor.TextureHandle, "SLIME01");
+
+        GameActions.ActivateLine(World, Player, 107, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, sector.Floor.TextureHandle, "RROCK04");
+
+        GameActions.ActivateLine(World, Player, 107, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, sector.Floor.TextureHandle, "SLIME01");
+    }
+
+    [Fact(DisplayName = "ChangeCeiling")]
+    public void ChangeCeiling()
+    {
+        var sector = GameActions.GetSectorsByTag(World, 8).First();
+        GameActions.AssertTexture(World, sector.Ceiling.TextureHandle, "F_SKY1");
+
+        GameActions.ActivateLine(World, Player, 111, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, sector.Ceiling.TextureHandle, "RROCK19");
+
+        GameActions.ActivateLine(World, Player, 111, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, sector.Ceiling.TextureHandle, "TLITE6_5");
+
+        GameActions.ActivateLine(World, Player, 111, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, sector.Ceiling.TextureHandle, "RROCK19");
+    }
+
+    [Fact(DisplayName = "ChangeTexture")]
+    public void ChangeTexture()
+    {
+        var line = GameActions.GetLine(World, 115);
+        var front = line.Front;
+        line.Back.Should().NotBeNull();
+        var back = line.Back;
+
+        GameActions.AssertTexture(World, front.Upper.TextureHandle, "BROWN1");
+        GameActions.AssertTexture(World, front.Middle.TextureHandle, "-");
+        GameActions.AssertTexture(World, front.Lower.TextureHandle, "BROWN1");
+        AssertAllEmptyTextures(back);
+
+        GameActions.ActivateLine(World, Player, 126, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, front.Upper.TextureHandle, "COMPSTA1");
+        GameActions.AssertTexture(World, front.Middle.TextureHandle, "MIDBARS3");
+        GameActions.AssertTexture(World, front.Lower.TextureHandle, "BIGDOOR2");
+        AssertAllEmptyTextures(back);
+
+        GameActions.ActivateLine(World, Player, 126, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertTexture(World, front.Upper.TextureHandle, "BIGDOOR2");
+        GameActions.AssertTexture(World, front.Middle.TextureHandle, "SLIME01");
+        GameActions.AssertTexture(World, front.Lower.TextureHandle, "COMPSTA1");
+        AssertAllEmptyTextures(back);
+
+        GameActions.ActivateLine(World, Player, 126, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        AssertAllEmptyTextures(front);
+        AssertAllEmptyTextures(back);
+    }
+
+    private void AssertAllEmptyTextures(Side side)
+    {
+        GameActions.AssertTexture(World, side.Upper.TextureHandle, "-");
+        GameActions.AssertTexture(World, side.Middle.TextureHandle, "-");
+        GameActions.AssertTexture(World, side.Lower.TextureHandle, "-");
     }
 }
