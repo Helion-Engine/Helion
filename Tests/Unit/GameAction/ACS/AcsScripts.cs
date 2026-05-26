@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
@@ -17,12 +18,17 @@ public class AcsScripts
     private readonly SinglePlayerWorld World;
     private Player Player => World.Player;
 
+    private static LineBlockFlags NoBlocking;
+
     public AcsScripts()
     {
         World = WorldAllocator.LoadMap("Resources/acs-scripts.zip", "acs-scripts.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
         World.MapInfo.SecretNext = "MAP03";
         World.Player.Inventory.Clear();
         World.Player.SetDefaultInventory();
+        var line = GameActions.GetLine(World, 142);
+        line.Flags.Blocking = NoBlocking;
+        line.Flags.BlockSound = false;
     }
 
     [Fact(DisplayName = "PlayerNumber")]
@@ -458,6 +464,49 @@ public class AcsScripts
         World.Tick();
         AssertAllEmptyTextures(front);
         AssertAllEmptyTextures(back);
+    }
+
+    [Fact(DisplayName = "SetLineBlocking creatures")]
+    public void SetLineBlockingCreatures()
+    {
+        var line = GameActions.GetLine(World, 142);
+        GameActions.ActivateLine(World, Player, 138, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertLineBlockFlags(line.Flags.Blocking, [nameof(LineBlockFlags.Players), nameof(LineBlockFlags.Monsters), nameof(LineBlockFlags.LegacyImpassible)]);
+    }
+
+    [Fact(DisplayName = "SetLineBlocking everything")]
+    public void SetLineBlockingEverything()
+    {
+        var line = GameActions.GetLine(World, 142);
+        GameActions.ActivateLine(World, Player, 145, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertLineBlockFlags(line.Flags.Blocking, [nameof(LineBlockFlags.Everything)]);
+    }
+
+    [Fact(DisplayName = "SetLineBlocking players")]
+    public void SetLineBlockingPlayers()
+    {
+        var line = GameActions.GetLine(World, 142);
+        GameActions.ActivateLine(World, Player, 149, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertLineBlockFlags(line.Flags.Blocking, [nameof(LineBlockFlags.Players)]);
+    }
+
+    [Fact(DisplayName = "SetLineBlocking nothing")]
+    public void SetLineBlockingNothing()
+    {
+        var line = GameActions.GetLine(World, 142);
+        GameActions.ActivateLine(World, Player, 153, ActivationContext.UseLine).Should().BeTrue();
+        var flags = new LineBlockFlags
+        {
+            Monsters = true,
+            Players = true,
+            LegacyImpassible = true
+        };
+        World.SetLineBlockFlags(line, flags);
+        World.Tick();
+        GameActions.AssertAllLineBlockFlags(line.Flags.Blocking, false);
     }
 
     private void AssertAllEmptyTextures(Side side)
