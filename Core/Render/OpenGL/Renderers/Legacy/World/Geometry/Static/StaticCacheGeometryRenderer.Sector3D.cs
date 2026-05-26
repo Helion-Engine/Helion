@@ -52,6 +52,8 @@ public partial class StaticCacheGeometryRenderer
         }
     }
 
+    // Ceiling = ControlTop
+    // Floor = ControlBottom
     private void AddSectorPlanes3D(Sector3D sector3D, SectorPlanes planes, bool update)
     {
         planes &= sector3D.RenderPlanes;
@@ -63,6 +65,7 @@ public partial class StaticCacheGeometryRenderer
 
         if ((planes & SectorPlanes.Ceiling) != 0)
         {
+            // Render FakeBottom at ControlTop
             AddSectorPlane(sector3D.ParentSector, sector3D.ControlTop.Facing, floor: true, update: update, renderSector: sector3D.ControlSector,
                 lightLevelSector: sector3D.LightTop, geometryPlane: sector3D.FakeBottom, allowAlpha: true, sector3D: sector3D);
 
@@ -75,6 +78,7 @@ public partial class StaticCacheGeometryRenderer
 
         if ((planes & SectorPlanes.Floor) != 0)
         {
+            // Render FakeTop at ControlBottom
             AddSectorPlane(sector3D.ParentSector, sector3D.ControlBottom.Facing, floor: false, update: update, renderSector: sector3D.ControlSector,
                 lightLevelSector: sector3D.LightBottom, geometryPlane: sector3D.FakeTop, allowAlpha: true, sector3D: sector3D);
 

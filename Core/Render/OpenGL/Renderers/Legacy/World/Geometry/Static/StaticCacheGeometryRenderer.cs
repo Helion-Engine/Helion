@@ -1313,21 +1313,24 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
 
-        if (WorldStatic.Sector3D)
+        if (WorldStatic.Sector3D && e.Plane.Sector.TaggedSectors3D.Length > 0)
         {
+            var planeFlipped = e.Plane.Facing.Flip();
+            var sectorPlanes = e.Plane.Facing.ToSectorPlanes();
+
             for (int i = 0; i < e.Plane.Sector.TaggedSectors3D.Length; i++)
             {
                 var sector3D = e.Plane.Sector.TaggedSectors3D[i];
 
-                var plane3D = sector3D.FakeSector.GetSectorPlane(e.Plane.Facing.Flip());
+                var plane3D = sector3D.FakeSector.GetSectorPlane(planeFlipped);
                 if (plane3D.Static.GeometryData != null && ClearGeometryVertices(plane3D.Static))
                     m_freeManager.Add(plane3D.Static, GeometryType.Flat, repeatY: true);
 
                 plane3D.Static.GeometryData = null;
                 plane3D.TextureHandle = e.TextureHandle;
 
-                if (!sector3D.ControlSector.IsMoving)
-                    AddSectorPlanes3D(sector3D, plane3D.Facing.ToSectorPlanes(), update: true);
+                if (!sector3D.ControlSector.IsPlaneMoving(e.Plane.Facing))
+                    AddSectorPlanes3D(sector3D, sectorPlanes, update: true);
             }
         }
 
