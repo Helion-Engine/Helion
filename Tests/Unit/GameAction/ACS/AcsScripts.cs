@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
+using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
@@ -27,6 +27,7 @@ public class AcsScripts
         World.Player.Inventory.Clear();
         World.Player.SetDefaultInventory();
         var line = GameActions.GetLine(World, 142);
+        NoBlocking = new();
         line.Flags.Blocking = NoBlocking;
         line.Flags.BlockSound = false;
     }
@@ -507,6 +508,52 @@ public class AcsScripts
         World.SetLineBlockFlags(line, flags);
         World.Tick();
         GameActions.AssertAllLineBlockFlags(line.Flags.Blocking, false);
+    }
+
+    [Fact(DisplayName = "SetMusic")]
+    public void SetMusic()
+    {
+        GameActions.AssertMusicChange(World, "D_STALKS", MusicFlags.Loop, () =>
+        {
+            GameActions.ActivateLine(World, Player, 161, ActivationContext.UseLine).Should().BeTrue();
+        });
+        GameActions.AssertMusicChange(World, "D_ROMERO", MusicFlags.Loop, () =>
+        {
+            GameActions.ActivateLine(World, Player, 161, ActivationContext.UseLine).Should().BeTrue();
+        });
+        GameActions.AssertMusicChange(World, "D_RUNNIN", MusicFlags.Loop, () =>
+        {
+            GameActions.ActivateLine(World, Player, 161, ActivationContext.UseLine).Should().BeTrue();
+        });
+        GameActions.AssertMusicChange(World, "D_STALKS", MusicFlags.Loop, () =>
+        {
+            var imp = GameActions.GetEntityByTid(World, 29);
+            GameActions.ActivateLine(World, imp, 217, ActivationContext.CrossLine).Should().BeTrue();
+        });
+
+        World.PlayLevelMusic("D_RUNNIN");
+    }
+
+    [Fact(DisplayName = "LocalSetMusic")]
+    public void LocalSetMusic()
+    {
+        GameActions.AssertMusicChange(World, "D_STALKS", MusicFlags.Loop, () =>
+        {
+            GameActions.ActivateLine(World, Player, 238, ActivationContext.UseLine).Should().BeTrue();
+        });
+        GameActions.AssertMusicChange(World, "D_ROMERO", MusicFlags.Loop, () =>
+        {
+            GameActions.ActivateLine(World, Player, 238, ActivationContext.UseLine).Should().BeTrue();
+        });
+        GameActions.AssertMusicChange(World, "D_RUNNIN", MusicFlags.Loop, () =>
+        {
+            GameActions.ActivateLine(World, Player, 238, ActivationContext.UseLine).Should().BeTrue();
+        });
+        GameActions.AssertNoMusicChange(World, () =>
+        {
+            var imp = GameActions.GetEntityByTid(World, 29);
+            GameActions.ActivateLine(World, imp, 242, ActivationContext.CrossLine).Should().BeTrue();
+        });
     }
 
     private void AssertAllEmptyTextures(Side side)
