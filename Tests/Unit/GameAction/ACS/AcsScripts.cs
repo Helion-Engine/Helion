@@ -559,6 +559,7 @@ public class AcsScripts
     [Fact(DisplayName = "AmbientSound")]
     public void AmbientSound()
     {
+        World.SoundManager.ClearSounds();
         GameActions.ActivateLine(World, Player, 243, ActivationContext.UseLine).Should().BeTrue();
         World.Tick();
         var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_strt");
@@ -576,6 +577,7 @@ public class AcsScripts
     [Fact(DisplayName = "LocalAmbientSound")]
     public void LocalAmbientSound()
     {
+        World.SoundManager.ClearSounds();
         GameActions.ActivateLine(World, Player, 247, ActivationContext.UseLine).Should().BeTrue();
         World.Tick();
         var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_stop");
@@ -587,6 +589,41 @@ public class AcsScripts
         GameActions.ActivateLine(World, imp, 247, ActivationContext.UseLine).Should().BeTrue();
         World.Tick();
         GameActions.AssertNoSoundInfo(World, "plats/pt1_stop");
+    }
+
+    [Fact(DisplayName = "SectorSound")]
+    public void SectorSound()
+    {
+        World.SoundManager.ClearSounds();
+        var sector = GameActions.GetSectorByTag(World, 30);
+        GameActions.ActivateLine(World, Player, 227, ActivationContext.CrossLine).Should().BeTrue();
+        World.Tick();
+        var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_strt");
+        sound.AudioData.SoundSource.Should().Be(sector);
+        sound.AudioData.Volume.Should().Be(0.503937f);
+    }
+
+    [Fact(DisplayName = "ThingSound")]
+    public void ThingSound()
+    {
+        World.SoundManager.ClearSounds();
+        var candle = GameActions.GetEntityByTid(World, 27);
+        GameActions.ActivateLine(World, Player, 222, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_strt");
+        sound.AudioData.SoundSource.Should().Be(candle);
+        sound.AudioData.Volume.Should().Be(0.503937f);
+    }
+
+    [Fact(DisplayName = "ActivatorSound")]
+    public void ActivatorSound()
+    {
+        World.SoundManager.ClearSounds();
+        GameActions.ActivateLine(World, Player, 243, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_strt");
+        sound.AudioData.SoundSource.Should().Be(Player);
+        sound.AudioData.Volume.Should().Be(0.503937f);
     }
 
     private void AssertAllEmptyTextures(Side side)
