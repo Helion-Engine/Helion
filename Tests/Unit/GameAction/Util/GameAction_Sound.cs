@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Util.Extensions;
 using Helion.World;
@@ -19,6 +20,13 @@ public partial class GameActions
     {
         world.SoundManager.GetPlayingSounds().Any(x => x.AudioData.SoundInfo.Name.EqualsIgnoreCase(soundInfoName)).Should().BeFalse();
         world.SoundManager.GetSoundsToPlay().Any(x => x.AudioData.SoundInfo.Name.EqualsIgnoreCase(soundInfoName)).Should().BeFalse();
+    }
+
+    public static IAudioSource GetSoundBySoundInfo(WorldBase world, string soundInfoName)
+    {
+        return world.SoundManager.GetPlayingSounds()
+            .Union(world.SoundManager.GetSoundsToPlay())
+            .Single(x => x.AudioData.SoundInfo.Name.EqualsIgnoreCase(soundInfoName));
     }
 
     public static void AssertAnySound(WorldBase world, object soundSource) => AssertSound(world, soundSource, null);

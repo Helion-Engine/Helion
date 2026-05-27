@@ -556,6 +556,39 @@ public class AcsScripts
         });
     }
 
+    [Fact(DisplayName = "AmbientSound")]
+    public void AmbientSound()
+    {
+        GameActions.ActivateLine(World, Player, 243, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_strt");
+        sound.AudioData.Volume.Should().Be(0.503937f);
+
+        World.SoundManager.ClearSounds();
+
+        var imp = GameActions.GetEntityByTid(World, 29);
+        GameActions.ActivateLine(World, imp, 243, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_strt");
+        sound.AudioData.Volume.Should().Be(0.503937f);
+    }
+
+    [Fact(DisplayName = "LocalAmbientSound")]
+    public void LocalAmbientSound()
+    {
+        GameActions.ActivateLine(World, Player, 247, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_stop");
+        sound.AudioData.Volume.Should().Be(0.503937f);
+
+        World.SoundManager.ClearSounds();
+
+        var imp = GameActions.GetEntityByTid(World, 29);
+        GameActions.ActivateLine(World, imp, 247, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        GameActions.AssertNoSoundInfo(World, "plats/pt1_stop");
+    }
+
     private void AssertAllEmptyTextures(Side side)
     {
         GameActions.AssertTexture(World, side.Upper.TextureHandle, "-");

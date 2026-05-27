@@ -35,7 +35,7 @@ public static class ArgsExtensions
     {
         if (index >= args.Length)
             return defaultValue;
-        return (int)Math.Max(args[index] / 127f, 127f);
+        return Math.Min(args[index] / 127f, 1f);
     }
 
     public static ReadOnlySpan<char> GetStringSpan(this ReadOnlySpan<uint> args, ThreadHandle thread, uint index, string defaultValue = "")
