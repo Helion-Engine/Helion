@@ -18,10 +18,20 @@ namespace Helion.World.Special.Specials;
 
 public static class ActionSpecials
 {
+    enum ScriptState
+    {
+        Start,
+        StartForced,
+        StartWithResult,
+        Pause,
+        Terminate
+    }
+
     const double SpeedFactor = 1 / 8.0;
     const int ProjectileOffsetZ = -31;
 
     private static readonly DynamicArray<int> EntitiesByIndex = new(64);
+    private static readonly uint[] ScriptArgs = new uint[4];
 
     public static void ExitNormal(IWorld world, in SpecialArgs args)
     {
@@ -555,19 +565,92 @@ public static class ActionSpecials
         return success;
     }
 
-    public static bool AcsExecute(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    public static bool ScriptExecute(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.Start);
+    }
+
+    public static bool ScriptExecuteForced(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.StartForced);
+    }
+
+    public static bool ScriptExecuteWithResult(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.StartWithResult);
+    }
+
+    public static bool ScriptExecuteWithKey(Entity activator, Line line, bool frontSide, IWorld world, in SpecialArgs args, bool objectMessage)
+    {
+        var success = world.CanUnlock(activator, (ZDoomKeyType)args.Arg4, objectMessage);
+        if (success)
+            return SetScriptState(activator, line, frontSide, world, args, ScriptState.Start);
+        return false;
+    }
+
+    public static bool ScriptStop(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.Pause);
+    }
+
+    public static bool ScriptKill(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.Terminate);
+    }
+
+    private static bool SetScriptState(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args, ScriptState state)
     {
         var threadInfo = WorldExecutor.CreateThreadInfoData(activator, line, frontSide);
         var mapId = (args.Arg1 == 0) ? (uint)world.MapInfo.LevelNumber : (uint)args.Arg1;
-        var scriptArgs = (uint[])[(uint)args.Arg2, (uint)args.Arg3, (uint)args.Arg4];
-        if (args.Arg0Str != null)
+
+        if (state == ScriptState.StartWithResult)
         {
-            return world.AcsExecutor.ScriptStart(args.Arg0Str, 0, mapId, scriptArgs, threadInfo);
+            ScriptArgs[0] = (uint)args.Arg1;
+            ScriptArgs[1] = (uint)args.Arg2;
+            ScriptArgs[2] = (uint)args.Arg3;
+            ScriptArgs[3] = (uint)args.Arg4;
         }
         else
         {
-            return world.AcsExecutor.ScriptStart((uint)args.Arg0, 0, mapId, scriptArgs, threadInfo);
+            ScriptArgs[0] = (uint)args.Arg2;
+            ScriptArgs[1] = (uint)args.Arg3;
+            ScriptArgs[2] = (uint)args.Arg4;
         }
+
+        if (args.Arg0Str != null)
+        {
+            switch (state)
+            {
+                case ScriptState.Start:
+                    return world.AcsExecutor.ScriptStart(args.Arg0Str, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartForced:
+                    return world.AcsExecutor.ScriptStartForced(args.Arg0Str, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartWithResult:
+                    return world.AcsExecutor.ScriptStartResult(args.Arg0Str, ScriptArgs, threadInfo) != 0;
+                case ScriptState.Pause:
+                    return world.AcsExecutor.ScriptPause(args.Arg0Str, 0, mapId);   
+                case ScriptState.Terminate:
+                    return world.AcsExecutor.ScriptStop(args.Arg0Str, 0, mapId);
+            }
+        }
+        else
+        {
+            switch (state)
+            {
+                case ScriptState.Start:
+                    return world.AcsExecutor.ScriptStart((uint)args.Arg0, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartForced:
+                    return world.AcsExecutor.ScriptStartForced((uint)args.Arg0, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartWithResult:
+                    return world.AcsExecutor.ScriptStartResult((uint)args.Arg0, ScriptArgs, threadInfo) != 0;
+                case ScriptState.Pause:
+                    return world.AcsExecutor.ScriptPause((uint)args.Arg0, 0, mapId);
+                case ScriptState.Terminate:
+                    return world.AcsExecutor.ScriptStop((uint)args.Arg0, 0, mapId);
+            }
+        }
+
+        return false;
     }
 
     public static bool ChangeFlat(IWorld world, int tag, ReadOnlySpan<char> texture, SectorPlaneFace face)

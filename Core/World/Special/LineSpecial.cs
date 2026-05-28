@@ -194,16 +194,28 @@ public class LineSpecial
 
             if (contextSuccess && IsLockType(line, out var keyNumber))
             {
-                LockDef? lockDef = lockDefinitions.GetLockDef(keyNumber);
-                if (lockDef == null || !PlayerCanUnlock(entity.PlayerObj, lockDef))
-                {
-                    lockFail = lockDef;
+                if (!CanUnlock(entity, lockDefinitions, keyNumber, out lockFail))
                     return false;
-                }
             }
         }
 
         return contextSuccess;
+    }
+
+    public static bool CanUnlock(Entity entity, LockDefinitions lockDefinitions, ZDoomKeyType key, out LockDef? lockFail)
+    {
+        lockFail = null;
+        if (entity.PlayerObj == null)
+            return false;
+
+        var lockDef = lockDefinitions.GetLockDef(key);
+        if (lockDef == null || !PlayerCanUnlock(entity.PlayerObj, lockDef))
+        {
+            lockFail = lockDef;
+            return false;
+        }
+
+        return true;
     }
 
     private static bool PlayerCanUnlock(Player player, LockDef lockDef)

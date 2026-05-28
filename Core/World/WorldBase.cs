@@ -1632,6 +1632,18 @@ public abstract partial class WorldBase : IWorld
         return success;
     }
 
+    public bool CanUnlock(Entity entity, ZDoomKeyType key, bool objectMessage)
+    {
+        var success = LineSpecial.CanUnlock(entity, ArchiveCollection.Definitions.LockDefinitions, key, out var lockFail);
+        if (!success && entity.PlayerObj != null && lockFail != null)
+        {
+            entity.PlayerObj.PlayUseFailSound();
+            var message = objectMessage ? ArchiveCollection.Language.GetMessage(lockFail.ObjectMessage) : ArchiveCollection.Language.GetMessage(lockFail.DoorMessage);
+            DisplayMessage(entity.PlayerObj, null, message, true);
+        }
+        return success;
+    }
+
     private string GetLockFailMessage(Line line, LockDef lockDef)
     {
         if (line.Special.LineSpecialCompatibility != null &&

@@ -1425,7 +1425,25 @@ public sealed class SpecialManager : ITickable, IDisposable
                 return ActionSpecials.ThingSetSpecial(args.Entity, world, line.Args);
 
             case ZDoomLineSpecialType.ScriptRun:
-                return ActionSpecials.AcsExecute(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+                return ActionSpecials.ScriptExecute(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptRunForced:
+                return ActionSpecials.ScriptExecuteForced(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptStop:
+                return ActionSpecials.ScriptStop(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptKill:
+                return ActionSpecials.ScriptKill(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptWithKey:
+                return ActionSpecials.ScriptExecuteWithKey(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args, true);
+
+            case ZDoomLineSpecialType.ScriptRunWithResult:
+                return ActionSpecials.ScriptExecuteWithResult(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptLockedDoorExecute:
+                return ActionSpecials.ScriptExecuteWithKey(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args, false);
 
             case ZDoomLineSpecialType.RadiusQuake:
                 return ActionSpecials.RadiusQuake(args.Entity, world, line.Args);
