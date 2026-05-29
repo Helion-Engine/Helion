@@ -164,4 +164,28 @@ public class AcsScriptStates
             messages[^1].Args.Message.Should().Be("Another Script 3 2 1");
         });
     }
+
+    [Fact(DisplayName = "Script run args")]
+    public void ScriptRunArgs()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 44, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 35);
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("1 2 3");
+        });
+    }
+
+    [Fact(DisplayName = "Script result args")]
+    public void ScriptResultArgs()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 48, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.TickWorld(World, 35);
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("1 2 3 4");
+        });
+    }
 }
