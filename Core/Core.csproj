@@ -31,6 +31,6 @@
     <PackageReference Include="ini-parser-net8" Version="2.6.2.1" />
     <PackageReference Include="xBRZNet" Version="1.2.0" />
     <PackageReference Include="zdbspSharp" Version="1.0.8" />
-    <PackageReference Include="Helion.HelionACS" Version="0.1.1-pre.43+fee7781" />
+    <PackageReference Include="Helion.HelionACS" Version="0.1.1-pre.46+3e86273" />
   </ItemGroup>
 </Project>
