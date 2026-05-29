@@ -9,6 +9,13 @@ using Helion.Util.Parser;
 
 namespace Helion.Resources.Definitions.StatusBar;
 
+public enum FontType
+{
+    MonoSpacedZero,
+    MonoSpacedWidest,
+    Proportional
+}
+
 public class StatusBarFileDef
 {
     [JsonPropertyName("type")]
@@ -150,7 +157,7 @@ public class StatusBarNumberFontDef
     }
 
     [JsonPropertyName("type")]
-    public int Type { get; set; }
+    public FontType Type { get; set; }
 
     [JsonPropertyName("stem")]
     public string Stem { get; set; } = string.Empty;
@@ -168,7 +175,7 @@ public class StatusBarHudFontDef
     }
 
     [JsonPropertyName("type")]
-    public int Type { get; set; }
+    public FontType Type { get; set; }
 
     [JsonPropertyName("stem")]
     public string Stem { get; set; } = string.Empty;

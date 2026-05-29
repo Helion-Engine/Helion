@@ -38,6 +38,8 @@
 - Fix dehacked dropped ammo types only giving half ammo.
 - Fix "Compact HUD" (Tate/Portrait Window) behavior for SBARDEF.
 - Fix cycling order with SBARDEF.
+- Fix mono spaced font width rendering in SBARDEF.
+- Fix hud transparency config option not working with SBARDEF.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
