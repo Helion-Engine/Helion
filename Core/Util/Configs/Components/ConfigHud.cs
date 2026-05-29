@@ -22,7 +22,7 @@ public static class HudView
         return statusBarHeight > 0 ? (0, (int)(viewport.Height / 200.0 * (statusBarHeight / 2.0))) : Vec2I.Zero;
     }
 
-    private static int GetStatusBarHeight(StatusBarLayoutDef? activeStatusBar)
+    public static int GetStatusBarHeight(StatusBarLayoutDef? activeStatusBar)
     {
         if (activeStatusBar == null)
             return 0;
