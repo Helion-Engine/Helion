@@ -206,7 +206,7 @@ public static class ActionSpecials
 
     public static bool SectorSetColor(IWorld world, in SpecialArgs args)
     {
-        var colormap = world.ArchiveCollection.Definitions.GetLevelSectorColormap(new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3));
+        var colormap = world.ArchiveCollection.Definitions.GetOrCreateLevelSectorColormap(new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3));
         var sectors = world.FindBySectorTag(args.Arg0);
         for (int i = 0; i < sectors.Count; i++)
         {
