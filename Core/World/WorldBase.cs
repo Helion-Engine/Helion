@@ -765,6 +765,12 @@ public abstract partial class WorldBase : IWorld
         SpecialManager.SectorMoveComplete += SpecialManager_SectorMoveComplete;
     }
 
+    public virtual void Finalize(bool fromWorldModel)
+    {
+        if (!fromWorldModel)
+            AcsExecutor.Exec();
+    }
+
     private void StartScript(HelionACS.ScriptType type, uint[] args, Entity? activator, Line? line, bool frontSide)
     {
         if (m_map.HasBehavior)

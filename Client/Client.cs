@@ -478,6 +478,7 @@ public partial class Client : IDisposable, IInputManagement
             _ = WriteAutoSave(m_loadMapResult);
         }
 
+        var fromWorldModel = m_loadMapResult.WorldModel != null;
         m_loadMapResult = null;
         m_levelChangeEvent = LevelChangeEvent.Default;
         PlayTransition();
@@ -490,6 +491,8 @@ public partial class Client : IDisposable, IInputManagement
 
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, false);
         GCUtil.SetGameplayLatencyMode();
+
+        worldLayer.World.Finalize(fromWorldModel);
     }
 
     private async Task WriteAutoSave(LoadMapResult result)
