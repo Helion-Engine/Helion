@@ -363,7 +363,7 @@ public class WorldExecutor : Executor
 
         // 400-499 was originally for GZDoom OpenGL features:
         //AddFuncDataACS0V(400, CF_SetSectorGlow);
-        //AddFuncDataACS0V(401, CF_SetFogDensity);
+        AddFuncDataACS0V(401, CF_SetFogDensity);
 
         #endregion "FuncData"
     }
@@ -883,17 +883,16 @@ public class WorldExecutor : Executor
             m_world.PlayStaticSound(activator.PlayerObj, args.GetStringSpan(thread, 0), args.GetNormalizedVolume(1));
     }
 
-    enum GameSkillResult : int
+    public void CF_SetFogDensity(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
-        VeryEasy = 0,
-        Easy = 1,
-        Normal = 2,
-        Hard = 3,
-        VeryHard = 4
+        var tag = args.Get(0);
+        var density = args.Get(1);
+        ActionSpecials.SetFogDensity(m_world, tag, density / 510f);
     }
 
     public int CF_GameSkill(ThreadHandle thread, ReadOnlySpan<uint> args) => 
-        (int)(m_world.SkillLevel switch {
+        (int)(m_world.SkillLevel switch
+        {
             SkillLevel.VeryEasy => GameSkillResult.VeryEasy,
             SkillLevel.Easy => GameSkillResult.Easy,
             SkillLevel.Medium => GameSkillResult.Normal,

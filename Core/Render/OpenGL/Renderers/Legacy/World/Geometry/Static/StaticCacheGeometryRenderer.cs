@@ -186,11 +186,14 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_worldReload = false;
     }
 
-    private void World_SectorFogColorChanged(object? sender, Sector sector)
+    private void World_SectorFogColorChanged(object? sender, SectorFogEvent e)
     {
-        for (int i = 0; i < sector.Lines.Length; i++)
+        if ((e.PreviousColor.Uint == 0 && e.Sector.FogColor.Uint == 0) || (e.PreviousColor.Uint != 0 && e.Sector.FogColor.Uint != 0))
+            return;
+
+        for (int i = 0; i < e.Sector.Lines.Length; i++)
         {
-            var line = sector.Lines[i];
+            var line = e.Sector.Lines[i];
             if (line.Back == null)
                 continue;
 

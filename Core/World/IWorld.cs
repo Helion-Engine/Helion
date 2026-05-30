@@ -61,7 +61,7 @@ public interface IWorld : IDisposable
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<Sector>? SectorColorMapChanged;
-    event EventHandler<Sector>? SectorFogColorChanged;
+    event EventHandler<SectorFogEvent>? SectorFogColorChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
     event EventHandler<MusicChangeEvent>? OnMusicChanged;
     event EventHandler? OnTick;

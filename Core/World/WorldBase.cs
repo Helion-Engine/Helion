@@ -102,7 +102,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<Sector>? SectorColorMapChanged;
-    public event EventHandler<Sector>? SectorFogColorChanged;
+    public event EventHandler<SectorFogEvent>? SectorFogColorChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
     public event EventHandler<MusicChangeEvent>? OnMusicChanged;
     public event EventHandler? OnTick;
@@ -4488,8 +4488,9 @@ public abstract partial class WorldBase : IWorld
     {
         if (sector.FogColor == color && sector.FogDensity == density)
             return;
-        sector.SetFog(color, sector.FogDensity);
-        SectorFogColorChanged?.Invoke(this, sector);
+        var previousColor = sector.FogColor;
+        sector.SetFog(color, density);
+        SectorFogColorChanged?.Invoke(this, new(sector, previousColor));
     }
 
     public void SetSectorPlaneAngle(SectorPlane plane, double angleRadians)

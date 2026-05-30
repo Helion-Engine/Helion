@@ -227,6 +227,17 @@ public static class ActionSpecials
         return true;
     }
 
+    public static bool SetFogDensity(IWorld world, int tag, float density)
+    {
+        var sectors = world.FindBySectorTag(tag);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+            world.SetSectorFogColor(sector, sector.FogColor, density);
+        }
+        return true;
+    }
+
     public static bool NoiseAlert(Entity activator, IWorld world, in SpecialArgs args)
     {
         var target = GetActivator(activator, world, args.Arg0);
