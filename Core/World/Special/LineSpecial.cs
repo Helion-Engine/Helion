@@ -95,6 +95,7 @@ public class LineSpecial
             case ZDoomLineSpecialType.ScrollTextureModelBothSides:
             case ZDoomLineSpecialType.SectorSet3DFloor:
             case ZDoomLineSpecialType.TranslucentLine:
+            case ZDoomLineSpecialType.LineIdentify:
                 flags.Activations = LineActivations.LevelStart;
                 break;
 

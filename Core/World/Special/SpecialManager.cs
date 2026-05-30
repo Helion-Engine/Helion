@@ -888,7 +888,15 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.SetSectorColorMap:
                 SetSectorColorMap(line, true);
                 break;
+            case ZDoomLineSpecialType.LineIdentify:
+                SetLineId(line);
+                break;
         }
+    }
+
+    private void SetLineId(Line line)
+    {
+        m_world.SetLineId(line, line.Args.Arg0);
     }
 
     private void SetSector3DFloor(Line specialLine, List<Sector3D> sectors3D, Dictionary<int, int> counts)
