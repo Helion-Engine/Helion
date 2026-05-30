@@ -1,3 +1,4 @@
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
@@ -24,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using Helion.Geometry;
 
 namespace Helion.Layer.Worlds.StatusBar;
 
@@ -43,10 +43,16 @@ public class StatusBarRenderer
 {
     // Caches
     private static readonly Dictionary<string, int> Type1WidthCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, int> Type0WidthCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, int> HudType1WidthCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, int> HudType0WidthCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> FontPatchCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> HudFontPatchCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> PatchNameCache = new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> FontPatchCacheBySpan = FontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
+    private static readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> HudFontPatchCacheBySpan = HudFontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
+    private static readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> PatchNameCacheBySpan = PatchNameCache.GetAlternateLookup<ReadOnlySpan<char>>();
 
     // Mapping SBARDEF stems to Helion Internal Fonts to enable grayscale tinting and better rendering
     private static readonly Dictionary<string, string> StemToHelionFontMap = new(StringComparer.OrdinalIgnoreCase)
@@ -84,6 +90,9 @@ public class StatusBarRenderer
     private readonly Dictionary<string, StatusBarHudFontDef> m_hudFontLookup = [];
     private readonly SpanString m_lookupKeySpan = new(128);
 
+    private readonly Func<IHudRenderContext, StatusBarHudFontDef, char, string> m_getHudFontPatch;
+    private readonly Func<IHudRenderContext, StatusBarNumberFontDef, char, string> m_getFontNumberPatch;
+
     private StatusBarContext m_ctx;
     private float m_currentScale;
     private float m_hOffset;
@@ -96,6 +105,7 @@ public class StatusBarRenderer
     private bool m_invalidateBounds;
     private float m_userScale;
     private float m_vOffset;
+    private float m_alpha;
 
     public StatusBarRenderer(ArchiveCollection archiveCollection)
     {
@@ -108,6 +118,9 @@ public class StatusBarRenderer
 
         foreach (StatusBarHudFontDef f in sbarDef.HudFonts)
             m_hudFontLookup[f.Name] = f;
+
+        m_getHudFontPatch = GetHudFontPatch;
+        m_getFontNumberPatch = GetFontPatch;
     }
 
     public static StatusBarCoverage GetCoverage(StatusBarLayoutDef layout)
@@ -225,12 +238,13 @@ public class StatusBarRenderer
         float scaleY = windowHeight / (200f * 1.2f);
         m_currentScale = Math.Min(scaleX, scaleY);
         m_userScale = (float)m_config.Scale.Value;
+        m_alpha = HudView.GetStatusBarHeight(layout) > 0 ? 1 : 1 - (float)m_config.Transparency.Value;
         m_scale = Vec2F.One;
 
         m_hOffset = (windowWidth / m_currentScale - 320f) / 2f;
         m_vOffset = (windowHeight / m_currentScale - 200f * 1.2f) / 2f;
         float widescreenOffset = m_hOffset - hudNativePaddingX / m_currentScale;
-
+        
         if (!layout.FullscreenRender)
         {
             string fillFlat = layout.FillFlat ?? m_ctx.World.GameInfo.BorderFlat;
@@ -296,7 +310,7 @@ public class StatusBarRenderer
         {
             if (m_hudFontLookup.TryGetValue(wrapper.String.Font, out StatusBarHudFontDef? f))
             {
-                string zeroPatch = GetHudFontPatch(f, '0');
+                string zeroPatch = GetHudFontPatch(hud, f, '0');
                 wrapper.String.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h)
                     ? h.Dimension.Height
                     : hud.GetFontMaxHeight(f.Stem);
@@ -924,34 +938,7 @@ public class StatusBarRenderer
 
         m_glyphCache.Clear();
 
-        int monoWidth = 0;
-        switch (fontDef.Type)
-        {
-            case 1:
-            {
-                if (!HudType1WidthCache.TryGetValue(fontDef.Stem, out monoWidth))
-                {
-                    monoWidth = 0;
-                    for (char c1 = '!'; c1 <= '_'; c1++)
-                    {
-                        string patch1 = GetHudFontPatch(fontDef, c1);
-                        if (ResolveGlyph(hud, patch1, out int w, out _))
-                            monoWidth = Math.Max(monoWidth, w);
-                    }
-
-                    HudType1WidthCache[fontDef.Stem] = monoWidth;
-                }
-
-                break;
-            }
-            case 0:
-            {
-                string zero = GetHudFontPatch(fontDef, '0');
-                if (hud.Textures.TryGet(zero, out var zh))
-                        monoWidth = zh.Dimension.Width;
-                break;
-            }
-        }
+        var monoWidth = GetFontMonoWidth(hud, fontDef.Type, fontDef.Stem, fontDef, HudType0WidthCache, HudType1WidthCache, m_getHudFontPatch);
 
         foreach (char originalChar in text)
         {
@@ -961,19 +948,19 @@ public class StatusBarRenderer
 
             if (c == ' ')
             {
-                string bang = GetHudFontPatch(fontDef, '!');
+                string bang = GetHudFontPatch(hud, fontDef, '!');
                 width = hud.Textures.TryGet(bang, out IRenderableTextureHandle? h) ? h.Dimension.Width : 4;
             }
             else
             {
                 if (char.IsLower(c)) c = char.ToUpper(c, CultureInfo.InvariantCulture);
 
-                patch = GetHudFontPatch(fontDef, c);
+                patch = GetHudFontPatch(hud, fontDef, c);
                 bool found = ResolveGlyph(hud, patch, out width, out int height);
 
                 if (!found && c != originalChar)
                 {
-                    string rawPatch = GetHudFontPatch(fontDef, originalChar);
+                    string rawPatch = GetHudFontPatch(hud, fontDef, originalChar);
                     if (ResolveGlyph(hud, rawPatch, out int rawWidth, out int rawHeight))
                     {
                         patch = rawPatch;
@@ -987,7 +974,8 @@ public class StatusBarRenderer
                 else patch = string.Empty;
             }
 
-            if (monoWidth > 0) width = monoWidth;
+            if (monoWidth > 0)
+                width = monoWidth;
 
             int scaledWidth = (int)(width * m_scale.X);
             m_glyphCache.Add(new RenderGlyph(patch, scaledWidth, 0));
@@ -1021,6 +1009,47 @@ public class StatusBarRenderer
         }
 
         return totalWidth;
+    }
+
+    private static int GetFontMonoWidth<T>(IHudRenderContext hud, FontType type, string name, T fontDef,
+        Dictionary<string, int> lookup0, Dictionary<string, int> lookup1,
+        Func<IHudRenderContext, T, char, string> getFontPatch)
+    {
+        int monoWidth = 0;
+        switch (type)
+        {
+            case FontType.MonoSpacedWidest:
+                {
+                    if (!lookup1.TryGetValue(name, out monoWidth))
+                    {
+                        monoWidth = 0;
+                        for (char c1 = '!'; c1 <= '_'; c1++)
+                        {
+                            string patch1 = getFontPatch(hud, fontDef, c1);
+                            if (ResolveGlyph(hud, patch1, out int w, out _))
+                                monoWidth = Math.Max(monoWidth, w);
+                        }
+
+                        lookup1[name] = monoWidth;
+                    }
+
+                    break;
+                }
+            case FontType.MonoSpacedZero:
+                {
+                    if (!lookup0.TryGetValue(name, out monoWidth))
+                    {
+                        string zero = getFontPatch(hud, fontDef, '0');
+                        if (hud.Textures.TryGet(zero, out var zh))
+                            monoWidth = zh.Dimension.Width;
+
+                        lookup0[name] = monoWidth;
+                    }
+                    break;
+                }
+        }
+
+        return monoWidth;
     }
 
     private void DrawCarousel(IHudRenderContext hud,
@@ -1095,7 +1124,7 @@ public class StatusBarRenderer
             ResourceNamespace.Undefined,
             drawColor,
             1.0f,
-            alpha,
+            alpha * m_alpha,
             0,
             1,
             null,
@@ -1127,7 +1156,8 @@ public class StatusBarRenderer
 
         m_fmtSpan.Clear();
         m_fmtSpan.Append(value);
-        if (isPercent) m_fmtSpan.Append('%');
+        if (isPercent)
+            m_fmtSpan.Append('%');
 
         ReadOnlySpan<char> text = m_fmtSpan.AsSpan();
 
@@ -1135,35 +1165,7 @@ public class StatusBarRenderer
 
         float alpha = number.Translucency ? 0.5f : 1.0f;
         int totalWidth = 0;
-        int monoWidth = 0;
-
-        switch (fontDef.Type)
-        {
-            case 0:
-            {
-                string zeroPatch = GetFontPatch(hud, fontDef, '0');
-                if (hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? zeroHandle))
-                    monoWidth = zeroHandle.Dimension.Width;
-                break;
-            }
-            case 1:
-            {
-                if (!Type1WidthCache.TryGetValue(fontDef.Stem, out monoWidth))
-                {
-                    monoWidth = 0;
-                    for (char d = '0'; d <= '9'; d++)
-                    {
-                        string dPatch = GetFontPatch(hud, fontDef, d);
-                        if (hud.Textures.TryGet(dPatch, out IRenderableTextureHandle? dHandle))
-                            monoWidth = Math.Max(monoWidth, dHandle.Dimension.Width);
-                    }
-
-                    Type1WidthCache[fontDef.Stem] = monoWidth;
-                }
-
-                break;
-            }
-        }
+        var monoWidth = GetFontMonoWidth(hud, fontDef.Type, fontDef.Name, fontDef, Type0WidthCache, Type1WidthCache, m_getFontNumberPatch);
 
         m_glyphCache.Clear();
 
@@ -1173,17 +1175,13 @@ public class StatusBarRenderer
             int width;
             int xOffset = 0;
 
-            if (hud.Textures.TryGet(patch, out IRenderableTextureHandle? handle) ||
-                hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites)) width = handle.Dimension.Width;
+            if (hud.Textures.TryGet(patch, out IRenderableTextureHandle? handle) || hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites))
+                width = handle.Dimension.Width;
             else
                 continue;
 
-            if (fontDef.Type is 0 or 1)
-                if (monoWidth > 0)
-                {
-                    if (width < monoWidth) xOffset = (monoWidth - width) / 2;
-                    width = monoWidth;
-                }
+            if ((fontDef.Type is FontType.MonoSpacedZero or FontType.MonoSpacedWidest) && monoWidth > 0)
+                width = monoWidth;
 
             int scaledWidth = (int)(width * m_scale.X);
             m_glyphCache.Add(new RenderGlyph(patch, scaledWidth, (int)(xOffset * m_scale.X), handle));
@@ -1193,8 +1191,10 @@ public class StatusBarRenderer
         int drawX = pos.X;
         int drawY = pos.Y;
 
-        if ((number.Alignment & StatusBarAlignment.HCenter) != 0) drawX -= totalWidth / 2;
-        else if ((number.Alignment & StatusBarAlignment.Right) != 0) drawX -= totalWidth;
+        if ((number.Alignment & StatusBarAlignment.HCenter) != 0)
+            drawX -= totalWidth / 2;
+        else if ((number.Alignment & StatusBarAlignment.Right) != 0)
+            drawX -= totalWidth;
 
         Align yAnchor = Align.TopLeft;
         if ((number.Alignment & StatusBarAlignment.Bottom) != 0) 
@@ -1691,12 +1691,12 @@ public class StatusBarRenderer
 
     private static string ResolvePatchName(string patch)
     {
-        if (string.IsNullOrEmpty(patch)) return string.Empty;
+        if (string.IsNullOrEmpty(patch))
+            return string.Empty;
 
-        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> lookup = PatchNameCache.GetAlternateLookup<ReadOnlySpan<char>>();
         ReadOnlySpan<char> patchSpan = patch.AsSpan();
 
-        if (lookup.TryGetValue(patchSpan, out string? cached))
+        if (PatchNameCacheBySpan.TryGetValue(patchSpan, out string? cached))
             return cached;
 
         int lastSlash = patch.LastIndexOf('/') + 1;
@@ -1775,14 +1775,13 @@ public class StatusBarRenderer
         return false;
     }
 
-    private string GetHudFontPatch(StatusBarHudFontDef font, char c)
+    private string GetHudFontPatch(IHudRenderContext hud, StatusBarHudFontDef font, char c)
     {
         m_lookupKeySpan.Clear();
         m_lookupKeySpan.Append(font.Stem);
         m_lookupKeySpan.Append(c);
 
-        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> lookup = HudFontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached))
+        if (HudFontPatchCacheBySpan.TryGetValue(m_lookupKeySpan.AsSpan(), out var cached))
             return cached;
 
         string result = font.Stem + ((int)c).ToString("D3", CultureInfo.InvariantCulture);
@@ -1795,8 +1794,8 @@ public class StatusBarRenderer
         m_lookupKeySpan.Clear();
         m_lookupKeySpan.Append(font.Stem);
         m_lookupKeySpan.Append(c);
-        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> lookup = FontPatchCache.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (lookup.TryGetValue(m_lookupKeySpan.AsSpan(), out string? cached)) return cached;
+        if (FontPatchCacheBySpan.TryGetValue(m_lookupKeySpan.AsSpan(), out string? cached))
+            return cached;
 
         string result = c switch
         {
