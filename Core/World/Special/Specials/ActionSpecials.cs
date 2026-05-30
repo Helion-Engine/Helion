@@ -690,6 +690,13 @@ public static class ActionSpecials
         }
     }
 
+    public static void SetLineSpecial(IWorld world, int lineId, ZDoomLineSpecialType special, in SpecialArgs specialArgs)
+    {
+        var lines = world.FindByLineId(lineId);
+        foreach (var line in lines)
+            world.SetLineSpecial(line, special, specialArgs);
+    }
+
     public static bool Spawn(IWorld world, ReadOnlySpan<char> className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle, bool force)
     {
         var pos = new Vec3D(MathHelper.FromFixed(xFixed), MathHelper.FromFixed(yFixed), MathHelper.FromFixed(zFixed));

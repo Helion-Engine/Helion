@@ -4,8 +4,10 @@ using Helion.Maps.Components.GL;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Udmf.Components;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
@@ -686,9 +688,20 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 line.LineId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("moreids"))
                 line.MoreLineIds = ParseMoreIds(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("renderstyle"))
+                line.RenderStyle = ParseRenderStyle(prop.Value);
         }
 
         lines.Add(line);
+    }
+
+    private static RenderDataStyle ParseRenderStyle(ReadOnlySpan<char> value)
+    {
+        if (value.EqualsIgnoreCase("add"))
+            return RenderDataStyle.Add;
+        else if (value.EqualsIgnoreCase("translucent"))
+            return RenderDataStyle.Translucent;
+        return RenderDataStyle.Normal;
     }
 
     private static void ParseVertex(StreamParser parser, List<UdmfVertex> vertices, DynamicArray<char> typeArray, DynamicArray<char> valueArray)

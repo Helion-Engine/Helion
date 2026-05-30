@@ -204,6 +204,7 @@ public interface IWorld : IDisposable
     void PlayStaticSound(Player? player, ReadOnlySpan<char> sound, float volume);
     void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags);
     void SetLineBlockFlags(Line line, in LineBlockFlags flags);
+    void SetLineSpecial(Line line, ZDoomLineSpecialType type, in SpecialArgs args);
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();

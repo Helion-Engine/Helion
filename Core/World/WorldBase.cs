@@ -4147,6 +4147,14 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
+    public void SetLineSpecial(Line line, ZDoomLineSpecialType type, in SpecialArgs args)
+    {
+        line.DataChanges |= LineDataTypes.Special;
+        line.DataChanges |= LineDataTypes.Args;
+        line.Args = args;
+        line.UpdateSpecial(type);
+    }
+
     private static void SetLineBlockFlags(Line line, ZDoomLineBlockFlags flags, bool set, ref bool updated)
     {
         if (UpdateLineBlockRef(ref line.Flags.Blocking.LegacyImpassible, flags, ZDoomLineBlockFlags.Creatures, set, ref updated))

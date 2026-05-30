@@ -83,7 +83,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V( 96, "",        1, CF_SoundSequence); TODO?
         AddCodeDataACS0V( 97, "",        4, CF_SetLineTexture);
         AddCodeDataACS0V( 98, "",        2, CF_SetLineBlocking);
-        //AddCodeDataACS0V( 99, "",        7, CF_SetLineSpecial); TODO
+        AddCodeDataACS0V(99, "",         7, CF_SetLineSpecial);
         AddCodeDataACS0V(100, "",        3, CF_ThingSound);
         AddCodeDataACS0V(101, "",        0, CF_EndPrintBold);
         AddCodeDataACS0V(102, "",        2, CF_ActivatorSound);
@@ -888,6 +888,14 @@ public class WorldExecutor : Executor
         var tag = args.Get(0);
         var density = args.Get(1);
         ActionSpecials.SetFogDensity(m_world, tag, density / 510f);
+    }
+
+    public void CF_SetLineSpecial(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var lineId = args.Get(0);
+        var special = (ZDoomLineSpecialType)args.Get(1);
+        var specialArgs = new SpecialArgs(args.Get(2), args.Get(3), args.Get(4), args.Get(5), args.Get(6));
+        ActionSpecials.SetLineSpecial(m_world, lineId, special, specialArgs);
     }
 
     public int CF_GameSkill(ThreadHandle thread, ReadOnlySpan<uint> args) => 
