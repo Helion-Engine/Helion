@@ -17,7 +17,7 @@ public class MonsterCloset
 
     public MonsterCloset()
     {
-        World = LoadMap(null, disposeExistingWorld: true);
+        World = LoadMap(null, disposeExistingWorld: true, sameAsPreviousMap: false);
     }
 
     [Fact(DisplayName = "Monster closets")]
@@ -63,7 +63,7 @@ public class MonsterCloset
         imp2.ClosetFlags.Should().Be(ClosetFlags.None);
 
         var model = World.ToWorldModel();
-        World = LoadMap(model, disposeExistingWorld: true);
+        World = LoadMap(model, disposeExistingWorld: true, sameAsPreviousMap: true);
 
         imp1 = GameActions.GetEntity(World, 1);
         imp2 = GameActions.GetEntity(World, 3);
@@ -76,7 +76,7 @@ public class MonsterCloset
         imp1.ClosetFlags.Should().Be(ClosetFlags.None);
 
         model = World.ToWorldModel();
-        World = LoadMap(model, disposeExistingWorld: true);
+        World = LoadMap(model, disposeExistingWorld: true, sameAsPreviousMap: true);
 
         imp1 = GameActions.GetEntity(World, 1);
         imp2 = GameActions.GetEntity(World, 3);
@@ -98,7 +98,7 @@ public class MonsterCloset
         imp1.ClearMonsterCloset();
         imp1.ClosetFlags.Should().Be(ClosetFlags.None);
 
-        World = LoadMap(null, disposeExistingWorld: true);
+        World = LoadMap(null, disposeExistingWorld: true, sameAsPreviousMap: false);
 
         imp1 = GameActions.GetEntity(World, 1);
         imp2 = GameActions.GetEntity(World, 3);
@@ -107,13 +107,13 @@ public class MonsterCloset
         imp2.ClosetFlags.Should().Be(ClosetFlags.None);
     }
 
-    private SinglePlayerWorld LoadMap(WorldModel? worldModel, bool disposeExistingWorld = false)
+    private SinglePlayerWorld LoadMap(WorldModel? worldModel, bool disposeExistingWorld, bool sameAsPreviousMap)
     {
         // Need to dispose the first world's archive collection because it locks the file
         if (worldModel != null && !World.ArchiveCollection.IsDisposed)
             World.ArchiveCollection.Dispose();
 
         return WorldAllocator.LoadMap("Resources/monstercloset.zip", "monstercloset.WAD", "MAP01", Guid.NewGuid().ToString(), (world) => { }, IWadType.Doom2,
-            worldModel: worldModel, disposeExistingWorld: disposeExistingWorld, sameAsPreviousMap: worldModel != null);
+            worldModel: worldModel, disposeExistingWorld: disposeExistingWorld, sameAsPreviousMap: sameAsPreviousMap);
     }
 }
