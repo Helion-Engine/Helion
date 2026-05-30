@@ -40,7 +40,7 @@ internal static class WorldAllocator
     public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
         IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null,
         bool disposeExistingWorld = true, bool cacheWorld = true, bool gameConf = false,
-        Action<ArchiveCollection>? onBeforeInit = null, Config? config = null, string? dehackedPatch = null)
+        Action<ArchiveCollection>? onBeforeInit = null, Config? config = null, string? dehackedPatch = null, bool sameAsPreviousMap = false)
     {
         if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, cacheWorld, out SinglePlayerWorld? existingWorld))
             return existingWorld;
@@ -104,7 +104,7 @@ internal static class WorldAllocator
 
         DoomRandom random = worldModel == null ? new() : new(worldModel.RandomIndex);
         SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef,
-            skillDef, outputMap, existingPlayer, worldModel, random, unitTest: true) ?? throw new Exception("Failed to create world");
+            skillDef, outputMap, existingPlayer, worldModel, random, unitTest: true, sameAsPreviousMap: sameAsPreviousMap) ?? throw new Exception("Failed to create world");
         StaticWorld = world;
         world.OnTick += World_OnTick;
         world.Start(worldModel);
