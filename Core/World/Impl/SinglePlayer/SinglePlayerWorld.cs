@@ -129,10 +129,11 @@ public class SinglePlayerWorld : WorldBase
         EnsureEntityModelSize(EntityManager.EntityCount + (int)(EntityManager.EntityCount * 0.25));
 
         var bspTree = Geometry.GetBspTree();
-        if (config.Game.MonsterCloset.Value && bspTree != null)
-            ClosetClassifier.Classify(this, bspTree, worldModel != null);
-        else if (worldModel != null)
-            ClearMonsterClosets();
+        // Entities clear closet flags on dispose. If the same map islands have been flagged as closets so they can be reset without using the tree.
+        if (sameAsPreviousMap)
+            ClosetClassifier.ClassifySameMap(this);
+        else if (config.Game.MonsterCloset.Value && bspTree != null)
+            ClosetClassifier.Classify(this, bspTree);
 
         CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
 
@@ -213,16 +214,6 @@ public class SinglePlayerWorld : WorldBase
             return;
 
         m_musicLookup[name] = entry.ReadData();
-    }
-
-    private void ClearMonsterClosets()
-    {
-        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
-        {
-            if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) == 0)
-                continue;
-            entity.ClearMonsterCloset();
-        }
     }
 
     private void MarkSpecials_OnChanged(object? sender, bool e)

@@ -9,35 +9,25 @@ namespace Helion.World.Geometry.Islands;
 
 public static class ClosetClassifier
 {
-    // Assumes entities and geometry have been populated. Should be done as
-    // a final post-processing step.
-    public static void Classify(WorldBase world, BspTreeNew bspTree, bool isFromSave)
+    public static void ClassifySameMap(WorldBase world)
     {
-        if (world.SameAsPreviousMap)
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
-            {
-                if (entity.Flags.Friendly())
-                    continue;
+            if (entity.Flags.Friendly())
+                continue;
 
-                var subsector = bspTree.Subsectors[entity.SubsectorId];
-                if (subsector.IslandId < 0 || subsector.IslandId >= world.Geometry.IslandGeometry.Islands.Count)
-                    continue;
-                var island = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
-                if (!isFromSave)
-                {
-                    if (island.IsMonsterCloset)
-                        entity.ClosetFlags |= ClosetFlags.MonsterCloset;
-                    continue;
-                }
+            var islandId = world.Geometry.SubsectorToIslandId[entity.SubsectorId];
+            if (islandId < 0 || islandId >= world.Geometry.IslandGeometry.Islands.Count)
+                continue;
 
-                // Saved misclassification?
-                if (!island.IsMonsterCloset && entity.ClosetFlags != ClosetFlags.None)
-                    entity.ClearMonsterCloset();
-            }
-            return;
+            var island = world.Geometry.IslandGeometry.Islands[islandId];
+            if (island.IsMonsterCloset)
+                entity.ClosetFlags |= ClosetFlags.MonsterCloset;
         }
+    }
 
+    public static void Classify(WorldBase world, BspTreeNew bspTree)
+    {
         PopulateLookups(world, bspTree, out var islandToEntities, out var entityToSubsector);
 
         for (int i = 0; i < world.Geometry.IslandGeometry.Islands.Count; i++)

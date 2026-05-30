@@ -1,8 +1,10 @@
 ﻿using FluentAssertions;
+using Helion.Models;
 using Helion.Resources.IWad;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
+using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction;
@@ -10,12 +12,12 @@ namespace Helion.Tests.Unit.GameAction;
 [Collection("GameActions")]
 public class MonsterCloset
 {
-    private readonly SinglePlayerWorld World;
+    private SinglePlayerWorld World;
     private Player Player => World.Player;
 
     public MonsterCloset()
     {
-        World = WorldAllocator.LoadMap("Resources/monstercloset.zip", "monstercloset.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = LoadMap(null, disposeExistingWorld: true);
     }
 
     [Fact(DisplayName = "Monster closets")]
@@ -49,5 +51,69 @@ public class MonsterCloset
         imp1.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_Chase");
         // Should not play sight sound
         GameActions.AssertNoSound(World, imp1);
+    }
+
+    [Fact(DisplayName = "Monster closet serialize")]
+    public void MonsterClosetSerialize()
+    {
+        var imp1 = GameActions.GetEntity(World, 1);
+        var imp2 = GameActions.GetEntity(World, 3);
+
+        imp1.ClosetFlags.Should().Be(ClosetFlags.MonsterCloset);
+        imp2.ClosetFlags.Should().Be(ClosetFlags.None);
+
+        var model = World.ToWorldModel();
+        World = LoadMap(model, disposeExistingWorld: true);
+
+        imp1 = GameActions.GetEntity(World, 1);
+        imp2 = GameActions.GetEntity(World, 3);
+
+        imp1.ClosetFlags.Should().Be(ClosetFlags.MonsterCloset);
+        imp2.ClosetFlags.Should().Be(ClosetFlags.None);
+
+        GameActions.SetEntityPosition(World, imp1, (-256, -256));
+        imp1.ClearMonsterCloset();
+        imp1.ClosetFlags.Should().Be(ClosetFlags.None);
+
+        model = World.ToWorldModel();
+        World = LoadMap(model, disposeExistingWorld: true);
+
+        imp1 = GameActions.GetEntity(World, 1);
+        imp2 = GameActions.GetEntity(World, 3);
+
+        imp1.ClosetFlags.Should().Be(ClosetFlags.None);
+        imp2.ClosetFlags.Should().Be(ClosetFlags.None);
+    }
+
+    [Fact(DisplayName = "Monster reload same map")]
+    public void MonsterClosetReloadSameMap()
+    {
+        var imp1 = GameActions.GetEntity(World, 1);
+        var imp2 = GameActions.GetEntity(World, 3);
+
+        imp1.ClosetFlags.Should().Be(ClosetFlags.MonsterCloset);
+        imp2.ClosetFlags.Should().Be(ClosetFlags.None);
+
+        GameActions.SetEntityPosition(World, imp1, (-256, -256));
+        imp1.ClearMonsterCloset();
+        imp1.ClosetFlags.Should().Be(ClosetFlags.None);
+
+        World = LoadMap(null, disposeExistingWorld: true);
+
+        imp1 = GameActions.GetEntity(World, 1);
+        imp2 = GameActions.GetEntity(World, 3);
+
+        imp1.ClosetFlags.Should().Be(ClosetFlags.MonsterCloset);
+        imp2.ClosetFlags.Should().Be(ClosetFlags.None);
+    }
+
+    private SinglePlayerWorld LoadMap(WorldModel? worldModel, bool disposeExistingWorld = false)
+    {
+        // Need to dispose the first world's archive collection because it locks the file
+        if (worldModel != null && !World.ArchiveCollection.IsDisposed)
+            World.ArchiveCollection.Dispose();
+
+        return WorldAllocator.LoadMap("Resources/monstercloset.zip", "monstercloset.WAD", "MAP01", Guid.NewGuid().ToString(), (world) => { }, IWadType.Doom2,
+            worldModel: worldModel, disposeExistingWorld: disposeExistingWorld, sameAsPreviousMap: worldModel != null);
     }
 }
