@@ -677,10 +677,10 @@ public static class ActionSpecials
         return sectors.Count > 0;
     }
 
-    public static void SetLineTexture(IWorld world, int lineId, bool front, WallLocation location, ReadOnlySpan<char> texture)
+    public static void SetLineTexture(IWorld world, int lineTag, bool front, WallLocation location, ReadOnlySpan<char> texture)
     {
         var textureHandle = world.TextureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
-        var lines = world.FindByLineId(lineId);
+        var lines = world.FindByLineId(lineTag);
         foreach (var line in lines)
         {
             if (front)
@@ -690,9 +690,9 @@ public static class ActionSpecials
         }
     }
 
-    public static void SetLineSpecial(IWorld world, int lineId, ZDoomLineSpecialType special, in SpecialArgs specialArgs)
+    public static void SetLineSpecial(IWorld world, int lineTag, ZDoomLineSpecialType special, in SpecialArgs specialArgs)
     {
-        var lines = world.FindByLineId(lineId);
+        var lines = world.FindByLineId(lineTag);
         foreach (var line in lines)
             world.SetLineSpecial(line, special, specialArgs);
     }

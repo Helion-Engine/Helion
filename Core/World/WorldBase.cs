@@ -3138,6 +3138,11 @@ public abstract partial class WorldBase : IWorld
         return true;
     }
 
+    public void SetGravity(double gravity)
+    {
+        Gravity = gravity;
+    }
+
     private void HighlightSector(Sector sector)
     {
         var islands = Geometry.IslandGeometry.SectorIslands[sector.Id];
@@ -4153,6 +4158,22 @@ public abstract partial class WorldBase : IWorld
         line.DataChanges |= LineDataTypes.Args;
         line.Args = args;
         line.UpdateSpecial(type);
+
+        var it = Blockmap.CreateBoxIteration(line.Segment.Box);
+        for (int by = it.BlockStartY; by <= it.BlockEndY; by++)
+        {
+            for (int bx = it.BlockStartX; bx <= it.BlockEndX; bx++)
+            {
+                ref var block = ref Blockmap.Lines[by * it.Width + bx];
+                int count = block.BlockLineIndex + block.BlockLineCount;
+                for (int i = count - 1; i >= block.BlockLineIndex; i--)
+                {
+                    ref var blockLine = ref Blockmap.BlockLines[i];
+                    if (blockLine.LineId == line.Id)
+                        blockLine.HasSpecial = line.HasSpecial;
+                }
+            }
+        }
     }
 
     private static void SetLineBlockFlags(Line line, ZDoomLineBlockFlags flags, bool set, ref bool updated)

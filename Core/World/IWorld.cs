@@ -214,6 +214,8 @@ public interface IWorld : IDisposable
     void FindKeyLines(FindKeyLineOptions options);
     void FindExits();
     bool SetSkillLevel(SkillLevel skill);
+    void SetGravity(double gravity);
+
     Subsector ToSubsector(double x, double y);
     bool GetPickupPlayer(Entity entity, [NotNullWhen(true)] out Player? player);
     bool ShouldSpawn(IThing thing);

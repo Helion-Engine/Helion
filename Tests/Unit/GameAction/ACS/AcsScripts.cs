@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.IWad;
 using Helion.World;
 using Helion.World.Entities.Players;
@@ -627,6 +628,87 @@ public class AcsScripts
         var sound = GameActions.GetSoundBySoundInfo(World, "plats/pt1_strt");
         sound.AudioData.SoundSource.Should().Be(Player);
         sound.AudioData.Volume.Should().Be(0.503937f);
+    }
+
+    [Fact(DisplayName = "SetGravity")]
+    public void SetGravity()
+    {
+        World.Gravity.Should().Be(1.0);
+        GameActions.ActivateLine(World, Player, 254, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        World.Gravity.Should().Be(0.5);
+        GameActions.ActivateLine(World, Player, 255, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        World.Gravity.Should().Be(2.0);
+        World.SetGravity(1.0);
+    }
+
+    [Fact(DisplayName = "SetThingSpecial")]
+    public void SetThingSpecial()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            var imp = GameActions.GetEntityByTid(World, 25);
+            imp.Special.Should().Be(ZDoomLineSpecialType.None);
+            GameActions.ActivateLine(World, Player, 263, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+            imp.Special.Should().Be(ZDoomLineSpecialType.ScriptRun);
+            messages.Count.Should().Be(0);
+            imp.Kill(Player);
+            GameActions.TickWorld(World, 15);
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("SetThingSpecial 1 2 3 ");
+        });
+    }
+
+    [Fact(DisplayName = "SetLineSpecial")]
+    public void SetLineSpecial()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            var line = GameActions.GetLine(World, 275);
+            line.Special.LineSpecialType.Should().Be(ZDoomLineSpecialType.None);
+            GameActions.ActivateLine(World, Player, 271, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+            line.Special.LineSpecialType.Should().Be(ZDoomLineSpecialType.ScriptRun);
+            GameActions.ActivateLine(World, Player, line.Id, ActivationContext.CrossLine).Should().BeTrue();
+            World.Tick();
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("SetLineSpecial 1 2 3 ");
+        });
+    }
+
+    [Fact(DisplayName = "ClearLineSpecial")]
+    public void ClearLineSpecial()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            var line = GameActions.GetLine(World, 276);
+            line.Special.LineSpecialType.Should().Be(ZDoomLineSpecialType.ScriptRun);
+            GameActions.ActivateLine(World, Player, line.Id, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick(); messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("ClearLineSpecial");
+            line.Special.LineSpecialType.Should().Be(ZDoomLineSpecialType.None);
+            GameActions.ActivateLine(World, Player, line.Id, ActivationContext.UseLine).Should().BeFalse();
+            World.Tick();
+            messages.Count.Should().Be(1);
+        });
+    }
+
+    [Fact(DisplayName = "LineSide")]
+    public void LineSide()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 280, ActivationContext.CrossLine).Should().BeTrue();
+            World.Tick();
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("0");
+            GameActions.ActivateLine(World, Player, 280, ActivationContext.CrossLine, fromFront: false).Should().BeTrue();
+            World.Tick();
+            messages.Count.Should().Be(2);
+            messages[^1].Args.Message.Should().Be("1");
+        });
     }
 
     private void AssertAllEmptyTextures(Side side)

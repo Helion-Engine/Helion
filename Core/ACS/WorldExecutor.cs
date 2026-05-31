@@ -68,9 +68,9 @@ public class WorldExecutor : Executor
         AddCodeDataACS0V( 67, "",        2, CF_ChangeCeiling);
         AddCodeDataACS0V( 68, "WWS",     0, CF_ChangeCeiling);
         // 69-79: ACSVM internal codes.
-        //AddCodeDataACS0I( 80, "",        0, CF_LineSide); TODO
+        AddCodeDataACS0I( 80, "",        0, CF_LineSide);
         // 81-82: ACSVM internal codes.
-        //AddCodeDataACS0V( 83, "",        0, CF_ClearLineSpecial); TODO
+        AddCodeDataACS0V( 83, "",        0, CF_ClearLineSpecial);
         // 84-85: ACSVM internal codes.
         AddCodeDataACS0V( 86, "",        0, CF_EndPrint);
         // 87-89: ACSVM internal codes.
@@ -522,7 +522,7 @@ public class WorldExecutor : Executor
 
     public void CF_SetGravity(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
-        // TODO
+        m_world.SetGravity(args.Get(0) / 800.0);
     }
 
     public void CF_LocalSetMusic(ThreadHandle thread, ReadOnlySpan<uint> args)
@@ -909,6 +909,19 @@ public class WorldExecutor : Executor
         ActionSpecials.SetFogDensity(m_world, tag, density / 510f);
     }
 
+    public static int CF_LineSide(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var side = thread.GetThreadInfo().Side;
+        return side <= 0 ? 0 : 1;
+    }
+
+    public void CF_ClearLineSpecial(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var line = thread.GetLine(m_world);
+        if (line != null)
+            m_world.SetLineSpecial(line, ZDoomLineSpecialType.None, line.Args);
+    }
+
     public void CF_SetLineSpecial(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var lineId = args.Get(0);
@@ -1084,7 +1097,7 @@ public class WorldExecutor : Executor
     private void DoPrint(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         var activator = thread.GetActivator(m_world);
-        var printBuf = thread.GetPrintBuf()!;
+        var printBuf = thread.GetPrintBuf();
 
         if (activator == null)
             m_world.DisplayMessage(new DisplayMessageArgs(printBuf, null, null, IsCentered: true, ForAllPlayers: true));
