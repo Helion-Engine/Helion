@@ -711,6 +711,24 @@ public class AcsScripts
         });
     }
 
+    [Fact(DisplayName = "TagWait")]
+    public void TagWait()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            var sector = GameActions.GetSectorByTag(World, 32);
+            GameActions.ActivateLine(World, Player, 285, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+            GameActions.RunSectorPlaneSpecial(World, sector, () =>
+            {
+                messages.Count.Should().Be(0);
+            });
+            World.Tick();
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("Complete");
+        });
+    }
+
     private void AssertAllEmptyTextures(Side side)
     {
         GameActions.AssertTexture(World, side.Upper.TextureHandle, "-");
