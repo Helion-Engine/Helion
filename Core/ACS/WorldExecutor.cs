@@ -61,8 +61,8 @@ public class WorldExecutor : Executor
         AddCodeDataACS0I( 60, "WW",      0, CF_ThingCount);
         AddCodeDataACS0 ( 61, "",        1, CF_TagWait);
         AddCodeDataACS0 ( 62, "W",       0, CF_TagWait);
-        //AddCodeDataACS0 ( 63, "",        1, CF_PolyWait); TODO
-        //AddCodeDataACS0 ( 64, "W",       0, CF_PolyWait); TODO
+        AddCodeDataACS0 ( 63, "",        1, CF_PolyWait);
+        AddCodeDataACS0 ( 64, "W",       0, CF_PolyWait);
         AddCodeDataACS0V( 65, "",        2, CF_ChangeFloor);
         AddCodeDataACS0V( 66, "WWS",     0, CF_ChangeFloor);
         AddCodeDataACS0V( 67, "",        2, CF_ChangeCeiling);
@@ -108,8 +108,8 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0V(134, "",        3, CF_ConsoleCommand);
         //AddCodeDataACS0I(135, "",        0, CF_SinglePlayer);
         // 136-137: ACSVM internal codes.
-        //AddCodeDataACS0V(138, "",        1, CF_SetGravity);
-        //AddCodeDataACS0V(139, "W",       0, CF_SetGravity);
+        AddCodeDataACS0V(138, "",        1, CF_SetGravity);
+        AddCodeDataACS0V(139, "W",       0, CF_SetGravity);
         //AddCodeDataACS0V(140, "",        1, CF_SetAirControl);
         //AddCodeDataACS0V(141, "W",       0, CF_SetAirControl);
         AddCodeDataACS0V(142, "",        0, CF_ClearInventory);
@@ -428,12 +428,20 @@ public class WorldExecutor : Executor
 
     public override bool CheckTag(uint type, uint tag)
     {
+        return (CheckTagType)type switch
+        {
+            CheckTagType.Sector => CheckSectorMovement(tag),
+            CheckTagType.PolyObject => false, // TODO
+            _ => false,
+        };
+    }
+
+    private bool CheckSectorMovement(uint tag)
+    {
         foreach (var sector in m_world.FindBySectorTag((int)tag))
         {
             if (sector.ActiveFloorMove != null || sector.ActiveCeilingMove != null)
-            {
                 return false;
-            }
         }
         return true;
     }
@@ -512,6 +520,11 @@ public class WorldExecutor : Executor
         PlayMusic(null, args.GetString(thread, 0), args.Get(1));
     }
 
+    public void CF_SetGravity(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        // TODO
+    }
+
     public void CF_LocalSetMusic(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
         PlayMusic(thread.GetActivator(m_world), args.GetString(thread, 0), args.Get(1));
@@ -527,8 +540,14 @@ public class WorldExecutor : Executor
 
     public static CallFuncResult CF_TagWait(ThreadHandle thread, ReadOnlySpan<uint> args)
     {
-        thread.MakeTagWait(0, args.GetU(0));
+        thread.MakeTagWait((uint)CheckTagType.Sector, args.GetU(0));
         return CallFuncResult.ReevaluateState;
+    }
+
+    public static CallFuncResult CF_PolyWait(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        thread.MakeTagWait((uint)CheckTagType.PolyObject, args.GetU(0));
+        return CallFuncResult.NextOp;
     }
 
     public int CF_ThingCount(ThreadHandle thread, ReadOnlySpan<uint> args)
