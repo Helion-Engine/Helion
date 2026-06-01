@@ -31,10 +31,42 @@ public class Boss
     private static Helion.Graphics.Image CreateImage(int width, int height) =>
         new((width, height), Helion.Graphics.ImageType.Argb);
 
+    [Fact(DisplayName = "E1M8 baron boss death multiple triggers")]
+    public void BossMultipleTriggers()
+    {
+        var world = WorldAllocator.LoadMap(Resource, File, "E1M8", GetType().Name, WorldInit, IWadType.UltimateDoom, cacheWorld: false);
+        var baron1 = GameActions.GetEntity(world, 0);
+        var baron2 = GameActions.GetEntity(world, 1);
+        baron1.Definition.Name.EqualsIgnoreCase("BaronOfHell").Should().BeTrue();
+        baron2.Definition.Name.EqualsIgnoreCase("BaronOfHell").Should().BeTrue();
+
+        var sector = GameActions.GetSectorByTag(world, 666);
+        sector.ActiveFloorMove.Should().BeNull();
+
+        baron1.Kill(null);
+        GameActions.TickWorld(world, 70);
+        sector.ActiveFloorMove.Should().BeNull();
+        baron2.Kill(null);
+        GameActions.TickWorld(world, 70);
+        sector.ActiveFloorMove.Should().NotBeNull();
+
+        GameActions.RunSectorPlaneSpecial(world, sector);
+
+        sector.Floor.Z = 128;
+        baron1.SetRaiseState();
+        GameActions.TickWorld(world, 70);
+
+        sector.ActiveFloorMove.Should().BeNull();
+        baron1.Kill(null);
+
+        GameActions.TickWorld(world, 70);
+        sector.ActiveFloorMove.Should().NotBeNull();
+    }
+
     [Fact(DisplayName = "E1M8 baron boss death")]
     public void E1M8()
     {
-        var world = WorldAllocator.LoadMap(Resource, File, "E1M8", GetType().Name, WorldInit, IWadType.UltimateDoom);
+        var world = WorldAllocator.LoadMap(Resource, File, "E1M8", GetType().Name, WorldInit, IWadType.UltimateDoom, cacheWorld: false);
         var baron1 = GameActions.GetEntity(world, 0);
         var baron2 = GameActions.GetEntity(world, 1);
         baron1.Definition.Name.EqualsIgnoreCase("BaronOfHell").Should().BeTrue();
