@@ -1068,6 +1068,12 @@ public abstract partial class WorldBase : IWorld
             Player.SetDefaultInventory();
         }
 
+        if ((m_exitLevelArgs.Flags & LevelChangeFlags.ResetInventory) != 0)
+            Player.Health = Player.Properties.Health;
+
+        if (m_exitLevelArgs.SkillLevel.HasValue)
+            Config.Game.Skill.Set(m_exitLevelArgs.SkillLevel.Value, writeToConfig: false);
+
         m_exitLevelArgs.Flags = LevelChangeFlags.None;
     }
 
@@ -1442,6 +1448,7 @@ public abstract partial class WorldBase : IWorld
             case LevelChangeType.ResetOrLoadLast:
             case LevelChangeType.Reset:
             case LevelChangeType.SpecificLevel:
+            case LevelChangeType.SpecificMapName:
                 return 0;
             default:
                 return ExitTicks;

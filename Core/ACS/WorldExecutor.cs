@@ -206,7 +206,7 @@ public class WorldExecutor : Executor
         //AddCodeDataACS0I(290, "",        1, CF_PlayerClass);
         // 291-325: ACSVM internal codes.
         //AddCodeDataACS0I(326, "",        2, CF_GetPlayerProp);
-        //AddCodeDataACS0V(327, "",        4, CF_ChangeLevel);
+        AddCodeDataACS0V(327, "",        4, CF_ChangeLevel);
         //AddCodeDataACS0V(328, "",        5, CF_SectorDamage);
         //AddCodeDataACS0V(329, "",        3, CF_ReplaceTextures);
         // 330-330: ACSVM internal codes.
@@ -928,6 +928,38 @@ public class WorldExecutor : Executor
         var special = (ZDoomLineSpecialType)args.Get(1);
         var specialArgs = new SpecialArgs(args.Get(2), args.Get(3), args.Get(4), args.Get(5), args.Get(6));
         ActionSpecials.SetLineSpecial(m_world, lineId, special, specialArgs);
+    }
+
+    public void CF_ChangeLevel(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        var mapName = args.GetString(thread, 0);
+        var position = args.Get(1);
+        var flags = ToLevelChangeFlags((ZDoomChangeLevelFlags)args.Get(2));
+        SkillLevel? skill = (flags & LevelChangeFlags.ChangeSkill) == 0 ? null : (SkillLevel)(args.Get(3) + 1);
+        double? angle = (flags & LevelChangeFlags.KeepFacing) == 0 ? null : m_world.Player.AngleRadians;
+        m_world.ExitLevel(ExitLevelArgs.SpecificMapName(flags, mapName, position, skill, angle));
+    }
+
+    private static LevelChangeFlags ToLevelChangeFlags(ZDoomChangeLevelFlags flags)
+    {
+        var setFlags = LevelChangeFlags.None;
+
+        if ((flags & ZDoomChangeLevelFlags.KeepFacing) != 0)
+            setFlags |= LevelChangeFlags.KeepFacing;
+        if ((flags & ZDoomChangeLevelFlags.ResetInventory) != 0)
+            setFlags |= LevelChangeFlags.ResetInventory;
+        if ((flags & ZDoomChangeLevelFlags.NoMonsters) != 0)
+            setFlags |= LevelChangeFlags.NoMonsters;
+        if ((flags & ZDoomChangeLevelFlags.ChangeSkill) != 0)
+            setFlags |= LevelChangeFlags.ChangeSkill;
+        if ((flags & ZDoomChangeLevelFlags.NoIntermission) != 0)
+            setFlags |= LevelChangeFlags.NoIntermission;
+        if ((flags & ZDoomChangeLevelFlags.ResetHealth) != 0)
+            setFlags |= LevelChangeFlags.ResetHealth;
+        if ((flags & ZDoomChangeLevelFlags.PreRaiseWeapon) != 0)
+            setFlags |= LevelChangeFlags.PreRaiseWeapon;
+
+        return setFlags;
     }
 
     public int CF_GameSkill(ThreadHandle thread, ReadOnlySpan<uint> args) => 

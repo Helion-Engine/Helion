@@ -27,6 +27,7 @@ public partial class IntermissionLayer : IGameLayer
     public readonly MapInfoDef CurrentMapInfo;
     public readonly MapInfoDef? NextMapInfo;
     public readonly Func<FindMapResult> GetNextMapInfo;
+    public readonly Action? OnComplete;
     public int LevelTimeSeconds { get; private set; }
     public int ParTimeSeconds { get; private set; }
     public string IntermissionPic { get; private set; }
@@ -53,13 +54,14 @@ public partial class IntermissionLayer : IGameLayer
     private bool IsNextMap => IntermissionState == IntermissionState.NextMap;
 
     public IntermissionLayer(GameLayerManager parent, IWorld world, IConfigKeyMapping keys, SoundManager soundManager,
-        IMusicPlayer musicPlayer, MapInfoDef currentMapInfo, Func<FindMapResult> getNextMapInfo, int textUpscalingFactor)
+        IMusicPlayer musicPlayer, MapInfoDef currentMapInfo, Func<FindMapResult> getNextMapInfo, int textUpscalingFactor, Action? onComplete = null)
     {
         m_gameLayerManager = parent;
         World = world;
         CurrentMapInfo = currentMapInfo;
         GetNextMapInfo = getNextMapInfo;
         NextMapInfo = getNextMapInfo().MapInfo;
+        OnComplete = onComplete;
         m_archiveCollection = world.ArchiveCollection;
         m_soundManager = soundManager;
         m_musicPlayer = musicPlayer;

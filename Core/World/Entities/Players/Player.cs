@@ -1599,6 +1599,12 @@ public class Player : Entity
         }
     }
 
+    public void ForceWeaponTop()
+    {
+        if (Weapon != null)
+            SetWeaponTop();
+    }
+
     private void SetWeaponTop()
     {
         WeaponOffset.X = PrevWeaponOffset.X = 1;

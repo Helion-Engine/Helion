@@ -50,6 +50,7 @@ public partial class EndGameLayer : IGameLayer
 
     public readonly IWorld World;
     public readonly MapInfoDef? NextMapInfo;
+    public readonly Action? OnComplete;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IMusicPlayer m_musicPlayer;
     private readonly SoundManager m_soundManager;
@@ -80,10 +81,11 @@ public partial class EndGameLayer : IGameLayer
 
     public EndGameLayer(IWorld world, IConfigKeyMapping keys, SoundManager soundManager, IMusicPlayer musicPlayer,
         ArchiveCollection archiveCollection, ClusterDef currentCluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo,
-        bool isNextMapSecret)
+        bool isNextMapSecret, Action? onComplete)
     {
         World = world;
         NextMapInfo = nextMapInfo;
+        OnComplete = onComplete;
         var language = archiveCollection.Definitions.Language;
 
         IList<string> clusterText = Array.Empty<string>();

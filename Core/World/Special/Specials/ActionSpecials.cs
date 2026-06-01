@@ -45,7 +45,7 @@ public static class ActionSpecials
 
     public static void TeleportNewMap(IWorld world, in SpecialArgs args)
     {
-        world.ExitLevel(ExitLevelArgs.SpecificMap(LevelChangeFlags.None, args.Arg0, args.Arg1, args.Arg2 > 0));
+        world.ExitLevel(ExitLevelArgs.SpecificMap(LevelChangeFlags.None, args.Arg0, args.Arg1, args.Arg2 > 0 ? world.Player.AngleRadians : null));
     }
 
     public static void TeleportEndGame(IWorld world)

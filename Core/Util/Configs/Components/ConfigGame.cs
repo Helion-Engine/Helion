@@ -101,6 +101,9 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "No Monsters", spacer: true)]
     public readonly ConfigValue<bool> NoMonsters = new(false);
 
+    [ConfigInfo("Remove all monsters from the game.", save: false, serialize: true, legacy: true)]
+    public readonly ConfigValue<bool> NoMonstersLevel = new(false);
+
     [ConfigInfo("Reset the player's inventory at the start of each map.", save: false, serialize: true)]
     [OptionMenu(OptionSectionType.General, "Pistol Starts")]
     public readonly ConfigValue<bool> PistolStart = new(false);

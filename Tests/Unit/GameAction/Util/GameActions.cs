@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Shared;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
@@ -624,6 +625,31 @@ namespace Helion.Tests.Unit.GameAction
             void PlayerMessage(object? sender, PlayerMessageEvent e)
             {
                 messages.Add(e);
+            }
+        }
+
+        // This only asserts that the values in the LevelChangeEvent are correct.
+        // Validating the results is still a manual process unfortunately.
+        public static void AssertExit(WorldBase world, LevelChangeType levelChangeType, LevelChangeFlags levelChangeFlags, Action action, 
+            SkillLevel? skill = null, double? angle = null, string mapName = "")
+        {
+            bool exited = false;
+            LevelChangeEvent? levelChangeEvent = null;
+            world.LevelExit += World_LevelExit;
+            action();
+            TickWorld(world, () => { return !exited; }, () => { });
+            levelChangeEvent.Should().NotBeNull();
+            levelChangeEvent.ChangeType.Should().Be(levelChangeType);
+            levelChangeEvent.Flags.Should().Be(levelChangeFlags);
+            levelChangeEvent.SkillLevel.Should().Be(skill);
+            levelChangeEvent.Angle.Should().Be(angle);
+            levelChangeEvent.MapName.Should().Be(mapName);
+
+            void World_LevelExit(object? sender, LevelChangeEvent e)
+            {
+                e.Cancel = true;
+                levelChangeEvent = e;
+                exited = true;
             }
         }
     }

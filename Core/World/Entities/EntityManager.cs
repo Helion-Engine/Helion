@@ -262,7 +262,7 @@ public class EntityManager : IDisposable
             if (!definition.SpawnState.HasValue)
                 continue;
 
-            if (World.Config.Game.NoMonsters && definition.Flags.CountKill())
+            if ((World.Config.Game.NoMonsters || World.Config.Game.NoMonstersLevel) && definition.Flags.CountKill())
                 continue;
 
             if (definition.Flags.CountKill() && !definition.Flags.Friendly())

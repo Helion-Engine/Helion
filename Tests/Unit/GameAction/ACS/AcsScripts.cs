@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.IWad;
 using Helion.World;
@@ -8,6 +9,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -728,6 +730,45 @@ public class AcsScripts
             messages[^1].Args.Message.Should().Be("Complete");
         });
     }
+
+    [Fact(DisplayName = "ChangeLevel all flags")]
+    public void ChangeLevelAllFlags()
+    {
+        Player.AngleRadians = 420;
+        GameActions.AssertExit(
+            World,
+            LevelChangeType.SpecificMapName, 
+            LevelChangeFlags.KeepFacing | LevelChangeFlags.NoIntermission | LevelChangeFlags.NoMonsters | LevelChangeFlags.PreRaiseWeapon | 
+            LevelChangeFlags.ResetHealth | LevelChangeFlags.ResetInventory | LevelChangeFlags.ChangeSkill,
+            ActivateSwitch,
+            SkillLevel.Hard,
+            420,
+            "MAP29");
+
+        void ActivateSwitch()
+        {
+            GameActions.ActivateLine(World, Player, 293, ActivationContext.UseLine).Should().BeTrue();
+        }
+    }
+
+    [Fact(DisplayName = "ChangeLevel some flags")]
+    public void ChangeLevelSomeFlags()
+    {
+        GameActions.AssertExit(
+            World,
+            LevelChangeType.SpecificMapName,
+            LevelChangeFlags.ResetHealth | LevelChangeFlags.ResetInventory,
+            ActivateSwitch,
+            null,
+            null,
+            "MAP28");
+
+        void ActivateSwitch()
+        {
+            GameActions.ActivateLine(World, Player, 301, ActivationContext.UseLine).Should().BeTrue();
+        }
+    }
+
 
     private void AssertAllEmptyTextures(Side side)
     {
