@@ -74,8 +74,8 @@ public class WorldExecutor : Executor
         // 84-85: ACSVM internal codes.
         AddCodeDataACS0V( 86, "",        0, CF_EndPrint);
         // 87-89: ACSVM internal codes.
-        //AddCodeDataACS0I( 90, "",        0, CF_PlayerCount); TODO
-        //AddCodeDataACS0I( 91, "",        0, CF_GameType); TODO
+        AddCodeDataACS0I(90, "",         0, CF_PlayerCount);
+        AddCodeDataACS0I( 91, "",        0, CF_GameType);
         AddCodeDataACS0I( 92, "",        0, CF_GameSkill);
         AddCodeDataACS0I( 93, "",        0, CF_Timer);
         AddCodeDataACS0V( 94, "",        2, CF_SectorSound);
@@ -973,6 +973,21 @@ public class WorldExecutor : Executor
 
             _ => GameSkillResult.Normal
         });
+
+    public int CF_PlayerCount(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        return m_world.EntityManager.GetRealPlayerCount();
+    }
+
+    public int CF_GameType(ThreadHandle thread, ReadOnlySpan<uint> args)
+    {
+        return m_world.WorldType switch
+        {
+            WorldType.Cooperative => (int)ZGameType.Cooperative,
+            WorldType.Deathmatch => (int)ZGameType.Deathmatch,
+            _ => (int)ZGameType.SinglePlayer
+        };
+    }
 
     public int CF_Timer(ThreadHandle thread, ReadOnlySpan<uint> args) => m_world.LevelTime;
 

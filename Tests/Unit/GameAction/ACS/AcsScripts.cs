@@ -769,6 +769,29 @@ public class AcsScripts
         }
     }
 
+    [Fact(DisplayName = "PlayerCount")]
+    public void PlayerCount()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 305, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("1");
+        });
+    }
+
+    [Fact(DisplayName = "GameType")]
+    public void GameType()
+    {
+        GameActions.WithPlayerMessages(World, (messages) =>
+        {
+            GameActions.ActivateLine(World, Player, 313, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+            messages.Count.Should().Be(1);
+            messages[^1].Args.Message.Should().Be("0");
+        });
+    }
 
     private void AssertAllEmptyTextures(Side side)
     {

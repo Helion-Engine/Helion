@@ -470,6 +470,18 @@ public class EntityManager : IDisposable
         return player;
     }
 
+    public int GetRealPlayerCount()
+    {
+        int count = 0;
+        foreach (var player in Players)
+        {
+            var check = GetRealPlayer(player.PlayerNumber);
+            if (check != null)
+                count++;
+        }
+        return count;
+    }
+
     private IFloorCeilingAnchor GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId, out Entity? entity)
     {
         entity = null;
