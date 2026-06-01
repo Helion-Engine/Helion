@@ -1259,17 +1259,17 @@ public abstract partial class WorldBase : IWorld
         switch (MapInfo.MapSpecial)
         {
             case MapSpecial.BaronSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E1M8Boss(), 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial((EntityFlags f) => f.E1M8Boss(), 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.CyberdemonSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E2M8Boss() || f.E4M6Boss(), 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial((EntityFlags f) => f.E2M8Boss() || f.E4M6Boss(), 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.SpiderMastermindSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E3M8Boss() || f.E4M8Boss(), 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial((EntityFlags f) => f.E3M8Boss() || f.E4M8Boss(), 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.Map07Special:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss1(), 666, MapSpecialAction.LowerFloor);
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss2(), 667, MapSpecialAction.FloorRaiseByLowestTexture);
+                AddMonsterCountSpecial((EntityFlags f) => f.Map07Boss1(), 666, MapSpecialAction.LowerFloor);
+                AddMonsterCountSpecial((EntityFlags f) => f.Map07Boss2(), 667, MapSpecialAction.FloorRaiseByLowestTexture);
                 break;
         }
 
@@ -1292,7 +1292,7 @@ public abstract partial class WorldBase : IWorld
         return null;
     }
 
-    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
+    private void AddMonsterCountSpecial(string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
     {
         var definition = GetEntityDefinitionWithWarning(monsterName, mapSpecialAction);
         if (definition == null)
@@ -1344,11 +1344,11 @@ public abstract partial class WorldBase : IWorld
                 yield return def;
     }
 
-    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, Func<EntityFlags, bool> isMatch, int sectorTag,
+    private void AddMonsterCountSpecial(Func<EntityFlags, bool> isMatch, int sectorTag,
         MapSpecialAction mapSpecialAction)
     {
         foreach (var def in GetEntityDefinitionsByFlag(isMatch))
-            AddMonsterCountSpecial(monsterCountSpecials, def.Name, sectorTag, mapSpecialAction);
+            AddMonsterCountSpecial(def.Name, sectorTag, mapSpecialAction);
     }
 
     private void InitBossBrainTargets()
