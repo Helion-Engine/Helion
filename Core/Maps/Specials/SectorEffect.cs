@@ -8,5 +8,6 @@ public enum SectorEffect
     None = 0,
     WindOrPush = 1,
     Friction = 2,
-    Secret = 4
+    Secret = 4,
+    FoundSecret = 8
 }
