@@ -13,6 +13,7 @@
 - Added Radius_Quake
 - Added feature to show enemy's health in crosshair when targeted
 - Added sound resampler options
+- Added found secret color to automap
 
 ## Bug Fixes:
 - Fix nextmap/previousmap breaking on WADs with maps that exit to the same map.
