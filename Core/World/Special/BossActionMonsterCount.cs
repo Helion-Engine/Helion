@@ -16,7 +16,6 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
 
     private readonly IWorld m_world;
     private readonly BossAction m_bossAction;
-    private bool m_destroyed;
 
     public BossActionMonsterCount(IWorld world, BossAction bossAction, int entityDefinitionId)
     {
@@ -27,15 +26,8 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
 
     public SpecialTickStatus Tick(Entity? ignoreEntity)
     {
-        if (m_destroyed)
-            return SpecialTickStatus.Destroy;
-
         if (m_world.EntityAliveCount(EntityDefinitionId, EntityManager.NoTid, Sector.NoTag, ignoreEntity) == 0)
-        {
-            m_destroyed = true;
             ExecuteSpecial();
-            return SpecialTickStatus.Destroy;
-        }
 
         return SpecialTickStatus.Continue;
     }
