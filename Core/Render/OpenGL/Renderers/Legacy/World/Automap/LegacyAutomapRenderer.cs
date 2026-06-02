@@ -4,6 +4,7 @@ using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
@@ -59,6 +60,7 @@ public class LegacyAutomapRenderer : IDisposable
     private Color m_teleportLineColor;
     private Color m_exitLineColor;
     private Color m_specialLineColor;
+    private Color m_foundSecretColor;
 
     private Color m_playerColor;
     private Color m_thingColor;
@@ -86,6 +88,7 @@ public class LegacyAutomapRenderer : IDisposable
         m_markerColor = new(colors.MakerColor.Value);
         m_markerColorAlt = new(colors.AltMakerColor.Value);
         m_specialLineColor = new(colors.SpecialTriggerColor.Value);
+        m_foundSecretColor = new(colors.FoundSecretColor.Value);
         m_keyImageColor = automap.ImageKeyColor;
     }
 
@@ -385,6 +388,12 @@ public class LegacyAutomapRenderer : IDisposable
             {
                 specialColor = true;
                 return m_exitLineColor;
+            }
+
+            if ((line.FrontSector.SectorEffect & SectorEffect.FoundSecret) != 0 || (line.BackSector != null && (line.BackSector.SectorEffect & SectorEffect.FoundSecret) != 0))
+            {
+                specialColor = true;
+                return m_foundSecretColor;
             }
 
             if (line.HasPlayerTriggerSpecial() && !line.Secret())

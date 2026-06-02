@@ -295,9 +295,16 @@ public sealed class Sector : IFloorCeilingAnchor
             return;
 
         if (set)
+        {
             SectorEffect |= SectorEffect.Secret;
+            SectorEffect &= ~SectorEffect.FoundSecret;
+        }
         else
+        {
             SectorEffect &= ~SectorEffect.Secret;
+            SectorEffect |= SectorEffect.FoundSecret;
+        }
+
         DataChanges |= SectorDataTypes.SectorEffect;
     }
 
