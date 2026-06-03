@@ -13,6 +13,7 @@
 - Added Radius_Quake
 - Added feature to show enemy's health in crosshair when targeted
 - Added sound resampler options
+- Added found secret color to automap
 
 ## Bug Fixes:
 - Fix nextmap/previousmap breaking on WADs with maps that exit to the same map.
@@ -42,6 +43,7 @@
 - Fix hud transparency config option not working with SBARDEF.
 - Fix monster closet setting for monsters resetting on map loads.
 - Support multiple boss death triggers. Fixes Crate Expectations MAP07.
+- Fix new dehacked definitions to default height to zero. Fixes Eye Juice ceiling light offsets.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.

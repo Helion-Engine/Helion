@@ -130,6 +130,10 @@ public class AutomapLineColors(bool overlay): ConfigElement<AutomapLineColors>
     [ConfigInfo("Alt marker color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Special Trigger")]
     public readonly ConfigValue<Vec3I> SpecialTriggerColor = new(overlay ? (0xC0, 0xC0, 0xC0) : (0x40, 0x40, 0xFF), ClampColor);
+
+    [ConfigInfo("Found secret color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Found Secret")]
+    public readonly ConfigValue<Vec3I> FoundSecretColor = new(overlay ? (0x00, 0xFF, 0xFF) : (0x00, 0xFF, 0x00), ClampColor);
 }
 
 public class ConfigHud: ConfigElement<ConfigHud>
