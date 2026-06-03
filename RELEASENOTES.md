@@ -43,6 +43,7 @@
 - Fix hud transparency config option not working with SBARDEF.
 - Fix monster closet setting for monsters resetting on map loads.
 - Support multiple boss death triggers. Fixes Crate Expectations MAP07.
+- Fix new dehacked definitions to default height to zero. Fixes Eye Juice ceiling light offsets.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.

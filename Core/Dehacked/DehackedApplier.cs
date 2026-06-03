@@ -937,33 +937,30 @@ public class DehackedApplier
 
     private EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, DehackedThing thing, EntityDefinitionComposer composer)
     {
-        int index = thing.Number - 1;
+        var index = thing.Number - 1;
         if (index < 0)
             return null;
 
-        string actorName;
-
         if (index < dehacked.ActorNames.Length)
-            actorName = dehacked.ActorNames[index];
-        else
-            actorName = GetNewActorName(index, composer, thing);
-
-        return composer.GetByName(actorName);
+            return composer.GetByName(dehacked.ActorNames[index]);
+        
+        return GetNewActorDefinition(index, composer, thing);
     }
 
-    private string GetNewActorName(int index, EntityDefinitionComposer composer, DehackedThing thing)
+    private EntityDefinition GetNewActorDefinition(int index, EntityDefinitionComposer composer, DehackedThing thing)
     {
-        if (m_dehacked.DefinitionLookup.TryGetValue(index, out var def))
-            return def.Name;
+        if (m_dehacked.DefinitionLookup.TryGetValue(index, out var existingDef))
+            return existingDef;
 
         var newName = GetDehackedActorName(index);
         var definition = new EntityDefinition(composer.GetNextId(), newName, 0, [])
         {
             DehackedName = thing.Name
         };
+        definition.Properties.Height = 0;
         composer.Add(definition);
         m_dehacked.DefinitionLookup[index] = definition;
-        return newName;
+        return definition;
     }
 
     public static string GetDehackedActorName(int index) =>
