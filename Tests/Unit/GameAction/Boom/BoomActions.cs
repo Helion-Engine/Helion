@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Helion.Resources;
 using Helion.Resources.IWad;
 using Helion.World;
 using Helion.World.Entities.Players;
@@ -40,8 +41,21 @@ public partial class BoomActions
     }
 
     private void WorldInit(SinglePlayerWorld world)
-    {
+    {       
+        Texture texture = world.TextureManager.GetTexture("AASHITTY", ResourceNamespace.Textures);
+        texture.Image = CreateImage(64, 64);
+
+        world.TextureManager.NullCompatibilityTextureIndex = texture.Index;
+
+        texture = world.TextureManager.GetTexture("STEP5", ResourceNamespace.Textures);
+        texture.Image = CreateImage(32, 16);
+
+        texture = world.TextureManager.GetTexture("METAL", ResourceNamespace.Textures);
+        texture.Image = CreateImage(64, 128);
     }
+
+    private static Helion.Graphics.Image CreateImage(int width, int height) =>
+        new((width, height), Helion.Graphics.ImageType.Argb);
 
     [Fact(DisplayName = "Boom locked door red card")]
     public void DoorLockedRedCard()

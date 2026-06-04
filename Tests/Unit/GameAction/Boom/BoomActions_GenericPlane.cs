@@ -194,4 +194,24 @@ public partial class BoomActions
         GameActions.ActivateLine(World, monster, 633, ActivationContext.CrossLine).Should().BeTrue();
         moveSector.ActiveCeilingMove.Should().NotBeNull();
     }
+
+    [Fact(DisplayName = "Generic ceiling move down by shortest upper")]
+    public void GenericCeilingMoveByShortestUpper()
+    {
+        var moveSector = GameActions.GetSectorByTag(World, 63);
+        moveSector.Ceiling.Z.Should().Be(128);
+        GameActions.ActivateLine(World, Player, 770, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.RunSectorPlaneSpecial(World, moveSector);
+        moveSector.Ceiling.Z.Should().Be(112);
+    }
+
+    [Fact(DisplayName = "Generic floor move up by shortest lower")]
+    public void GenericFloorMoveByShortestLower()
+    {
+        var moveSector = GameActions.GetSectorByTag(World, 64);
+        moveSector.Floor.Z.Should().Be(0);
+        GameActions.ActivateLine(World, Player, 784, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.RunSectorPlaneSpecial(World, moveSector);
+        moveSector.Floor.Z.Should().Be(16);
+    }
 }
