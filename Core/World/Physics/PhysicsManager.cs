@@ -596,9 +596,6 @@ public sealed class PhysicsManager
         if (moveSpecial.MoveData.SectorMoveType == SectorPlaneFace.Ceiling && destZ > startZ)
             return false;
 
-        if (moveSpecial.StartClipped)
-            return false;
-
         if (sector.Sector3D != null)
             return sector.Sector3D.ControlTop.Z < sector.Sector3D.ControlBottom.Z;
 

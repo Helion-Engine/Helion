@@ -2203,7 +2203,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
         if (planeType == SectorPlaneFace.Floor)
         {
-            dest = ((ZDoomGenericDest)line.Args.Arg3) switch
+            dest = (ZDoomGenericDest)line.Args.Arg3 switch
             {
                 ZDoomGenericDest.HighestPlane => SectorDest.HighestAdjacentFloor,
                 ZDoomGenericDest.LowestPlane => SectorDest.LowestAdjacentFloor,
@@ -2216,7 +2216,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
         else
         {
-            dest = ((ZDoomGenericDest)line.Args.Arg3) switch
+            dest = (ZDoomGenericDest)line.Args.Arg3 switch
             {
                 ZDoomGenericDest.HighestPlane => SectorDest.HighestAdjacentCeiling,
                 ZDoomGenericDest.LowestPlane => SectorDest.LowestAdjacentCeiling,
@@ -2375,7 +2375,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 return sector.Ceiling.Z;
             case SectorDest.ShortestLowerTexture:
             case SectorDest.ShortestUpperTexture:
-                return GetShortTextureDestZ(sector, destination, start);
+                return GetShortTextureDestZ(sector, planeType, destination, start);
             case SectorDest.None:
             default:
                 break;
@@ -2384,14 +2384,14 @@ public sealed class SpecialManager : ITickable, IDisposable
         return 0;
     }
 
-    private double GetShortTextureDestZ(Sector sector, SectorDest destination, MoveDirection direction)
+    private double GetShortTextureDestZ(Sector sector, SectorPlaneFace planeType, SectorDest destination, MoveDirection direction)
     {
         int dir = direction == MoveDirection.Down ? -1 : 1;
         return destination switch
         {
-            SectorDest.ShortestLowerTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager, true, m_world.Config.Compatibility) * dir),
-            SectorDest.ShortestUpperTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager, false, m_world.Config.Compatibility) * dir),
-            _ => sector.Floor.Z,
+            SectorDest.ShortestLowerTexture => sector.GetSectorPlane(planeType).Z + (sector.GetShortestTexture(TextureManager, true, m_world.Config.Compatibility) * dir),
+            SectorDest.ShortestUpperTexture => sector.GetSectorPlane(planeType).Z + (sector.GetShortestTexture(TextureManager, false, m_world.Config.Compatibility) * dir),
+            _ => sector.GetSectorPlane(planeType).Z,
         };
     }
 
