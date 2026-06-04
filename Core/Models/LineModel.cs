@@ -1,4 +1,5 @@
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
 
 namespace Helion.Models;
@@ -13,4 +14,5 @@ public struct LineModel
     public LineBlockFlags? BlockFlags;
     public float? Alpha;
     public bool BlockSound;
+    public ZDoomLineSpecialType Special;
 }

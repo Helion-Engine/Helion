@@ -12,5 +12,6 @@ public enum LineDataTypes
     Alpha = 16,
     EverActivated = 32,
     BlockFlags = 64,
-    BlockSound = 128
+    BlockSound = 128,
+    Special = 256,
 }

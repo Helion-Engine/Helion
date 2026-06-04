@@ -37,6 +37,7 @@ public class HexenMap : IMap
     public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    public byte[]? Behavior { get; set; }
     public bool UseAverageScrollCarry() => true;
 
     private MapEntryCollection? m_map;
@@ -49,6 +50,7 @@ public class HexenMap : IMap
         Name = name;
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
+        Behavior = map.Behavior?.ReadData();
     }
 
     public void LoadData()

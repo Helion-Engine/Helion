@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
@@ -30,10 +32,14 @@ public partial class TextureManager : ITickable
     private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Texture>.AlternateLookup<ReadOnlySpan<char>> m_textureLookupBySpan;
+    private readonly Dictionary<string, Texture>.AlternateLookup<ReadOnlySpan<char>> m_flatLookupBySpan;
+    private readonly Dictionary<string, Texture>.AlternateLookup<ReadOnlySpan<char>> m_patchLookupBySpan;
     private readonly List<Animation> m_animations = [];
     private readonly HashSet<int> m_animatedTextures = [];
     private readonly HashSet<int> m_processedEntityDefinitions = [];
     private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = [];
+    private readonly BitArray m_loadedTextures;
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -54,6 +60,10 @@ public partial class TextureManager : ITickable
     {
         m_archiveCollection = archiveCollection;
         SkyTextureName = Constants.DefaultSkyTextureName;
+        m_loadedTextures = new(0);
+        m_textureLookupBySpan = m_textureLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        m_flatLookupBySpan = m_flatLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        m_patchLookupBySpan = m_patchLookup.GetAlternateLookup<ReadOnlySpan<char>>();
     }
 
     public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, string skyTexture, MapInfoDef mapInfo, bool unitTest = false)
@@ -62,11 +72,16 @@ public partial class TextureManager : ITickable
         m_archiveCollection = archiveCollection;
         m_cacheAllSprites = cacheAllSprites;
         m_unitTest = unitTest;
+    
+        m_textureLookupBySpan = m_textureLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        m_flatLookupBySpan = m_flatLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        m_patchLookupBySpan = m_patchLookup.GetAlternateLookup<ReadOnlySpan<char>>();
 
         // Needs to be in ascending order for boom animated to work correctly, since it functions on lump index ranges.
         var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
         int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
         m_textures = new List<Texture>(count);
+        m_loadedTextures = new(count);
 
         var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
         var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
@@ -210,6 +225,23 @@ public partial class TextureManager : ITickable
         }
     }
 
+    public void EnsureTextureImageLoaded(int textureIndex)
+    {
+        if (textureIndex <= 0 || textureIndex >= m_loadedTextures.Count || m_loadedTextures.Get(textureIndex))
+            return;
+
+        m_loadedTextures.Set(textureIndex, true);
+
+        if (LoadTextureImage(textureIndex))
+        {
+            foreach (var anim in m_animations)
+            {
+                if (textureIndex == anim.TranslationIndex)
+                    LoadAnimatedTextures(anim);
+            }
+        }
+    }
+
     private void LoadAnimSwitchComponents(IList<AnimatedTextureComponent> components)
     {
         foreach (var component in components)
@@ -276,46 +308,46 @@ public partial class TextureManager : ITickable
     /// <param name="resourceNamespace">The resource namespace to search by.</param>
     /// <returns>Returns the texture given the name and resource namespace.
     /// If not found the texture will be returned with Name = Constants.NoTexture and Index = Constants.NoTextureIndex.</returns>
-    public Texture GetTexture(string name, ResourceNamespace resourceNamespace, ResourceNamespace? priority = null)
+    public Texture GetTexture(ReadOnlySpan<char> name, ResourceNamespace resourceNamespace, ResourceNamespace? priority = null)
     {
         if (name.Equals(Constants.NoTexture, StringComparison.OrdinalIgnoreCase))
             return m_textures[Constants.NoTextureIndex];
 
         if (m_unitTest)
-            HandleUnitTestAdd(name, resourceNamespace, priority);
+            HandleUnitTestAdd(name.ToString(), resourceNamespace, priority);
 
         Texture? texture;
         if (resourceNamespace == ResourceNamespace.Global)
         {
             if (priority == null || priority == ResourceNamespace.Textures)
             {
-                if (m_textureLookup.TryGetValue(name, out texture))
+                if (m_textureLookupBySpan.TryGetValue(name, out texture))
                     return texture;
-                if (m_flatLookup.TryGetValue(name, out texture))
+                if (m_flatLookupBySpan.TryGetValue(name, out texture))
                     return texture;
             }
             else
             {
-                if (m_flatLookup.TryGetValue(name, out texture))
+                if (m_flatLookupBySpan.TryGetValue(name, out texture))
                     return texture;
-                if (m_textureLookup.TryGetValue(name, out texture))
+                if (m_textureLookupBySpan.TryGetValue(name, out texture))
                     return texture;
             }
         }
         else
         {
-            if (resourceNamespace == ResourceNamespace.Textures && m_textureLookup.TryGetValue(name, out texture))
+            if (resourceNamespace == ResourceNamespace.Textures && m_textureLookupBySpan.TryGetValue(name, out texture))
                 return texture;
-            else if (resourceNamespace == ResourceNamespace.Flats && m_flatLookup.TryGetValue(name, out texture))
+            else if (resourceNamespace == ResourceNamespace.Flats && m_flatLookupBySpan.TryGetValue(name, out texture))
                 return texture;
         }
 
-        if (m_patchLookup.TryGetValue(name, out texture))
+        if (m_patchLookupBySpan.TryGetValue(name, out texture))
             return texture;
 
         // Doom allowed for direct patches to load...
         if (TryCreateTextureFromPatch(name, out texture))
-            return texture!;
+            return texture;
 
         return m_textures[Constants.NoTextureIndex];
     }
@@ -358,7 +390,7 @@ public partial class TextureManager : ITickable
         }
     }
 
-    private bool TryCreateTextureFromPatch(string name, out Texture? texture)
+    private bool TryCreateTextureFromPatch(ReadOnlySpan<char> name, [NotNullWhen(true)] out Texture? texture)
     {
         texture = null;
         if (!m_archiveCollection.Definitions.PnamesTextureXCollection.HasPatch(name))
@@ -368,7 +400,7 @@ public partial class TextureManager : ITickable
         if (image == null)
             return false;
 
-        texture = new(name, ResourceNamespace.Textures, m_textures.Count);
+        texture = new(name.ToString(), ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
 
         var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
@@ -377,7 +409,7 @@ public partial class TextureManager : ITickable
 
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
-        m_patchLookup[name] = texture;
+        m_patchLookupBySpan[name] = texture;
         return true;
     }
 
@@ -689,19 +721,24 @@ public partial class TextureManager : ITickable
         };
     }
 
-    private void LoadTextureImage(int textureIndex, GetImageOptions options = GetImageOptions.Default)
+    private bool LoadTextureImage(int textureIndex, GetImageOptions options = GetImageOptions.Default)
     {
         var texture = m_textures[textureIndex];
         if (texture.Name == Constants.NoTexture)
-            return;
+            return false;
 
-        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options: options);
+        if (texture.Image != null)
+            return false;
+
+        texture.Image = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options: options);
         if (texture.BrightmapImage == null)
         {
             var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
             if (brightmap?.BrightmapName != null)
                 texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options: options);
         }
+
+        return true;
     }
 
     public void SetSkyTexture()

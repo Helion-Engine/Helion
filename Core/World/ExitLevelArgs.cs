@@ -1,30 +1,32 @@
-﻿namespace Helion.World;
+﻿using Helion.Maps.Shared;
+
+namespace Helion.World;
 
 public struct ExitLevelArgs
 {
-    public static ExitLevelArgs NextMap(LevelChangeFlags flags = LevelChangeFlags.None, int playerSpawnArg0 = 0, bool retainFace = false)
+    public static ExitLevelArgs NextMap(LevelChangeFlags flags = LevelChangeFlags.None, int playerSpawnArg0 = 0, double? angle = null)
     {
         return new ExitLevelArgs()
         {
             Type = LevelChangeType.Next,
             Flags = flags,
             PlayerSpawnArg0 = playerSpawnArg0,
-            RetainFace = retainFace
+            Angle = angle
         };
     }
 
-    public static ExitLevelArgs NextSecretMap(LevelChangeFlags flags = LevelChangeFlags.None, int playerSpawnArg0 = 0, bool retainFace = false)
+    public static ExitLevelArgs NextSecretMap(LevelChangeFlags flags = LevelChangeFlags.None, int playerSpawnArg0 = 0, double? angle = null)
     {
         return new ExitLevelArgs()
         {
             Type = LevelChangeType.SecretNext,
             Flags = flags,
             PlayerSpawnArg0 = playerSpawnArg0,
-            RetainFace = retainFace
+            Angle = angle
         };
     }
 
-    public static ExitLevelArgs SpecificMap(LevelChangeFlags flags, int levelNumber, int playerSpawnArg0, bool retainFace)
+    public static ExitLevelArgs SpecificMap(LevelChangeFlags flags, int levelNumber, int playerSpawnArg0, double? angle)
     {
         return new ExitLevelArgs()
         {
@@ -32,7 +34,20 @@ public struct ExitLevelArgs
             Flags = flags,
             LevelNumber = levelNumber,
             PlayerSpawnArg0 = playerSpawnArg0,
-            RetainFace = retainFace
+            Angle = angle
+        };
+    }
+
+    public static ExitLevelArgs SpecificMapName(LevelChangeFlags flags, string mapName, int playerSpawnArg0, SkillLevel? skillLevel, double? angle)
+    {
+        return new ExitLevelArgs()
+        {
+            Type = LevelChangeType.SpecificMapName,
+            Flags = flags,
+            MapName = mapName,
+            PlayerSpawnArg0 = playerSpawnArg0,
+            SkillLevel = skillLevel,
+            Angle = angle
         };
     }
 
@@ -57,4 +72,7 @@ public struct ExitLevelArgs
     public int LevelNumber;
     public int PlayerSpawnArg0;
     public bool RetainFace;
+    public string? MapName;
+    public SkillLevel? SkillLevel;
+    public double? Angle;
 }

@@ -220,7 +220,7 @@ public sealed class Weapons
         return weapon;
     }
 
-    public void Remove(string name)
+    public void Remove(ReadOnlySpan<char> name)
     {
         for (int i = 0; i < m_ownedWeapons.Count; i++)
         {
@@ -334,7 +334,7 @@ public sealed class Weapons
 
     public List<Weapon> GetWeaponsInSelectionOrder() => m_ownedWeapons;
 
-    public Weapon? GetWeapon(string name)
+    public Weapon? GetWeapon(ReadOnlySpan<char> name)
     {
         for (int i = 0; i < m_ownedWeapons.Count; i++)
         {

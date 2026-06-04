@@ -9,6 +9,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -60,7 +61,7 @@ public interface IWorld : IDisposable
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<Sector>? SectorColorMapChanged;
-    event EventHandler<Sector>? SectorFogColorChanged;
+    event EventHandler<SectorFogEvent>? SectorFogColorChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
     event EventHandler<MusicChangeEvent>? OnMusicChanged;
     event EventHandler? OnTick;
@@ -117,6 +118,8 @@ public interface IWorld : IDisposable
     MapGeometry Geometry { get; }
     CompatibilityMapDefinition? CompatibilityMapDefinition { get; }
     MapType MapType { get; }
+    ACS.WorldExecutor AcsExecutor { get; }
+    byte[]? Behavior { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);
@@ -124,7 +127,7 @@ public interface IWorld : IDisposable
     void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
     IList<Sector> FindBySectorTag(int tag);
-    LinkedList<Entity> FindByTid(int tid);
+    LinkableList<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);
     void ExitLevel(ExitLevelArgs args);
@@ -134,6 +137,7 @@ public interface IWorld : IDisposable
     bool EntityUse(Entity entity);
     void OnTryEntityUseLine(Entity entity, Line line);
     bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY);
+    bool CanUnlock(Entity entity, ZDoomKeyType key, bool objectMessage);
     bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
     Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, EntityDefinition projectileDef, out Entity? autoAimEntity,
@@ -143,8 +147,12 @@ public interface IWorld : IDisposable
     Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage, HitScanOptions options = HitScanOptions.Default);
     bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
     void ApplyVelocity(Entity entity, Vec3D velocity);
+    bool SetPosition(Entity entity, Vec3D position, bool checkBlocking);
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
     void PerformItemPickup(Entity entity, Entity item);
+    void ClearInventory(Player player);
+    bool GiveInventory(Player player, ReadOnlySpan<char> className, int amount);
+    void TakeInventory(Player player, ReadOnlySpan<char> className, int amount);
     void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
     void HandleEntityClipPlane(Entity entity, SectorPlane plane);
     void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
@@ -154,11 +162,13 @@ public interface IWorld : IDisposable
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, DamageType damageType, bool gibbed);
-    void DisplayMessage(string message, bool isCentered = false);
-    void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false);
+    void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(new DisplayMessageArgs(message, null, null, IsCentered: true));
+    void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false) => DisplayMessage(new DisplayMessageArgs(message, player, other, IsCentered: true));
+    void DisplayMessage(DisplayMessageArgs args);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
-    bool IsPositionBlocked(Entity entity);
+    bool IsPositionBlocked(Entity entity, Vec3D position);
+    bool IsPositionBlocked(Entity entity) => IsPositionBlocked(entity, entity.Position);
     void CreateTeleportFog(in Vec3D pos);
     void CreateTeleportFog(Entity entity);
     Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog);
@@ -166,7 +176,7 @@ public interface IWorld : IDisposable
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
     int EntityCount(int entityDefinitionId);
-    int EntityAliveCount(int entityDefinitionId, Entity? ignoreEntity = null);
+    int EntityAliveCount(int entityDefinitionId, int tid, int sectorTag, Entity? ignoreEntity = null);
     void NoiseAlert(Entity target, Entity source);
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allAround);
@@ -188,18 +198,24 @@ public interface IWorld : IDisposable
     void SetSectorPlaneAngle(SectorPlane plane, double angleRadians);
     void SetSectorPlaneScale(SectorPlane plane, Vec2D scale);
     void SetSectorGravity(Sector sector, double gravity);
+    void SetSectorSound(Sector sector, ReadOnlySpan<char> sound, float volume);
     void SetEntityPosition(Entity entity, Vec3D pos);
+    void SetEntitySound(Entity entity, ReadOnlySpan<char> sound, float volume);
+    void PlayStaticSound(Player? player, ReadOnlySpan<char> sound, float volume);
     void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags);
     void SetLineBlockFlags(Line line, in LineBlockFlags flags);
+    void SetLineSpecial(Line line, ZDoomLineSpecialType type, in SpecialArgs args);
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
     void EntityTeleported(Entity entity);
-    bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop);
+    bool PlayLevelMusic(string name, MusicFlags flags = MusicFlags.Loop, Entity? activator = null);
     void FindKeys();
     void FindKeyLines(FindKeyLineOptions options);
     void FindExits();
     bool SetSkillLevel(SkillLevel skill);
+    void SetGravity(double gravity);
+
     Subsector ToSubsector(double x, double y);
     bool GetPickupPlayer(Entity entity, [NotNullWhen(true)] out Player? player);
     bool ShouldSpawn(IThing thing);
@@ -209,6 +225,8 @@ public interface IWorld : IDisposable
     Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options);
     void AddEntityScrollAccumulator(Entity entity, double x, double y);
     bool UseAverageScrollCarry();
+    IEnumerable<string> GetPreCacheTextureNames();
+    IEnumerable<string> GetPreCacheSoundNames();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

@@ -121,7 +121,7 @@ public class Pickups
         item.Definition.Properties.Inventory.PickupMessage.Should().Be("$*deh/USER_PICKUPITEM1");
         World.PerformItemPickup(Player, item);
         messageEvent.HasValue.Should().BeTrue();
-        messageEvent!.Value.Message.Should().Be("great job, your did it");
+        messageEvent!.Value.Args.Message.Should().Be("great job, your did it");
 
         void World_PlayerMessage(object? sender, PlayerMessageEvent e)
         {

@@ -44,7 +44,7 @@ public class UdmfExit : IDisposable
         var e = m_event!;
         e.ChangeType.Should().Be(LevelChangeType.Next);
         e.PlayerSpawnArg0.Should().Be(420);
-        e.RetainFace.Should().BeFalse();
+        e.Angle.Should().BeNull();
         e.LevelNumber.Should().Be(0);
         e.Flags.Should().Be(LevelChangeFlags.None);
     }
@@ -59,7 +59,7 @@ public class UdmfExit : IDisposable
         var e = m_event!;
         e.ChangeType.Should().Be(LevelChangeType.SecretNext);
         e.PlayerSpawnArg0.Should().Be(69);
-        e.RetainFace.Should().BeFalse();
+        e.Angle.Should().BeNull();
         e.LevelNumber.Should().Be(0);
         e.Flags.Should().Be(LevelChangeFlags.None);
     }
@@ -74,7 +74,7 @@ public class UdmfExit : IDisposable
         var e = m_event!;
         e.ChangeType.Should().Be(LevelChangeType.SpecificMap);
         e.PlayerSpawnArg0.Should().Be(1);
-        e.RetainFace.Should().BeTrue();
+        e.Angle.Should().Be(1.5707963267948966);
         e.LevelNumber.Should().Be(4);
         e.Flags.Should().Be(LevelChangeFlags.None);
     }
@@ -89,7 +89,7 @@ public class UdmfExit : IDisposable
         var e = m_event!;
         e.ChangeType.Should().Be(LevelChangeType.SpecificMap);
         e.PlayerSpawnArg0.Should().Be(0);
-        e.RetainFace.Should().BeFalse();
+        e.Angle.Should().BeNull();
         e.LevelNumber.Should().Be(0);
         e.Flags.Should().Be(LevelChangeFlags.None);
     }
@@ -104,7 +104,7 @@ public class UdmfExit : IDisposable
         var e = m_event!;
         e.ChangeType.Should().Be(LevelChangeType.EndGame);
         e.PlayerSpawnArg0.Should().Be(0);
-        e.RetainFace.Should().BeFalse();
+        e.Angle.Should().BeNull();
         e.LevelNumber.Should().Be(0);
         e.Flags.Should().Be(LevelChangeFlags.None);
     }

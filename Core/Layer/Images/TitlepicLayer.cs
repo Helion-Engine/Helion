@@ -48,7 +48,7 @@ public class TitlepicLayer : IGameLayer
         if (entry == null)
             return;
 
-        audioSystem.Music.Play(entry.ReadData(), MusicPlayerOptions.None);
+        audioSystem.Music.Play(entry, MusicPlayerOptions.None);
     }
 
     public void HandleInput(IConsumableInput input)

@@ -379,9 +379,9 @@ public partial class Renderer
         m_updateColorMapSectors.Add(sector);
     }
 
-    private void World_SectorFogColorChanged(object? sender, Sector sector)
+    private void World_SectorFogColorChanged(object? sender, SectorFogEvent e)
     {
-        m_updateFogColorSectors.Add(sector);
+        m_updateFogColorSectors.Add(e.Sector);
     }
 
     private void World_SectorMove(object? sender, SectorPlane e)

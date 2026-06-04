@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Shared;
 using Helion.Models;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Resources.Definitions.MapInfo;
@@ -104,7 +105,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public double HighestFloorZ;
     public DynamicArray<Sector> IntersectSectors = new(arrayPool: true);
     public int Id;
-    public int ThingId;
+    public int ThingId { get; private set; }
     // Index in Blockmap.BlockLines
     public int BlockingBlockLineIndex;
     public Entity? BlockingEntity;
@@ -138,7 +139,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new(arrayPool: true);
-    public readonly DynamicArray<int> IntersectMidTexLines = new(); 
+    public readonly DynamicArray<int> IntersectMidTexLines = new();
+    public LinkableNode<Entity>? ThingIdNode;
     public bool IsDisposed;
     public bool WaitSoundDispose;
 
@@ -150,6 +152,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public int MaxTargetRange;
     public int MinMissileChance;
     public int MeleeThreshold;
+
+    public MapUserProperties UserProperties;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsFrozen() => FrozenTics > 0;
@@ -201,7 +205,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         World = world;
         Index = index;
         Id = id;
-        ThingId = thingId;
+        world.EntityManager.SetThingId(this, thingId);
         Definition = definition;
         Flags = definition.Flags;
         Properties = definition.Properties;
@@ -242,7 +246,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         Index = index;
         IsDisposed = false;
         Id = entityModel.Id;
-        ThingId = entityModel.ThingId;
+        world.EntityManager.SetThingId(this, entityModel.ThingId);
         Definition = definition;
         Flags = new EntityFlags(entityModel.Flags);
         Properties = definition.Properties;
@@ -478,9 +482,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     {
         for (int i = SectorNodes.Length - 1; i >= 0; i--)
         {
-            LinkableNode<Entity> node = SectorNodes[i];
-            node.Unlink();
-            WorldStatic.DataCache.FreeLinkableNodeEntity(node);
+            SectorNodes[i].Unlink();
             SectorNodes.Data[i] = null!;
         }
         SectorNodes.Clear();
@@ -1236,6 +1238,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         Id = int.MinValue;
         IsDisposed = true;
+        ThingId = EntityManager.NoTid;
         UnlinkFromWorld();
         Unlink();
 
@@ -1291,6 +1294,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         Special = ZDoomLineSpecialType.None;
         WaterSubmersionLevel = SubmersionLevel.None;
         WaterControlSector = null;
+        UserProperties = new();
     }
 
     private void FreeToDataCache()
@@ -1410,5 +1414,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             return false;
 
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetThingIdWithoutAddingToList(int thingId)
+    {
+        ThingId = thingId;
     }
 }

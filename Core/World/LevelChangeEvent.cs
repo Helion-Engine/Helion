@@ -1,3 +1,4 @@
+using Helion.Maps.Shared;
 using Helion.Models;
 using System;
 using static Helion.Util.Assertion.Assert;
@@ -14,7 +15,9 @@ public sealed class LevelChangeEvent
     public readonly WorldModel? WorldModel;
     public readonly bool IsCheat;
     public readonly int PlayerSpawnArg0;
-    public readonly bool RetainFace;
+    public readonly string MapName = "";
+    public readonly double? Angle;
+    public readonly SkillLevel? SkillLevel;
 
     public bool Cancel { get; set; }
 
@@ -41,7 +44,9 @@ public sealed class LevelChangeEvent
         Flags = args.Flags;
         LevelNumber = args.LevelNumber;
         PlayerSpawnArg0 = args.PlayerSpawnArg0;
-        RetainFace = args.RetainFace;
+        MapName = args.MapName ?? "";
+        Angle = args.Angle;
+        SkillLevel = args.SkillLevel;
     }
 }
 
@@ -56,6 +61,7 @@ public enum LevelChangeType
     LoadNewest,
     // If LevelNumber == 0 then default to Next
     SpecificMap,
+    SpecificMapName,
     EndGame
 }
 
@@ -63,6 +69,13 @@ public enum LevelChangeType
 public enum LevelChangeFlags
 {
     None,
-    KillAllPlayers,
-    ResetInventory
+    KillAllPlayers = 1,
+    ResetInventory = 2,
+    KeepFacing = 4,
+    // Only applies to the next map and is reset
+    NoMonsters = 8,
+    ChangeSkill = 16,
+    NoIntermission = 32,
+    PreRaiseWeapon = 64,
+    ResetHealth = 128
 }

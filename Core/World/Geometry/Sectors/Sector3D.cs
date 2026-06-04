@@ -27,8 +27,8 @@ public enum SectorFlags3D
     RestrictLighting = 256,
     Fog = 512,
     Model = 1024,
-    UseUpperTexture = 2048,
-    UseLowerTexture = 4096,
+    UseParentUpperTexture = 2048,
+    UseParentLowerTexture = 4096,
     AdditiveTransparency = 8192,
     // When this flag is not set UZDoom will render the fog color as a global blend color and not have fade density. When set it renders the fog color in the 3D sector as expected.
     NoViewFade = 65536,
@@ -157,7 +157,7 @@ public sealed class Sector3D
         FakeSector = new(SectorId, 0, 0, FakeBottom, FakeTop, default, default)
         {
             Sector3D = this,
-            Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], controlSide.Middle.TextureHandle, (flags & SectorFlags3D.RenderInside) != 0)
+            Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], controlSide, (flags & SectorFlags3D.RenderInside) != 0)
         };
 
         if ((Flags & SectorFlags3D.AdditiveTransparency) != 0)
@@ -433,9 +433,11 @@ public sealed class Sector3D
         return isSolid;
     }
 
-    private static Line[] CreateSector3DLines(IWorld world, Sector sector, int textureHandle, bool createBackSide)
+    private Line[] CreateSector3DLines(IWorld world, Sector sector, Side controlSide, bool createBackSide)
     {
+        var logicalWallLocation = GetLogicalWallLocation();
         var lines = new Line[sector.Lines.Length];
+
         for (int i = 0; i < sector.Lines.Length; i++)
         {
             var line = sector.Lines[i];
@@ -445,14 +447,18 @@ public sealed class Sector3D
                 continue;
             }
 
-            var middle = new Wall(textureHandle, WallLocation.Middle3D);
+            var useSide = logicalWallLocation == WallLocation.Middle ? controlSide : line.Front.Sector == sector ? line.Back : line.Front;
+
+            var controlWall = useSide.GetWall(logicalWallLocation);
+            var middle = new SectorWall3D(controlWall, WallLocation.Middle3D);
             var side = new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, EmptyWall, middle, EmptyWall, sector);
             // Normalize so front is always the rendered side
             var lineSeg = line.Segment;
             if (line.Front.Sector == sector)
                 lineSeg = new(lineSeg.End, lineSeg.Start);
 
-            var backSide = createBackSide ? new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, EmptyWall, new(textureHandle, WallLocation.Middle3D), EmptyWall, sector) : null;
+            var backMiddle = new SectorWall3D(controlWall, WallLocation.Middle3D);
+            var backSide = createBackSide ? new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, EmptyWall, backMiddle, EmptyWall, sector) : null;
             lines[i] = new Line(line.Id, lineSeg, side, backSide, default, LineSpecial.Default, default);
         }
 
@@ -721,16 +727,13 @@ public sealed class Sector3D
         return true;
     }
 
-    public int GetTextureHandle(Side controlSectorSide, Side? parentSectorSide)
+    public WallLocation GetLogicalWallLocation()
     {
-        if (parentSectorSide != null)
-        {
-            if ((Flags & SectorFlags3D.UseUpperTexture) != 0)
-                return parentSectorSide.Upper.TextureHandle;
-            if ((Flags & SectorFlags3D.UseLowerTexture) != 0)
-                return parentSectorSide.Lower.TextureHandle;
-        }
-        return controlSectorSide.Middle.TextureHandle;
+        if ((Flags & SectorFlags3D.UseParentUpperTexture) != 0)
+            return WallLocation.Upper;
+        if ((Flags & SectorFlags3D.UseParentLowerTexture) != 0)
+            return WallLocation.Lower;
+        return WallLocation.Middle;
     }
 
     public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} Style={RenderDataStyle} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";

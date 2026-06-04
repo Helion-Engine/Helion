@@ -72,7 +72,6 @@ public partial class GeometryRenderer
         if (parentSide == null || !sector3D.CalculateWallHeights(parentSide, out var newWallHeights))
             return;
 
-        useSide.Middle.TextureHandle = sector3D.GetTextureHandle(useSide, parentSide);
         if (parentSide != null)
         {
             useSide.Offset = parentSide.Offset;

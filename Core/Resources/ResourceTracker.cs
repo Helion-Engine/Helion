@@ -18,12 +18,14 @@ public class ResourceTracker<T> where T : class
 {
     private readonly HashTable<ResourceNamespace, string, T> m_table = new(comparer2: StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, T> m_tableByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, T>.AlternateLookup<ReadOnlySpan<char>> m_tableByNameSpan;
 
     private readonly ResourceTrackerOptions m_options;
 
     public ResourceTracker(ResourceTrackerOptions options = ResourceTrackerOptions.StoreByName)
     {
         m_options = options;
+        m_tableByNameSpan = m_tableByName.GetAlternateLookup<ReadOnlySpan<char>>();
     }
 
     /// <summary>
@@ -82,7 +84,7 @@ public class ResourceTracker<T> where T : class
     /// <param name="resourceNamespace">The namespace of the resource to
     /// only look at.</param>
     /// <returns>The value if it exists, empty otherwise.</returns>
-    public T? GetOnly(string name, ResourceNamespace resourceNamespace)
+    public T? GetOnly(ReadOnlySpan<char> name, ResourceNamespace resourceNamespace)
     {
         T? resource = null;
         return m_table.TryGet(resourceNamespace, name, ref resource) ? resource : null;
@@ -98,13 +100,13 @@ public class ResourceTracker<T> where T : class
     /// <param name="priorityNamespace">The namespace of the resource to
     /// look at before checking others.</param>
     /// <returns>The value if it exists, empty otherwise.</returns>
-    public T? Get(string name, ResourceNamespace priorityNamespace)
+    public T? Get(ReadOnlySpan<char> name, ResourceNamespace priorityNamespace)
     {
         T? desiredNamespaceElement = m_table.Get(priorityNamespace, name);
         if (desiredNamespaceElement != null)
             return desiredNamespaceElement;
 
-        m_tableByName.TryGetValue(name, out var value);
+        m_tableByNameSpan.TryGetValue(name, out var value);
         return value;
     }
 

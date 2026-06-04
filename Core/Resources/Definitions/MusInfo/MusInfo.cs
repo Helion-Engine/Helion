@@ -7,7 +7,6 @@ public class MusInfoDef
 {
     public readonly int Number;
     public readonly string Name;
-    public byte[]? MusicData;
 
     public MusInfoDef(int number, string name)
     {

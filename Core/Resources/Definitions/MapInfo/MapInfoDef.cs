@@ -2,7 +2,6 @@ using Helion.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.Resources.Definitions.MapInfo;
 
@@ -10,6 +9,9 @@ public class MapInfoDef : ICloneable
 {
     private BitArray m_levelOptions = new(Enum.GetValues<MapOptions>().Length);
     private bool m_hasOptions;
+
+    public List<string> PrecacheSounds { get; set; } = [];
+    public List<string> PrecacheTextures { get; set; } = [];
 
     public string Map { get; set; } = string.Empty;
     public string MapName { get; set; } = string.Empty;

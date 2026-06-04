@@ -3,6 +3,7 @@ using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.World.Special;
 
 namespace Helion.Maps.Udmf.Components;
@@ -23,6 +24,7 @@ public class UdmfLine : ILine
     public LineActivationType ActivationType = LineActivationType.Any;
     public SpecialArgs Args;
     public float Alpha = 1f;
+    public RenderDataStyle RenderStyle = RenderDataStyle.Normal;
     public int StartVertex;
     public int EndVertex;
     public int SideFront;
@@ -35,6 +37,8 @@ public class UdmfLine : ILine
     public bool DamageSpecial;
     public bool DeathSpecial;
     public bool WrapMidTex;
+
+    public MapUserProperties UserProperties;
 
     public ISide GetFront() => Front;
 

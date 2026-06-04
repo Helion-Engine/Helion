@@ -4,8 +4,10 @@ using Helion.Maps.Components.GL;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Udmf.Components;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
@@ -41,6 +43,7 @@ public sealed class UdmfMap : IMap, IMapSpecials
     public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    public byte[]? Behavior { get; set; }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
     public IReadOnlyList<ISector> GetSectors() => Sectors;
@@ -157,6 +160,7 @@ public sealed class UdmfMap : IMap, IMapSpecials
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
         UdmfNamespace = ns;
+        Behavior = map.Behavior?.ReadData();
     }
 
     private static UdmfNamespace Parse(Stream textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
@@ -229,6 +233,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
             return UdmfNamespace.Doom;
         else if (ns.EqualsIgnoreCase("dsda"))
             return UdmfNamespace.Dsda;
+        else if (ns.EqualsIgnoreCase("eternity"))
+            return UdmfNamespace.Eternity;
         else if (ns.EqualsIgnoreCase("zdoom"))
             return UdmfNamespace.ZDoom;
         else if (ns.EqualsIgnoreCase("helion"))
@@ -279,7 +285,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("x"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                thing.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("x"))
                 x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
                 y = parser.ParseDouble(prop.Value);
@@ -293,6 +301,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 thing.Special = (ZDoomLineSpecialType)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
                 thing.Args.Arg0 = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("arg0str"))
+                thing.Args.Arg0Str = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("arg1"))
                 thing.Args.Arg1 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg2"))
@@ -375,7 +385,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("sector"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                side.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("sector"))
                 side.SectorId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
                 side.UpperTexture = GetString(stringLookup, prop.Value);
@@ -445,7 +457,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("heightfloor"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                sector.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("heightfloor"))
                 sector.FloorZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("heightceiling"))
                 sector.CeilingZ = (short)parser.ParseInt(prop.Value);
@@ -560,7 +574,9 @@ public sealed class UdmfMap : IMap, IMapSpecials
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser, typeArray, valueArray);
-            if (prop.Name.EqualsIgnoreCase("v1"))
+            if (prop.Name.StartsWithIgnoreCase("user_"))
+                line.UserProperties.Add(prop.Name, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("v1"))
                 line.StartVertex = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("v2"))
                 line.EndVertex = parser.ParseInt(prop.Value);
@@ -572,6 +588,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 line.LineType = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
                 line.Args.Arg0 = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("arg0str"))
+                line.Args.Arg0Str = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("arg1"))
                 line.Args.Arg1 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg2"))
@@ -670,9 +688,20 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 line.LineId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("moreids"))
                 line.MoreLineIds = ParseMoreIds(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("renderstyle"))
+                line.RenderStyle = ParseRenderStyle(prop.Value);
         }
 
         lines.Add(line);
+    }
+
+    private static RenderDataStyle ParseRenderStyle(ReadOnlySpan<char> value)
+    {
+        if (value.EqualsIgnoreCase("add"))
+            return RenderDataStyle.Add;
+        else if (value.EqualsIgnoreCase("translucent"))
+            return RenderDataStyle.Translucent;
+        return RenderDataStyle.Normal;
     }
 
     private static void ParseVertex(StreamParser parser, List<UdmfVertex> vertices, DynamicArray<char> typeArray, DynamicArray<char> valueArray)

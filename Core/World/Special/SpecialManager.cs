@@ -888,7 +888,15 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.SetSectorColorMap:
                 SetSectorColorMap(line, true);
                 break;
+            case ZDoomLineSpecialType.LineIdentify:
+                SetLineId(line);
+                break;
         }
+    }
+
+    private void SetLineId(Line line)
+    {
+        m_world.SetLineId(line, line.Args.Arg0);
     }
 
     private void SetSector3DFloor(Line specialLine, List<Sector3D> sectors3D, Dictionary<int, int> counts)
@@ -1424,6 +1432,27 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.ThingSetSpecial:
                 return ActionSpecials.ThingSetSpecial(args.Entity, world, line.Args);
 
+            case ZDoomLineSpecialType.ScriptRun:
+                return ActionSpecials.ScriptExecute(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptRunForced:
+                return ActionSpecials.ScriptExecuteForced(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptStop:
+                return ActionSpecials.ScriptStop(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptKill:
+                return ActionSpecials.ScriptKill(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptWithKey:
+                return ActionSpecials.ScriptExecuteWithKey(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args, true);
+
+            case ZDoomLineSpecialType.ScriptRunWithResult:
+                return ActionSpecials.ScriptExecuteWithResult(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args);
+
+            case ZDoomLineSpecialType.ScriptLockedDoorExecute:
+                return ActionSpecials.ScriptExecuteWithKey(args.Entity, args.ActivateLineSpecial, args.FromFront, world, line.Args, false);
+
             case ZDoomLineSpecialType.RadiusQuake:
                 return ActionSpecials.RadiusQuake(args.Entity, world, line.Args);
         }
@@ -1465,7 +1494,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             musicFlags |= MusicFlags.Loop;
         }
 
-        m_world.PlayLevelMusic(music, null, musicFlags);
+        m_world.PlayLevelMusic(music, musicFlags);
     }
 
     private bool HandleSectorLineSpecial(in EntityActivateSpecial args, LineSpecial special)

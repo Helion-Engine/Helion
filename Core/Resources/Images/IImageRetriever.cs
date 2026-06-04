@@ -1,4 +1,5 @@
 using Helion.Graphics;
+using System;
 using System.Collections.Generic;
 
 namespace Helion.Resources.Images;
@@ -17,7 +18,7 @@ public interface IImageRetriever
     /// <param name="options">Options for fetching the image.
     /// </param>
     /// <returns>The image, or null if none can be found.</returns>
-    Image? Get(string name, ResourceNamespace priorityNamespace, GetImageOptions options = GetImageOptions.Default);
+    Image? Get(ReadOnlySpan<char> name, ResourceNamespace priorityNamespace, GetImageOptions options = GetImageOptions.Default);
 
     /// <summary>
     /// Gets the image in only the namespace provided. It will not look in
@@ -27,7 +28,7 @@ public interface IImageRetriever
     /// <param name="targetNamespace">The namespace to check.</param>
     /// <param name="options">Options for fetching the image.
     /// <returns>The image, or null if none can be found.</returns>
-    Image? GetOnly(string name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default);
+    Image? GetOnly(ReadOnlySpan<char> name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default);
 
     /// <summary>
     /// Gets the image in only the namespace provided. It will not look in
@@ -39,7 +40,7 @@ public interface IImageRetriever
     /// <param name="colorTranslation">Color translation table to generate the image.</param>
     /// <param name="options">Options for fetching the image.
     /// <returns>The image, or null if none can be found.</returns>
-    Image? GetOnlyMapped(string mappedName, string entryName, ResourceNamespace targetNamespace, byte[]? colorTranslation, GetImageOptions options = GetImageOptions.Default);
+    Image? GetOnlyMapped(ReadOnlySpan<char> mappedName, ReadOnlySpan<char> entryName, ResourceNamespace targetNamespace, byte[]? colorTranslation, GetImageOptions options = GetImageOptions.Default);
 
     /// <summary>
     /// Get the names of all images in the specific namespace

@@ -1,8 +1,10 @@
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Resources;
 using Helion.Util;
@@ -45,6 +47,8 @@ public sealed class Line
     public LineBlockFlags InitialLineBlockFlags;
     public float InitialAlpha;
 
+    public MapUserProperties UserProperties;
+
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
     public int SectorTag => Args.Arg0;
@@ -57,9 +61,11 @@ public sealed class Line
     private Entity? MidTexEntity;
     private double m_length;
     private double m_angle;
+    private readonly SpecialArgs m_initialArgs;
+    private readonly ZDoomLineSpecialType m_initialSpecialType;
 
     public Line(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
-        SpecialArgs args)
+        SpecialArgs args, RenderDataStyle renderDataStyle = RenderDataStyle.Normal)
     {
         Id = id;
         Segment = segment;
@@ -74,12 +80,14 @@ public sealed class Line
 
         front.Line = this;
         front.IsFront = true;
+        front.RenderDataStyle = renderDataStyle;
 
         if (back != null)
         {
             back.Line = this;
             back.IsFront = false;
             back.PartnerSide = front;
+            back.RenderDataStyle = renderDataStyle;
             front.PartnerSide = back;
         }
 
@@ -87,6 +95,20 @@ public sealed class Line
         m_angle = double.MinValue;
         InitialLineBlockFlags = flags.Blocking;
         InitialAlpha = 1;
+
+        m_initialArgs = args;
+        m_initialSpecialType = lineSpecial.LineSpecialType;
+    }
+
+    public void UpdateSpecial(ZDoomLineSpecialType type)
+    {
+        if ((type == ZDoomLineSpecialType.None && Special == LineSpecial.Default) || (type == Special.LineSpecialType))
+            return;
+
+        if (Special == LineSpecial.Default)
+            Special = new LineSpecial(type);
+        else
+            Special.Set(type, Special.ActivationType, Special.LineSpecialCompatibility);
     }
 
     public void Reset()
@@ -101,6 +123,9 @@ public sealed class Line
 
         if (ObjectHealth != ObjectHealth.Default)
             ObjectHealth.Health = ObjectHealth.OriginalHealth;
+
+        Args = m_initialArgs;
+        UpdateSpecial(m_initialSpecialType);
     }
 
     // Same as Segment.Length, but caches the value.
@@ -142,6 +167,9 @@ public sealed class Line
         if ((DataChanges & LineDataTypes.Args) != 0)
             lineModel.Args = Args;
 
+        if ((DataChanges & LineDataTypes.Special) != 0)
+            lineModel.Special = Special.LineSpecialType;
+
         if ((DataChanges & LineDataTypes.Alpha) != 0)
             lineModel.Alpha = Alpha;
 
@@ -168,6 +196,9 @@ public sealed class Line
 
         if ((DataChanges & LineDataTypes.Args) != 0 && lineModel.Args.HasValue)
             Args = lineModel.Args.Value;
+
+        if ((DataChanges & LineDataTypes.Special) != 0)
+            UpdateSpecial(lineModel.Special);
 
         if ((DataChanges & LineDataTypes.Alpha) != 0 && lineModel.Alpha.HasValue)
             Alpha = lineModel.Alpha.Value;

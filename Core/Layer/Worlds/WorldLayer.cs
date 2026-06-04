@@ -18,6 +18,7 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
@@ -129,10 +130,10 @@ public partial class WorldLayer : IGameLayerParent
     
     private void World_PlayerMessage(object? sender, PlayerMessageEvent e)
     {
-        if (e.IsCentered)
-        {
-            m_console.AddMessage(e.Message, e.IsCentered);
-        }
+        if (e.Args.IsCentered)
+            m_console.AddMessage(e.Args.Message, e.Args.IsCentered);
+        else
+            HelionLog.Info(e.Args.Message);
     }
 
     private void World_WorldPaused(object? sender, EventArgs e)

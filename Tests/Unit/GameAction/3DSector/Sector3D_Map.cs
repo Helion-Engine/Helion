@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Resources.IWad;
+using Helion.Tests.Unit.GameAction.Mbf21;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
@@ -66,20 +67,20 @@ public class Sector3D_Map
         AssertSector3D(sector9.Sectors3D[0], sector10, sector9, sector10, SectorFlags3D.RenderInside);
 
         sector11.Sectors3D.Length.Should().Be(2);
-        AssertSector3D(sector11.Sectors3D[0], sector14, sector11, sector14, SectorFlags3D.RenderInside | SectorFlags3D.UseLowerTexture);
+        AssertSector3D(sector11.Sectors3D[0], sector14, sector11, sector14, SectorFlags3D.RenderInside | SectorFlags3D.UseParentLowerTexture);
         AssertSideTextureName3D(sector11.Sectors3D[0], sector11.Lines[0].Front, "FIREBLU1");
         AssertSideTextureName3D(sector11.Sectors3D[0], sector11.Lines[0].Back!, "COMPTALL");
         AssertSideTextureName3D(sector11.Sectors3D[0], sector11.Lines[1].Front, "SP_HOT1");
         AssertSideTextureName3D(sector11.Sectors3D[0], sector11.Lines[1].Back!, "WOODMET1");
 
-        AssertSector3D(sector11.Sectors3D[1], sector12, sector14, sector12, SectorFlags3D.RenderInside | SectorFlags3D.UseUpperTexture);
+        AssertSector3D(sector11.Sectors3D[1], sector12, sector14, sector12, SectorFlags3D.RenderInside | SectorFlags3D.UseParentUpperTexture);
         AssertSideTextureName3D(sector11.Sectors3D[1], sector11.Lines[0].Front, "BLOOD1");
         AssertSideTextureName3D(sector11.Sectors3D[1], sector11.Lines[0].Back!, "SLIME01");
         AssertSideTextureName3D(sector11.Sectors3D[1], sector11.Lines[1].Front, "NUKAGE1");
         AssertSideTextureName3D(sector11.Sectors3D[1], sector11.Lines[1].Back!, "RROCK05");
 
         sector13.Sectors3D.Length.Should().Be(1);
-        AssertSector3D(sector13.Sectors3D[0], sector14, sector13, sector14, SectorFlags3D.RenderInside | SectorFlags3D.UseLowerTexture);
+        AssertSector3D(sector13.Sectors3D[0], sector14, sector13, sector14, SectorFlags3D.RenderInside | SectorFlags3D.UseParentLowerTexture);
         AssertSideTextureName3D(sector13.Sectors3D[0], sector13.Lines[0].Front, "BRICK10");
         AssertSideTextureName3D(sector13.Sectors3D[0], sector13.Lines[0].Back!, "ASHWALL3");
         AssertSideTextureName3D(sector13.Sectors3D[0], sector13.Lines[1].Front, "BRICK9");
@@ -291,7 +292,19 @@ public class Sector3D_Map
 
     private void AssertSideTextureName3D(Sector3D sector3D, Side parentSectorSide, string name)
     {
-        AssertTextureName(sector3D.GetTextureHandle(GetControlSectorSide(sector3D), parentSectorSide), name);
+        AssertTextureName(GetTextureHandle(sector3D, GetControlSectorSide(sector3D), parentSectorSide), name);
+    }
+
+    private static int GetTextureHandle(Sector3D sector3D, Side controlSectorSide, Side? parentSectorSide)
+    {
+        if (parentSectorSide != null)
+        {
+            if ((sector3D.Flags & SectorFlags3D.UseParentUpperTexture) != 0)
+                return parentSectorSide.Upper.TextureHandle;
+            if ((sector3D.Flags & SectorFlags3D.UseParentLowerTexture) != 0)
+                return parentSectorSide.Lower.TextureHandle;
+        }
+        return controlSectorSide.Middle.TextureHandle;
     }
 
     private static Side GetControlSectorSide(Sector3D sector3D)

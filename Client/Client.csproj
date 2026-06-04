@@ -42,6 +42,7 @@
     <DirectPInvoke Include="glfw3.dll" />
     <DirectPInvoke Include="SDL2.dll" />
     <DirectPInvoke Include="AL" />
+    <DirectPInvoke Include="HelionACS-native" />
   </ItemGroup>
 
   <ItemGroup Condition="('$(AOT)' == 'true') AND ('$(RuntimeIdentifier)'=='win-x64')">

@@ -20,6 +20,13 @@ public class LanguageDefinition
     private readonly Dictionary<string, string> m_lookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> m_compatLookup = new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> m_lookupBySpan;
+
+    public LanguageDefinition()
+    {
+        m_lookupBySpan = m_lookup.GetAlternateLookup<ReadOnlySpan<char>>();
+    }
+
     // Used for compatibility when modifying language strings. E.g. BEX defines 'gotredskull'
     // But zdoom uses 'gotredskul' with a single l
     public void ParseCompatibility(string data)
@@ -164,8 +171,7 @@ public class LanguageDefinition
             return false;
         }
 
-        var altLookup = m_lookup.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (!altLookup.TryGetValue(message.AsSpan(1), out var translatedMessage))
+        if (!m_lookupBySpan.TryGetValue(message.AsSpan(1), out var translatedMessage))
         {
             messages = null;
             return false;
@@ -237,8 +243,7 @@ public class LanguageDefinition
 
     private string LookupMessage(ReadOnlySpan<char> message)
     {
-        var altLookup = m_lookup.GetAlternateLookup<ReadOnlySpan<char>>();
-        if (altLookup.TryGetValue(message, out var translatedMessage))
+        if (m_lookupBySpan.TryGetValue(message, out var translatedMessage))
             return translatedMessage;
 
         return string.Empty;

@@ -11,9 +11,12 @@ namespace Helion.Resources.Definitions.Decorate;
 public class DecorateDefinitions
 {
     private readonly Dictionary<string, ActorDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly Dictionary<string, ActorDefinition>.AlternateLookup<ReadOnlySpan<char>> m_definitionsBySpan;
     private readonly Dictionary<int, ActorDefinition> m_definitionsByEditorNumber = new Dictionary<int, ActorDefinition>();
     private readonly ArchiveCollection m_archiveCollection;
 
+    public ActorDefinition? this[ReadOnlySpan<char> name] => m_definitionsBySpan.TryGetValue(name, out ActorDefinition? def) ? def : null;
     public ActorDefinition? this[string name] => m_definitions.TryGetValue(name, out ActorDefinition? def) ? def : null;
     public ActorDefinition? this[int editorNum] => m_definitionsByEditorNumber.TryGetValue(editorNum, out ActorDefinition? def) ? def : null;
 
@@ -22,6 +25,7 @@ public class DecorateDefinitions
     public DecorateDefinitions(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
+        m_definitionsBySpan = m_definitions.GetAlternateLookup<ReadOnlySpan<char>>();
     }
 
     public void AddDecorateDefinitions(Entry entry)

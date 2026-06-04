@@ -415,7 +415,7 @@ public class UdmfThingSpecials : IDisposable
         Player.ThingId.Should().Be(0);
         GameActions.ActivateLine(World, Player, 118, ActivationContext.UseLine).Should().BeTrue();
         Player.ThingId.Should().Be(420);
-        Player.ThingId = 0;
+        World.EntityManager.SetThingId(Player, 0);
     }
 
     [Fact(DisplayName = "Thing set special")]

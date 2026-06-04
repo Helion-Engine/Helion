@@ -43,6 +43,7 @@ public class DoomMap : IMap
     public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    public byte[]? Behavior { get; set; }
     public bool UseAverageScrollCarry() => false;
 
     private MapEntryCollection? m_map;

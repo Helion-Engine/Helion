@@ -152,7 +152,6 @@ public class BlockMap
                 {
                     var nextNode = islandNode.Next;
                     islandNode.Unlink();
-                    WorldStatic.DataCache.FreeLinkableNodeIsland(islandNode);
                     islandNode = nextNode;
                 }
             }
@@ -298,11 +297,9 @@ public class BlockMap
                 for (int bx = it.BlockStartX; bx <= it.BlockEndX; bx++)
                 {
                     int index = by * it.Width + bx;
-                    var node = world.DataCache.GetLinkableNodeIsland(new (sector, sectorIsland));
 
                     DynamicSectors[index] ??= new();
-                    DynamicSectors[index].Add(node);
-
+                    var node = DynamicSectors[index].Add(new(sector, sectorIsland));
                     sector.BlockmapNodes.Add(node);
                 }
             }
@@ -327,7 +324,7 @@ public class BlockMap
                     var index = by * it.Width + bx;
 
                     Sectors[index] ??= new();
-                    Sectors[index].Add(new() { Value = new(sector, sectorIsland) });
+                    Sectors[index].Add(new(sector, sectorIsland));
                 }
             }
         }

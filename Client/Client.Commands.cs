@@ -924,6 +924,7 @@ public partial class Client
             if (!sameMap)
             {
                 var mapCompat = map.CompatibilityDefinition;
+                var behavior = map.Behavior;
                 if (!m_zdbsp.RunZdbsp(map.ArchivePath, mapInfoDef.MapName, out var compiledMap))
                 {
                     Log.Error("Failed to run zdbsp.");
@@ -936,7 +937,10 @@ public partial class Client
                 map = compiledMap;
 
                 if (map != null)
+                {
                     map.CompatibilityDefinition = mapCompat;
+                    map.Behavior = behavior;
+                }
             }
 
             m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
@@ -963,24 +967,39 @@ public partial class Client
             m_lastLoadedMap = map;
 
             // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
-            if (m_layerManager.LoadingLayer != null)
-                m_layerManager.LoadingLayer.ShowSpinner = false;
+            m_layerManager.LoadingLayer?.ShowSpinner = false;
+
+            m_config.Game.NoMonstersLevel.Set(false, writeToConfig: false);
 
             double? angle = null;
+            bool preRaiseWeapon = false;
             int playerSpawnArg0 = 0;
             if (eventContext != null)
             {
                 playerSpawnArg0 = eventContext.PlayerSpawnArg0;
-                if (eventContext.RetainFace && previousWorld != null)
-                    angle = previousWorld.Player.AngleRadians;
+
+                if (eventContext.Angle.HasValue)
+                    angle = eventContext.Angle;
+
+                if ((eventContext.Flags & LevelChangeFlags.PreRaiseWeapon) != 0)
+                    preRaiseWeapon = true;
+
+                if ((eventContext.Flags & LevelChangeFlags.NoMonsters) != 0)
+                    m_config.Game.NoMonstersLevel.Set(true, writeToConfig: false);
             }
 
             var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
                 m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
                 players.FirstOrDefault(), worldModel, random, sameAsPreviousMap: sameMap, playerSpawnArg0);
 
-            if (worldLayer != null && angle != null)
-                worldLayer.World.Player.AngleRadians = angle.Value;
+            if (worldLayer != null)
+            {
+                var player = worldLayer.World.Player;
+                if (angle != null)
+                    player.AngleRadians = angle.Value;
+                if (preRaiseWeapon)
+                    player.ForceWeaponTop();
+            }
 
             // This isn't great but the map reference is everywhere and difficult to unwind.
             // This dumps all the map specific data that isn't needed instead of wasting the memory.
@@ -1092,6 +1111,13 @@ public partial class Client
                 case LevelChangeType.SpecificLevel:
                     ChangeLevel(world, e);
                     break;
+
+                case LevelChangeType.SpecificMapName:
+                    if ((e.Flags & LevelChangeFlags.NoIntermission) == 0)
+                        Intermission(world, () => m_archiveCollection.MapInfo.MapInfo.GetMap(e.MapName), onComplete: () => ChangeLevelMapName(e));
+                    else
+                        ChangeLevelMapName(e);
+                    break;                
 
                 case LevelChangeType.Reset:
                     QueueLoadMap(world.MapInfo, null, world, e);
@@ -1218,7 +1244,7 @@ public partial class Client
         }
     }
 
-    private void Intermission(IWorld world, Func<FindMapResult> getNextMapInfo)
+    private void Intermission(IWorld world, Func<FindMapResult> getNextMapInfo, Action? onComplete = null)
     {
         if (world.MapInfo.HasOption(MapOptions.NoIntermission))
         {
@@ -1229,7 +1255,7 @@ public partial class Client
             PrepareTransition();
             PlayTransition();
             IntermissionLayer intermissionLayer = new(m_layerManager, world, m_config.Keys, m_soundManager,
-                m_audioSystem.Music, world.MapInfo, getNextMapInfo, m_config.Hud.FontUpscalingFactor);
+                m_audioSystem.Music, world.MapInfo, getNextMapInfo, m_config.Hud.FontUpscalingFactor, onComplete: onComplete);
             intermissionLayer.Exited += IntermissionLayer_Exited;
             m_layerManager.Add(intermissionLayer);
         }
@@ -1240,7 +1266,7 @@ public partial class Client
         if (sender is not IntermissionLayer intermissionLayer)
             return;
 
-        EndGame(intermissionLayer.World, intermissionLayer.World.MapInfo, intermissionLayer.GetNextMapInfo);
+        EndGame(intermissionLayer.World, intermissionLayer.World.MapInfo, intermissionLayer.GetNextMapInfo, intermissionLayer.OnComplete);
     }
 
     private void PrepareTransition()
@@ -1254,18 +1280,24 @@ public partial class Client
         m_layerManager.TransitionLayer?.Start();
     }
 
-    private void EndGame(IWorld world, MapInfoDef currentMap, Func<FindMapResult> getNextMapInfo)
+    private void EndGame(IWorld world, MapInfoDef currentMap, Func<FindMapResult> getNextMapInfo, Action? onComplete = null)
     {
         try
         {
+
             var nextMapResult = getNextMapInfo();
             var nextMapInfo = nextMapResult.MapInfo;
 
             if (m_archiveCollection.MapInfo.MapInfo.IsChangingClusters(currentMap, nextMapResult, m_isSecretExit, out var cluster, out var nextCluster))
             {
-                HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
+                HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo, onComplete);
                 PrepareTransition();
                 PlayTransition();
+            }
+            else if (onComplete != null)
+            {  
+                onComplete();
+                return;
             }
             else if (nextMapInfo != null)
             {
@@ -1285,11 +1317,11 @@ public partial class Client
         }
     }
 
-    private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
+    private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo, Action? onComplete)
     {
         cluster ??= new(0);
 
-        EndGameLayer endGameLayer = new(world, m_config.Keys, m_soundManager, m_audioSystem.Music, m_archiveCollection, cluster, nextCluster, nextMapInfo, m_isSecretExit);
+        EndGameLayer endGameLayer = new(world, m_config.Keys, m_soundManager, m_audioSystem.Music, m_archiveCollection, cluster, nextCluster, nextMapInfo, m_isSecretExit, onComplete);
         endGameLayer.Exited += EndGameLayer_Exited;
 
         m_layerManager.Add(endGameLayer);
@@ -1302,6 +1334,12 @@ public partial class Client
             if (sender is not EndGameLayer endGameLayer)
                 return;
 
+            if (endGameLayer.OnComplete != null)
+            {
+                endGameLayer.OnComplete();
+                return;
+            }
+
             if (endGameLayer.NextMapInfo != null)
             {
                 var changeEvent = new LevelChangeEvent(m_isSecretExit ? LevelChangeType.SecretNext : LevelChangeType.Next, LevelChangeFlags.None);
@@ -1312,6 +1350,19 @@ public partial class Client
         {
             HandleFatalException(ex);
         }
+    }
+
+    private void ChangeLevelMapName(LevelChangeEvent e)
+    {
+        var result = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(e.MapName);
+        if (!string.IsNullOrEmpty(result.Error))
+        {
+            Log.Error(result.Error);
+            return;
+        }
+
+        if (result.MapInfo != null)
+            QueueLoadMap(result.MapInfo, null, null, e);
     }
 
     private void ChangeLevel(IWorld world, LevelChangeEvent e)

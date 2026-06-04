@@ -24,7 +24,6 @@ using Helion.World.Geometry.Lines;
 using Helion.Util.Consoles;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
-using Helion.World.Geometry.Islands;
 using Helion.World.Entities.Players;
 using Helion.Maps.Specials;
 
@@ -35,15 +34,12 @@ public class DataCache
     private static int StaticId;
     public int Id;
     private const int DefaultLength = 1024;
-    private const int EntityRenderLength = 1024;
 
     public int EntityLength;
     public int EntityId;
     public Entity[] Entities = new Entity[DefaultLength];
 
     private readonly DynamicArray<int> m_entities = new(DefaultLength);
-    private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
-    private readonly DynamicArray<LinkableNode<DynamicIsland>> m_islandNodes = new(DefaultLength);
     private readonly DynamicArray<IAudioSource> m_audioSources = new(64);
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
     private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new(256);
@@ -60,7 +56,6 @@ public class DataCache
     private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new(256);
     private readonly DynamicArray<DynamicVertex[]> m_wallVertices = new(DefaultLength);
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
-    private readonly DynamicArray<LinkedListNode<Entity>> m_entityLinkedListNodes = new(32);
 
     public bool CacheEntities = true;
 
@@ -186,46 +181,6 @@ public class DataCache
         Entities[index] = newPlayer;
         newPlayer.Set(index, id, thingId, definition, position, angleRadians, sector, world, playerNumber);
         return newPlayer;
-    }
-
-    public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
-    {
-        if (m_entityNodes.Length > 0)
-        {
-            var node = m_entityNodes.RemoveLast();
-            node.Value = entity;
-            return node;
-        }
-        
-        return new LinkableNode<Entity> { Value = entity };
-    }
-
-    public void FreeLinkableNodeEntity(LinkableNode<Entity> node)
-    {
-        node.Previous = null!;
-        //node.Next = null;
-        node.Value = null!;
-        m_entityNodes.Add(node);
-    }
-
-    public LinkableNode<DynamicIsland> GetLinkableNodeIsland(in DynamicIsland island)
-    {
-        if (m_islandNodes.Length > 0)
-        {
-            var node = m_islandNodes.RemoveLast();
-            node.Value = island;
-            return node;
-        }
-
-        return new LinkableNode<DynamicIsland> { Value = island };
-    }
-
-    public void FreeLinkableNodeIsland(LinkableNode<DynamicIsland> node)
-    {
-        node.Previous = null!;
-        node.Next = null;
-        node.Value = default;
-        m_islandNodes.Add(node);
     }
 
     public OpenALAudioSource GetAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)
@@ -385,24 +340,6 @@ public class DataCache
     {
         audio.Value = default;
         m_waitingSoundNodes.Add(audio);
-    }
-
-    public LinkedListNode<Entity> GetLinkedListNodeEntity(Entity entity)
-    {
-        if (m_entityLinkedListNodes.Length > 0)
-        {
-            var node = m_entityLinkedListNodes.RemoveLast();
-            node.Value = entity;
-            return node;
-        }
-
-        return new LinkedListNode<Entity>(entity);
-    }
-
-    public void FreeLinkedListNodeEntity(LinkedListNode<Entity> entity)
-    {
-        entity.Value = null!;
-        m_entityLinkedListNodes.Add(entity);
     }
 
     public LightChangeSpecial GetLightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)

@@ -24,4 +24,6 @@ public class GLLegacyTexture : GLTexture
     {
         GL.BindTexture(Target, 0);
     }
+
+    public override string ToString() => $"{TextureId}:{Name}";
 }

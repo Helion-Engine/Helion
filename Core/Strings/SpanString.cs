@@ -27,7 +27,7 @@ public partial class SpanString
         m_chars.Clear();
     }
 
-    public unsafe void Append(string text)
+    public unsafe void Append(ReadOnlySpan<char> text)
     {
         if (text.Length == 0)
             return;

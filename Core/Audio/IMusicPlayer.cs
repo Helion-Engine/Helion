@@ -1,3 +1,4 @@
+using Helion.Resources.Archives.Entries;
 using System;
 
 namespace Helion.Audio;
@@ -24,9 +25,9 @@ public interface IMusicPlayer : IDisposable
     /// <summary>
     /// The data to play.
     /// </summary>
-    /// <param name="data">The data.</param>
+    /// <param name="entry">The entry containing the music data.</param>
     /// <param name="options">Player options.</param>
-    bool Play(byte[] data, MusicPlayerOptions options = MusicPlayerOptions.Loop | MusicPlayerOptions.IgnoreAlreadyPlaying);
+    bool Play(Entry entry, MusicPlayerOptions options = MusicPlayerOptions.Loop | MusicPlayerOptions.IgnoreAlreadyPlaying);
 
     /// <summary>
     /// Stops playing the music.
@@ -47,4 +48,6 @@ public interface IMusicPlayer : IDisposable
     /// Ask the music player to resume playback, possibly on a different output than it was using before
     /// </summary>
     void OutputChanged();
+
+    void ClearCachedData();
 }

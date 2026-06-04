@@ -455,14 +455,6 @@ public class DefinitionEntries
         return Colormaps[0];
     }
 
-    public Colormap GetLevelSectorColormap(Color color)
-    {
-        if (m_levelSectorColormaps.TryGetValue(color, out var colormap))
-            return colormap;
-
-        return Colormaps[0];
-    }
-
     public Colormap? FindLevelSectorColormap(Vec3F color)
     {
         foreach (var item in m_levelSectorColormaps)

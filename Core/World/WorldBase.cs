@@ -1,3 +1,4 @@
+using Helion.ACS;
 using Helion.Audio;
 using Helion.Dehacked;
 using Helion.Geometry.Boxes;
@@ -101,7 +102,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<Sector>? SectorColorMapChanged;
-    public event EventHandler<Sector>? SectorFogColorChanged;
+    public event EventHandler<SectorFogEvent>? SectorFogColorChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
     public event EventHandler<MusicChangeEvent>? OnMusicChanged;
     public event EventHandler? OnTick;
@@ -164,6 +165,9 @@ public abstract partial class WorldBase : IWorld
     public PhysicsManager PhysicsManager { get; private set; }
     public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
     public MapType MapType { get; private set; }
+
+    public ACS.WorldExecutor AcsExecutor { get; private set; }
+    public byte[]? Behavior => m_map.Behavior;
 
     public bool HasDehacked;
 
@@ -284,6 +288,9 @@ public abstract partial class WorldBase : IWorld
         m_checkRadiusEntity = new Entity();
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
+        AcsExecutor = GlobalData.GetOrCreateAcsExecutor(this, worldModel != null && !sameAsPreviousMap);
+        LoadAcsHubMap(map, 0);
+
         if (worldModel != null)
         {
             WorldState = worldModel.WorldState;
@@ -301,10 +308,24 @@ public abstract partial class WorldBase : IWorld
             LevelStats.KillCount = worldModel.KillCount;
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
+
+            if (worldModel.AcsState.Length > 0)
+                LoadAcsState(0, (uint)MapInfo.LevelNumber, worldModel.AcsState);
         }
 
         if (!SameAsPreviousMap)
             SpecialManager.InitSectors3D();
+    }
+
+    private void LoadAcsState(uint hubId, uint mapId, ReadOnlyMemory<byte> acsState)
+    {
+        if (!AcsExecutor.LoadStateFromBuffer(hubId, mapId, acsState))
+            HelionLog.Error("Failed load ACS state.");
+    }
+
+    private void LoadAcsHubMap(IMap map, uint hubId)
+    {
+        AcsExecutor.LoadHubMap(hubId, (uint)MapInfo.LevelNumber, map.HasBehavior ? [$"BEHAVIOR:{MapInfo.MapName}"] : []);
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)
@@ -492,11 +513,6 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             m_sectorToMusicChange[entity.Sector.Id] = musInfo;
-
-            // Cache the entry to prevent stutters
-            Entry? entry = ArchiveCollection.Entries.FindByName(musInfo.Name);
-            if (entry != null)
-                musInfo.MusicData = entry.ReadData();
         }
     }
 
@@ -737,10 +753,28 @@ public abstract partial class WorldBase : IWorld
                 mapSpecials.Initialize(this);
         }
 
+        if (worldModel == null)
+        {
+            StartScript(HelionACS.ScriptType.Open, [], null, null, false);
+            StartScript(HelionACS.ScriptType.Enter, [], Player, null, false);
+        }
+
         SetEntityLightSectors();
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorMoveComplete += SpecialManager_SectorMoveComplete;
+    }
+
+    public virtual void Finalize(bool fromWorldModel)
+    {
+        if (!fromWorldModel)
+            AcsExecutor.Exec();
+    }
+
+    private void StartScript(HelionACS.ScriptType type, uint[] args, Entity? activator, Line? line, bool frontSide)
+    {
+        if (m_map.HasBehavior)
+            AcsExecutor.ScriptStartType(type, args, WorldExecutor.CreateThreadInfoData(activator, line, frontSide));
     }
 
     private void SetEntityLightSectors()
@@ -959,6 +993,7 @@ public abstract partial class WorldBase : IWorld
         {
             TickPlayers();
             TickEntities();
+            AcsExecutor.Exec();
             SpecialManager.Tick();
             TickScrollers();
 
@@ -967,8 +1002,8 @@ public abstract partial class WorldBase : IWorld
                 if (m_changeMusicTicks > 0)
                 {
                     m_changeMusicTicks--;
-                    if (m_changeMusicTicks == 0 && m_lastMusicChange?.MusicData != null)
-                        PlayLevelMusic(m_lastMusicChange.Name, m_lastMusicChange.MusicData);
+                    if (m_changeMusicTicks == 0 && m_lastMusicChange != null)
+                        PlayLevelMusic(m_lastMusicChange.Name);
                 }
 
                 ArchiveCollection.TextureManager.Tick();
@@ -1014,7 +1049,7 @@ public abstract partial class WorldBase : IWorld
             attenuationFactor: info.Attenuation));
     }
 
-    public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)
+    public virtual bool PlayLevelMusic(string name, MusicFlags flags = MusicFlags.Loop, Entity? activator = null)
     {
         m_activeMusic = name;
         return true;
@@ -1032,6 +1067,12 @@ public abstract partial class WorldBase : IWorld
             Player.Inventory.Clear();
             Player.SetDefaultInventory();
         }
+
+        if ((m_exitLevelArgs.Flags & LevelChangeFlags.ResetInventory) != 0)
+            Player.Health = Player.Properties.Health;
+
+        if (m_exitLevelArgs.SkillLevel.HasValue)
+            Config.Game.Skill.Set(m_exitLevelArgs.SkillLevel.Value, writeToConfig: false);
 
         m_exitLevelArgs.Flags = LevelChangeFlags.None;
     }
@@ -1368,7 +1409,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Sector> FindBySectorTag(int tag) =>
         Geometry.FindBySectorTag(tag);
 
-    public LinkedList<Entity> FindByTid(int tid) =>
+    public LinkableList<Entity> FindByTid(int tid) =>
         EntityManager.FindByTid(tid);
 
     public IEnumerable<Line> FindByLineId(int lineId) =>
@@ -1407,6 +1448,7 @@ public abstract partial class WorldBase : IWorld
             case LevelChangeType.ResetOrLoadLast:
             case LevelChangeType.Reset:
             case LevelChangeType.SpecificLevel:
+            case LevelChangeType.SpecificMapName:
                 return 0;
             default:
                 return ExitTicks;
@@ -1599,6 +1641,18 @@ public abstract partial class WorldBase : IWorld
         {
             entity.PlayerObj.PlayUseFailSound();
             DisplayMessage(entity.PlayerObj, null, GetLockFailMessage(line, lockFail), true);
+        }
+        return success;
+    }
+
+    public bool CanUnlock(Entity entity, ZDoomKeyType key, bool objectMessage)
+    {
+        var success = LineSpecial.CanUnlock(entity, ArchiveCollection.Definitions.LockDefinitions, key, out var lockFail);
+        if (!success && entity.PlayerObj != null && lockFail != null)
+        {
+            entity.PlayerObj.PlayUseFailSound();
+            var message = objectMessage ? ArchiveCollection.Language.GetMessage(lockFail.ObjectMessage) : ArchiveCollection.Language.GetMessage(lockFail.DoorMessage);
+            DisplayMessage(entity.PlayerObj, null, message, true);
         }
         return success;
     }
@@ -2272,6 +2326,18 @@ public abstract partial class WorldBase : IWorld
         entity.Velocity = velocity;
     }
 
+    public virtual bool SetPosition(Entity entity, Vec3D pos, bool checkBlocking)
+    {
+        if (IsPositionBlocked(entity, pos))
+            return false;
+
+        entity.UnlinkFromWorld();
+        entity.Position = pos;
+        Link(entity);
+        entity.PrevPosition = entity.Position;
+        return true;
+    }
+
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
         if (!item.Definition.IgnoreVanillaSpriteLookup &&
@@ -2360,6 +2426,25 @@ public abstract partial class WorldBase : IWorld
             ActivateEntitySpecial(entity, item);
             EntityManager.Destroy(item);
         }
+    }
+
+    public virtual void ClearInventory(Player player)
+    {
+        player.Inventory.Clear();
+    }
+
+    public virtual bool GiveInventory(Player player, ReadOnlySpan<char> className, int amount)
+    {
+        var def = EntityManager.DefinitionComposer.GetByName(className);
+        if (def == null)
+            return false;
+
+        return player.GiveItem(def, null, pickupFlash: false, amount: amount);
+    }
+
+    public virtual void TakeInventory(Player player, ReadOnlySpan<char> className, int amount)
+    {
+        player.Inventory.Remove(className, amount);
     }
 
     private void ActivateEntitySpecial(Entity activator, Entity entity)
@@ -2851,6 +2936,7 @@ public abstract partial class WorldBase : IWorld
         {
             HandleObituary(deathEntity.PlayerObj, deathSource, damageType);
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
+            StartScript(HelionACS.ScriptType.Death, [], deathEntity, null, false);
         }
 
         ActivateEntitySpecial(deathSource ?? deathEntity, deathEntity);
@@ -2921,18 +3007,32 @@ public abstract partial class WorldBase : IWorld
             DisplayMessage(player, killer?.PlayerObj, obituary);
     }
 
-    public virtual void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(null, null, message, isCentered);
+    public virtual void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(new(message, null, null, isCentered));
 
-    public virtual void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false)
+    public virtual void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false) => DisplayMessage(new(message, player, other, isCentered));
+
+    public virtual void DisplayMessage(DisplayMessageArgs args)
     {
-        message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
-        if (message.Length > 0)
+        args.Message = ArchiveCollection.Definitions.Language.GetMessage(args.Player, args.Other, args.Message);
+        if (args.Message.Length == 0)
+            return;
+  
+        if (args.ForAllPlayers)
         {
-            if (!isCentered && (player == null || player == GetCameraPlayer()))
-                HelionLog.Info(message);
-            if (player != null && player == GetCameraPlayer())
-                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message, isCentered));
+            for (int i = 0; i < EntityManager.Players.Count; i++)
+            {
+                var player = EntityManager.Players[i];
+                if (player.IsVooDooDoll)
+                    continue;
+
+                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, args));
+            }
         }
+        else
+        {
+            if (args.Player == GetCameraPlayer())
+                PlayerMessage?.Invoke(this, new PlayerMessageEvent(args.Player, args));
+        }        
     }
 
     private void HandleRespawn(Entity entity)
@@ -2970,13 +3070,13 @@ public abstract partial class WorldBase : IWorld
         return blocked;
     }
 
-    public bool IsPositionBlocked(Entity entity)
+    public bool IsPositionBlocked(Entity entity, Vec3D position)
     {
-        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !WorldStatic.InfinitelyTallThings);
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, position, !WorldStatic.InfinitelyTallThings);
         if (blocked)
             return true;
 
-        if (!PhysicsManager.IsPositionValid(entity, entity.Position.X, entity.Position.Y))
+        if (!PhysicsManager.IsPositionValid(entity, position.X, position.Y))
             return true;
 
         return false;
@@ -3043,6 +3143,11 @@ public abstract partial class WorldBase : IWorld
         SkillLevel = skill;
         SkillDefinition = skillDef;
         return true;
+    }
+
+    public void SetGravity(double gravity)
+    {
+        Gravity = gravity;
     }
 
     private void HighlightSector(Sector sector)
@@ -3114,7 +3219,7 @@ public abstract partial class WorldBase : IWorld
         if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
             return false;
 
-        return PlayLevelMusic(mapInfoDef.Music, null);
+        return PlayLevelMusic(mapInfoDef.Music);
     }
 
     protected void ResetLevel(bool loadLastWorldModel)
@@ -3790,23 +3895,52 @@ public abstract partial class WorldBase : IWorld
     }
 
     public int EntityCount(int entityDefinitionId) =>
-        EntityCount(entityDefinitionId, false);
+        EntityCount(entityDefinitionId, EntityManager.NoTid, Sector.NoTag, false);
 
-    public int EntityAliveCount(int entityDefinitionId, Entity? ignoreEntity = null) =>
-        EntityCount(entityDefinitionId, true, ignoreEntity);
+    public int EntityAliveCount(int entityDefinitionId, int tid, int sectorTag, Entity? ignoreEntity = null) =>
+        EntityCount(entityDefinitionId, tid, sectorTag, true, ignoreEntity);
 
-    private int EntityCount(int entityDefinitionId, bool checkAlive, Entity? ignoreEntity = null)
+    private int EntityCount(int entityDefinitionId, int tid, int sectorTag, bool checkAlive, Entity? ignoreEntity = null)
     {
         int count = 0;
-        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+        if (sectorTag != Sector.NoTag)
         {
-            if (entity == ignoreEntity)
-                continue;
+            var sectors = FindBySectorTag(sectorTag);
+            foreach (var sector in sectors)
+            {
+                for (var node = sector.Entities.Head; node != null; node = node.Next)
+                    CountEntity(node.Value, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+            }
 
-            if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead()))
-                count++;
+            return count;
         }
+
+        if (tid != EntityManager.NoTid)
+        {
+            // If searching by thing id then pre-filter by tid list.
+            var entities = EntityManager.FindByTid(tid);
+            for (var node = entities.Head; node != null; node = node.Next)
+                CountEntity(node.Value, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+
+            return count;
+        }
+
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+            CountEntity(entity, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+
         return count;
+    }
+
+    private static void CountEntity(Entity entity, int entityDefinitionId, int tid, bool checkAlive, Entity? ignoreEntity, ref int count)
+    {
+        if (entity == ignoreEntity || (tid != 0 && entity.ThingId != tid))
+            return;
+
+        if (entityDefinitionId >= 0 && entity.Definition.Id != entityDefinitionId)
+            return;
+
+        if (!checkAlive || !entity.IsDead())
+            count++;
     }
 
     public bool HealChase(Entity entity, EntityFrame healState, string healSound)
@@ -3978,16 +4112,27 @@ public abstract partial class WorldBase : IWorld
         Link(entity);
     }
 
+    public void SetEntitySound(Entity entity, ReadOnlySpan<char> sound, float volume)
+    {
+        SoundManager.CreateSoundOn(entity, sound, new SoundParams(entity, volume: volume));
+    }
+
+    public void PlayStaticSound(Player? player, ReadOnlySpan<char> sound, float volume)
+    {
+        if (player == null || player == Player)
+            SoundManager.PlayStaticSound(sound, volume);
+    }
+
     public void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags)
     {
         var updated = false;
         var line = Lines[lineId];
 
-        if (setFlags != 0)
-            SetLineBlockFlags(line, setFlags, true, ref updated);
-
         if (clearFlags != 0)
             SetLineBlockFlags(line, clearFlags, false, ref updated);
+
+        if (setFlags != 0)
+            SetLineBlockFlags(line, setFlags, true, ref updated);
 
         if (updated)
             SetLineBlockFlags(line, line.Flags.Blocking);
@@ -4009,6 +4154,30 @@ public abstract partial class WorldBase : IWorld
                     ref var blockLine = ref Blockmap.BlockLines[i];
                     if (blockLine.LineId == line.Id)
                         blockLine.BlockFlags = flags;
+                }
+            }
+        }
+    }
+
+    public void SetLineSpecial(Line line, ZDoomLineSpecialType type, in SpecialArgs args)
+    {
+        line.DataChanges |= LineDataTypes.Special;
+        line.DataChanges |= LineDataTypes.Args;
+        line.Args = args;
+        line.UpdateSpecial(type);
+
+        var it = Blockmap.CreateBoxIteration(line.Segment.Box);
+        for (int by = it.BlockStartY; by <= it.BlockEndY; by++)
+        {
+            for (int bx = it.BlockStartX; bx <= it.BlockEndX; bx++)
+            {
+                ref var block = ref Blockmap.Lines[by * it.Width + bx];
+                int count = block.BlockLineIndex + block.BlockLineCount;
+                for (int i = count - 1; i >= block.BlockLineIndex; i--)
+                {
+                    ref var blockLine = ref Blockmap.BlockLines[i];
+                    if (blockLine.LineId == line.Id)
+                        blockLine.HasSpecial = line.HasSpecial;
                 }
             }
         }
@@ -4355,8 +4524,9 @@ public abstract partial class WorldBase : IWorld
     {
         if (sector.FogColor == color && sector.FogDensity == density)
             return;
-        sector.SetFog(color, sector.FogDensity);
-        SectorFogColorChanged?.Invoke(this, sector);
+        var previousColor = sector.FogColor;
+        sector.SetFog(color, density);
+        SectorFogColorChanged?.Invoke(this, new(sector, previousColor));
     }
 
     public void SetSectorPlaneAngle(SectorPlane plane, double angleRadians)
@@ -4393,6 +4563,11 @@ public abstract partial class WorldBase : IWorld
             return;
         sector.DataChanges |= SectorDataTypes.Gravity;
         sector.Gravity = gravity;
+    }
+
+    public void SetSectorSound(Sector sector, ReadOnlySpan<char> sound, float volume)
+    {
+        SoundManager.CreateSoundOn(sector, sound, new SoundParams(sector, volume: volume));
     }
 
     private bool EntityActivatedSpecial(in EntityActivateSpecial args) =>
@@ -4468,6 +4643,7 @@ public abstract partial class WorldBase : IWorld
         player.SetDefaultInventory();
 
         CreateTeleportFog(player);
+        StartScript(HelionACS.ScriptType.Respawn, [], player, null, false);
         return player;
     }
 
@@ -4535,4 +4711,16 @@ public abstract partial class WorldBase : IWorld
     }
 
     public bool UseAverageScrollCarry() => m_averageScrollCarry;
+
+    public IEnumerable<string> GetPreCacheTextureNames() =>
+        MapInfo.PrecacheTextures.Union(GetFilteredAcsStrings(), StringComparer.OrdinalIgnoreCase);
+
+    public IEnumerable<string> GetPreCacheSoundNames() =>
+        MapInfo.PrecacheSounds.Union(GetFilteredAcsStrings(), StringComparer.OrdinalIgnoreCase);
+
+    // Add ACS strings without spaces and less than 20 characters.
+    // This lets the functions check if they are valid data to cache for ACS functions since it's difficult to get the context they may be used in.
+    private IEnumerable<string> GetFilteredAcsStrings() =>
+        AcsExecutor.GetStringTable().Where(x => x.Length < 20 && !x.Contains(' '));
+
 }

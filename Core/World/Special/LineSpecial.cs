@@ -9,6 +9,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
+using System.Diagnostics;
 
 namespace Helion.World.Special;
 
@@ -23,6 +24,7 @@ public class LineSpecial
 
     public ZDoomLineSpecialType LineSpecialType { get; private set; }
     public LineSpecialCompatibility LineSpecialCompatibility { get; private set; }
+    public LineActivationType ActivationType { get; private set; }
     private bool m_moveSpecial;
     private bool m_sectorStopMove;
     private bool m_lightSpecial;
@@ -31,7 +33,6 @@ public class LineSpecial
     private bool m_ceilingMove;
     private bool m_sectorTransform;
     private bool m_lineTransform;
-    private LineActivationType m_lineActivationType;
 
     public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, LineSpecialCompatibility.Default)
     {
@@ -46,9 +47,10 @@ public class LineSpecial
 
     public void Set(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility compatibility)
     {
+        Debug.Assert(this != Default, "Attempted to change default line special");
         LineSpecialType = type;
         LineSpecialCompatibility = compatibility;
-        m_lineActivationType = lineActivationType;
+        ActivationType = lineActivationType;
         m_moveSpecial = SetMoveSpecial();
         m_sectorStopMove = SetSectorStopSpecial();
         m_lightSpecial = SetLightSpecial();
@@ -92,6 +94,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
             case ZDoomLineSpecialType.ScrollTextureModelBothSides:
             case ZDoomLineSpecialType.SectorSet3DFloor:
+            case ZDoomLineSpecialType.TranslucentLine:
+            case ZDoomLineSpecialType.LineIdentify:
                 flags.Activations = LineActivations.LevelStart;
                 break;
 
@@ -118,8 +122,8 @@ public class LineSpecial
         return LineSpecialCompatibility.Default;
     }
 
-    public bool CanActivateByTag => (m_lineActivationType & LineActivationType.Tag) != 0;
-    public bool CanActivateByBackSide => (m_lineActivationType & LineActivationType.BackSide) != 0;
+    public bool CanActivateByTag => (ActivationType & LineActivationType.Tag) != 0;
+    public bool CanActivateByBackSide => (ActivationType & LineActivationType.BackSide) != 0;
 
     /// <summary>
     /// Returns true if the given entity can activate this special given the activation context.
@@ -194,16 +198,28 @@ public class LineSpecial
 
             if (contextSuccess && IsLockType(line, out var keyNumber))
             {
-                LockDef? lockDef = lockDefinitions.GetLockDef(keyNumber);
-                if (lockDef == null || !PlayerCanUnlock(entity.PlayerObj, lockDef))
-                {
-                    lockFail = lockDef;
+                if (!CanUnlock(entity, lockDefinitions, keyNumber, out lockFail))
                     return false;
-                }
             }
         }
 
         return contextSuccess;
+    }
+
+    public static bool CanUnlock(Entity entity, LockDefinitions lockDefinitions, ZDoomKeyType key, out LockDef? lockFail)
+    {
+        lockFail = null;
+        if (entity.PlayerObj == null)
+            return false;
+
+        var lockDef = lockDefinitions.GetLockDef(key);
+        if (lockDef == null || !PlayerCanUnlock(entity.PlayerObj, lockDef))
+        {
+            lockFail = lockDef;
+            return false;
+        }
+
+        return true;
     }
 
     private static bool PlayerCanUnlock(Player player, LockDef lockDef)

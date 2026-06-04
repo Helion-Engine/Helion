@@ -2,6 +2,7 @@
 
 public enum ZDoomLineBlockFlags
 {
+    None,
     Creatures = 1,
     Monsters = 2,
     Players = 4,
@@ -14,4 +15,5 @@ public enum ZDoomLineBlockFlags
     HitScan = 512,
     Sound = 1024,
     LandMonsters = 2048,
+    All = 0xFFFFFF
 }

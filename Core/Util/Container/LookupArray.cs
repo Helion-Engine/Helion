@@ -2,9 +2,9 @@
 
 namespace Helion.Util.Container;
 
-public class LookupArray<T>
+public class LookupArray<T>(int initialCapacity = 32)
 {
-    private readonly DynamicArray<T> m_items = new();
+    private readonly DynamicArray<T> m_items = new(initialCapacity);
 
     public void Set(int key, T value)
     {

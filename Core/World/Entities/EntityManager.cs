@@ -45,7 +45,8 @@ public class EntityManager : IDisposable
     public List<Player> VoodooDolls = [];
     public List<Entity> MusicChangers = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
-    private readonly Dictionary<int, LinkedList<Entity>> TidToEntity = [];
+    private readonly LookupArray<Entity?> EntityLookup = new(1024);
+    private readonly Dictionary<int, LinkableList<Entity>> TidToEntity = [];
 
     public EntityManager(IWorld world)
     {
@@ -59,26 +60,26 @@ public class EntityManager : IDisposable
         return z != double.MinValue && z != 0.0;
     }
 
-    private static readonly LinkedList<Entity> EmptyLinkedList = new();
+    private static readonly LinkableList<Entity> EmptyLinkedList = new();
 
-    public LinkedList<Entity> FindByTid(int tid)
+    public LinkableList<Entity> FindByTid(int tid)
     {
         return TidToEntity.TryGetValue(tid, out var entities) ? entities : EmptyLinkedList;
     }
 
+    public bool TidInUse(int tid)
+    {
+        return TidToEntity.ContainsKey(tid);
+    }
+
     public Entity? FindById(int id)
     {
-        var entity = Head;
-        while (entity != null)
-        {
-            if (entity.Id == id)
-                return entity;
-            entity = entity.Next;
-        }
+        if (EntityLookup.TryGetValue(id, out var entity))
+            return entity;
         return null;
     }
 
-    public Entity? Create(string className, in Vec3D pos, bool initSpawn = false)
+    public Entity? Create(ReadOnlySpan<char> className, in Vec3D pos, bool initSpawn = false)
     {
         var def = DefinitionComposer.GetByName(className);
         return def != null ? Create(def, pos, 0.0, 0.0, 0, default, initSpawn: initSpawn) : null;
@@ -123,22 +124,20 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    public void Destroy(Entity entity, bool removeFromIdList = true)
+    private static void RemoveEntityFromThingLookup(Entity entity)
+    {
+        entity.ThingIdNode?.Unlink();
+        entity.ThingIdNode = null;
+    }
+
+    public void Destroy(Entity entity)
     {
         if (entity.IsDisposed)
             return;
 
         EntityCount--;
 
-        if (removeFromIdList && TidToEntity.TryGetValue(entity.ThingId, out var entities))
-        {
-            var node = entities.Find(entity);
-            if (node != null)
-            {
-                World.DataCache.FreeLinkedListNodeEntity(node);
-                entities.Remove(node);
-            }
-        }
+        RemoveEntityFromThingLookup(entity);
 
         if (entity.Flags.IsTeleportSpot())
             TeleportSpots.Remove(entity);
@@ -146,18 +145,25 @@ public class EntityManager : IDisposable
         if (entity.PlayerObj != null)
             Players.Remove(entity.PlayerObj);
 
+        EntityLookup.Set(entity.Id, null);
+
         entity.Dispose();
     }
 
-    public void Destroy(LinkedList<Entity> entities)
+    public void Destroy(LinkableList<Entity> entities)
     {
-        for (var node = entities.First; node != null; node = node.Next)
-        {
-            Destroy(node.Value, false);
-            World.DataCache.FreeLinkedListNodeEntity(node);
-        }
+        //for (var node = entities.Head; node != null; node = node.Next)
+        //    Destroy(node.Value, false);
 
-        entities.Clear();
+        var node = entities.Head;
+        LinkableNode<Entity>? next = node?.Next;
+
+        while (node != null)
+        {
+            Destroy(node.Value);
+            node = next;
+            next = node?.Next;
+        }
     }
 
     public Player RespawnPlayer(int playerIndex, Entity spawnSpot) =>
@@ -256,7 +262,7 @@ public class EntityManager : IDisposable
             if (!definition.SpawnState.HasValue)
                 continue;
 
-            if (World.Config.Game.NoMonsters && definition.Flags.CountKill())
+            if ((World.Config.Game.NoMonsters || World.Config.Game.NoMonstersLevel) && definition.Flags.CountKill())
                 continue;
 
             if (definition.Flags.CountKill() && !definition.Flags.Friendly())
@@ -270,6 +276,8 @@ public class EntityManager : IDisposable
             var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, mapThing.Args, initSpawn: true, editorId: mapThing.EditorNumber);
             entity.Special = mapThing.Special;
             entity.Gravity = mapThing.Gravity;
+
+            entity.UserProperties = mapThing.GetUserProperties();
 
             if (mapThing.Alpha.HasValue)
                 entity.Alpha = mapThing.Alpha.Value;
@@ -302,7 +310,7 @@ public class EntityManager : IDisposable
                 relinkEntities.Add(entity);
 
             if (isMusicChanger)
-                entity.ThingId = mapThing.EditorNumber - (int)EditorId.MusicChangerStart;
+                SetThingId(entity, mapThing.EditorNumber - (int)EditorId.MusicChangerStart);
         }
 
         //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
@@ -462,6 +470,18 @@ public class EntityManager : IDisposable
         return player;
     }
 
+    public int GetRealPlayerCount()
+    {
+        int count = 0;
+        foreach (var player in Players)
+        {
+            var check = GetRealPlayer(player.PlayerNumber);
+            if (check != null)
+                count++;
+        }
+        return count;
+    }
+
     private IFloorCeilingAnchor GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId, out Entity? entity)
     {
         entity = null;
@@ -616,28 +636,41 @@ public class EntityManager : IDisposable
     {
         SpawnLocations.AddPossibleSpawnLocation(entity);
 
-        if (entity.ThingId != NoTid)
-            AddToThingLookup(entity, entity.ThingId);
-
         if (entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
             AddToThingLookup(entity, 0);
 
         if (entity.Flags.IsTeleportSpot())
             TeleportSpots.AddLast(entity);
+
+        EntityLookup.Set(entity.Id, entity);
     }
 
     private void AddToThingLookup(Entity entity, int thingId)
     {
         if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
         {
-            entities.AddFirst(entity);
+            entity.ThingIdNode = entities.Add(entity);
         }
         else
         {
-            var list = new LinkedList<Entity>();
-            list.AddFirst(World.DataCache.GetLinkedListNodeEntity(entity));
+            var list = new LinkableList<Entity>();
+            entity.ThingIdNode = list.Add(entity);
             TidToEntity.Add(thingId, list);
         }
+    }
+
+    public void SetThingId(Entity entity, int thingId)
+    {
+        if (entity.ThingId == thingId)
+            return;
+
+        if (entity.ThingId != NoTid)
+            RemoveEntityFromThingLookup(entity);
+
+        entity.SetThingIdWithoutAddingToList(thingId);
+
+        if (entity.ThingId != NoTid)
+            AddToThingLookup(entity, entity.ThingId);
     }
 
     private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)
@@ -671,6 +704,7 @@ public class EntityManager : IDisposable
         VoodooDolls.Clear();
         MusicChangers.Clear();
         RealPlayersByNumber.SetAll(null);
+        EntityLookup.SetAll(null);
         TeleportSpots.Clear();
     }
 

@@ -10,6 +10,7 @@ namespace Helion.Maps.Specials;
 public struct SpecialArgs
 {
     public int Arg0;
+    public string? Arg0Str;
     public int Arg1;
     public int Arg2;
     public int Arg3;
@@ -27,6 +28,7 @@ public struct SpecialArgs
     public SpecialArgs(SpecialArgs other)
     {
         Arg0 = other.Arg0;
+        Arg0Str = other.Arg0Str;
         Arg1 = other.Arg1;
         Arg2 = other.Arg2;
         Arg3 = other.Arg3;

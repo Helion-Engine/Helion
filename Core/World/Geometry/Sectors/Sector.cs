@@ -2,6 +2,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
@@ -26,7 +27,7 @@ using Vector2D = Helion.Models.Vector2D;
 
 namespace Helion.World.Geometry.Sectors;
 
-public sealed class Sector : IFloorCeilingAnchor
+public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 {
     public static readonly Sector Default = CreateDefault();
 
@@ -104,6 +105,8 @@ public sealed class Sector : IFloorCeilingAnchor
     public Sector SetTransferFloorLightSector;
     public Sector SetTransferCeilingLightSector;
 
+    public MapUserProperties UserProperties;
+
 #if DEBUG
     public SectorDamageSpecial? SectorDamageSpecial { get; private set; }
 #else
@@ -118,6 +121,7 @@ public sealed class Sector : IFloorCeilingAnchor
     private Color m_initialLightColor;
     private Color m_initialFogColor;
     private float m_initialFogDensity;
+    public override Sector SoundSector => this;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
@@ -607,10 +611,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public LinkableNode<Entity> Link(Entity entity)
     {
         //Precondition(!Entities.ContainsReference(entity), "Trying to link an entity to a sector twice");
-
-        LinkableNode<Entity> node = WorldStatic.DataCache.GetLinkableNodeEntity(entity);
-        Entities.Add(node);
-        return node;
+        return Entities.Add(entity);
     }
 
     public double ToFloorZ(in Vec2D position) => Floor.Plane.ToZ(position);
@@ -1038,11 +1039,7 @@ public sealed class Sector : IFloorCeilingAnchor
     public void UnlinkFromWorld(IWorld world)
     {
         for (int i = 0; i < BlockmapNodes.Length; i++)
-        {
-            var node = BlockmapNodes[i];
-            node.Unlink();
-            world.DataCache.FreeLinkableNodeIsland(node);
-        }
+            BlockmapNodes[i].Unlink();
 
         BlockmapNodes.Clear();
 

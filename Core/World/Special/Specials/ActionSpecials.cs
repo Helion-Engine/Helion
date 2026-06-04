@@ -1,21 +1,37 @@
-﻿using Helion.Audio;
+﻿using Helion.ACS;
+using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
 
 public static class ActionSpecials
 {
+    enum ScriptState
+    {
+        Start,
+        StartForced,
+        StartWithResult,
+        Pause,
+        Terminate
+    }
+
     const double SpeedFactor = 1 / 8.0;
     const int ProjectileOffsetZ = -31;
 
     private static readonly DynamicArray<int> EntitiesByIndex = new(64);
+    private static readonly uint[] ScriptArgs = new uint[4];
 
     public static void ExitNormal(IWorld world, in SpecialArgs args)
     {
@@ -29,7 +45,7 @@ public static class ActionSpecials
 
     public static void TeleportNewMap(IWorld world, in SpecialArgs args)
     {
-        world.ExitLevel(ExitLevelArgs.SpecificMap(LevelChangeFlags.None, args.Arg0, args.Arg1, args.Arg2 > 0));
+        world.ExitLevel(ExitLevelArgs.SpecificMap(LevelChangeFlags.None, args.Arg0, args.Arg1, args.Arg2 > 0 ? world.Player.AngleRadians : null));
     }
 
     public static void TeleportEndGame(IWorld world)
@@ -96,7 +112,7 @@ public static class ActionSpecials
             if (entity == null)
                 continue;
 
-            entity.ThingId = newTid;
+            world.EntityManager.SetThingId(entity, newTid);
             var xy = Vec2D.UnitCircle(angle) * speedXY;
             entity.Velocity.X = xy.X;
             entity.Velocity.Y = xy.Y;
@@ -140,7 +156,7 @@ public static class ActionSpecials
                 continue;
 
             entity.Velocity = Vec3D.UnitSphere(angle, pitch) * speed;
-            entity.ThingId = newTid;
+            world.EntityManager.SetThingId(entity, newTid);
             success = true;
         }
 
@@ -179,7 +195,7 @@ public static class ActionSpecials
     public static bool ThingRemove(IWorld world, in SpecialArgs args)
     {
         var removeEntities = world.FindByTid(args.Arg0);
-        if (removeEntities.First != null)
+        if (removeEntities.Head != null)
         {
             world.EntityManager.Destroy(removeEntities);
             return true;
@@ -190,7 +206,7 @@ public static class ActionSpecials
 
     public static bool SectorSetColor(IWorld world, in SpecialArgs args)
     {
-        var colormap = world.ArchiveCollection.Definitions.GetLevelSectorColormap(new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3));
+        var colormap = world.ArchiveCollection.Definitions.GetOrCreateLevelSectorColormap(new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3));
         var sectors = world.FindBySectorTag(args.Arg0);
         for (int i = 0; i < sectors.Count; i++)
         {
@@ -207,6 +223,17 @@ public static class ActionSpecials
         {
             var sector = sectors[i];
             world.SetSectorFogColor(sector, new((byte)args.Arg1, (byte)args.Arg2, (byte)args.Arg3), sector.FogDensity);
+        }
+        return true;
+    }
+
+    public static bool SetFogDensity(IWorld world, int tag, float density)
+    {
+        var sectors = world.FindBySectorTag(tag);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+            world.SetSectorFogColor(sector, sector.FogColor, density);
         }
         return true;
     }
@@ -308,7 +335,7 @@ public static class ActionSpecials
     public static bool ThingRaise(Entity activator, IWorld world, in SpecialArgs args)
     {
         var targets = world.FindByTid(args.Arg0);
-        for (var targetNode = targets.First; targetNode != null; targetNode = targetNode.Next)
+        for (var targetNode = targets.Head; targetNode != null; targetNode = targetNode.Next)
         {
             var target = targetNode.Value;
             if (target.IsDead())
@@ -375,7 +402,7 @@ public static class ActionSpecials
     {
         var targets = GetActivatorOrEntities(activator, world, args.Arg0);
         for (var target = targets.Current(); target != null; target = targets.Advance())
-            target.ThingId = args.Arg1;
+            world.EntityManager.SetThingId(target, args.Arg1);
         return true;
     }
 
@@ -390,6 +417,23 @@ public static class ActionSpecials
             target.Args.Arg2 = args.Arg4;
         }
         return true;
+    }
+
+    public static void ThingSetSpecial(Entity activator, IWorld world, int tid, ZDoomLineSpecialType special, int arg0, int arg1, int arg2, int arg3, int arg4)
+    {
+        var entities = GetActivatorOrEntities(activator, world, tid);
+        for (var entity = entities.Current(); entity != null; entity = entities.Advance())
+        {
+            entity.Special = special;
+            entity.Args = new(arg0, arg1, arg2, arg3, arg4);
+        }
+    }
+
+    public static void ThingSound(IWorld world, int tid, ReadOnlySpan<char> sound, float volume)
+    {
+        var entities = GetEntities(world, tid);
+        for (var entity = entities.Current(); entity != null; entity = entities.Advance())
+            world.SetEntitySound(entity, sound, volume);
     }
 
     public static bool RadiusQuake(Entity activator, IWorld world, in SpecialArgs args)
@@ -532,6 +576,168 @@ public static class ActionSpecials
         return success;
     }
 
+    public static bool ScriptExecute(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.Start);
+    }
+
+    public static bool ScriptExecuteForced(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.StartForced);
+    }
+
+    public static bool ScriptExecuteWithResult(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.StartWithResult);
+    }
+
+    public static bool ScriptExecuteWithKey(Entity activator, Line line, bool frontSide, IWorld world, in SpecialArgs args, bool objectMessage)
+    {
+        var success = world.CanUnlock(activator, (ZDoomKeyType)args.Arg4, objectMessage);
+        if (success)
+            return SetScriptState(activator, line, frontSide, world, args, ScriptState.Start);
+        return false;
+    }
+
+    public static bool ScriptStop(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.Pause);
+    }
+
+    public static bool ScriptKill(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args)
+    {
+        return SetScriptState(activator, line, frontSide, world, args, ScriptState.Terminate);
+    }
+
+    private static bool SetScriptState(Entity activator, Line? line, bool frontSide, IWorld world, in SpecialArgs args, ScriptState state)
+    {
+        var threadInfo = WorldExecutor.CreateThreadInfoData(activator, line, frontSide);
+        var mapId = (args.Arg1 == 0) ? (uint)world.MapInfo.LevelNumber : (uint)args.Arg1;
+
+        if (state == ScriptState.StartWithResult)
+        {
+            ScriptArgs[0] = (uint)args.Arg1;
+            ScriptArgs[1] = (uint)args.Arg2;
+            ScriptArgs[2] = (uint)args.Arg3;
+            ScriptArgs[3] = (uint)args.Arg4;
+        }
+        else
+        {
+            ScriptArgs[0] = (uint)args.Arg2;
+            ScriptArgs[1] = (uint)args.Arg3;
+            ScriptArgs[2] = (uint)args.Arg4;
+        }
+
+        if (args.Arg0Str != null)
+        {
+            switch (state)
+            {
+                case ScriptState.Start:
+                    return world.AcsExecutor.ScriptStart(args.Arg0Str, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartForced:
+                    return world.AcsExecutor.ScriptStartForced(args.Arg0Str, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartWithResult:
+                    return world.AcsExecutor.ScriptStartResult(args.Arg0Str, ScriptArgs, threadInfo) != 0;
+                case ScriptState.Pause:
+                    return world.AcsExecutor.ScriptPause(args.Arg0Str, 0, mapId);   
+                case ScriptState.Terminate:
+                    return world.AcsExecutor.ScriptStop(args.Arg0Str, 0, mapId);
+            }
+        }
+        else
+        {
+            switch (state)
+            {
+                case ScriptState.Start:
+                    return world.AcsExecutor.ScriptStart((uint)args.Arg0, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartForced:
+                    return world.AcsExecutor.ScriptStartForced((uint)args.Arg0, 0, mapId, ScriptArgs, threadInfo);
+                case ScriptState.StartWithResult:
+                    return world.AcsExecutor.ScriptStartResult((uint)args.Arg0, ScriptArgs, threadInfo) != 0;
+                case ScriptState.Pause:
+                    return world.AcsExecutor.ScriptPause((uint)args.Arg0, 0, mapId);
+                case ScriptState.Terminate:
+                    return world.AcsExecutor.ScriptStop((uint)args.Arg0, 0, mapId);
+            }
+        }
+
+        return false;
+    }
+
+    public static bool ChangeFlat(IWorld world, int tag, ReadOnlySpan<char> texture, SectorPlaneFace face)
+    {
+        var textureHandle = world.TextureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
+        var sectors = world.FindBySectorTag(tag);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+            world.SetPlaneTexture(sector.GetSectorPlane(face), textureHandle);
+        }
+
+        return sectors.Count > 0;
+    }
+
+    public static void SetLineTexture(IWorld world, int lineTag, bool front, WallLocation location, ReadOnlySpan<char> texture)
+    {
+        var textureHandle = world.TextureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
+        var lines = world.FindByLineId(lineTag);
+        foreach (var line in lines)
+        {
+            if (front)
+                world.SetSideTexture(line.Front, location, textureHandle);
+            else if (line.Back != null)
+                world.SetSideTexture(line.Back, location, textureHandle);
+        }
+    }
+
+    public static void SetLineSpecial(IWorld world, int lineTag, ZDoomLineSpecialType special, in SpecialArgs specialArgs)
+    {
+        var lines = world.FindByLineId(lineTag);
+        foreach (var line in lines)
+            world.SetLineSpecial(line, special, specialArgs);
+    }
+
+    public static bool Spawn(IWorld world, ReadOnlySpan<char> className, int xFixed, int yFixed, int zFixed, int tid, int byteAngle, bool force)
+    {
+        var pos = new Vec3D(MathHelper.FromFixed(xFixed), MathHelper.FromFixed(yFixed), MathHelper.FromFixed(zFixed));
+        return ExecuteSpawn(world, className, pos, tid, MathHelper.FromByteAngle(byteAngle), force);
+    }
+
+    public static bool SpawnSpot(IWorld world, Entity? activator, ReadOnlySpan<char> className, int spotTid, int tid, double? angle, bool force)
+    {
+        var success = false;
+        if (spotTid != 0)
+        {
+            var spots = GetEntities(world, spotTid);
+            for (var spot = spots.Current(); spot != null; spot = spots.Advance())
+                success |= ExecuteSpawn(world, className, spot.Position, tid, angle ?? spot.AngleRadians, force);
+        }
+        else if (activator != null)
+        {
+            success |= ExecuteSpawn(world, className, activator.Position, tid, angle ?? activator.AngleRadians, force);
+        }
+
+        return success;
+    }
+
+    private static bool ExecuteSpawn(IWorld world, ReadOnlySpan<char> className, Vec3D pos, int tid, double angle, bool force)
+    {
+        var entity = world.EntityManager.Create(className, pos);
+
+        if (entity == null)
+            return false;
+
+        if (!force && world.IsPositionBlocked(entity))
+        {
+            world.EntityManager.Destroy(entity);
+            return false;
+        }
+
+        entity.AngleRadians = angle;
+        world.EntityManager.SetThingId(entity, tid);
+        return true;
+    }
+
     private static EntityList GetActivatorOrEntities(Entity activator, IWorld world, int tid)
     {
         if (tid == 0)
@@ -555,7 +761,7 @@ public static class ActionSpecials
         if (tid == 0)
             return activator;
 
-        return world.FindByTid(tid).First?.Value;
+        return world.FindByTid(tid).Head?.Value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

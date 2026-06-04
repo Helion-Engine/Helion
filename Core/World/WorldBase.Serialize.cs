@@ -33,6 +33,11 @@ public partial class WorldBase
         s_fileModels.Clear();
         s_visitedMaps.Clear();
         s_specialModelData.Clear();
+        s_worldModel.AcsState = ReadOnlyMemory<byte>.Empty;
+
+        // This may need to change later but don't waste time on maps that don't have ACS
+        if (m_map.HasBehavior)
+            s_worldModel.AcsState = AcsExecutor.GetSaveState();
 
         SetSectorModels(s_sectorModels, s_specialModelData.SectorDamageSpecials);
         SpecialManager.GetSpecialModels(s_specialModelData);

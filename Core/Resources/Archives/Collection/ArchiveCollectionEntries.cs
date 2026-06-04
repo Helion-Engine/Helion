@@ -22,12 +22,18 @@ public class ArchiveCollectionEntries
     /// entry.
     /// </summary>
     private readonly Dictionary<string, Entry> m_nameToEntries = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Entry>.AlternateLookup<ReadOnlySpan<char>> m_nameToEntriesBySpan;
 
     /// <summary>
     /// A mapping of upper case name and namespace to the most recent entry
     /// for that pair of keys.
     /// </summary>
     private readonly ResourceTracker<Entry> m_namespaceEntries = new(ResourceTrackerOptions.None);
+
+    public ArchiveCollectionEntries()
+    {
+        m_nameToEntriesBySpan = m_nameToEntries.GetAlternateLookup<ReadOnlySpan<char>>();
+    }
 
     /// <summary>
     /// Tracks a new entry, meaning the entry provided will be accessible
@@ -83,7 +89,7 @@ public class ArchiveCollectionEntries
     /// <param name="priorityNamespace">The namespace to look in first
     /// before any other namespaces.</param>
     /// <returns>The entry if it exists, null if not.</returns>
-    public Entry? FindByNamespace(string name, ResourceNamespace priorityNamespace, bool noFallback = false)
+    public Entry? FindByNamespace(ReadOnlySpan<char> name, ResourceNamespace priorityNamespace, bool noFallback = false)
     {
         var entry = m_namespaceEntries.Get(name, priorityNamespace);
         if (entry != null)
@@ -92,7 +98,7 @@ public class ArchiveCollectionEntries
         if (noFallback)
             return null;
 
-        m_nameToEntries.TryGetValue(name, out entry);
+        m_nameToEntriesBySpan.TryGetValue(name, out entry);
         return entry;
     }
 
