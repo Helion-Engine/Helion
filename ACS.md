@@ -1,6 +1,6 @@
 # ACS Support
 
-Implements functionality from the [ACS Cross-Port Support Proposal](https://gist.github.com/Gutawer/25d5690569f78ea9ff7f41956ef30472) functionality and some extras.
+Implements functionality from the [ACS Cross-Port Support Proposal](https://gist.github.com/Gutawer/25d5690569f78ea9ff7f41956ef30472). Features that are not in the cross port support proposal are supported in UZDoom.
 
 ##  Script Types
 
