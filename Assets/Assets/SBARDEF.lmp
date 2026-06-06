@@ -1630,36 +1630,6 @@
           {
             "native": {
               "x": 0,
-              "y": 0,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "component": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "type": "message",
-                    "font": "Classic HUD",
-                    "vertical": false,
-                    "duration": 4
-                  }
-                }
-              ]
-            },
-            "_cacoco_name": "Top Left"
-          },
-          {
-            "native": {
-              "x": 0,
               "y": 160,
               "alignment": 72,
               "tranmap": null,
@@ -2189,28 +2159,6 @@
                     "translucency": false,
                     "conditions": [],
                     "children": [
-                      {
-                        "component": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": null,
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 19,
-                              "param": 4,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "type": "message",
-                          "font": "Classic HUD",
-                          "vertical": false,
-                          "duration": 4
-                        }
-                      },
                       {
                         "canvas": {
                           "x": 5,
