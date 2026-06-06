@@ -147,7 +147,7 @@ public partial class WorldLayer : IGameLayerParent
     }
 
     private RenderableString InitRenderableString(TextAlign align = TextAlign.Left) =>
-        new(World.ArchiveCollection.DataCache, string.Empty, DefaultFont, 12, align: align, shouldFree: false);
+        new(string.Empty, DefaultFont, 12, align: align, shouldFree: false);
 
     private Font GetFontOrDefault(string name)
     {

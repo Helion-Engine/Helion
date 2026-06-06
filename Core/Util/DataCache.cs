@@ -10,12 +10,9 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
-using Helion.Render.Common.Enums;
 using Helion.World.Special.Specials;
 using Helion.World;
-using Font = Helion.Graphics.Fonts.Font;
 using Helion.Graphics;
 using System;
 using Helion.World.Special;
@@ -42,9 +39,6 @@ public class DataCache
     private readonly DynamicArray<int> m_entities = new(DefaultLength);
     private readonly DynamicArray<IAudioSource> m_audioSources = new(64);
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
-    private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new(256);
-    private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new(64);
-    private readonly DynamicArray<RenderableString> m_strings = new(64);
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new(64);
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
@@ -225,66 +219,6 @@ public class DataCache
     {
         list.Clear();
         m_entityLists.Add(list);
-    }
-
-    public DynamicArray<RenderableSentence> GetRenderableSentences()
-    {
-        if (m_sentences.Length > 0)
-            return m_sentences.RemoveLast();
-
-        return new DynamicArray<RenderableSentence>();
-    }
-
-    private void FreeRenderableSentences(DynamicArray<RenderableSentence> list)
-    {
-        list.Clear();
-        m_sentences.Add(list);
-    }
-
-    public DynamicArray<RenderableGlyph> GetRenderableGlyphs()
-    {
-        if (m_glyphs.Length > 0)
-            return m_glyphs.RemoveLast();
-
-        return new DynamicArray<RenderableGlyph>(256);
-    }
-
-    private void FreeRenderableGlyphs(DynamicArray<RenderableGlyph> list)
-    {
-        list.Clear();
-        m_glyphs.Add(list);
-    }
-
-    public RenderableString GetRenderableString(ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
-        int maxWidth = int.MaxValue, Color? drawColor = null)
-    {
-        if (m_strings.Length > 0)
-        {
-            var renderableString = m_strings.RemoveLast();
-            renderableString.Set(this, str, font, fontSize, align, maxWidth, drawColor);
-            return renderableString;
-        }
-
-        return new RenderableString(this, str, font, fontSize, align, maxWidth, drawColor);
-    }
-
-    public void FreeRenderableString(RenderableString renderableString)
-    {
-        if (!renderableString.ShouldFree)
-            return;
-
-        FreeRenderableStringData(renderableString);
-        m_strings.Add(renderableString);
-    }
-
-    public void FreeRenderableStringData(RenderableString renderableString)
-    {
-        for (int i = 0; i < renderableString.Sentences.Length; i++)
-            FreeRenderableGlyphs(renderableString.Sentences[i].Glyphs);
-        FreeRenderableSentences(renderableString.Sentences);
-
-        renderableString.Sentences = null!;
-        renderableString.Font = null!;
     }
 
     public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)

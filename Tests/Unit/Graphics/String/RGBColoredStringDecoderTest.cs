@@ -13,11 +13,10 @@ public class RGBColoredStringDecoderTest
 {
     private static void AssertMatches(string rawString, params Tuple<string, Color>[] expectedColors)
     {
-        DataCache dataCache = new();
         var image = new Image((16, 16), ImageType.Argb);
         var glyphs = new Dictionary<char, Glyph>() { { 'A', new Glyph() } };
         var font = new Font("test", glyphs, image);
-        RenderableString colorStr = new(dataCache, rawString, font, 12);
+        RenderableString colorStr = new(rawString, font, 12);
 
         int startIndex = 0;
         int endIndex = 0;
