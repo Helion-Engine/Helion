@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
-using Helion.Graphics.Geometry;
 using Helion.Render.Common.Enums;
 using Helion.Util;
 using Helion.Util.Container;
@@ -16,11 +14,9 @@ namespace Helion.Render.OpenGL.Texture.Fonts;
 /// <summary>
 /// A collection of render information that can be used to draw a string.
 /// </summary>
-public class RenderableString
+public partial class RenderableString
 {
     public static readonly Color DefaultColor = Color.White;
-
-    private static readonly DynamicArray<ColorRange> ColorRanges = new();
 
     /// <summary>
     /// The font used when rendering this.
@@ -42,7 +38,6 @@ public class RenderableString
     /// <summary>
     /// Creates a rendered string that is ready to be passed to a renderer.
     /// </summary>
-    /// <param name="dataCache">The DataCache to use.</param>
     /// <param name="font">The font to use.</param>
     /// <param name="str">The colored string to process.</param>
     /// <param name="fontSize">The height of the characters, in pixels. If
@@ -52,32 +47,32 @@ public class RenderableString
     /// <param name="align">Alignment (only needed if there are multiple
     /// lines, otherwise it does not matter).</param>
     /// <param name="maxWidth">How wide before wrapping around.</param>
-    public RenderableString(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public RenderableString(ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null, bool shouldFree = true)
     {
         ShouldFree = shouldFree;
         Font = font;
-        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth, drawColor);
+        Sentences = PopulateSentences(str, font, fontSize, maxWidth, drawColor);
         DrawArea = CalculateDrawArea(Sentences);
         AlignTo(align);
         RecalculateGlyphLocations();
     }
 
-    public void Set(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public void Set(ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         // This is kind of a hack. If reusing this string the underlying data needs to freed.
         if (!ShouldFree)
-            dataCache.FreeRenderableStringData(this);
+            FreeData();
 
         Font = font;
-        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth, drawColor);
+        Sentences = PopulateSentences(str, font, fontSize, maxWidth, drawColor);
         DrawArea = CalculateDrawArea(Sentences);
         AlignTo(align);
         RecalculateGlyphLocations();
     }
 
-    public static DynamicArray<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize,
+    public static DynamicArray<RenderableSentence> PopulateSentences(ReadOnlySpan<char> str, Font font, int fontSize,
         int maxWidth, Color? drawColor)
     {
         int currentWidth = 0;
@@ -85,7 +80,7 @@ public class RenderableString
         int drawAreaWidth = 0;
         int drawAreaHeight = 0;
 
-        var sentences = dataCache.GetRenderableSentences();
+        var sentences = GetSentences();
         if (str.Length == 0)
             return sentences;
 
@@ -132,7 +127,7 @@ public class RenderableString
 
                 if (currentSentence == null)
                 {
-                    currentSentence = dataCache.GetRenderableGlyphs();
+                    currentSentence = GetGlyphs();
                     currentSentence.EnsureCapacity(str.Length);
                 }
 
@@ -149,6 +144,8 @@ public class RenderableString
                     currentWidth = endX;
             }
         }
+
+        FreeColorRange(colorRanges);
 
         CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref drawAreaWidth, ref drawAreaHeight, ref currentWidth, ref currentHeight);
         return sentences;
@@ -172,38 +169,38 @@ public class RenderableString
 
     private static DynamicArray<ColorRange> GetColorRanges(ReadOnlySpan<char> str, Color? drawColor)
     {
-        ColorRanges.Clear();
+        var colorRanges = GetColorRange();
         if (drawColor != null)
         {
-            ColorRanges.Add(new ColorRange(0, str.Length, drawColor.Value));
-            return ColorRanges;
+            colorRanges.Add(new ColorRange(0, str.Length, drawColor.Value));
+            return colorRanges;
         }
 
-        ColorRanges.Add(new ColorRange(0, DefaultColor));
+        colorRanges.Add(new ColorRange(0, DefaultColor));
 
         bool success = FindNextColorIndex(str, 0, out int startIndex, out int endIndex);
         while (success)
         {
-            ColorRange currentColorInfo = ColorRanges[ColorRanges.Length - 1];
+            ColorRange currentColorInfo = colorRanges[colorRanges.Length - 1];
             currentColorInfo.EndIndex = startIndex;
-            ColorRanges[ColorRanges.Length - 1] = currentColorInfo;
+            colorRanges[colorRanges.Length - 1] = currentColorInfo;
 
             Color color = ColorDefinitionToColor(str.Slice(startIndex, endIndex - startIndex));
-            ColorRanges.Add(new ColorRange(endIndex, color));
+            colorRanges.Add(new ColorRange(endIndex, color));
             startIndex = endIndex + 1;
             success = FindNextColorIndex(str, startIndex, out startIndex, out endIndex);
         }
 
         // Since we never set the very last element's ending point due to
         // the loop invariant, we do that now.
-        var last = ColorRanges[ColorRanges.Length - 1];
+        var last = colorRanges[colorRanges.Length - 1];
         last.EndIndex = str.Length;
-        ColorRanges[ColorRanges.Length - 1] = last;
+        colorRanges[colorRanges.Length - 1] = last;
 
         if (last.StartIndex == last.EndIndex)
-            ColorRanges.Length--;
+            colorRanges.Length--;
 
-        return ColorRanges;
+        return colorRanges;
     }
 
     private static bool FindNextColorIndex(ReadOnlySpan<char> str, int index, out int startIndex, out int endIndex)

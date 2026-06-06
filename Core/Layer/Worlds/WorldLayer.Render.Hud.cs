@@ -772,7 +772,7 @@ public partial class WorldLayer
         if (!HasTicks)
             return renderableString;
 
-        renderableString.Set(World.ArchiveCollection.DataCache, charSpan, GetFontOrDefault(font),
+        renderableString.Set(charSpan, GetFontOrDefault(font),
             fontSize, drawColor: drawColor);
         if (useDoomScale)
             renderableString.DrawArea = new(renderableString.DrawArea.Width, (int)(renderableString.DrawArea.Height * DoomVerticalScale));

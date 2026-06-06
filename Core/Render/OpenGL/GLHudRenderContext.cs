@@ -207,7 +207,7 @@ public class GLHudRenderContext : IHudRenderContext
             return;
 
         int scaledFontSize = (int)(fontSize * scale);
-        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth);
+        var renderableString = RenderableString.Get(text, fontObject, scaledFontSize, textAlign, maxWidth);
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
@@ -234,7 +234,7 @@ public class GLHudRenderContext : IHudRenderContext
 
         int scaledFontSize = (int)(fontSize * scale);
 
-        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth, color);
+        var renderableString = RenderableString.Get(text, fontObject, scaledFontSize, textAlign, maxWidth, color);
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
@@ -257,9 +257,9 @@ public class GLHudRenderContext : IHudRenderContext
             return default;
 
         int scaledFontSize = (int)(fontSize * scale);
-        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, TextAlign.Left, maxWidth);
+        var renderableString = RenderableString.Get(text, fontObject, scaledFontSize, TextAlign.Left, maxWidth);
         var drawArea = renderableString.DrawArea;
-        m_archiveCollection.DataCache.FreeRenderableString(renderableString);
+        renderableString.Free();
         return drawArea;
     }
 

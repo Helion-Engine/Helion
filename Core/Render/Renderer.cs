@@ -17,6 +17,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
@@ -847,8 +848,7 @@ public partial class Renderer : IDisposable
     private void HandleDrawText(DrawTextCommand cmd)
     {
         m_hudRenderer.DrawText(cmd.Text, cmd.DrawArea, cmd.Alpha, cmd.DrawColorMap);
-        var dataCache = m_archiveCollection.DataCache;
-        dataCache.FreeRenderableString(cmd.Text);
+        cmd.Text.Free();
     }
 
     private void HandleRenderAutomapCommand(DrawWorldCommand cmd, Rectangle viewport)
