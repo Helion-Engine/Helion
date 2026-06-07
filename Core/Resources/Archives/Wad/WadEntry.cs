@@ -22,6 +22,11 @@ public class WadEntry : Entry
         return Parent.ReadData(this);
     }
 
+    public override byte[] ReadDataAsync()
+    {
+        return Parent.ReadDataAsync(this);
+    }
+
     public override Stream GetStream()
     {
         return Parent.GetStream(this);

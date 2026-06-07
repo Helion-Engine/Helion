@@ -184,6 +184,11 @@ public class MusicPlayer : IMusicPlayer
         m_musicLookup.Clear();
     }
 
+    public void CacheMusicEntry(Entry entry)
+    {
+        GetMusicData(entry);
+    }
+
     private void PlayQueueTask()
     {
         while (!m_disposed)
@@ -218,11 +223,7 @@ public class MusicPlayer : IMusicPlayer
         if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0 && (options & MusicPlayerOptions.Reload) == 0 && fullPath == m_lastEntryPath)
             return;
 
-        if (!m_musicLookup.TryGetValue(fullPath, out var data))
-        {
-            data = playParams.Entry.ReadData();
-            m_musicLookup[fullPath] = data;
-        }
+        var data = GetMusicData(playParams.Entry);
 
         m_lastEntryPath = fullPath;
 
@@ -233,6 +234,18 @@ public class MusicPlayer : IMusicPlayer
 
         m_isMidi = m_zMusicPlayer.IsMIDI(data, out _);
         PlayMusic(playParams, data);
+    }
+
+    private byte[] GetMusicData(Entry entry)
+    {
+        var fullPath = entry.Path.FullPath;
+        if (!m_musicLookup.TryGetValue(fullPath, out var data))
+        {
+            data = entry.ReadDataAsync();
+            m_musicLookup[fullPath] = data;
+        }
+
+        return data;
     }
 
     private void PlayMusic(in PlayParams playParams, byte[] data)

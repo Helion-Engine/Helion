@@ -40,6 +40,11 @@ namespace Helion.Audio.Impl
 
         }
 
+        public void CacheMusicEntry(Entry entry)
+        {
+
+        }
+
         public bool Enabled { get; set; }
     }
 }

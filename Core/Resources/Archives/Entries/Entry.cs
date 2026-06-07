@@ -18,6 +18,10 @@ public abstract class Entry
     /// Reads all the raw data for this entry.
     /// </summary>
     public abstract byte[] ReadData();
+    /// <summary>
+    /// Reads all the raw data for this entry. Guarantees that multiple calls to this function asynchronously are safe.
+    /// </summary>
+    public abstract byte[] ReadDataAsync();
     public abstract Stream GetStream();
 
     public string ReadDataAsString() => System.Text.Encoding.UTF8.GetString(ReadData());

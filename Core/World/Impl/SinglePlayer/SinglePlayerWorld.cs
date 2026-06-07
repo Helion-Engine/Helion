@@ -150,7 +150,12 @@ public class SinglePlayerWorld : WorldBase
         CacheSounds();
 
         if (!sameAsPreviousMap)
+        {
             AudioSystem.Music.ClearCachedData();
+            GetMusicEntry(MapInfo.Music, out var lookup, out var entry);
+            if (entry != null)
+                AudioSystem.Music.CacheMusicEntry(entry);
+        }
     }
 
     private void CheckDistanceOverride()
