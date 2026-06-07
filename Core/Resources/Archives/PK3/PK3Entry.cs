@@ -27,6 +27,11 @@ public class PK3Entry : Entry
         return data;
     }
 
+    public override byte[] ReadDataAsync()
+    {
+        return ReadData();
+    }
+
     public override Stream GetStream()
     {
         return ZipEntry.Open();

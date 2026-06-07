@@ -50,4 +50,5 @@ public interface IMusicPlayer : IDisposable
     void OutputChanged();
 
     void ClearCachedData();
+    void CacheMusicEntry(Entry entry);
 }

@@ -20,6 +20,11 @@ public class DirectoryArchiveEntry : Entry
         return Parent.ReadData(this);
     }
 
+    public override byte[] ReadDataAsync()
+    {
+        return ReadData();
+    }
+
     public override Stream GetStream()
     {
         return Parent.GetStream(this);

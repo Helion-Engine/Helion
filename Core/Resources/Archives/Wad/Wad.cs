@@ -52,9 +52,14 @@ public class Wad : Archive
 
     public Wad(IEntryPath path, IIndexGenerator indexGenerator) : base(path)
     {
-        m_byteReader = new ByteReader(new BinaryReader(File.Open(Path.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)));
+        m_byteReader = new ByteReader(new BinaryReader(GetFileStream()));
         m_indexGenerator = indexGenerator;
         LoadWadEntries();
+    }
+
+    private FileStream GetFileStream()
+    {
+        return File.Open(Path.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
     }
 
     public byte[] ReadData(WadEntry entry)
@@ -65,10 +70,19 @@ public class Wad : Archive
         return m_byteReader.ReadBytes(entry.Size);
     }
 
+    public byte[] ReadDataAsync(WadEntry entry)
+    {
+        Precondition(entry.Parent == this, "Bad entry parent");
+
+        using var byteReader = new ByteReader(new BinaryReader(GetFileStream()));
+        byteReader.Offset(entry.Offset);
+        return byteReader.ReadBytes(entry.Size);
+    }
+
     public Stream GetStream(WadEntry entry)
     {
         Precondition(entry.Parent == this, "Bad entry parent");
-        return new SubStream(m_byteReader.BaseStream, entry.Offset, entry.Size);
+        return new SubStream(GetFileStream(), entry.Offset, entry.Size);
     }
 
     public override void Dispose()
