@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.Common.World;
@@ -478,7 +479,7 @@ public class Player : Entity
         }
 
         if (!Flags.NoGravity() && !Flags.NoClip() && !IsDead() && BlockingBlockLineIndex != -1 &&
-            Sector.Friction > Constants.DefaultFriction &&
+            Sector.Friction > Constants.DefaultFriction && (Sector.SectorEffect & SectorEffect.Friction) != 0 &&
             Position.Z <= Sector.Floor.Z &&
             Math.Abs(velocity.X) + Math.Abs(velocity.Y) > 8 &&
             CheckIcyBounceLineAngle(World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment, velocity))

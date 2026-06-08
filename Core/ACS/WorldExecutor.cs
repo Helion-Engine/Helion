@@ -399,9 +399,20 @@ public class WorldExecutor : Executor
         var arg2 = args.Get(2);
         var arg3 = args.Get(3);
         var arg4 = args.Get(4);
+
+        var zdoomSpec = (ZDoomLineSpecialType)spec;
+        if (zdoomSpec == ZDoomLineSpecialType.ScrollFloor || zdoomSpec == ZDoomLineSpecialType.ScrollCeiling)
+        {
+            arg1 |= (int)ZDoomScroll.Replace;
+            arg1 &= ~(int)ZDoomScroll.Line;
+            arg2 = args.Get(3);
+            arg3 = 128 + args.Get(1);
+            arg4 = 128 + args.Get(2);
+        }
+
         m_world.SpecialManager.AddActivatedLineSpecial(
             thread.GetActivator(m_world) ?? m_world.Player,
-            (ZDoomLineSpecialType)spec,
+            zdoomSpec,
             new SpecialArgs(arg0, arg1, arg2, arg3, arg4)
         );
         return 0;

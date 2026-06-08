@@ -1,5 +1,6 @@
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -23,6 +24,7 @@ using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using Helion.World.Special.Switches;
+using Helion.World.Static;
 using Helion.World.Stats;
 using System;
 using System.Collections.Generic;
@@ -1065,11 +1067,20 @@ public sealed class SpecialManager : ITickable, IDisposable
     private void SetSectorFriction(Line line)
     {
         var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
+        var length = line.Args.Arg1 == 0 ? line.GetLength() : line.Args.Arg1;
+        var setFlag = line.Args.Arg1 != 0;
+
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            var length = line.GetLength();
             sector.SetFriction(Math.Clamp((0x1EB8 * length / 0x80 + 0xD000) / 65536.0, 0.0, 1.0));
+
+            if (setFlag)
+            {
+                sector.SectorEffect |= SectorEffect.Friction;
+                sector.DataChanges |= SectorDataTypes.SectorEffect;
+            }
+
             WorldStatic.SectorFriction = true;
         }
     }
@@ -1205,18 +1216,57 @@ public sealed class SpecialManager : ITickable, IDisposable
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             changeScroll = line.Front.Sector;
 
+        var replace = (flags & ZDoomScroll.Replace) != 0;
         var carryOptions = m_world.UseAverageScrollCarry() ? ScrollPlaneOptions.AverageCarryVelocity : 0;
 
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
             var sectorPlane = sector.GetSectorPlane(planeType);
+
             if (speeds.ScrollSpeed.HasValue)
-                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures, sectorPlane, speeds.ScrollSpeed.Value, changeScroll, flags));
+            {
+                if (!replace || !FindAndSetScroller(sectorPlane, ScrollPlaneOptions.Textures, speeds.ScrollSpeed.Value))
+                {
+                    AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures | carryOptions, sectorPlane, speeds.ScrollSpeed.Value, changeScroll, flags));
+                    StaticDataApplier.SetSectorDynamic(m_world, sector, sectorPlane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
+                }
+            }
+            else if(replace)
+            {                
+                FindAndSetScroller(sectorPlane, ScrollPlaneOptions.Textures, Vec2D.Zero);
+            }
+
+            if (planeType == SectorPlaneFace.Ceiling)
+                continue;
 
             if (speeds.CarrySpeed.HasValue)
-                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.CarryAllObjects | carryOptions, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
+            {
+                if (!replace || !FindAndSetScroller(sectorPlane, ScrollPlaneOptions.CarryAllObjects, speeds.CarrySpeed.Value))
+                    AddSpecial(new ScrollSpecial(ScrollPlaneOptions.CarryAllObjects | carryOptions, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
+            }
+            else if(replace)
+            {                
+                FindAndSetScroller(sectorPlane, ScrollPlaneOptions.CarryAllObjects, Vec2D.Zero);
+            }
         }
+    }
+
+    private bool FindAndSetScroller(SectorPlane sectorPlane, ScrollPlaneOptions options, in Vec2D speed)
+    {
+        foreach (var spec in m_specials)
+        {
+            if (spec is not ScrollSpecial scrollSpecial || scrollSpecial.SectorPlane != sectorPlane)
+                continue;
+
+            if ((scrollSpecial.Options & options) != 0)
+            {
+                scrollSpecial.Speed = speed;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void HandleSectorSpecial(Sector sector)
@@ -1541,9 +1591,10 @@ public sealed class SpecialManager : ITickable, IDisposable
                     if (CreateSectorTriggerSpecial(args, special, sector))
                         success = true;
                 }
-                else if (special.IsSectorTransform())
+                else if (special.IsSectorTransform() || special.IsPlaneScroller())
                 {
-                    success = CreateSectorTransformSpecial(args, special, sector);
+                    if (CreateSectorTransformSpecial(args, special, sector))
+                        success = true;
                 }
             }
         }
@@ -1722,6 +1773,18 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.SectorSetDamage:
                 SetSectorDamage(sector, line.Args.Arg1, line.Args.Arg2, line.Args.Arg3, line.Args.Arg4);
                 return true;
+
+            case ZDoomLineSpecialType.ScrollFloor:
+                CreateScrollPlane(line, SectorPlaneFace.Floor);
+                return true;
+
+            case ZDoomLineSpecialType.ScrollCeiling:
+                CreateScrollPlane(line, SectorPlaneFace.Ceiling);
+                return true;
+
+            case ZDoomLineSpecialType.SectorSetFriction:
+                SetSectorFriction(line);
+                break;
         }
 
         return false;
@@ -2057,6 +2120,14 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.CeilingRaiseInstant:
                 sectorSpecial = CreateInstantMove(sector, sector.Ceiling, MoveDirection.Up, line.Args.Arg2 * 8);
                 return true;
+
+            case ZDoomLineSpecialType.ScrollFloor:
+                CreateScrollPlane(line, SectorPlaneFace.Floor);
+                break;
+
+            case ZDoomLineSpecialType.ScrollCeiling:
+                CreateScrollPlane(line, SectorPlaneFace.Ceiling);
+                break;
         }
 
         sectorSpecial = null;

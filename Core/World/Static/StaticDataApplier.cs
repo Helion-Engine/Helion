@@ -17,23 +17,6 @@ public class StaticDataApplier
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
-        foreach (var special in world.SpecialManager.GetSpecials())
-        {
-            if (special is ScrollSpecial scrollSpecial)
-            {
-                if (scrollSpecial.SectorPlane != null)
-                {
-                    SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, scrollSpecial.SectorPlane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
-                }
-                else if (scrollSpecial.Line != null && scrollSpecial.Speed.Y != 0)
-                {
-                    scrollSpecial.Line.Front.Dynamic |= SectorDynamic.ScrollY;
-                    if (scrollSpecial.Line.Back != null)
-                        scrollSpecial.Line.Back.Dynamic |= SectorDynamic.ScrollY;
-                }                    
-            }
-        }
-
         for (int i = 0; i < world.Sectors.Count; i++)
             world.RenderBlockmap.Link(world, world.Sectors[i]);
 
@@ -94,7 +77,7 @@ public class StaticDataApplier
             facingSide.FloodTextures &= ~SideTexture.Upper;
     }
 
-    public static void SetSectorDynamic(WorldBase world, Sector sector, SectorPlanes face, SectorDynamic sectorDynamic)
+    public static void SetSectorDynamic(IWorld world, Sector sector, SectorPlanes face, SectorDynamic sectorDynamic)
     {
         if (IsLoading && sectorDynamic == SectorDynamic.Movement)
             return;

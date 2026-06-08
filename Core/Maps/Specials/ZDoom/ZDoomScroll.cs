@@ -11,4 +11,5 @@ public enum ZDoomScroll
     Line = 4,
     // This was added for MBF21 line scrollers. No idea what ZDoom has done here - may not line up.
     LineOffset = 8,
+    Replace = 16
 }
