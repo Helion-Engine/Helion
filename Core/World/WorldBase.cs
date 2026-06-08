@@ -4693,7 +4693,8 @@ public abstract partial class WorldBase : IWorld
         if (x == 0 && y == 0)
             return;
 
-        if (!m_entityScrollAccumulators.TryGetValue(entity.Index, out var accumulator))
+        ref var accumulator = ref CollectionsMarshal.GetValueRefOrAddDefault(m_entityScrollAccumulators, entity.Index, out var exists);
+        if (!exists)
         {
             m_scrollAccumulatorEntities.Add(entity);
             accumulator = ScrollAccumulator.Zero;

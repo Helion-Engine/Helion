@@ -44,6 +44,8 @@ public class ScrollSpecial : ISpecial
 
     public bool OverrideEquals => true;
 
+    public ScrollPlaneOptions Options => m_options;
+
     private readonly ScrollPlaneOptions m_options;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
     private readonly ZDoomLineScroll m_lineScroll;

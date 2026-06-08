@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Shared;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.IWad;
 using Helion.World;
@@ -9,7 +10,8 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
-using System;
+using Helion.World.Special.Specials;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using System.Linq;
 using Xunit;
 
@@ -791,6 +793,78 @@ public class AcsScripts
             messages.Count.Should().Be(1);
             messages[^1].Args.Message.Should().Be("0");
         });
+    }
+
+    [Fact(DisplayName = "ScrollFloor")]
+    public void ScrollFloor()
+    {
+        var sector = GameActions.GetSectorByTag(World, 33);
+        GameActions.ActivateLine(World, Player, 329, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        var specials = World.SpecialManager.GetSpecials().Where(x => x is ScrollSpecial scroll && scroll.SectorPlane != null && scroll.SectorPlane.Sector == sector).Cast<ScrollSpecial>().ToArray();
+        specials.Length.Should().Be(2);
+
+        var texture = specials.Single(x => (x.Options & ScrollPlaneOptions.Textures) != 0);
+        var carry = specials.Single(x => (x.Options & ScrollPlaneOptions.CarryAllObjects) != 0);
+
+        texture.SectorPlane.Should().Be(sector.Floor);
+        texture.Speed.X.Should().Be(0);
+        texture.Speed.Y.Should().Be(0.125);
+
+        carry.SectorPlane.Should().Be(sector.Floor);
+        carry.Speed.X.Should().Be(0);
+        carry.Speed.Y.Should().Be(0.01171875);
+
+        // Replaces texture and carry speeds
+        GameActions.ActivateLine(World, Player, 333, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        specials = World.SpecialManager.GetSpecials().Where(x => x is ScrollSpecial scroll && scroll.SectorPlane != null && scroll.SectorPlane.Sector == sector).Cast<ScrollSpecial>().ToArray();
+        specials.Length.Should().Be(2);
+
+        texture.SectorPlane.Should().Be(sector.Floor);
+        texture.Speed.X.Should().Be(0);
+        texture.Speed.Y.Should().Be(0.25);
+
+        carry.SectorPlane.Should().Be(sector.Floor);
+        carry.Speed.X.Should().Be(0);
+        carry.Speed.Y.Should().Be(0);
+    }
+    
+    [Fact(DisplayName = "ScrollCeiling")]
+    public void ScrollCeiling()
+    {
+        var sector = GameActions.GetSectorByTag(World, 34);
+        GameActions.ActivateLine(World, Player, 337, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        var specials = World.SpecialManager.GetSpecials().Where(x => x is ScrollSpecial scroll && scroll.SectorPlane != null && scroll.SectorPlane.Sector == sector).Cast<ScrollSpecial>().ToArray();
+        specials.Length.Should().Be(1);
+
+        var texture = specials.Single(x => (x.Options & ScrollPlaneOptions.Textures) != 0);
+
+        texture.SectorPlane.Should().Be(sector.Ceiling);
+        texture.Speed.X.Should().Be(-0.125);
+        texture.Speed.Y.Should().Be(0.5);
+
+        GameActions.ActivateLine(World, Player, 341, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        specials = World.SpecialManager.GetSpecials().Where(x => x is ScrollSpecial scroll && scroll.SectorPlane != null && scroll.SectorPlane.Sector == sector).Cast<ScrollSpecial>().ToArray();
+        specials.Length.Should().Be(1);
+
+        texture.SectorPlane.Should().Be(sector.Ceiling);
+        texture.Speed.X.Should().Be(-0.125);
+        texture.Speed.Y.Should().Be(2);
+    }
+
+    [Fact(DisplayName = "SectorSetFriction")]
+    public void SectorSetFriction()
+    {
+        var sector = GameActions.GetSectorByTag(World, 35);
+        sector.Friction.Should().Be(Helion.Util.Constants.DefaultFriction);
+        sector.SectorEffect.Should().Be(SectorEffect.None);
+        GameActions.ActivateLine(World, Player, 345, ActivationContext.UseLine).Should().BeTrue();
+        World.Tick();
+        sector.Friction.Should().Be(0.9474945068359375);
+        sector.SectorEffect.Should().Be(SectorEffect.Friction);
     }
 
     private void AssertAllEmptyTextures(Side side)

@@ -14,6 +14,7 @@ using Helion.Util.Parser;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
+using Helion.World.Static;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -115,7 +116,10 @@ public sealed class UdmfMap : IMap, IMapSpecials
             var plane = sector.GetSectorPlane(item.Face);
 
             if ((flags & UdmfScrollSectorFlags.Texture) != 0 && scrollSpeeds.ScrollSpeed.HasValue)
-                world.SpecialManager.AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures, plane, scrollSpeeds.ScrollSpeed.Value));
+            {
+                world.SpecialManager.AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures | carryOptions, plane, scrollSpeeds.ScrollSpeed.Value));
+                StaticDataApplier.SetSectorDynamic(world, sector, plane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
+            }
 
             flags &= ~UdmfScrollSectorFlags.Texture;
             if (flags != 0 && scrollSpeeds.CarrySpeed.HasValue)

@@ -5,7 +5,9 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Special.Specials;
 using Xunit;
+using System.Linq;
 
 namespace Helion.Tests.Unit.GameAction.Udmf;
 
@@ -70,6 +72,22 @@ public class UdmfSectorScroll
         var sector = GameActions.GetSectorByTag(World, 5);
         AssertTextureScroll(sector.Floor, Vec2D.Zero);
         AssertTextureScroll(sector.Ceiling, Vec2D.Zero);
+        AssertMonsterCarry(sector, true);
+        AssertStaticCarry(sector, true);
+        AssertPlayerCarry(sector, true);
+    }
+
+    [Fact(DisplayName = "Udmf multiple scroll specials on the same sector stack")]
+    public void ScrollSpecialStack()
+    {
+        var sector = GameActions.GetSectorByTag(World, 6);
+        var specials = World.SpecialManager.GetSpecials().Where(x => x is ScrollSpecial scroll && scroll.SectorPlane != null && scroll.SectorPlane.Sector == sector).Cast<ScrollSpecial>().ToArray();
+        specials.Length.Should().Be(3);
+        specials.Count(x => (x.Options & ScrollPlaneOptions.Textures) != 0).Should().Be(2);
+        specials.Count(x => (x.Options & ScrollPlaneOptions.CarryAllObjects) != 0).Should().Be(1);
+        // Speeds 192 and 256
+        // (192-128)/32 = 2 | (256-128)/32 = 4
+        AssertTextureScroll(sector.Floor, (0, 6));
         AssertMonsterCarry(sector, true);
         AssertStaticCarry(sector, true);
         AssertPlayerCarry(sector, true);

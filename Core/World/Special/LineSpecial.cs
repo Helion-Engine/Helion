@@ -586,6 +586,9 @@ public class LineSpecial
             case ZDoomLineSpecialType.SectorSetCeilingScale:
             case ZDoomLineSpecialType.SectorSetGravity:
             case ZDoomLineSpecialType.SectorSetDamage:
+            case ZDoomLineSpecialType.ScrollFloor:
+            case ZDoomLineSpecialType.ScrollCeiling:
+            case ZDoomLineSpecialType.SectorSetFriction:
                 return true;
         }
 
