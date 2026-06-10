@@ -325,7 +325,7 @@ public class SinglePlayerWorld : WorldBase
             if (id < 0 || id >= Sectors.Count)
                 continue;
 
-            Sectors[id].ApplySectorModel(this, sectors[i], result);
+            Sectors[id].ApplySectorModel(this, sectors[i], result, worldModel.SectorLinks);
         }
     }
 

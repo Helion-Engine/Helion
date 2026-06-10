@@ -1,6 +1,5 @@
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Maps;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -526,7 +525,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         spec.IsDoor = true;
         spec.Set(m_world, sector, sector.Floor.Z, destZ,
               new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay,
-                flags: SectorMoveFlags.Door, lightTag: lightTag), SpecialManager.GetDoorSound(speed));
+                flags: SectorMoveFlags.Door, lightTag: lightTag), GetDoorSound(speed));
         return spec;
     }
 
@@ -893,7 +892,38 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.LineIdentify:
                 SetLineId(line);
                 break;
+            case ZDoomLineSpecialType.SectorSetLink:
+                if (line.Args.Arg0 == 0)
+                    SectorSetLink(line);
+                break;
         }
+    }
+
+    private bool SectorSetLink(Line specialLine)
+    {
+        var sectors = m_world.FindBySectorTag(specialLine.Args.Arg1);
+        var controlSector = specialLine.Front.Sector;
+
+        if (specialLine.Args.Arg0 != 0)
+        {
+            var controlSectors = m_world.FindBySectorTag(specialLine.Args.Arg0);
+            if (controlSectors.Count == 0)
+                return false;
+            controlSector = controlSectors[0];
+        }
+
+        var planeFace = specialLine.Args.Arg2 == 0 ? SectorPlaneFace.Floor : SectorPlaneFace.Ceiling;
+        var flags = (SectorLinkFlags)specialLine.Args.Arg3;
+        var success = false;
+
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors[i];
+            if (controlSector.AddOrUpdateSectorLink(new(sector, flags), planeFace))
+                success = true;
+        }
+
+        return success;
     }
 
     private void SetLineId(Line line)
@@ -1785,6 +1815,9 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.SectorSetFriction:
                 SetSectorFriction(line);
                 break;
+
+            case ZDoomLineSpecialType.SectorSetLink:
+                return SectorSetLink(line);
         }
 
         return false;

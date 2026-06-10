@@ -23,5 +23,6 @@ public enum SectorDataTypes
     Rotate = 16384,
     Scale = 32768,
     Gravity = 65536,
-    Fog = 131072
+    Fog = 131072,
+    SectorLink = 262144
 }

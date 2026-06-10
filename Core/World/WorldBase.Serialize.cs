@@ -15,6 +15,7 @@ public partial class WorldBase
     private static readonly DynamicArray<EntityModel> s_entityModels = new(1024);
     private static readonly DynamicArray<PlayerModel> s_playerModels = new();
     private static readonly DynamicArray<SectorModel> s_sectorModels = new(256);
+    private static readonly DynamicArray<SectorLinkModel> s_sectorLinks = new(256);
     private static readonly DynamicArray<LineModel> s_lineModels = new(256);
     private static readonly DynamicArray<ConfigValueModel> s_configValueModels = [];
     private static readonly DynamicArray<FileModel> s_fileModels = [];
@@ -28,6 +29,7 @@ public partial class WorldBase
         s_entityModels.Clear();
         s_playerModels.Clear();
         s_sectorModels.Clear();
+        s_sectorLinks.Clear();
         s_lineModels.Clear();
         s_configValueModels.Clear();
         s_fileModels.Clear();
@@ -39,7 +41,7 @@ public partial class WorldBase
         if (m_map.HasBehavior)
             s_worldModel.AcsState = AcsExecutor.GetSaveState();
 
-        SetSectorModels(s_sectorModels, s_specialModelData.SectorDamageSpecials);
+        SetSectorModels(s_sectorModels, s_specialModelData.SectorDamageSpecials, s_sectorLinks);
         SpecialManager.GetSpecialModels(s_specialModelData);
 
         s_worldModel.ConfigValues = GetConfigValuesModel();
@@ -56,6 +58,7 @@ public partial class WorldBase
         s_worldModel.Players = GetPlayerModels();
         s_worldModel.Entities = GetEntityModels();
         s_worldModel.Sectors = s_sectorModels;
+        s_worldModel.SectorLinks = s_sectorLinks;
         s_worldModel.Lines = GetLineModels();
         s_worldModel.VisitedMaps = GetVisitedMaps();
         s_worldModel.TotalTime = GlobalData.TotalTime;
@@ -201,7 +204,8 @@ public partial class WorldBase
         return s_entityModels;
     }
 
-    private void SetSectorModels(DynamicArray<SectorModel> sectorModels, DynamicArray<SectorDamageSpecialModel> sectorDamageSpecialModels)
+    private void SetSectorModels(DynamicArray<SectorModel> sectorModels, DynamicArray<SectorDamageSpecialModel> sectorDamageSpecialModels, 
+        DynamicArray<SectorLinkModel> sectorLinkModels)
     {
         for (int i = 0; i < Sectors.Count; i++)
         {
@@ -210,6 +214,25 @@ public partial class WorldBase
                 sectorModels.Add(sector.ToSectorModel(this));
             if (sector.SectorDamageSpecial != null)
                 sectorDamageSpecialModels.Add(sector.SectorDamageSpecial.ToSectorDamageSpecialModel());
+            if (sector.FloorLinks != null)
+                AddSectorLinkModels(SectorPlaneFace.Floor, sector.Id, sector.FloorLinks, sectorLinkModels);
+            if (sector.CeilingLinks != null)
+                AddSectorLinkModels(SectorPlaneFace.Ceiling, sector.Id, sector.CeilingLinks, sectorLinkModels);
+        }
+    }
+
+    private void AddSectorLinkModels(SectorPlaneFace face, int controlSectorId, DynamicArray<SectorLink> links, DynamicArray<SectorLinkModel> sectorLinkModels)
+    {
+        for (int i = 0; i < links.Length; i++)
+        {
+            ref var link = ref links.Data[i];
+            sectorLinkModels.Add(new SectorLinkModel()
+            {
+                ControlId = controlSectorId,
+                SectorId = link.Sector.Id,
+                Face = face,
+                Flags = link.Flags,
+            });
         }
     }
 

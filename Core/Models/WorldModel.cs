@@ -22,6 +22,7 @@ public class WorldModel
     public IList<PlayerModel> Players { get; set; } = Array.Empty<PlayerModel>();
     public IList<EntityModel> Entities { get; set; } = Array.Empty<EntityModel>();
     public IList<SectorModel> Sectors { get; set; } = Array.Empty<SectorModel>();
+    public IList<SectorLinkModel> SectorLinks { get; set; } = Array.Empty<SectorLinkModel>();
     public IList<LineModel> Lines { get; set; } = Array.Empty<LineModel>();
     public IList<ISpecialModel> Specials { get; set; } = Array.Empty<ISpecialModel>();
     public IList<SectorMoveSpecialModel> MoveSpecials { get; set; } = Array.Empty<SectorMoveSpecialModel>();

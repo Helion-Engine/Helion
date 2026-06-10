@@ -33,12 +33,7 @@ public class ElevatorSpecial : SectorMoveSpecial
         var ceiling = world.DataCache.GetSectorMoveSpecial(world, sector, Sector.Ceiling.Z, floorDestZ + sector.Ceiling.Z - sector.Floor.Z,
             new SectorMoveData(SectorPlaneFace.Ceiling, moveDirection, MoveRepetition.None, speed, 0), soundData);
 
-        // Sector plane that can potentially be blocked needs to moved first
-        // Reverse when sector controls 3D sectors
-        if (sector.TaggedSectors3D.Length > 0)
-            moveDirection = moveDirection == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
-
-        if (moveDirection == MoveDirection.Up)
+        if (moveDirection == MoveDirection.Down)
         {
             m_firstMove = floor;
             m_secondMove = ceiling;

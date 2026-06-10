@@ -34,7 +34,7 @@ readonly record struct SectorMoveEntityData(Entity Entity, double SaveZ, double 
 /// Responsible for handling all the physics and collision detection in a
 /// world.
 /// </summary>
-public sealed class PhysicsManager
+public sealed partial class PhysicsManager
 {
     private const int MaxSlides = 3;
     private const double SlideStepBackTime = 1.0 / 32.0;
@@ -174,8 +174,15 @@ public sealed class PhysicsManager
     }
 
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial, Sector sectorEntities, 
-        bool checkSector3D = true, SectorPlane? resetPlane = null, bool solid = true)
+        bool checkSector3D = true, SectorPlane? resetPlane = null, bool solid = true, bool checkSectorLinks = true)
     {
+        if (checkSectorLinks && moveSpecial.Sector.GetSectorLinks(moveSpecial.SectorPlane.Facing, out var links))
+        {
+            var linkStatus = MoveLinkedSectors(moveSpecial, links, destZ);
+            if ((linkStatus & SectorMoveStatus.Blocked) != 0)
+                return linkStatus;
+        }
+
         var sector = moveSpecial.Sector;
         var sectorPlane = moveSpecial.SectorPlane;
         var moveData = moveSpecial.MoveData;
@@ -332,7 +339,7 @@ public sealed class PhysicsManager
                 }
             }
 
-            if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead())
+            if ((highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead()))
             {
                 double diff = 0;
                 // Set the sector Z to the difference of the blocked height (only works if not being crushed)
@@ -433,6 +440,8 @@ public sealed class PhysicsManager
 
     private SectorMoveStatus TestMoveSector3D(double speed, double destZ, double startZ, SectorMoveSpecial moveSpecial, Sector sector, SectorPlane sectorPlane, SectorPlaneFace face)
     {
+        var flags = moveSpecial.MoveData.Flags;
+
         for (int i = 0; i < sector.TaggedSectors3D.Length; i++)
         {
             var testFace = face.Flip();
@@ -449,6 +458,7 @@ public sealed class PhysicsManager
             moveSpecial.SectorPlane = testMovePlane;
             moveSpecial.MoveData.SectorMoveType = testFace;
             moveSpecial.MoveData.Sector3D = sector3D;
+            moveSpecial.MoveData.Flags |= SectorMoveFlags.EntityBlockMovement;
 
             var status = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, resetPlane: sectorPlane, solid: sector3D.IsSolid);
 
@@ -456,6 +466,7 @@ public sealed class PhysicsManager
             moveSpecial.SectorPlane = sectorPlane;
             moveSpecial.MoveData.SectorMoveType = face;
             moveSpecial.MoveData.Sector3D = null;
+            moveSpecial.MoveData.Flags = flags;
 
             if ((status & SectorMoveStatus.Blocked) != 0)
                 return status;

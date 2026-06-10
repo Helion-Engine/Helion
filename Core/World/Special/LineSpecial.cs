@@ -72,7 +72,7 @@ public class LineSpecial
         return false;
     }
 
-    public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags, MapType mapType)
+    public static void ValidateActivationFlags(ZDoomLineSpecialType type, in SpecialArgs args, ref LineFlags flags, MapType mapType)
     {
         switch (type)
         {
@@ -98,6 +98,13 @@ public class LineSpecial
             case ZDoomLineSpecialType.LineIdentify:
                 flags.Activations = LineActivations.LevelStart;
                 break;
+
+            case ZDoomLineSpecialType.SectorSetLink:
+                {
+                    if (args.Arg0 == 0)
+                        flags.Activations = LineActivations.LevelStart;
+                    break;
+                }
 
             case ZDoomLineSpecialType.Teleport:
             case ZDoomLineSpecialType.TeleportNoFog:
@@ -589,6 +596,7 @@ public class LineSpecial
             case ZDoomLineSpecialType.ScrollFloor:
             case ZDoomLineSpecialType.ScrollCeiling:
             case ZDoomLineSpecialType.SectorSetFriction:
+            case ZDoomLineSpecialType.SectorSetLink:
                 return true;
         }
 

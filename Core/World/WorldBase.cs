@@ -842,6 +842,24 @@ public abstract partial class WorldBase : IWorld
     {
         sectorPlane.Sector.MoveEventGameTick = Gametick;
         SectorMoveComplete?.Invoke(this, sectorPlane);
+
+        if (sectorPlane.Sector.FloorLinks != null)
+            SetSectorLinkMoveComplete(sectorPlane.Sector.FloorLinks);
+        if (sectorPlane.Sector.CeilingLinks != null)
+            SetSectorLinkMoveComplete(sectorPlane.Sector.CeilingLinks);
+    }
+
+    private void SetSectorLinkMoveComplete(DynamicArray<SectorLink> links)
+    {
+        for (int i = 0; i < links.Length; i++)
+        {
+            ref var link = ref links.Data[i];
+            link.Sector.MoveEventGameTick = Gametick;
+            if ((link.Flags & SectorLinkFlags.Floor) != 0)
+                SectorMoveComplete?.Invoke(this, link.Sector.Floor);
+            if ((link.Flags & SectorLinkFlags.Ceiling) != 0)
+                SectorMoveComplete?.Invoke(this, link.Sector.Ceiling);
+        }
     }
 
     public Player? GetLineOfSightPlayer(Entity entity, bool allAround)
@@ -2909,6 +2927,16 @@ public abstract partial class WorldBase : IWorld
         var status = PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial, moveSpecial.Sector);
         SectorMove?.Invoke(this, moveSpecial.SectorPlane);
         return status;
+    }
+
+    public void InvokeSectorMoveStart(SectorPlane sectorPlane)
+    {
+        SectorMoveStart?.Invoke(this, sectorPlane);
+    }
+    
+    public void InvokeSectorMove(SectorPlane sectorPlane)
+    {
+        SectorMove?.Invoke(this, sectorPlane);
     }
 
     public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, DamageType damageType, bool gibbed)

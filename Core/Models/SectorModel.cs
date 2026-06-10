@@ -1,5 +1,6 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.Models;
 
@@ -46,4 +47,12 @@ public struct SectorModel
     public Vector2D? CeilingScale;
     public uint? FogColor;
     public float? FogDensity;
+}
+
+public struct SectorLinkModel
+{
+    public int ControlId;
+    public int SectorId;
+    public SectorPlaneFace Face;
+    public SectorLinkFlags Flags;
 }

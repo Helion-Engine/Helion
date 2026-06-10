@@ -4,6 +4,7 @@ using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -63,7 +64,7 @@ public class SectorMoveSpecial : ISectorSpecial
     }
 
     public void Set(IWorld world, Sector sector, double start, double dest,
-    in SectorMoveData specialData, in SectorSoundData soundData)
+        in SectorMoveData specialData, in SectorSoundData soundData)
     {
         Sector = sector;
         m_world = world;
@@ -225,8 +226,11 @@ public class SectorMoveSpecial : ISectorSpecial
         if (DelayTics > 0)
         {
             if (SectorPlane.PrevZ != SectorPlane.Z)
-                SectorPlane.SetSectorMoveChanged(m_world.Gametick);
-            SectorPlane.PrevZ = SectorPlane.Z;
+            {
+                SectorPlane.PrevZ = SectorPlane.Z;
+                ResetInterpolation();
+            }
+
             DelayTics--;
             return SpecialTickStatus.Continue;
         }
@@ -303,20 +307,42 @@ public class SectorMoveSpecial : ISectorSpecial
     public virtual void ResetInterpolation()
     {
         ResetPlaneInterpolation(SectorPlane);
+        ResetSectorInterpolation3D(Sector, SectorPlane);
 
-        if (WorldStatic.Sector3D)
+        if (Sector.FloorLinks != null)
+            ResetInterpolationLinks(Sector.FloorLinks, SectorPlaneFace.Floor);
+        if (Sector.CeilingLinks != null)
+            ResetInterpolationLinks(Sector.CeilingLinks, SectorPlaneFace.Ceiling);
+    }
+
+    private void ResetSectorInterpolation3D(Sector sector, SectorPlane sectorPlane)
+    {
+        if (!WorldStatic.Sector3D)
+            return;
+        
+        for (int i = 0; i < sector.TaggedSectors3D.Length; i++)
         {
-            for (int i = 0; i < Sector.TaggedSectors3D.Length; i++)
-            {
-                var sector = Sector.TaggedSectors3D[i].ControlSector;
-                ResetPlaneInterpolation(sector.GetSectorPlane(SectorPlane.Facing));
-            }
+            var taggedSector = sector.TaggedSectors3D[i].ControlSector;
+            ResetPlaneInterpolation(taggedSector.GetSectorPlane(sectorPlane.Facing));
+        }        
+    }
+
+    private void ResetInterpolationLinks(DynamicArray<SectorLink> links, SectorPlaneFace face)
+    {
+        for (int i = 0; i < links.Length; i++)
+        {
+            ref var link = ref links.Data[i];
+            if ((link.Flags & SectorLinkFlags.Floor) != 0)
+                ResetPlaneInterpolation(link.Sector.Floor);
+            if ((link.Flags & SectorLinkFlags.Ceiling) != 0)
+                ResetPlaneInterpolation(link.Sector.Ceiling);
+            ResetSectorInterpolation3D(link.Sector, link.Sector.GetSectorPlane(face));
         }
     }
 
     private void ResetPlaneInterpolation(SectorPlane plane)
     {
-        plane.PrevZ = SectorPlane.Z;
+        plane.PrevZ = plane.Z;
         plane.LastRenderChangeGametick = m_world.Gametick;
         plane.Sector.ResetInterpolationForPlane();
     }
@@ -503,7 +529,7 @@ public class SectorMoveSpecial : ISectorSpecial
         }
     }
 
-    private void SetSectorDataChange()
+    public void SetSectorDataChange()
     {
         SectorPlane.SetSectorMoveChanged(m_world.Gametick);
         if (MoveData.SectorMoveType == SectorPlaneFace.Floor)
