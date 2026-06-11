@@ -56,12 +56,9 @@ public sealed partial class PhysicsManager
                 var firstMoveAmount = (link.Flags & firstMove.MirrorFlag) == 0 ? moveAmount : -moveAmount;
                 moveSpecial.MoveSpeed = firstMoveAmount;
 
-                var testStatus = MoveLinkedPlane(firstMove.Face, moveSpecial, speed, firstMoveAmount, link);
-                if ((testStatus & SectorMoveStatus.Blocked) != 0)
-                {
-                    status = testStatus;
+                status |= MoveLinkedPlane(firstMove.Face, moveSpecial, speed, firstMoveAmount, link);
+                if ((status & SectorMoveStatus.Blocked) != 0)
                     break;
-                }
             }
 
             if ((link.Flags & secondMove.Flag) != 0)
@@ -69,12 +66,9 @@ public sealed partial class PhysicsManager
                 var secondMoveAmount = (link.Flags & secondMove.MirrorFlag) == 0 ? moveAmount : -moveAmount;
                 moveSpecial.MoveSpeed = secondMoveAmount;
 
-                var testStatus = MoveLinkedPlane(secondMove.Face, moveSpecial, speed, secondMoveAmount, link);
-                if ((testStatus & SectorMoveStatus.Blocked) != 0)
-                {
-                    status = testStatus;                    
+                status |= MoveLinkedPlane(secondMove.Face, moveSpecial, speed, secondMoveAmount, link);
+                if ((status & SectorMoveStatus.Blocked) != 0)             
                     break;
-                }
             }
 
             if (resetInterpolation)

@@ -176,6 +176,7 @@ public sealed partial class PhysicsManager
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial, Sector sectorEntities, 
         bool checkSector3D = true, bool solid = true, bool checkSectorLinks = true)
     {
+        SectorMoveStatus status = SectorMoveStatus.Success;
         if (checkSectorLinks && moveSpecial.Sector.GetSectorLinks(moveSpecial.SectorPlane.Facing, out var links))
         {
             var linkStatus = MoveLinkedSectors(moveSpecial, links, destZ);
@@ -184,6 +185,7 @@ public sealed partial class PhysicsManager
                 moveSpecial.ResetInterpolation();
                 return linkStatus;
             }
+            status |= linkStatus;
         }
 
         var sector = moveSpecial.Sector;
@@ -205,7 +207,6 @@ public sealed partial class PhysicsManager
         Entity? highestBlockEntity = null;
         double? highestBlockHeight = 0.0;
         bool highestBlockEntityWasCrushing = false;
-        SectorMoveStatus status = SectorMoveStatus.Success;
         sectorPlane.PrevZ = startZ;
         sectorPlane.SetZ(destZ);
 
@@ -302,7 +303,7 @@ public sealed partial class PhysicsManager
                     continue;
 
                 var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-                if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
+                if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ && (sector.Sector3D == null || entity.LowestCeilingZ == sectorPlane.Z))
                 {
                     if (entity.Flags.Dropped())
                     {
@@ -465,16 +466,13 @@ public sealed partial class PhysicsManager
             moveSpecial.MoveData.Sector3D = sector3D;
             moveSpecial.MoveData.Flags |= SectorMoveFlags.EntityBlockMovement;
 
-            var testStatus = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, checkSectorLinks: false, solid: sector3D.IsSolid);
+            status |= MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, checkSectorLinks: false, solid: sector3D.IsSolid);
 
             moveSpecial.Sector = sector;
             moveSpecial.SectorPlane = sectorPlane;
             moveSpecial.MoveData.SectorMoveType = face;
             moveSpecial.MoveData.Sector3D = null;
             moveSpecial.MoveData.Flags = flags;
-
-            if ((testStatus & SectorMoveStatus.Blocked) != 0)
-                status = testStatus;
         }
         
         if ((status & SectorMoveStatus.Blocked) != 0)
