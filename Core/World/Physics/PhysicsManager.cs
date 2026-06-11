@@ -303,7 +303,7 @@ public sealed partial class PhysicsManager
                     continue;
 
                 var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-                if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ && (sector.Sector3D == null || entity.LowestCeilingZ == sectorPlane.Z))
+                if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
                 {
                     if (entity.Flags.Dropped())
                     {
