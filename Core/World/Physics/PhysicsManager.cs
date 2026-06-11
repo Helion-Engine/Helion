@@ -174,13 +174,16 @@ public sealed partial class PhysicsManager
     }
 
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial, Sector sectorEntities, 
-        bool checkSector3D = true, SectorPlane? resetPlane = null, bool solid = true, bool checkSectorLinks = true)
+        bool checkSector3D = true, bool solid = true, bool checkSectorLinks = true)
     {
         if (checkSectorLinks && moveSpecial.Sector.GetSectorLinks(moveSpecial.SectorPlane.Facing, out var links))
         {
             var linkStatus = MoveLinkedSectors(moveSpecial, links, destZ);
             if ((linkStatus & SectorMoveStatus.Blocked) != 0)
+            {
+                moveSpecial.ResetInterpolation();
                 return linkStatus;
+            }
         }
 
         var sector = moveSpecial.Sector;
@@ -347,7 +350,6 @@ public sealed partial class PhysicsManager
                 if ((moveData.Flags & SectorMoveFlags.EntityBlockMovement) != 0 || highestBlockEntityWasCrushing || isCompleted)
                 {
                     sectorPlane.SetZ(startZ);
-                    resetPlane?.SetZ(startZ);
                 }
                 else
                 {
@@ -363,7 +365,6 @@ public sealed partial class PhysicsManager
                         diff = -diff;
                     var set = startZ + diff;
                     sectorPlane.SetZ(set);
-                    resetPlane?.SetZ(set);
                 }
 
                 // Entity blocked movement, reset all entities in moving sector after resetting sector Z
@@ -440,6 +441,7 @@ public sealed partial class PhysicsManager
 
     private SectorMoveStatus TestMoveSector3D(double speed, double destZ, double startZ, SectorMoveSpecial moveSpecial, Sector sector, SectorPlane sectorPlane, SectorPlaneFace face)
     {
+        var status = SectorMoveStatus.Success;
         var flags = moveSpecial.MoveData.Flags;
 
         for (int i = 0; i < sector.TaggedSectors3D.Length; i++)
@@ -460,7 +462,7 @@ public sealed partial class PhysicsManager
             moveSpecial.MoveData.Sector3D = sector3D;
             moveSpecial.MoveData.Flags |= SectorMoveFlags.EntityBlockMovement;
 
-            var status = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, resetPlane: sectorPlane, solid: sector3D.IsSolid);
+            var testStatus = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, checkSectorLinks: false, solid: sector3D.IsSolid);
 
             moveSpecial.Sector = sector;
             moveSpecial.SectorPlane = sectorPlane;
@@ -468,11 +470,14 @@ public sealed partial class PhysicsManager
             moveSpecial.MoveData.Sector3D = null;
             moveSpecial.MoveData.Flags = flags;
 
-            if ((status & SectorMoveStatus.Blocked) != 0)
-                return status;
-        }       
+            if ((testStatus & SectorMoveStatus.Blocked) != 0)
+                status = testStatus;
+        }
+        
+        if ((status & SectorMoveStatus.Blocked) != 0)
+            sectorPlane.SetZ(startZ);
 
-        return SectorMoveStatus.Success;
+        return status;
     }
 
     private void SetClampIgnoreEntities(Entity entity)

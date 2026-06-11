@@ -23,8 +23,8 @@ public sealed partial class PhysicsManager
         moveSpecial.MoveData.Flags |= SectorMoveFlags.EntityBlockMovement;
 
         var status = MoveLinkedSectorsByAmount(moveSpecial, sectorLinks, moveAmount, speed, m_resetSectorLinks);
-        if ((status & SectorMoveStatus.Blocked) != 0)
-            MoveLinkedSectorsByAmount(moveSpecial, m_resetSectorLinks, -moveAmount, speed, null);
+        if ((status & SectorMoveStatus.Blocked) != 0 && m_resetSectorLinks.Length > 0)
+            MoveLinkedSectorsByAmount(moveSpecial, m_resetSectorLinks, -moveAmount, speed, null, resetInterpolation: true);
 
         m_resetSectorLinks.Clear();
 
@@ -37,7 +37,7 @@ public sealed partial class PhysicsManager
     }
 
     private SectorMoveStatus MoveLinkedSectorsByAmount(SectorMoveSpecial moveSpecial, DynamicArray<SectorLink> sectorLinks, double moveAmount, double speed,
-        DynamicArray<SectorLink>? processedLinks)
+        DynamicArray<SectorLink>? processedLinks, bool resetInterpolation = false)
     {
         var status = SectorMoveStatus.Success;
         var firstMove = new MoveLinkPlane(SectorPlaneFace.Ceiling, SectorLinkFlags.Ceiling, SectorLinkFlags.CeilingMirror);
@@ -59,7 +59,7 @@ public sealed partial class PhysicsManager
                 var testStatus = MoveLinkedPlane(firstMove.Face, moveSpecial, speed, firstMoveAmount, link);
                 if ((testStatus & SectorMoveStatus.Blocked) != 0)
                 {
-                    status = SectorMoveStatus.Blocked;
+                    status = testStatus;
                     break;
                 }
             }
@@ -72,11 +72,13 @@ public sealed partial class PhysicsManager
                 var testStatus = MoveLinkedPlane(secondMove.Face, moveSpecial, speed, secondMoveAmount, link);
                 if ((testStatus & SectorMoveStatus.Blocked) != 0)
                 {
-                    status = SectorMoveStatus.Blocked;
+                    status = testStatus;                    
                     break;
                 }
             }
 
+            if (resetInterpolation)
+                moveSpecial.ResetInterpolation();
             processedLinks?.Add(link);
         }
 
