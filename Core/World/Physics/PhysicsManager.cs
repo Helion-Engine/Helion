@@ -287,7 +287,10 @@ public sealed partial class PhysicsManager
                 if (entity.IsDisposed)
                     continue;
 
+                entity.SectorMovement3D = sector.Sector3D != null;
                 ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+                entity.SectorMovement3D = false;
+
                 var entityMoveData = m_sectorMoveEntitiesData[i];
                 entity.PrevPosition.Z = entityMoveData.PrevSaveZ;
                 // This allows the player to pickup items like the original
@@ -342,7 +345,7 @@ public sealed partial class PhysicsManager
                 }
             }
 
-            if ((highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead()))
+            if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead())
             {
                 double diff = 0;
                 // Set the sector Z to the difference of the blocked height (only works if not being crushed)
@@ -1205,13 +1208,14 @@ public sealed partial class PhysicsManager
                 return GridIterationStatus.Continue;
         }
 
-        double intersectTopZ = intersectEntity.Position.Z + intersectEntity.Height;
+        var intersectTopZ = intersectEntity.Position.Z + intersectEntity.Height;
         if (entity.Flags.Missile() && WorldStatic.MissileClip)
             intersectTopZ = intersectEntity.GetMissileClipHeight(true);
-        bool above = entity.PrevPosition.Z >= intersectTopZ;
-        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
-        bool clipped = false;
-        bool addedOnEntity = false;
+        var above = entity.PrevPosition.Z >= intersectTopZ;
+        // The SectorMovement3D check is just to support 3D crushing ceilings because their Z pos + height will not be less than the ceiling.
+        var below = entity.SectorMovement3D ? entity.PrevPosition.Z < intersectEntity.PrevPosition.Z : entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
+        var clipped = false;
+        var addedOnEntity = false;
         if (above && entity.Position.Z < intersectTopZ)
             clipped = true;
         else if (below && m_canPassData.EntityTopZ > intersectEntity.Position.Z)

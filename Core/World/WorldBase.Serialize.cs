@@ -221,7 +221,7 @@ public partial class WorldBase
         }
     }
 
-    private void AddSectorLinkModels(SectorPlaneFace face, int controlSectorId, DynamicArray<SectorLink> links, DynamicArray<SectorLinkModel> sectorLinkModels)
+    private static void AddSectorLinkModels(SectorPlaneFace face, int controlSectorId, DynamicArray<SectorLink> links, DynamicArray<SectorLinkModel> sectorLinkModels)
     {
         for (int i = 0; i < links.Length; i++)
         {
