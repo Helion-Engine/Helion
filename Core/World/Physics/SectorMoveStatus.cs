@@ -14,8 +14,9 @@ public enum SectorMoveStatus
 
 public static class SectorMoveStatusExtensions
 {
-    public static SectorMoveStatus Merge(this SectorMoveStatus status)
+    public static SectorMoveStatus Merge(this SectorMoveStatus status, SectorMoveStatus other)
     {
+        status |= other;
         if ((status & SectorMoveStatus.Blocked) != 0)
             status &= ~SectorMoveStatus.Success;
         return status;

@@ -468,7 +468,7 @@ public sealed partial class PhysicsManager
             moveSpecial.MoveData.Sector3D = sector3D;
             moveSpecial.MoveData.Flags |= SectorMoveFlags.EntityBlockMovement;
 
-            status = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, resetPlane: sectorPlane, checkSectorLinks: false, solid: sector3D.IsSolid).Merge();
+            status = status.Merge(MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, resetPlane: sectorPlane, checkSectorLinks: false, solid: sector3D.IsSolid));
 
             moveSpecial.Sector = sector;
             moveSpecial.SectorPlane = sectorPlane;

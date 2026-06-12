@@ -69,14 +69,14 @@ public sealed partial class PhysicsManager
 
             if ((link.Flags & firstMove.Flag) != 0)
             {
-                status = MoveLinkedPlane(firstMove, moveSpecial, speed, moveAmount, link).Merge();
+                status = status.Merge(MoveLinkedPlane(firstMove, moveSpecial, speed, moveAmount, link));
                 if ((status & SectorMoveStatus.Blocked) != 0)
                     break;
             }
 
             if ((link.Flags & secondMove.Flag) != 0)
             {
-                status = MoveLinkedPlane(secondMove, moveSpecial, speed, moveAmount, link).Merge();
+                status = status.Merge(MoveLinkedPlane(secondMove, moveSpecial, speed, moveAmount, link));
                 if ((status & SectorMoveStatus.Blocked) != 0)
                     break;
             }
