@@ -11,8 +11,15 @@ public enum SectorLinkFlags
     FloorMirror = 4,
     CeilingMirror = 8,
 
-    FloorBoth = Floor | FloorMirror,
-    CeilingBoth = Ceiling | CeilingMirror,
+    FloorAndCeiling = Floor | Ceiling,
+    FloorAndCeilingMirror = Floor | Ceiling | FloorMirror | CeilingMirror,
+    FloorAndFloorMirror = Floor | FloorMirror,
+    CeilingAndCeilingMirror = Ceiling | CeilingMirror,
+    MirrorBoth = FloorMirror | CeilingMirror,
+
+    FloorNormalAndCeilingMirror = Floor | Ceiling | CeilingMirror,
+    CeilingNormalAndFloorMirror = Floor | Ceiling | FloorMirror,
+
     Mask = Floor | Ceiling | FloorMirror | CeilingMirror
 }
 

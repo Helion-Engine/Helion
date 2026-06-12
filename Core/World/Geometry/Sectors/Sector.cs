@@ -1189,10 +1189,10 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             if (checkLink.Sector != link.Sector)
                 continue;
 
-            if ((link.Flags & SectorLinkFlags.FloorBoth) != 0)
-                checkLink.Flags &= ~SectorLinkFlags.FloorBoth;
-            if ((link.Flags & SectorLinkFlags.CeilingBoth) != 0)
-                checkLink.Flags &= ~SectorLinkFlags.CeilingBoth;
+            if ((link.Flags & SectorLinkFlags.FloorAndFloorMirror) != 0)
+                checkLink.Flags &= ~SectorLinkFlags.FloorAndFloorMirror;
+            if ((link.Flags & SectorLinkFlags.CeilingAndCeilingMirror) != 0)
+                checkLink.Flags &= ~SectorLinkFlags.CeilingAndCeilingMirror;
 
             checkLink.Flags |= link.Flags;
             success = true;

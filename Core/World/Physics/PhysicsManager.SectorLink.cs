@@ -40,34 +40,44 @@ public sealed partial class PhysicsManager
         DynamicArray<SectorLink>? processedLinks, bool resetInterpolation = false)
     {
         var status = SectorMoveStatus.Success;
-        var firstMove = new MoveLinkPlane(SectorPlaneFace.Ceiling, SectorLinkFlags.Ceiling, SectorLinkFlags.CeilingMirror);
-        var secondMove = new MoveLinkPlane(SectorPlaneFace.Floor, SectorLinkFlags.Floor, SectorLinkFlags.FloorMirror);
-
-        if (moveAmount < 0)
-            (firstMove, secondMove) = (secondMove, firstMove);
+        var ceilingMove = new MoveLinkPlane(SectorPlaneFace.Ceiling, SectorLinkFlags.Ceiling, SectorLinkFlags.CeilingMirror);
+        var floorMove = new MoveLinkPlane(SectorPlaneFace.Floor, SectorLinkFlags.Floor, SectorLinkFlags.FloorMirror);
 
         for (int i = 0; i < sectorLinks.Length; i++)
         {
+            var firstMove = ceilingMove;
+            var secondMove = floorMove;
+
             ref var link = ref sectorLinks.Data[i];
             moveSpecial.Sector = link.Sector;
 
+            switch(link.Flags)
+            {
+                case SectorLinkFlags.FloorAndCeiling:
+                    if (moveAmount < 0)
+                        (firstMove, secondMove) = (secondMove, firstMove);
+                    break;
+                case SectorLinkFlags.FloorAndCeilingMirror:
+                    if (moveAmount > 0)
+                        (firstMove, secondMove) = (secondMove, firstMove);
+                    break;
+                case SectorLinkFlags.FloorNormalAndCeilingMirror:
+                case SectorLinkFlags.CeilingNormalAndFloorMirror:
+                    (firstMove, secondMove) = (secondMove, firstMove);
+                    break;
+            }
+
             if ((link.Flags & firstMove.Flag) != 0)
             {
-                var firstMoveAmount = (link.Flags & firstMove.MirrorFlag) == 0 ? moveAmount : -moveAmount;
-                moveSpecial.MoveSpeed = firstMoveAmount;
-
-                status |= MoveLinkedPlane(firstMove.Face, moveSpecial, speed, firstMoveAmount, link);
+                status = MoveLinkedPlane(firstMove, moveSpecial, speed, moveAmount, link).Merge();
                 if ((status & SectorMoveStatus.Blocked) != 0)
                     break;
             }
 
             if ((link.Flags & secondMove.Flag) != 0)
             {
-                var secondMoveAmount = (link.Flags & secondMove.MirrorFlag) == 0 ? moveAmount : -moveAmount;
-                moveSpecial.MoveSpeed = secondMoveAmount;
-
-                status |= MoveLinkedPlane(secondMove.Face, moveSpecial, speed, secondMoveAmount, link);
-                if ((status & SectorMoveStatus.Blocked) != 0)             
+                status = MoveLinkedPlane(secondMove, moveSpecial, speed, moveAmount, link).Merge();
+                if ((status & SectorMoveStatus.Blocked) != 0)
                     break;
             }
 
@@ -79,21 +89,27 @@ public sealed partial class PhysicsManager
         return status;
     }
 
-    private SectorMoveStatus MoveLinkedPlane(SectorPlaneFace face, SectorMoveSpecial moveSpecial, double speed, double moveAmount, in SectorLink link)
+    private SectorMoveStatus MoveLinkedPlane(MoveLinkPlane moveLinkPlane, SectorMoveSpecial moveSpecial, double speed, double moveAmount, in SectorLink link)
     {
-        moveSpecial.SectorPlane = link.Sector.GetSectorPlane(face);
-        moveSpecial.MoveData.SectorMoveType = face;
+        var saveMoveSpeed = moveSpecial.MoveSpeed;
+        moveAmount = (link.Flags & moveLinkPlane.MirrorFlag) == 0 ? moveAmount : -moveAmount;
+        moveSpecial.MoveSpeed = moveAmount;
+
+        moveSpecial.SectorPlane = link.Sector.GetSectorPlane(moveLinkPlane.Face);
+        moveSpecial.MoveData.SectorMoveType = moveLinkPlane.Face;
         var linkDestZ = moveSpecial.SectorPlane.Z + moveAmount;
 
         if (moveSpecial.IsInitialMove)
             m_world.InvokeSectorMoveStart(moveSpecial.SectorPlane);
 
         var status = MoveSectorZ(speed, linkDestZ, moveSpecial, moveSpecial.Sector, checkSector3D: true, checkSectorLinks: false);
-        if ((status & SectorMoveStatus.Blocked) != 0)
-            return status;
+        if ((status & SectorMoveStatus.Blocked) == 0)
+        {
+            moveSpecial.SetSectorDataChange();
+            m_world.InvokeSectorMove(moveSpecial.SectorPlane);
+        }
 
-        moveSpecial.SetSectorDataChange();
-        m_world.InvokeSectorMove(moveSpecial.SectorPlane);
+        moveSpecial.MoveSpeed = saveMoveSpeed;
         return status;
     }
 }
