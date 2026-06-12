@@ -174,7 +174,7 @@ public sealed partial class PhysicsManager
     }
 
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial, Sector sectorEntities, 
-        bool checkSector3D = true, bool solid = true, bool checkSectorLinks = true)
+        bool checkSector3D = true, SectorPlane? resetPlane = null, bool solid = true, bool checkSectorLinks = true)
     {
         SectorMoveStatus status = SectorMoveStatus.Success;
         if (checkSectorLinks && moveSpecial.Sector.GetSectorLinks(moveSpecial.SectorPlane.Facing, out var links))
@@ -354,6 +354,7 @@ public sealed partial class PhysicsManager
                 if ((moveData.Flags & SectorMoveFlags.EntityBlockMovement) != 0 || highestBlockEntityWasCrushing || isCompleted)
                 {
                     sectorPlane.SetZ(startZ);
+                    resetPlane?.SetZ(startZ);
                 }
                 else
                 {
@@ -369,6 +370,7 @@ public sealed partial class PhysicsManager
                         diff = -diff;
                     var set = startZ + diff;
                     sectorPlane.SetZ(set);
+                    resetPlane?.SetZ(set);
                 }
 
                 // Entity blocked movement, reset all entities in moving sector after resetting sector Z
@@ -466,7 +468,7 @@ public sealed partial class PhysicsManager
             moveSpecial.MoveData.Sector3D = sector3D;
             moveSpecial.MoveData.Flags |= SectorMoveFlags.EntityBlockMovement;
 
-            status = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, checkSectorLinks: false, solid: sector3D.IsSolid).Merge();
+            status = MoveSectorZ(speed, destZ, moveSpecial, sector3D.ParentSector, checkSector3D: false, resetPlane: sectorPlane, checkSectorLinks: false, solid: sector3D.IsSolid).Merge();
 
             moveSpecial.Sector = sector;
             moveSpecial.SectorPlane = sectorPlane;
