@@ -71,7 +71,7 @@ public sealed partial class PhysicsManager
     private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
     private readonly DynamicArray<Entity> m_stackCrush = new();
     private readonly DynamicArray<Entity> m_clampIgnoreEntities = new();
-    private readonly Sector m_testMoveSector3D = Sector.CreateDefault();
+    private readonly DynamicArray<Sector> m_testMoveSectors = new();
 
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
@@ -450,19 +450,21 @@ public sealed partial class PhysicsManager
         var status = SectorMoveStatus.Success;
         var flags = moveSpecial.MoveData.Flags;
 
+        var testMoveSector3D = m_testMoveSectors.Length > 0 ? m_testMoveSectors.RemoveLast() : Sector.CreateDefault();
+
         for (int i = 0; i < sector.TaggedSectors3D.Length; i++)
         {
             var testFace = face.Flip();
             var sector3D = sector.TaggedSectors3D[i];
-            m_testMoveSector3D.Ceiling.SetZ(sector3D.ControlTop.Z);
-            m_testMoveSector3D.Floor.SetZ(sector3D.ControlBottom.Z);
-            m_testMoveSector3D.Sector3D = sector3D;
-            var testMovePlane = m_testMoveSector3D.GetSectorPlane(testFace);
-            var testOpposingMovePlane = m_testMoveSector3D.GetSectorPlane(face);
+            testMoveSector3D.Ceiling.SetZ(sector3D.ControlTop.Z);
+            testMoveSector3D.Floor.SetZ(sector3D.ControlBottom.Z);
+            testMoveSector3D.Sector3D = sector3D;
+            var testMovePlane = testMoveSector3D.GetSectorPlane(testFace);
+            var testOpposingMovePlane = testMoveSector3D.GetSectorPlane(face);
 
             testMovePlane.SetZ(startZ);
             testOpposingMovePlane.SetZ(sector3D.GetOpposingPlane3D(testFace, startZ).Z);
-            moveSpecial.Sector = m_testMoveSector3D;
+            moveSpecial.Sector = testMoveSector3D;
             moveSpecial.SectorPlane = testMovePlane;
             moveSpecial.MoveData.SectorMoveType = testFace;
             moveSpecial.MoveData.Sector3D = sector3D;
@@ -480,6 +482,7 @@ public sealed partial class PhysicsManager
         if ((status & SectorMoveStatus.Blocked) != 0)
             sectorPlane.SetZ(startZ);
 
+        m_testMoveSectors.Add(testMoveSector3D);
         return status;
     }
 

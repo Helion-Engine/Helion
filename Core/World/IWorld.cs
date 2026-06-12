@@ -227,6 +227,7 @@ public interface IWorld : IDisposable
     Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options);
     void AddEntityScrollAccumulator(Entity entity, double x, double y);
     bool UseAverageScrollCarry();
+    bool SectorReturnStop();
     IEnumerable<string> GetPreCacheTextureNames();
     IEnumerable<string> GetPreCacheSoundNames();
 

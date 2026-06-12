@@ -501,7 +501,7 @@ public class SectorMoveSpecial : ISectorSpecial
         MoveStatus = m_world.MoveSectorZ(MoveSpeed, destZ, this);
 
         // Never stop when delay return (e.g. lifts). This flagged when blocked by another plane and it should still reverse direction.
-        if (IsDelayReturn)
+        if (IsDelayReturn && !m_world.SectorReturnStop())
             MoveStatus &= ~SectorMoveStatus.Stop;
 
         // Never flip crushers on blocked

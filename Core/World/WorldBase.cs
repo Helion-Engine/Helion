@@ -195,6 +195,7 @@ public abstract partial class WorldBase : IWorld
     private readonly SpawnMulti m_spawnMulti;
     private readonly DynamicArray<SlopeSpan> m_visibleSpans = new(16);
     private readonly bool m_averageScrollCarry;
+    private readonly bool m_sectorReturnStop;
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
@@ -247,6 +248,7 @@ public abstract partial class WorldBase : IWorld
         CompatibilityMapDefinition = map.CompatibilityDefinition;
         MapType = map.MapType;
         m_averageScrollCarry = map.UseAverageScrollCarry();
+        m_sectorReturnStop = map.SectorReturnStop();
         BspTree = Geometry.CompactBspTree;
 
         if (map.Reject != null && map.Reject.Length > 0)
@@ -4740,6 +4742,7 @@ public abstract partial class WorldBase : IWorld
     }
 
     public bool UseAverageScrollCarry() => m_averageScrollCarry;
+    public bool SectorReturnStop() => m_sectorReturnStop;
 
     public IEnumerable<string> GetPreCacheTextureNames() =>
         MapInfo.PrecacheTextures.Union(GetFilteredAcsStrings(), StringComparer.OrdinalIgnoreCase);
