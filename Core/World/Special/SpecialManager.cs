@@ -1760,7 +1760,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     private static bool IsSectorMoveSpecialMatch(LineSpecial lineSpec, SectorMoveSpecial spec)
     {
-        SectorMoveData data = spec.MoveData;
+        ref var data = ref spec.MoveData;
 
         return lineSpec.LineSpecialType switch
         {
