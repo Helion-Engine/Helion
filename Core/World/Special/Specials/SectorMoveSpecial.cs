@@ -435,7 +435,7 @@ public class SectorMoveSpecial : ISectorSpecial
     public virtual void Pause()
     {
         IsPaused = true;
-        SectorPlane.PrevZ = SectorPlane.Z;
+        ResetInterpolation();
         if (SoundData.MovementSound != null)
             StopSound(SoundData.MovementSound);
     }
