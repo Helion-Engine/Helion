@@ -86,7 +86,8 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public int SoundBlock;
     public int CheckCount;
     public int MoveEventGameTick = -1;
-    public int MoveProcessedGameTick;
+    public int MoveProcessedGameTick = -1;
+    public MoveState MoveState;
     public bool MarkAutomap;
     public bool Flood;
     public bool Silent;
@@ -200,7 +201,8 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
         Gravity = 1;
         HasDamageSector3D = default;
         MoveEventGameTick = -1;
-        MoveProcessedGameTick = default;
+        MoveProcessedGameTick = -1;
+        MoveState = MoveState.None;
 
         FloorLinks?.Clear();
         CeilingLinks?.Clear();
