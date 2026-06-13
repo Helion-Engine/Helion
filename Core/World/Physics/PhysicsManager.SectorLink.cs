@@ -48,7 +48,7 @@ public sealed partial class PhysicsManager
             var firstMove = ceilingMove;
             var secondMove = floorMove;
 
-            ref var link = ref sectorLinks.Data[i];
+            var link = sectorLinks.Data[i];
             moveSpecial.Sector = link.Sector;
 
             switch(link.Flags)
@@ -67,18 +67,21 @@ public sealed partial class PhysicsManager
                     break;
             }
 
+            var firstStartZ = link.Sector.GetSectorPlane(firstMove.Face).Z;
+            var secondStartZ = link.Sector.GetSectorPlane(secondMove.Face).Z;
+
             if ((link.Flags & firstMove.Flag) != 0)
             {
                 status = status.Merge(MoveLinkedPlane(firstMove, moveSpecial, speed, moveAmount, link));
-                if ((status & SectorMoveStatus.Blocked) != 0)
-                    break;
+                if (firstStartZ == link.Sector.GetSectorPlane(firstMove.Face).Z)
+                    link.Flags &= ~firstMove.Flag;
             }
 
             if ((link.Flags & secondMove.Flag) != 0)
             {
                 status = status.Merge(MoveLinkedPlane(secondMove, moveSpecial, speed, moveAmount, link));
-                if ((status & SectorMoveStatus.Blocked) != 0)
-                    break;
+                if (secondStartZ == link.Sector.GetSectorPlane(secondMove.Face).Z)
+                    link.Flags &= ~firstMove.Flag;
             }
 
             if (resetInterpolation)
