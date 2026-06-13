@@ -303,7 +303,8 @@ public sealed partial class PhysicsManager
                     continue;
 
                 var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-                if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
+                var thingTopZ = thingZ + entity.GetClampHeight();
+                if (thingTopZ > entity.LowestCeilingZ)
                 {
                     if (entity.Flags.Dropped())
                     {
@@ -334,7 +335,8 @@ public sealed partial class PhysicsManager
                             status |= SectorMoveStatus.Blocked;
                         }
                         
-                        m_crushEntities.Add(entity);
+                        if (sector.Sector3D == null || ValidateCrush3D(sectorPlane, moveType, entity, thingTopZ))
+                            m_crushEntities.Add(entity);
                     }
                     else if (CheckSectorMoveBlock(entity, moveType, entityMoveData.SaveZ))
                     {
@@ -413,6 +415,15 @@ public sealed partial class PhysicsManager
         }
 
         return status;
+    }
+
+    private static bool ValidateCrush3D(SectorPlane sectorPlane, SectorPlaneFace moveType, Entity entity, double thingTopZ)
+    {
+        if (moveType == SectorPlaneFace.Ceiling && thingTopZ > sectorPlane.Z)
+            return true;
+        if (moveType == SectorPlaneFace.Floor && entity.Position.Z == sectorPlane.Z)
+            return true;
+        return false;
     }
 
     private void CheckSectorMoveMissileClip(DynamicArray<Entity> entities, Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType)
@@ -1097,6 +1108,7 @@ public sealed partial class PhysicsManager
             m_canPassData.LowestCeilLight3D = double.MaxValue;
             m_canPassData.CeilingSector3D = null;
             m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
+            m_canPassData.ClippedWithEntity = false;
             WorldStatic.CheckCounter++;
 
             if (tryMove == null)
@@ -1140,6 +1152,7 @@ public sealed partial class PhysicsManager
             highestFloorZ = m_canPassData.HighestFloorZ;
             lowestCeilZ = m_canPassData.LowestCeilZ;
             entity.LightCeilingSector3D = m_canPassData.CeilingSector3D;
+            entity.Flags.SetClippedEntity(m_canPassData.ClippedWithEntity);
         }
 
         entity.HighestFloorZ = highestFloorZ;
@@ -1216,7 +1229,7 @@ public sealed partial class PhysicsManager
             intersectTopZ = intersectEntity.GetMissileClipHeight(true);
         var above = entity.PrevPosition.Z >= intersectTopZ;
         // The SectorMovement3D check is just to support 3D crushing ceilings because their Z pos + height will not be less than the ceiling.
-        var below = entity.SectorMovement3D ? entity.PrevPosition.Z < intersectEntity.PrevPosition.Z : entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
+        var below = entity.SectorMovement3D && intersectEntity.Sector3D != null ? entity.PrevPosition.Z < intersectEntity.PrevPosition.Z : entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
         var clipped = false;
         var addedOnEntity = false;
         if (above && entity.Position.Z < intersectTopZ)
@@ -1274,6 +1287,11 @@ public sealed partial class PhysicsManager
             if (intersectTopZ == entity.Position.Z)
                 m_onEntities.Add(intersectEntity);
         }
+
+        // This is really just to handle crushing 3D sectors.
+        // Because the ceiling is lower than the entity top it's not considered it's lowest ceiling. So this flag can be used to stop entity movement.
+        if ((entity.SectorMovement3D || entity.Flags.ClippedEntity()) && intersectEntity.Sector3D != null && entity.Position.Z + entity.Height > intersectEntity.Position.Z && entity.Position.Z < intersectTopZ)
+            m_canPassData.ClippedWithEntity = true;
 
         return GridIterationStatus.Continue;
     }
@@ -1574,6 +1592,9 @@ doneLinkToSectors:
             if (onEntity != null && (onEntity.Flags.Flags1 & EntityFlags.ActsLikeBridgeFlag) == 0)
                 return false;
         }
+
+        if (entity.Flags.ClippedEntity())
+            return false;
 
         tryMove.Success = true;
         tryMove.LowestCeiling = entity.Sector;

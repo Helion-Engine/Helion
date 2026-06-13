@@ -467,6 +467,11 @@ public struct EntityFlags
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetDontMirrorCorpse(bool value) { if (value) SetDontMirrorCorpse(); else ClearDontMirrorCorpse(); }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public void ClearDontMirrorCorpse() => Flags3 &= FlagValue.InvFlag25;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly bool ClippedEntity() => (Flags3 & FlagValue.Flag26) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetClippedEntity() => Flags3 |= FlagValue.Flag26;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetClippedEntity(bool value) { if (value) SetClippedEntity(); else ClearClippedEntity(); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void ClearClippedEntity() => Flags3 &= FlagValue.InvFlag26;
+
     public EntityFlags(EntityFlagsModel model)
     {
         if (model.Bits != null)
