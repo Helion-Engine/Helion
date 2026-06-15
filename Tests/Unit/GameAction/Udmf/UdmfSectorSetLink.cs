@@ -67,7 +67,7 @@ public class UdmfSectorSetLink
         });
     }
 
-    [Fact(DisplayName = "Sector set link opens door with 3D floor")]
+    [Fact(DisplayName = "Clear and set sector links")]
     public void ClearAndSetSectorLinks()
     {
         var linkSector = GameActions.GetSectorByTag(World, 7);

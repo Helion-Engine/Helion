@@ -495,6 +495,7 @@ public sealed partial class PhysicsManager
         if ((status & SectorMoveStatus.Blocked) != 0)
             sectorPlane.SetZ(startZ);
 
+        testMoveSector3D.Sector3D = null;
         m_testMoveSectors.Add(testMoveSector3D);
         return status;
     }
