@@ -1145,8 +1145,12 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             success = true;
         if (CeilingLinks != null && UpdateSectorLink(CeilingLinks, link))
             success = true;
+
         if (link.Flags != SectorLinkFlags.Unlink && !success)
+        {
             AddSectorLink(link, planeFace);
+            success = true;
+        }
 
         return success;
     }
