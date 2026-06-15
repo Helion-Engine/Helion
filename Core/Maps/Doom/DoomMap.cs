@@ -45,6 +45,7 @@ public class DoomMap : IMap
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
     public byte[]? Behavior { get; set; }
     public bool UseAverageScrollCarry() => false;
+    public bool SectorReturnStop() => true;
 
     private MapEntryCollection? m_map;
     private bool m_loaded;

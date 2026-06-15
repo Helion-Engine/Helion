@@ -1033,7 +1033,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void HandleSectorMoveStartForLines(WorldBase world, Sector sector, bool checkOpposingSector3D)
     {
-        if (SectorLinesProcessed(world, sector))
+        if (SectorLinesProcessed(world, sector, MoveState.Start))
             return;
 
         for (int i = 0; i < sector.Lines.Length; i++)
@@ -1220,7 +1220,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void HandleSectorMoveCompleteForLines(WorldBase world, Sector sector, bool checkOpposingSector3D)
     {
-        if (SectorLinesProcessed(world, sector))
+        if (SectorLinesProcessed(world, sector, MoveState.Complete))
             return;
 
         int lineCount = sector.Lines.Length;
@@ -1249,11 +1249,13 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 line.Front.Sector.GetRenderSector(TransferHeightView.Middle), true);
         }
     }
-    private static bool SectorLinesProcessed(WorldBase world, Sector sector)
+
+    private static bool SectorLinesProcessed(WorldBase world, Sector sector, MoveState moveState)
     {
-        if (sector.CheckCount == WorldStatic.CheckCounter || sector.MoveEventGameTick == sector.MoveProcessedGameTick)
+        if (sector.MoveState == moveState && (sector.CheckCount == WorldStatic.CheckCounter || sector.MoveEventGameTick == sector.MoveProcessedGameTick))
             return true;
 
+        sector.MoveState = moveState;
         sector.CheckCount = WorldStatic.CheckCounter;
         sector.MoveProcessedGameTick = world.Gametick;
         return false;

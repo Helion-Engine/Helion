@@ -190,7 +190,7 @@ public static class DoomGeometryBuilder
             else
                 special = new LineSpecial(zdoomType, activationType, compatibility);
 
-            LineSpecial.ValidateActivationFlags(zdoomType, ref flags, map.MapType);
+            LineSpecial.ValidateActivationFlags(zdoomType, specialArgs, ref flags, map.MapType);
             Line line = new(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
             VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
             builder.Lines.Add(line);

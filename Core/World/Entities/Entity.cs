@@ -123,6 +123,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public bool StealthVisible;
     public bool HasMovementZ;
     public bool HasMovementXY;
+    public bool SectorMovement3D;
     public float Alpha;
     public RenderStyle RenderStyle;
 

@@ -11,6 +11,7 @@ namespace Helion.World.Special.SectorMovement
         // If an entity will block movement then do not calculate the difference, movement is blocked entirely.
         EntityBlockMovement = 2,
         // Allow door to clip through the floor in certain cases.
-        Door = 3
+        Door = 4,
+        NoFixClip = 8
     }
 }

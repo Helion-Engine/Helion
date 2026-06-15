@@ -161,6 +161,8 @@ public interface IWorld : IDisposable
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
+    void InvokeSectorMoveStart(SectorPlane sectorPlane);
+    void InvokeSectorMove(SectorPlane sectorPlane);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, DamageType damageType, bool gibbed);
     void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(new DisplayMessageArgs(message, null, null, IsCentered: true));
     void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false) => DisplayMessage(new DisplayMessageArgs(message, player, other, IsCentered: true));
@@ -225,6 +227,7 @@ public interface IWorld : IDisposable
     Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options);
     void AddEntityScrollAccumulator(Entity entity, double x, double y);
     bool UseAverageScrollCarry();
+    bool SectorReturnStop();
     IEnumerable<string> GetPreCacheTextureNames();
     IEnumerable<string> GetPreCacheSoundNames();
 

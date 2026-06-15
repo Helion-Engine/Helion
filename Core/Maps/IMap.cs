@@ -33,6 +33,7 @@ public interface IMap
     void ClearAll();
     void LoadData();
     bool UseAverageScrollCarry();
+    bool SectorReturnStop();
 
     public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null, bool loadData = true)
     {

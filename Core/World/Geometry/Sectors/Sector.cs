@@ -45,6 +45,8 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public SectorPlane3D[] SectorPlanes3D = [];
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<DynamicIsland>> BlockmapNodes = new();
+    public DynamicArray<SectorLink>? FloorLinks;
+    public DynamicArray<SectorLink>? CeilingLinks;
     public int[] LineIds = [];
     public Island Island = null!;
 
@@ -84,7 +86,8 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public int SoundBlock;
     public int CheckCount;
     public int MoveEventGameTick = -1;
-    public int MoveProcessedGameTick;
+    public int MoveProcessedGameTick = -1;
+    public MoveState MoveState;
     public bool MarkAutomap;
     public bool Flood;
     public bool Silent;
@@ -198,7 +201,20 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
         Gravity = 1;
         HasDamageSector3D = default;
         MoveEventGameTick = -1;
-        MoveProcessedGameTick = default;
+        MoveProcessedGameTick = -1;
+        MoveState = MoveState.None;
+
+        if (FloorLinks != null)
+        {
+            FloorLinks.FlushStruct();
+            FloorLinks.Clear();
+        }
+
+        if (CeilingLinks != null)
+        {
+            CeilingLinks.FlushStruct();
+            CeilingLinks.Clear();
+        }
 
         for (int i = 0; i < Sectors3D.Length; i++)
             Sectors3D[i].Reset();
@@ -456,7 +472,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
         return sectorModel;
     }
 
-    public void ApplySectorModel(IWorld world, in SectorModel sectorModel, WorldModelPopulateResult result)
+    public void ApplySectorModel(IWorld world, in SectorModel sectorModel, WorldModelPopulateResult result, IList<SectorLinkModel> sectorLinks)
     {
         var textureManager = world.ArchiveCollection.TextureManager;
         var sectors = world.Sectors;
@@ -559,6 +575,9 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
                 if (sectorModel.FogDensity.HasValue)
                     FogDensity = sectorModel.FogDensity.Value;
             }
+
+            if ((DataChanges & SectorDataTypes.SectorLink) != 0)
+                AddSectorLinks(world, sectorLinks);
         }
 
         if (sectorModel.FloorOffset.HasValue)
@@ -604,6 +623,39 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapLower, out var lower);
             TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value], upper, middle, lower);
         }
+    }
+
+    private void AddSectorLinks(IWorld world, IList<SectorLinkModel> sectorLinks)
+    {
+        for (int i = 0; i < sectorLinks.Count; i++)
+        {
+            var link = sectorLinks[i];
+            if (link.ControlId != Id)
+                continue;
+
+            if (link.Face == SectorPlaneFace.Floor && GetValidSector(world, link.SectorId, out var floorSector))
+            {
+                FloorLinks ??= [];
+                FloorLinks.Add(new SectorLink(floorSector, link.Flags));
+            }
+            else if (link.Face == SectorPlaneFace.Ceiling && GetValidSector(world, link.SectorId, out var ceilingSector))
+            {
+                CeilingLinks ??= [];
+                CeilingLinks.Add(new SectorLink(ceilingSector, link.Flags));
+            }
+        }
+    }
+
+    private static bool GetValidSector(IWorld world, int id, [NotNullWhen(true)] out Sector? sector)
+    {
+        if (!world.IsSectorIdValid(id))
+        {
+            sector = null;
+            return false;
+        }
+
+        sector = world.Sectors[id];
+        return true;
     }
 
     private static bool IsSectorIdValid(List<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
@@ -1072,5 +1124,95 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
         for (int i = 0; i < TaggedSectors3D.Length; i++)
             TaggedSectors3D[i].CalculateHeights();
+    }
+
+    public bool GetSectorLinks(SectorPlaneFace face, [NotNullWhen(true)] out DynamicArray<SectorLink>? links)
+    {
+        links = face == SectorPlaneFace.Floor ? FloorLinks : CeilingLinks;
+        return links != null;
+    }
+
+    public bool AddOrUpdateSectorLink(SectorLink link, SectorPlaneFace planeFace)
+    {
+        var success = false;
+        if (planeFace == SectorPlaneFace.Floor && ActiveFloorMove != null)
+            return false;
+        if (planeFace == SectorPlaneFace.Ceiling && ActiveCeilingMove != null)
+            return false;
+
+        var originalFlags = link.Flags;
+        link.Flags &= SectorLinkFlags.Mask;
+        if ((link.Flags & (SectorLinkFlags.Floor | SectorLinkFlags.FloorMirror)) == SectorLinkFlags.FloorMirror)
+            link.Flags &= ~SectorLinkFlags.FloorMirror;
+        if ((link.Flags & (SectorLinkFlags.Ceiling | SectorLinkFlags.CeilingMirror)) == SectorLinkFlags.CeilingMirror)
+            link.Flags &= ~SectorLinkFlags.CeilingMirror;
+
+        if (link.Flags == SectorLinkFlags.Unlink && originalFlags != SectorLinkFlags.Unlink)
+            return false;
+
+        if (FloorLinks != null && UpdateSectorLink(FloorLinks, link))
+            success = true;
+        if (CeilingLinks != null && UpdateSectorLink(CeilingLinks, link))
+            success = true;
+
+        if (link.Flags != SectorLinkFlags.Unlink && !success)
+        {
+            AddSectorLink(link, planeFace);
+            success = true;
+        }
+
+        return success;
+    }
+
+    private void AddSectorLink(SectorLink link, SectorPlaneFace planeFace)
+    {
+        DataChanges |= SectorDataTypes.SectorLink;
+
+        if (planeFace == SectorPlaneFace.Floor)
+        {
+            FloorLinks ??= new();
+            FloorLinks.Add(link);
+        }
+        else
+        {
+            CeilingLinks ??= new();
+            CeilingLinks.Add(link);
+        }
+    }
+
+    private static bool UpdateSectorLink(DynamicArray<SectorLink> links, SectorLink link)
+    {
+        var success = false;
+        if (link.Flags == SectorLinkFlags.Unlink)
+        {
+            for (int i = links.Count - 1; i >= 0; i--)
+            {
+                ref var checkLink = ref links.Data[i];
+                if (checkLink.Sector != link.Sector)
+                    continue;
+
+                links.RemoveAt(i);
+                success = true;
+            }
+
+            return success;
+        }
+
+        for (int i = 0; i < links.Count; i++)
+        {
+            ref var checkLink = ref links.Data[i];
+            if (checkLink.Sector != link.Sector)
+                continue;
+
+            if ((link.Flags & SectorLinkFlags.FloorAndFloorMirror) != 0)
+                checkLink.Flags &= ~SectorLinkFlags.FloorAndFloorMirror;
+            if ((link.Flags & SectorLinkFlags.CeilingAndCeilingMirror) != 0)
+                checkLink.Flags &= ~SectorLinkFlags.CeilingAndCeilingMirror;
+
+            checkLink.Flags |= link.Flags;
+            success = true;
+        }
+
+        return success;
     }
 }

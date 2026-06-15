@@ -14,4 +14,5 @@ internal struct CanPassData
     public double LowestCeilZ;
     public double LowestCeilLight3D;
     public bool ClampToLinkedSectors;
+    public bool ClippedWithEntity;
 }

@@ -126,7 +126,7 @@ public class UdmfGeometryBuilder
 
             var special = GetLineSpecial(needsTranslation, mapLine, ref flags);
 
-            LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags, map.MapType);
+            LineSpecial.ValidateActivationFlags(special.LineSpecialType, mapLine.Args, ref flags, map.MapType);
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args, mapLine.RenderStyle)
             {
                 LockNumber = mapLine.LockNumber,
