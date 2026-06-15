@@ -3,7 +3,7 @@
 ## Features:
 - Added "Detailed" HUD
 - Ability to swap between multiple HUD layouts defined in SBARDEF.lmp (Options, or +/- keys)
-- Added Sector_Set3dFloor, Sector_SetFade, and ExtraFloor_LightOnly
+- Added Sector_Set3dFloor, Sector_SetFade, Sector_SetLink, and ExtraFloor_LightOnly
 - Added NoiseAlert, Thing_Activate, Thing_Deactivate, HealThing, Thing_Hate, Thing_Raise, Thing_Stop, Thing_Damage, Thing_Move, ThrustThingZ, Thing_ChangeTID, and Thing_SetSpecial
 - Added Light_RaiseByValue, Light_LowerByValue, Light_Glow, Light_Flicker, and Light_Strobe, and Light_Fade
 - Added Sector_SetRotation, Sector_SetCeilingPanning, Sector_SetFloorPanning, Sector_SetCeilingScale, Sector_SetFloorScale, Sector_SetDamage, and Sector_SetGravity
