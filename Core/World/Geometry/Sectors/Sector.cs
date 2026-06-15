@@ -204,8 +204,17 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
         MoveProcessedGameTick = -1;
         MoveState = MoveState.None;
 
-        FloorLinks?.Clear();
-        CeilingLinks?.Clear();
+        if (FloorLinks != null)
+        {
+            FloorLinks.FlushStruct();
+            FloorLinks.Clear();
+        }
+
+        if (CeilingLinks != null)
+        {
+            CeilingLinks.FlushStruct();
+            CeilingLinks.Clear();
+        }
 
         for (int i = 0; i < Sectors3D.Length; i++)
             Sectors3D[i].Reset();
