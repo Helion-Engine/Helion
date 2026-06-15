@@ -214,7 +214,8 @@ public sealed partial class PhysicsManager
         // Doors can't be part of the clip check. Maps are reliant on this behavior (e.g. Going Down Turbo MAP23 invul)
         if (!moveSpecial.IsDoor && !m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
         {
-            FixPlaneClip(sector, sectorPlane, moveType);
+            if ((moveData.Flags & SectorMoveFlags.NoFixClip) == 0)
+                FixPlaneClip(sector, sectorPlane, moveType);
             status = SectorMoveStatus.Blocked | SectorMoveStatus.Stop;
         }
 

@@ -81,7 +81,7 @@ public sealed partial class PhysicsManager
             {
                 status = status.Merge(MoveLinkedPlane(secondMove, moveSpecial, speed, moveAmount, link));
                 if (secondStartZ == link.Sector.GetSectorPlane(secondMove.Face).Z)
-                    link.Flags &= ~firstMove.Flag;
+                    link.Flags &= ~secondMove.Flag;
             }
 
             if (resetInterpolation)
@@ -97,6 +97,7 @@ public sealed partial class PhysicsManager
         var saveMoveSpeed = moveSpecial.MoveSpeed;
         moveAmount = (link.Flags & moveLinkPlane.MirrorFlag) == 0 ? moveAmount : -moveAmount;
         moveSpecial.MoveSpeed = moveAmount;
+        moveSpecial.MoveData.Flags |= SectorMoveFlags.NoFixClip;
 
         moveSpecial.SectorPlane = link.Sector.GetSectorPlane(moveLinkPlane.Face);
         moveSpecial.MoveData.SectorMoveType = moveLinkPlane.Face;
@@ -113,6 +114,7 @@ public sealed partial class PhysicsManager
         }
 
         moveSpecial.MoveSpeed = saveMoveSpeed;
+        moveSpecial.MoveData.Flags &= ~SectorMoveFlags.NoFixClip;
         return status;
     }
 }
