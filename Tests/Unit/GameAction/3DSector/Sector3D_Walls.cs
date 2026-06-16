@@ -87,6 +87,25 @@ public class Sector3D_Walls
         result.Vertices.Length.Should().Be(12);
     }
 
+    [Fact(DisplayName = "Render correct offset when 3D sector line is covered by upper texture")]
+    public void RenderSectorLine3DWithUpper()
+    {
+        var sector = GameActions.GetSector(World, 240);
+        sector.Sectors3D.Length.Should().Be(1);
+        var sector3D = sector.Sectors3D[0];
+
+        SetSlices(new WallSlice(128, 80, 192, (0, 32)), new WallSlice(80, 64, 192, (0, 80)), new WallSlice(64, 32, 192, (0, 96)));
+
+        var line = GameActions.GetLine(World, 889);
+        GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice3D);
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+        GeometryRenderer.SetSectorForLineRendering3D(sector3D);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RestoreSectorSliceFunc3D();
+        AssertSlices();
+    }
+
     [Fact(DisplayName = "Render one-sided middle sector line sliced by single 3D sector with lower unpeg")]
     public void RenderOneSidedMiddleSliceLowerUnpeg()
     {
