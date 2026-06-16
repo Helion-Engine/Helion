@@ -26,7 +26,7 @@ using System.Collections.Generic;
 
 namespace Helion.Tests.Unit.GameAction;
 
-internal static class WorldAllocator
+public static class WorldAllocator
 {
     public static int TotalTicks;
     private static SinglePlayerWorld? StaticWorld;
