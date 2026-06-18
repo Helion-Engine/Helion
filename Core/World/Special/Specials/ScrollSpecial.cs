@@ -70,11 +70,13 @@ public class ScrollSpecial : ISpecial
 
         Line.Front.ScrollData ??= new();
         m_frontScroll = Line.Front.ScrollData;
+        m_frontScroll.ScrollY = Speed.Y != 0;
         
         if ((m_scrollSides & ScrollSides.Back) != 0 && Line.Back != null)
         {
             Line.Back.ScrollData ??= new();
             m_backScroll = Line.Back.ScrollData;
+            m_backScroll.ScrollY = Speed.Y != 0;
         }
 
         if (accelSector != null)

@@ -30,12 +30,16 @@ public class StaticDataApplier
         if (line.Front.ScrollData != null)
         {
             line.Front.Dynamic |= SectorDynamic.Scroll;
+            if (line.Front.ScrollData.ScrollY)
+                line.Front.Dynamic |= SectorDynamic.ScrollY;
             world.RenderBlockmap.LinkDynamicSide(line.Front);
         }
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
             line.Back.Dynamic |= SectorDynamic.Scroll;
+            if (line.Back.ScrollData.ScrollY)
+                line.Back.Dynamic |= SectorDynamic.ScrollY;
             world.RenderBlockmap.LinkDynamicSide(line.Back);
         }
     }
