@@ -45,6 +45,7 @@
 - Fix monster closet setting for monsters resetting on map loads.
 - Support multiple boss death triggers. Fixes Crate Expectations MAP07.
 - Fix new dehacked definitions to default height to zero. Fixes Eye Juice ceiling light offsets.
+- Fix A_MonsterBulletAttack, A_MonsterMeleeAttack, A_WeaponBulletAttack, and A_WeaponMeleeAttack to use default parameters when not specified from dehacked instead of checking for zero to match other ports.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.

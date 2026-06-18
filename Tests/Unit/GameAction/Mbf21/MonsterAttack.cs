@@ -46,7 +46,7 @@ public class MonsterAttack
     public void MonsterBulletAttackDefaults()
     {
         CreateEntityAndSetState(177);
-        Player.Health.Should().Be(994);
+        Player.Health.Should().Be(1000);
     }
 
     [Fact(DisplayName = "MonsterBulletAttack")]
