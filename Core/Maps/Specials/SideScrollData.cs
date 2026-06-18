@@ -13,8 +13,9 @@ public class SideScrollData
 {
     public int Gametick;
     public Vec2D[] Offsets = new Vec2D[6];
+    public bool ScrollY;
 
-    public unsafe ref Vec2D Offset(WallLocation location, ScrollOffsetType type)
+    public ref Vec2D Offset(WallLocation location, ScrollOffsetType type)
     {
         return ref Offsets[(int)location + ((int)type * 3) - 1];
     }
