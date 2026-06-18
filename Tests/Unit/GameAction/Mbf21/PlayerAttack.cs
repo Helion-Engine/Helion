@@ -46,7 +46,7 @@ public class PlayerAttack
     {
         var monster = CreateMonster();
         SetState(177);
-        monster.Health.Should().Be(985);
+        monster.Health.Should().Be(1000);
     }
 
     [Fact(DisplayName = "WeaponBulletAttack")]
