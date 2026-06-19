@@ -27,7 +27,19 @@ public class MonsterDoor
         door.ActiveCeilingMove.Should().NotBeNull();
     }
 
-    [Fact(DisplayName = "Monster opens two-sided switch door line ")]
+    [Fact(DisplayName = "Monster opens secret door line")]
+    public void MonsterOpensSecretDoor()
+    {
+        var door = GameActions.GetSector(World, 5);
+        var imp = GameActions.CreateEntity(World, "DoomImp", (-1088, 16, 0), frozen: false);
+        imp.AngleRadians = GameActions.GetAngle(Bearing.South);
+        imp.SetMoveDirection(Helion.World.Entities.Entity.MoveDir.South);
+        imp.SetTarget(World.Player);
+        imp.TryWalk();
+        door.ActiveCeilingMove.Should().NotBeNull();
+    }
+
+    [Fact(DisplayName = "Monster opens two-sided switch door line")]
     public void MonsterOpensTwoSidedDoorSwitchLine()
     {
         // If a monster is blocked by an impassible line and they cross a switch door line then they will attempt to activate it.
