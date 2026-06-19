@@ -140,6 +140,7 @@ public class ScrollSpecial : ISpecial
             return null;
 
         var special = new ScrollSpecial(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type.Value, accelSector, (ZDoomScroll)model.ScrollFlags);
+        ApplyAccel(model, special);
 
         if ((model.OffsetFrontX != null && model.OffsetFrontY != null) || model.FrontOffset != null)
         {
@@ -192,12 +193,7 @@ public class ScrollSpecial : ISpecial
             return null;
 
         var special = new ScrollSpecial(options, sectorPlane, new(model.SpeedX, model.SpeedY), accelSector, (ZDoomScroll)model.ScrollFlags);
-        if (special.m_accelScrollSpeed != null && model.AccelSpeedX.HasValue && model.AccelSpeedY.HasValue && model.AccelLastZ.HasValue)
-        {
-            special.m_accelScrollSpeed.AccelSpeed.X = model.AccelSpeedX.Value;
-            special.m_accelScrollSpeed.AccelSpeed.Y = model.AccelSpeedY.Value;
-            special.m_accelScrollSpeed.LastHeight = model.AccelLastZ.Value;
-        }
+        ApplyAccel(model, special);
 
         if (model.OffsetX != null)
             sectorPlane.RenderOffsets.Offset.X = model.OffsetX.Value;
@@ -205,6 +201,16 @@ public class ScrollSpecial : ISpecial
             sectorPlane.RenderOffsets.Offset.Y = model.OffsetY.Value;
 
         return special;
+    }
+
+    private static void ApplyAccel(ScrollSpecialModel model, ScrollSpecial special)
+    {
+        if (special.m_accelScrollSpeed != null && model.AccelSpeedX.HasValue && model.AccelSpeedY.HasValue && model.AccelLastZ.HasValue)
+        {
+            special.m_accelScrollSpeed.AccelSpeed.X = model.AccelSpeedX.Value;
+            special.m_accelScrollSpeed.AccelSpeed.Y = model.AccelSpeedY.Value;
+            special.m_accelScrollSpeed.LastHeight = model.AccelLastZ.Value;
+        }
     }
 
     public ScrollSpecialModel ToSpecialModel()
