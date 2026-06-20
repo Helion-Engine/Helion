@@ -179,6 +179,7 @@ public interface IWorld : IDisposable
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
     int EntityCount(int entityDefinitionId);
     int EntityAliveCount(int entityDefinitionId, int tid, int sectorTag, Entity? ignoreEntity = null);
+    bool AnyEntityAlive(int entityDefinitionId, int tid, int sectorTag, Entity? ignoreEntity = null);
     void NoiseAlert(Entity target, Entity source);
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allAround);

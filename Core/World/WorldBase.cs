@@ -3930,7 +3930,10 @@ public abstract partial class WorldBase : IWorld
     public int EntityAliveCount(int entityDefinitionId, int tid, int sectorTag, Entity? ignoreEntity = null) =>
         EntityCount(entityDefinitionId, tid, sectorTag, true, ignoreEntity);
 
-    private int EntityCount(int entityDefinitionId, int tid, int sectorTag, bool checkAlive, Entity? ignoreEntity = null)
+    public bool AnyEntityAlive(int entityDefinitionId, int tid, int sectorTag, Entity? ignoreEntity = null) =>
+        EntityCount(entityDefinitionId, tid, sectorTag, true, ignoreEntity, stopOnFirstAlive: true) > 0;
+
+    private int EntityCount(int entityDefinitionId, int tid, int sectorTag, bool checkAlive, Entity? ignoreEntity = null, bool stopOnFirstAlive = false)
     {
         int count = 0;
         if (sectorTag != Sector.NoTag)
@@ -3939,7 +3942,11 @@ public abstract partial class WorldBase : IWorld
             foreach (var sector in sectors)
             {
                 for (var node = sector.Entities.Head; node != null; node = node.Next)
+                {
                     CountEntity(node.Value, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+                    if (stopOnFirstAlive && count > 0)
+                        return count;
+                }
             }
 
             return count;
@@ -3950,13 +3957,21 @@ public abstract partial class WorldBase : IWorld
             // If searching by thing id then pre-filter by tid list.
             var entities = EntityManager.FindByTid(tid);
             for (var node = entities.Head; node != null; node = node.Next)
+            {
                 CountEntity(node.Value, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+                if (stopOnFirstAlive && count > 0)
+                    return count;
+            }
 
             return count;
         }
 
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+        {
             CountEntity(entity, entityDefinitionId, tid, checkAlive, ignoreEntity, ref count);
+            if (stopOnFirstAlive && count > 0)
+                return count;
+        }
 
         return count;
     }

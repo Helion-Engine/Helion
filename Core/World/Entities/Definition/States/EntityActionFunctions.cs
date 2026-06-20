@@ -1497,7 +1497,7 @@ public static class EntityActionFunctions
         A_Fall(entity);
 
         var world = WorldStatic.World;
-        if (world.EntityAliveCount(entity.Definition.Id, EntityManager.NoTid, Sector.NoTag, entity) == 0)
+        if (!world.AnyEntityAlive(entity.Definition.Id, EntityManager.NoTid, Sector.NoTag, entity))
         {
             var sectors = world.FindBySectorTag(666);
             foreach (var sector in sectors)
