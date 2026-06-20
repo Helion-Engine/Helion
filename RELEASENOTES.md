@@ -69,3 +69,4 @@
 - Update SDL dependency to 2.32.10
 - Update OpenAL-Soft dependency to 1.25.2
 - Update SDL controller database support file (for button mappings, etc.)
+- Improved performance for A_KeenDie and A_BossDeath functions for extreme cases like 100krevs.wad.
