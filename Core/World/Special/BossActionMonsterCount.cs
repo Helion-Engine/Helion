@@ -26,7 +26,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
 
     public SpecialTickStatus Tick(Entity? ignoreEntity)
     {
-        if (m_world.EntityAliveCount(EntityDefinitionId, EntityManager.NoTid, Sector.NoTag, ignoreEntity) == 0)
+        if (!m_world.AnyEntityAlive(EntityDefinitionId, EntityManager.NoTid, Sector.NoTag, ignoreEntity))
             ExecuteSpecial();
 
         return SpecialTickStatus.Continue;
