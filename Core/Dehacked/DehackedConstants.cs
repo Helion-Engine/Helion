@@ -4832,6 +4832,8 @@ public partial class DehackedDefinition
 
     public static readonly Dictionary<ActionFunction, DefaultArgs> DefaultFrameArgs = new()
     {
+        { A_MonsterBulletAttack, new DefaultArgs() { Args3 = 1, Args4 = 5, Args5 = 3} },
+        { A_MonsterMeleeAttack, new DefaultArgs() { Args1 = 3, Args2 = 8} },
         { A_WeaponBulletAttack, new DefaultArgs() { Args3 = 1, Args4 = 5, Args5 = 3 } },
         { A_WeaponMeleeAttack, new DefaultArgs() { Args1 = 2, Args2 = 10, Args3 = 65536 } },
     };

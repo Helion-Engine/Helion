@@ -57,6 +57,6 @@ link:/ACS.md[ACS Support]
 
 ## Contact Us
 
-If you want to talk about the game, follow development, or get involved, we have https://discord.gg/sb8P7Nuby8[a Discord server] as well as https://www.doomworld.com/forum/topic/132153-helion-c-0940-824-goodbye-bsp-tree-rendering/[a thread on the Doomworld forums].
+If you want to talk about the game, follow development, or get involved, we have https://discord.gg/uCpmHdqnRc[a Discord server] as well as https://www.doomworld.com/forum/topic/132153-helion-c-0940-824-goodbye-bsp-tree-rendering/[a thread on the Doomworld forums].
 
 If you encounter issues using Helion and would like to report a bug, you can do so either https://github.com/Helion-Engine/Helion/issues[here on GitHub Issues] or in the Doomworld thread above.

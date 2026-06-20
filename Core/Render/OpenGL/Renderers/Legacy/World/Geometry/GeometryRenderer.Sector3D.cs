@@ -225,8 +225,18 @@ public partial class GeometryRenderer
 
         var renderThrough = style != RenderDataStyle.Normal;
         SectorPlane3D? lastPlane3D = null;
-        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, wallHeights3D), anchorZ, prevAnchorZ);
 
+        double addOffsetZ = 0;
+        double prevAddOffsetZ = 0;
+        // If this 3D sector is above the first plane then add the offset since it's not traversed. This happens when an upper is covering a 3D sector.
+        if (wallHeights3D != null && traversePlanes3D.Length > 0 && (wallHeights3D.Value.TopZ > traversePlanes3D[0].Plane.Z || wallHeights3D.Value.PrevTopZ > traversePlanes3D[0].Plane.PrevZ))
+        {
+            addOffsetZ = wallHeights3D.Value.TopZ - traversePlanes3D[0].Plane.Z;
+            prevAddOffsetZ = wallHeights3D.Value.PrevTopZ - traversePlanes3D[0].Plane.PrevZ;
+        }
+
+        SetWallOffset(m_fakeSide, m_fakeWall, offsetY, GetStartAnchorZ(side, wall, otherSector, wallHeights3D), anchorZ, prevAnchorZ, addOffsetZ, prevAddOffsetZ);
+            
         for (int i = 0; i < traversePlanes3D.Length - 1; i++)
         {
             ref var plane3D = ref traversePlanes3D[i];
@@ -384,11 +394,11 @@ public partial class GeometryRenderer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SetWallOffset(Side side, Wall wall, float saveOffsetY, SectorPlane top, double anchorZ, double prevAnchorZ)
+    private static void SetWallOffset(Side side, Wall wall, float saveOffsetY, SectorPlane top, double anchorZ, double prevAnchorZ, double addOffsetZ = 0, double prevAddOffsetZ = 0)
     {
         // Use scrolling data for offset since normal wall offsets can't interpolate
-        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Current).Y = saveOffsetY + (float)(anchorZ - top.Z);
-        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = saveOffsetY + (float)(prevAnchorZ - top.PrevZ);
+        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Current).Y = saveOffsetY + (float)(anchorZ - top.Z + addOffsetZ);
+        side.ScrollData!.Offset(wall.Location, ScrollOffsetType.Previous).Y = saveOffsetY + (float)(prevAnchorZ - top.PrevZ + prevAddOffsetZ);
     }
 
     private static void AddVertices(DynamicArray<DynamicVertex> vertices, Span<DynamicVertex> add)

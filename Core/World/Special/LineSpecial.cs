@@ -174,7 +174,7 @@ public class LineSpecial
         }
         else if (!entity.IsPlayer)
         {
-            if (line.Flags.Secret || (!projectileTrigger && (flags.Activations & LineActivations.Monster) == 0))
+            if (!projectileTrigger && (flags.Activations & LineActivations.Monster) == 0)
                 return false;
 
             if (context == ActivationContext.CrossLine)

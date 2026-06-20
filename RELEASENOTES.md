@@ -45,6 +45,10 @@
 - Fix monster closet setting for monsters resetting on map loads.
 - Support multiple boss death triggers. Fixes Crate Expectations MAP07.
 - Fix new dehacked definitions to default height to zero. Fixes Eye Juice ceiling light offsets.
+- Fix A_MonsterBulletAttack, A_MonsterMeleeAttack, A_WeaponBulletAttack, and A_WeaponMeleeAttack to use default parameters when not specified from dehacked instead of checking for zero to match other ports.
+- Fix rendering issue with vertical scrolling two-sided middle textures.
+- Fix line scrolling using boom accel model not loading correctly from save.
+- Fix monsters not activating secret door lines.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
@@ -65,3 +69,4 @@
 - Update SDL dependency to 2.32.10
 - Update OpenAL-Soft dependency to 1.25.2
 - Update SDL controller database support file (for button mappings, etc.)
+- Improved performance for A_KeenDie and A_BossDeath functions for extreme cases like 100krevs.wad.
