@@ -26,7 +26,7 @@ public enum SectorFlags3D
     DisableLighting = 128,
     RestrictLighting = 256,
     Fog = 512,
-    Model = 1024,
+    CeilingModel = 1024,
     UseParentUpperTexture = 2048,
     UseParentLowerTexture = 4096,
     AdditiveTransparency = 8192,
@@ -129,7 +129,7 @@ public sealed class Sector3D
         ParentSector = parentSector;
         ControlSector = controlSector;
         ControlTop = controlSector.Ceiling;
-        ControlBottom = controlSector.Floor;
+        ControlBottom = (flags & SectorFlags3D.CeilingModel) == 0 ? controlSector.Floor : controlSector.Ceiling;
         LightTop = ParentSector;
         LightBottom = ParentSector;
         Flags = flags;
