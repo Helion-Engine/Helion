@@ -899,7 +899,7 @@ public sealed partial class PhysicsManager
             return GetLineOpeningWithDropoff(entity, x, y, ref line);
 
         GetLineOpening(front, back);
-        m_lineOpening.DropOffZ = front.Floor.Z;
+        m_lineOpening.DropOffZ = Math.Min(front.Floor.Z, back.Floor.Z);
         SetOpeningPlanes3D(entity, front, back);
 
         if (m_testOpeningFront.FloorZ > m_testOpeningBack.FloorZ)
