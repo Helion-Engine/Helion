@@ -63,16 +63,73 @@ public class Sector3D_Physics : IDisposable
         Imp.Position.Should().Be(new Vec3D(-664, -64, 96));
     }
 
-    [Fact(DisplayName = "Monster walks on 3D sector drop off")]
-    public void MonsterWalkDropOff3D()
+    [Fact(DisplayName = "Monster walks on 3D sector drop off with line front to back")]
+    public void MonsterWalkDropOff3DFrontToBack()
     {
-        GameActions.SetEntityPosition(World, Imp, (-576, -32, 96));
+        GameActions.SetEntityPosition(World, Imp, (-608, -32, 96));
         Imp.OnGround.Should().BeTrue();
         Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
         Imp.SetMoveDirection(Entity.MoveDir.North);
         GameActions.MoveEnemy(Imp).Should().BeTrue();
         GameActions.MoveEnemy(Imp).Should().BeFalse();
     }
+
+    [Fact(DisplayName = "Monster walks on 3D sector drop off with line back to front")]
+    public void MonsterWalkDropOff3DBackToFront()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-544, -32, 96));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Monster blocked by normal sector dropoff when below 3D sector with line back to front")]
+    public void MonsterDropOffBlockWithNormalSectorBelowSector3DBackToFront()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-160, -156, 0));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Monster blocked by normal sector dropoff when below 3D sector with line front to back")]
+    public void MonsterDropOffBlockWithNormalSectorBelowSector3DFrontToBack()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-160, 92, 0));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.South);
+        Imp.SetMoveDirection(Entity.MoveDir.South);
+
+        for (int i = 0; i < 6; i++)
+            GameActions.MoveEnemy(Imp).Should().BeTrue();
+
+        Imp.Position.Should().Be(new Vec3D(-160, 44, -16));
+    }
+
+    [Fact(DisplayName = "Monster not blocked by normal sector dropoff 3D when below 3D sector with line front to back")]
+    public void MonsterDropOff3DNoBlockWithSectorAboveAndBelow3DFrontToBack()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-160, -28, 0));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+
+        for (int i = 0; i < 6; i++)
+            GameActions.MoveEnemy(Imp).Should().BeTrue();
+
+        Imp.Position.Should().Be(new Vec3D(-160, 20, -16));
+    }
+
+    [Fact(DisplayName = "Monster not blocked by normal sector dropoff 3D when below 3D sector with line back to front")]
+    public void MonsterDropOff3DNoBlockWithSectorAboveAndBelow3DBackToFront()
+    {
+
+    }
+
 
     [Fact(DisplayName = "Monster walks on 3D sector drop off stair line")]
     public void MonsterWalkOnDropOffStairLine3D()
@@ -107,14 +164,14 @@ public class Sector3D_Physics : IDisposable
         Imp.Position.Should().Be(new Vec3D(-576, -96, 96));
     }
 
-    [Fact(DisplayName = "Monster walks up 3D sector stairs")]
-    public void MonsterWalksUpStairSectors3D()
+    [Fact(DisplayName = "Monster walks up 3D sector stairs with lines front to back")]
+    public void MonsterWalksUpStairSectors3DFrontToBack()
     {
-        GameActions.SetEntityPosition(World, Imp, (-248, -64, 0));
+        GameActions.SetEntityPosition(World, Imp, (-248, -32, 0));
         Imp.AngleRadians = GameActions.GetAngle(Bearing.West);
         Imp.SetMoveDirection(Entity.MoveDir.West);
         Imp.OnGround.Should().BeTrue();
-        Imp.Position.Should().Be(new Vec3D(-248, -64, 0));
+        Imp.Position.Should().Be(new Vec3D(-248, -32, 0));
 
         var height = 16.0;
         for (int step = 0; step < 6; step++)
@@ -128,14 +185,56 @@ public class Sector3D_Physics : IDisposable
         }
     }
 
-    [Fact(DisplayName = "Monster walks down 3D sector stairs")]
-    public void MonsterWalksDownStairSectors3D()
+    [Fact(DisplayName = "Monster walks up 3D sector stairs with lines back to front")]
+    public void MonsterWalksUpStairSectors3DBackToFront()
     {
-        GameActions.SetEntityPosition(World, Imp, (-544, -64, 96));
+        GameActions.SetEntityPosition(World, Imp, (-248, -104, 0));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.West);
+        Imp.SetMoveDirection(Entity.MoveDir.West);
+        Imp.OnGround.Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-248, -104, 0));
+
+        var height = 16.0;
+        for (int step = 0; step < 6; step++)
+        {
+            for (int move = 0; move < 6; move++)
+            {
+                GameActions.MoveEnemy(Imp).Should().BeTrue();
+                Imp.Position.Z.Should().Be(height);
+            }
+            height += 16.0;
+        }
+    }
+
+    [Fact(DisplayName = "Monster walks down 3D sector stairs with lines back to front")]
+    public void MonsterWalksDownStairSectors3DBackToFront()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-544, -32, 96));
         Imp.AngleRadians = GameActions.GetAngle(Bearing.East);
         Imp.SetMoveDirection(Entity.MoveDir.East);
         Imp.OnGround.Should().BeTrue();
-        Imp.Position.Should().Be(new Vec3D(-544, -64, 96));
+        Imp.Position.Should().Be(new Vec3D(-544, -32, 96));
+
+        var height = 96.0;
+        for (int step = 0; step < 6; step++)
+        {
+            for (int move = 0; move < 6; move++)
+            {
+                GameActions.MoveEnemy(Imp).Should().BeTrue();
+                Imp.Position.Z.Should().Be(height);
+            }
+            height -= 16.0;
+        }
+    }
+
+    [Fact(DisplayName = "Monster walks down 3D sector stairs with lines front to back")]
+    public void MonsterWalksDownStairSectors3DFrontToBack()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-544, -104, 96));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.East);
+        Imp.SetMoveDirection(Entity.MoveDir.East);
+        Imp.OnGround.Should().BeTrue();
+        Imp.Position.Should().Be(new Vec3D(-544, -104, 96));
 
         var height = 96.0;
         for (int step = 0; step < 6; step++)
@@ -161,22 +260,43 @@ public class Sector3D_Physics : IDisposable
         Imp.LowestCeilingZ.Should().Be(88);
     }
 
-    [Fact(DisplayName = "Monster doesn't step up to 3D sector with 3D sector ceiling too low")]
-    public void MonsterNoStepUpCeilingLow()
+    [Fact(DisplayName = "Monster doesn't step up to 3D sector with 3D sector ceiling too low with line front to back")]
+    public void MonsterNoStepUpCeilingLowFrontToBack()
     {
-        GameActions.SetEntityPosition(World, Imp, (-384, 232, 16));
+        GameActions.SetEntityPosition(World, Imp, (-416, 232, 16));
         Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
         Imp.SetMoveDirection(Entity.MoveDir.North);
         Imp.LowestCeilingZ.Should().Be(1024);
         GameActions.MoveEnemy(Imp).Should().BeFalse();
-        Imp.Position.Should().Be(new Vec3D(-384, 232, 16));
+        Imp.Position.Should().Be(new Vec3D(-416, 232, 16));
         Imp.LowestCeilingZ.Should().Be(1024);
     }
 
-    [Fact(DisplayName = "Monster blocked by two 3D sectors that are closed")]
-    public void MonsterBlockedByTwoClosedSectors3D()
+    [Fact(DisplayName = "Monster doesn't step up to 3D sector with 3D sector ceiling too low with line back to front")]
+    public void MonsterNoStepUpCeilingLowBackToFront()
     {
-        GameActions.SetEntityPosition(World, Imp, (-152, 296, 0));
+        GameActions.SetEntityPosition(World, Imp, (-352, 232, 16));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        Imp.LowestCeilingZ.Should().Be(1024);
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+        Imp.Position.Should().Be(new Vec3D(-352, 232, 16));
+        Imp.LowestCeilingZ.Should().Be(1024);
+    }
+
+    [Fact(DisplayName = "Monster blocked by two 3D sectors that are closed with line front to back")]
+    public void MonsterBlockedByTwoClosedSectors3DFrontToBack()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-184, 296, 0));
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
+        Imp.SetMoveDirection(Entity.MoveDir.North);
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Monster blocked by two 3D sectors that are closed with line back to front")]
+    public void MonsterBlockedByTwoClosedSectors3DBackToFront()
+    {
+        GameActions.SetEntityPosition(World, Imp, (-120, 296, 0));
         Imp.AngleRadians = GameActions.GetAngle(Bearing.North);
         Imp.SetMoveDirection(Entity.MoveDir.North);
         GameActions.MoveEnemy(Imp).Should().BeFalse();
