@@ -1,9 +1,6 @@
 ﻿using FluentAssertions;
-using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Resources.IWad;
-using Helion.Tests.Unit.GameAction.Mbf21;
-using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -269,6 +266,26 @@ public class Sector3D_Map
 
         // Fully clipped by lower and upper
         higher3D.CalculateWallHeights(GameActions.GetLine(World, 134).Front, out _).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Sector3D CeilingModel flag")]
+    public void CeilingModel()
+    {
+        var sector = GameActions.GetSectorByTag(World, 73);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        var controlSector1 = GameActions.GetSector(World, 243);
+        var controlSector2 = GameActions.GetSector(World, 242);
+
+        sector.Sectors3D[0].Flags.Should().Be(SectorFlags3D.Swim | SectorFlags3D.RenderInside | SectorFlags3D.CeilingModel);
+        sector.Sectors3D[1].Flags.Should().Be(SectorFlags3D.Swim | SectorFlags3D.RenderInside | SectorFlags3D.CeilingModel);
+
+        // Renders both top and bottom as the control sector's ceiling. This simply means both control top and bottom are set to the control sector's ceiling.
+        sector.Sectors3D[0].ControlTop.Should().Be(controlSector1.Ceiling);
+        sector.Sectors3D[0].ControlBottom.Should().Be(controlSector1.Ceiling);
+
+        sector.Sectors3D[1].ControlTop.Should().Be(controlSector2.Ceiling);
+        sector.Sectors3D[1].ControlBottom.Should().Be(controlSector2.Ceiling);
     }
 
     private static void AssertWallHeights(WallHeights wallHeights, double bottomZ, double topZ)
