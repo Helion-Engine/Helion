@@ -489,8 +489,8 @@ public partial class GeometryRenderer
 
         var lowerTopZ = args.OtherSector.Floor.Z;
         var lowerBottomZ = args.FacingSector.Floor.Z;
-        var lowerTopPrevZ = args.OtherSector.Floor.Z;
-        var lowerBottomPrevZ = args.FacingSector.Floor.Z;
+        var lowerTopPrevZ = args.OtherSector.Floor.PrevZ;
+        var lowerBottomPrevZ = args.FacingSector.Floor.PrevZ;
 
         m_fakeFacing.FloorSkyTextureHandle = args.FacingSector.FloorSkyTextureHandle;
         m_fakeFacing.Floor.TextureHandle = args.FacingSector.Floor.TextureHandle;
