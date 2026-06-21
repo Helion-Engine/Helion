@@ -99,6 +99,17 @@ public class Sector3D_Physics : IDisposable
     [Fact(DisplayName = "Monster blocked by normal sector dropoff when below 3D sector with line front to back")]
     public void MonsterDropOffBlockWithNormalSectorBelowSector3DFrontToBack()
     {
+        GameActions.SetEntityPosition(World, Imp, (-160, -36, 0));
+        Imp.OnGround.Should().BeTrue();
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.South);
+        Imp.SetMoveDirection(Entity.MoveDir.South);
+        GameActions.MoveEnemy(Imp).Should().BeTrue();
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Monster not blocked by normal sector dropoff 3D when below 3D sector with line front to back")]
+    public void MonsterDropOff3DNoBlockWithSectorAboveAndBelow3DFrontToBack()
+    {
         GameActions.SetEntityPosition(World, Imp, (-160, 92, 0));
         Imp.OnGround.Should().BeTrue();
         Imp.AngleRadians = GameActions.GetAngle(Bearing.South);
@@ -110,8 +121,8 @@ public class Sector3D_Physics : IDisposable
         Imp.Position.Should().Be(new Vec3D(-160, 44, -16));
     }
 
-    [Fact(DisplayName = "Monster not blocked by normal sector dropoff 3D when below 3D sector with line front to back")]
-    public void MonsterDropOff3DNoBlockWithSectorAboveAndBelow3DFrontToBack()
+    [Fact(DisplayName = "Monster not blocked by normal sector dropoff 3D when below 3D sector with line back to front")]
+    public void MonsterDropOff3DNoBlockWithSectorAboveAndBelow3DBackToFront()
     {
         GameActions.SetEntityPosition(World, Imp, (-160, -28, 0));
         Imp.OnGround.Should().BeTrue();
@@ -123,13 +134,6 @@ public class Sector3D_Physics : IDisposable
 
         Imp.Position.Should().Be(new Vec3D(-160, 20, -16));
     }
-
-    [Fact(DisplayName = "Monster not blocked by normal sector dropoff 3D when below 3D sector with line back to front")]
-    public void MonsterDropOff3DNoBlockWithSectorAboveAndBelow3DBackToFront()
-    {
-
-    }
-
 
     [Fact(DisplayName = "Monster walks on 3D sector drop off stair line")]
     public void MonsterWalkOnDropOffStairLine3D()
