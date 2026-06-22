@@ -57,7 +57,7 @@ public class DefaultSoundSource : ISoundSource
 
     public bool HasSound(string sound, SoundChannel channel)
     {
-        return m_audioSource != null && m_audioSource.AudioData.SoundInfo.Name.EqualsIgnoreCase(sound);
+        return m_audioSource != null && m_audioSource.AudioDataRef().SoundInfo.Name.EqualsIgnoreCase(sound);
     }
 
     public bool CanMakeSound() => true;

@@ -193,7 +193,7 @@ public class DataCache
     {
         if (audioSource is not OpenALAudioSource)
         {
-            audioSource.AudioData.SoundSource.ClearSound(audioSource, audioSource.AudioData.SoundChannelType);
+            audioSource.AudioDataRef().SoundSource.ClearSound(audioSource, audioSource.AudioDataRef().SoundChannelType);
             audioSource.CacheFree();
             return;
         }
@@ -202,7 +202,7 @@ public class DataCache
         audioSource.SetVelocity(0, 0, 0);
         audioSource.SetPosition(0, 0, 0);
 
-        audioSource.AudioData.SoundSource.ClearSound(audioSource, audioSource.AudioData.SoundChannelType);
+        audioSource.AudioDataRef().SoundSource.ClearSound(audioSource, audioSource.AudioDataRef().SoundChannelType);
         audioSource.CacheFree();
         m_audioSources.Add(audioSource);
     }

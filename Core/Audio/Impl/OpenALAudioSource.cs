@@ -27,11 +27,8 @@ public class OpenALAudioSource : IAudioSource
 
     public Vec3F Velocity { get; set; }
 
-    public AudioData AudioData
-    {
-        get => m_audioData;
-        set => m_audioData = value;
-    }
+    public ref AudioData AudioDataRef() => ref m_audioData;
+
     public OpenALAudioSourceManager Owner { get; private set; }
     public IAudioSource? Previous { get; set; }
     public IAudioSource? Next { get; set; }
@@ -46,13 +43,13 @@ public class OpenALAudioSource : IAudioSource
     {
         Set(owner, buffer, audioData);
         Owner = owner;
-        AudioData = audioData;
+        m_audioData = audioData;
     }
 
     public void Set(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)
     {
         Owner = owner;
-        AudioData = audioData;
+        m_audioData = audioData;
         Pitch = 1f;
 
         var rolloffFactor = 1f;
@@ -311,11 +308,11 @@ public class OpenALAudioSource : IAudioSource
 
         Owner.Unlink(this);
         Owner = null!;
-        AudioData = new();
+        m_audioData = new();
         OpenALDebug.Start("Deleting sound source");
         AL.DeleteSource(m_sourceId);
         OpenALDebug.End("Deleting sound source");
     }
 
-    public override string ToString() => AudioData.SoundInfo.Name;
+    public override string ToString() => m_audioData.SoundInfo.Name;
 }

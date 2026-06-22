@@ -5,7 +5,8 @@ namespace Helion.Audio.Impl;
 
 internal sealed class MockAudioSource : IAudioSource
 {
-    public AudioData AudioData { get; set; }
+    private AudioData m_audioData;
+    public ref AudioData AudioDataRef() => ref m_audioData;
     public IAudioSource? Previous { get; set; }
     public IAudioSource? Next { get; set; }
 
@@ -20,7 +21,7 @@ internal sealed class MockAudioSource : IAudioSource
 
     public MockAudioSource(in AudioData audioData, int ticksToPlay)
     {
-        AudioData = audioData;
+        m_audioData = audioData;
         m_playTicks = ticksToPlay;
     }
 
@@ -31,12 +32,12 @@ internal sealed class MockAudioSource : IAudioSource
 
     public void CacheFree()
     {
-        AudioData = default;
+        m_audioData = default;
     }
 
     public void Tick()
     {
-        if (AudioData.Loop)
+        if (m_audioData.Loop)
             return;
 
         if (m_playing)
@@ -116,5 +117,10 @@ internal sealed class MockAudioSource : IAudioSource
     public void Update(in UpdateParams updateParams)
     {
 
+    }
+
+    public override string ToString()
+    {
+        return m_audioData.SoundSource.ToString();
     }
 }

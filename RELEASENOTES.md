@@ -49,6 +49,7 @@
 - Fix rendering issue with vertical scrolling two-sided middle textures.
 - Fix line scrolling using boom accel model not loading correctly from save.
 - Fix monsters not activating secret door lines.
+- Add new specials to the end of the list to match Doom behavior.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.

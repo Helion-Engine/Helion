@@ -13,20 +13,20 @@ public partial class GameActions
     {
         var sound = world.SoundManager.FindBySource(soundSource);
         sound.Should().NotBeNull();
-        sound.AudioData.SoundInfo.Name.EqualsIgnoreCase(soundInfoName);
+        sound.AudioDataRef().SoundInfo.Name.EqualsIgnoreCase(soundInfoName);
     }
 
     public static void AssertNoSoundInfo(WorldBase world, string soundInfoName)
     {
-        world.SoundManager.GetPlayingSounds().Any(x => x.AudioData.SoundInfo.Name.EqualsIgnoreCase(soundInfoName)).Should().BeFalse();
-        world.SoundManager.GetSoundsToPlay().Any(x => x.AudioData.SoundInfo.Name.EqualsIgnoreCase(soundInfoName)).Should().BeFalse();
+        world.SoundManager.GetPlayingSounds().Any(x => x.AudioDataRef().SoundInfo.Name.EqualsIgnoreCase(soundInfoName)).Should().BeFalse();
+        world.SoundManager.GetSoundsToPlay().Any(x => x.AudioDataRef().SoundInfo.Name.EqualsIgnoreCase(soundInfoName)).Should().BeFalse();
     }
 
     public static IAudioSource GetSoundBySoundInfo(WorldBase world, string soundInfoName)
     {
         return world.SoundManager.GetPlayingSounds()
             .Union(world.SoundManager.GetSoundsToPlay())
-            .Single(x => x.AudioData.SoundInfo.Name.EqualsIgnoreCase(soundInfoName));
+            .Single(x => x.AudioDataRef().SoundInfo.Name.EqualsIgnoreCase(soundInfoName));
     }
 
     public static void AssertAnySound(WorldBase world, object soundSource) => AssertSound(world, soundSource, null);
@@ -36,7 +36,7 @@ public partial class GameActions
         var sound = world.SoundManager.FindBySource(soundSource);
         sound.Should().NotBeNull();
         if (entrySoundName != null)
-            sound!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase(entrySoundName).Should().BeTrue();
+            sound!.AudioDataRef().SoundInfo.EntryName.EqualsIgnoreCase(entrySoundName).Should().BeTrue();
 
         ((MockAudioSourceManager)world.SoundManager.AudioManager).CreateSound = false;
         TickWorld(world, () => { return world.SoundManager.FindBySource(soundSource) != null; }, () => { });

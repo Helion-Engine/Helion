@@ -98,7 +98,7 @@ namespace Helion.Tests.Unit.GameAction
             var node = playingSounds.First;
             while (node != null)
             {
-                if (node.Value.AudioData.SoundSource == plane)
+                if (node.Value.AudioDataRef().SoundSource == plane)
                     return;
                 node = node.Next;
             }

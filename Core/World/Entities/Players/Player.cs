@@ -485,7 +485,7 @@ public class Player : Entity
             CheckIcyBounceLineAngle(World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment, velocity))
         {
             var existingSound = SoundChannels[(int)SoundChannel.Default];
-            if (existingSound == null || !existingSound.AudioData.SoundInfo.Name.EndsWithIgnoreCase("*grunt"))
+            if (existingSound == null || !existingSound.AudioDataRef().SoundInfo.Name.EndsWithIgnoreCase("*grunt"))
                 PlayGruntSound();
             var bounceVelocity = MathHelper.BounceVelocity(velocity.XY);
             Velocity.X = bounceVelocity.X / 2;
@@ -784,7 +784,7 @@ public class Player : Entity
     public override bool HasSound(string sound, SoundChannel channel)
     {
         var audioSource = SoundChannels[(int)channel];
-        return audioSource != null && audioSource.AudioData.SoundInfo.Name.EqualsIgnoreCase(sound);
+        return audioSource != null && audioSource.AudioDataRef().SoundInfo.Name.EqualsIgnoreCase(sound);
     }
 
     public override void ClearSound(IAudioSource audioSource, SoundChannel channel)

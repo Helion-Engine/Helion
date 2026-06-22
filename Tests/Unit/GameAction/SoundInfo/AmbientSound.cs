@@ -35,10 +35,10 @@ public class AmbientSounds
         sounds.Count.Should().Be(1);
 
         var sound = sounds.First!.Value;
-        sound.AudioData.Loop.Should().BeTrue();
-        sound.AudioData.Volume.Should().Be(0.5f);
-        sound.AudioData.AttenuationFactor.Should().Be(2f);
-        sound.AudioData.Attenuation.Should().Be(Attenuation.Default);
+        sound.AudioDataRef().Loop.Should().BeTrue();
+        sound.AudioDataRef().Volume.Should().Be(0.5f);
+        sound.AudioDataRef().AttenuationFactor.Should().Be(2f);
+        sound.AudioDataRef().Attenuation.Should().Be(Attenuation.Default);
 
         GameActions.TickWorld(world, 35);
         sounds = world.SoundManager.GetPlayingSounds();
@@ -68,10 +68,10 @@ public class AmbientSounds
         sounds.Count.Should().Be(1);
 
         var sound = sounds.First!.Value;
-        sound.AudioData.Loop.Should().BeTrue();
-        sound.AudioData.Volume.Should().Be(1f);
-        sound.AudioData.AttenuationFactor.Should().Be(1f);
-        sound.AudioData.Attenuation.Should().Be(Attenuation.None);
+        sound.AudioDataRef().Loop.Should().BeTrue();
+        sound.AudioDataRef().Volume.Should().Be(1f);
+        sound.AudioDataRef().AttenuationFactor.Should().Be(1f);
+        sound.AudioDataRef().Attenuation.Should().Be(Attenuation.None);
 
         GameActions.TickWorld(world, 35);
         sounds = world.SoundManager.GetPlayingSounds();
@@ -116,10 +116,10 @@ public class AmbientSounds
         sounds.Count.Should().Be(1);
 
         var sound = sounds.First!.Value;
-        sound.AudioData.Loop.Should().BeFalse();
-        sound.AudioData.Volume.Should().Be(1f);
-        sound.AudioData.AttenuationFactor.Should().Be(1f);
-        sound.AudioData.Attenuation.Should().Be(Attenuation.Default);
+        sound.AudioDataRef().Loop.Should().BeFalse();
+        sound.AudioDataRef().Volume.Should().Be(1f);
+        sound.AudioDataRef().AttenuationFactor.Should().Be(1f);
+        sound.AudioDataRef().Attenuation.Should().Be(Attenuation.Default);
 
         GameActions.TickWorld(world, () => { return world.SoundManager.GetPlayingSounds().Count > 0; }, () => { });
 

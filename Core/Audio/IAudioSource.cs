@@ -39,7 +39,7 @@ public interface IAudioSource : IDisposable
 
     void SetRelative(bool set);
 
-    AudioData AudioData { get; set; }
+    public ref AudioData AudioDataRef();
 
     void Play();
 

@@ -455,7 +455,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     public void AddSpecial(ISpecial special)
     {
-        m_specials.AddFirst(m_world.DataCache.GetSpecialNode(special));
+        m_specials.AddLast(m_world.DataCache.GetSpecialNode(special));
     }
 
     public ISpecial? FindSpecialBySector(Sector sector)
