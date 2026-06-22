@@ -225,7 +225,7 @@ public class WorldSoundManager : SoundManager, ITickable
         var playingSound = PlayingSounds.Head;
         while (playingSound != null)
         {
-            if (playingSound.AudioData.SoundSource == source)
+            if (playingSound.AudioDataRef().SoundSource == source)
                 playingSound.SetRelative(false);
             playingSound = playingSound.Next;
         }
@@ -255,16 +255,17 @@ public class WorldSoundManager : SoundManager, ITickable
         while (node != null)
         {
             nextNode = node.Next;
+            ref var audioData = ref node.AudioDataRef();
             if (node.IsFinished())
             {
-                node.AudioData.SoundSource.TryClearSound(node.AudioData.SoundInfo.Name, SoundChannel.Default, out _);
+                audioData.SoundSource.TryClearSound(audioData.SoundInfo.Name, SoundChannel.Default, out _);
                 PlayingSounds.RemoveAndFree(node, m_world.DataCache);
                 node = nextNode;
                 continue;
             }
 
-            var distanceSquared = node.AudioData.SoundSource.GetDistanceSquaredFrom(listener.Entity);
-            if (!CheckDistance(distanceSquared, node.AudioData.Attenuation))
+            var distanceSquared = audioData.SoundSource.GetDistanceSquaredFrom(listener.Entity);
+            if (!CheckDistance(distanceSquared, audioData.Attenuation))
             {
                 AddWaitingSoundFromBumpedSound(node);
                 node.Stop();
@@ -274,7 +275,7 @@ public class WorldSoundManager : SoundManager, ITickable
             {
                 node.Update(new((float)Math.Sqrt(distanceSquared)));
                 node.SetPitch(node.Pitch * GetWaterLevelPitch(listener.Entity));
-                var position = node.AudioData.SoundSource.GetSoundPosition(listener.Entity);
+                var position = audioData.SoundSource.GetSoundPosition(listener.Entity);
                 if (position != null)
                     node.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);
             }

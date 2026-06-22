@@ -1231,10 +1231,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         WaitSoundDispose = AudioSource != null;
 
         // If the sound looping then kill it since it will play indefinitely.
-        if (AudioSource != null && AudioSource.AudioData.Loop)
+        if (AudioSource != null && AudioSource.AudioDataRef().Loop)
         {
             WaitSoundDispose = false;
-            World.SoundManager.StopSoundBySource(this, AudioSource.AudioData.SoundChannelType, AudioSource.AudioData.SoundInfo.Name);
+            World.SoundManager.StopSoundBySource(this, AudioSource.AudioDataRef().SoundChannelType, AudioSource.AudioDataRef().SoundInfo.Name);
         }        
 
         Id = int.MinValue;
@@ -1384,7 +1384,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public virtual bool HasSound(string sound, SoundChannel channel)
     {
-        return AudioSource != null && AudioSource.AudioData.SoundInfo.Name.EqualsIgnoreCase(sound);
+        return AudioSource != null && AudioSource.AudioDataRef().SoundInfo.Name.EqualsIgnoreCase(sound);
     }
 
     public virtual void ClearSound(IAudioSource audioSource, SoundChannel channel)

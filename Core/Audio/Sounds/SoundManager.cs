@@ -68,7 +68,7 @@ public class SoundManager : IDisposable
         var node = audioSources.Head;
         while (node != null)
         {
-            if (ReferenceEquals(source, node.AudioData.SoundSource))
+            if (ReferenceEquals(source, node.AudioDataRef().SoundSource))
                 return node;
             node = node.Next;
         }
@@ -319,15 +319,17 @@ public class SoundManager : IDisposable
     private bool StopSound(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams, StopSoundOption option, double sourceDistanceSquared,
         SoundList audioSources, string? sound = null)
     {
-        bool soundStopped = false;
+        var furthestDistanceSquared = double.MinValue;
         var priority = GetPriority(source, soundInfo, soundParams);
         var node = audioSources.Head;
         var gametick = GetGameTick();
         IAudioSource? nextNode;
+        IAudioSource? furthestNode = null;
+
         while (node != null)
         {
             nextNode = node.Next;
-            var audioData = node.AudioData;
+            ref var audioData = ref node.AudioDataRef();
             if (!ShouldStopSound(source, priority, soundParams.Channel, sound,
                 audioData.SoundSource, audioData.SoundChannelType, audioData.SoundInfo.Name, audioData.Priority, option))
             {
@@ -335,31 +337,39 @@ public class SoundManager : IDisposable
                 continue;
             }
 
-            if (option == StopSoundOption.BySound)
+            if (option == StopSoundOption.ByFurthestSound)
             {
-                if (sourceDistanceSquared > GetDistanceSquared(node.AudioData.SoundSource))
+                var currentDistanceSquared = GetDistanceSquared(node.AudioDataRef().SoundSource);
+                if (sourceDistanceSquared < currentDistanceSquared && currentDistanceSquared > furthestDistanceSquared)
                 {
-                    node = nextNode;
-                    continue;
+                    furthestNode = node;
+                    furthestDistanceSquared = currentDistanceSquared;
                 }
             }
-
-            if (option == StopSoundOption.BySound && node.AudioData.Loop)
+            else
             {
-                var stopSoundSource = node.AudioData.SoundSource;
-                var stopSoundParams = new SoundParams(stopSoundSource, node.AudioData.Loop, node.AudioData.Attenuation, node.AudioData.Volume);
-                CreateWaitingLoopSound(stopSoundSource, node.GetPosition().Double, node.GetVelocity().Double, 
-                    node.AudioData.SoundInfo, node.AudioData.Priority, node.GetOffsetSeconds(), gametick, stopSoundParams);
+                furthestNode = node;
+                break;
             }
 
-            node.Stop();
-            audioSources.RemoveAndFree(node, ArchiveCollection.DataCache);
-            soundStopped = true;
-
-            break;
+            node = nextNode;
         }
 
-        return soundStopped;
+        if (furthestNode == null)
+            return false;
+
+        ref var furthestAudioData = ref furthestNode.AudioDataRef();
+        if (option == StopSoundOption.ByFurthestSound && furthestAudioData.Loop)
+        {
+            var stopSoundSource = furthestAudioData.SoundSource;
+            var stopSoundParams = new SoundParams(stopSoundSource, furthestAudioData.Loop, furthestAudioData.Attenuation, furthestAudioData.Volume);
+            CreateWaitingLoopSound(stopSoundSource, furthestNode.GetPosition().Double, furthestNode.GetVelocity().Double,
+                furthestAudioData.SoundInfo, furthestAudioData.Priority, furthestNode.GetOffsetSeconds(), gametick, stopSoundParams);
+        }
+
+        furthestNode.Stop();
+        audioSources.RemoveAndFree(furthestNode, ArchiveCollection.DataCache);
+        return true;
     }
 
     private bool StopSound(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams, WaitingSoundList waitingSounds, string? sound = null)
@@ -432,7 +442,7 @@ public class SoundManager : IDisposable
         var hitSoundLimit =  IsMaxSoundCount || HitSoundLimit(soundInfo, gametick);
         if (hitSoundLimit && !StopSounds(source, soundInfo, soundParams, distanceSquared, StopSoundOption.BySource))
         {
-            if (!StopSounds(source, soundInfo, soundParams, distanceSquared, StopSoundOption.BySound))
+            if (!StopSounds(source, soundInfo, soundParams, distanceSquared, StopSoundOption.ByFurthestSound))
             {
                 if (soundParams.Loop)
                     CreateWaitingLoopSound(source, pos, velocity, soundInfo, priority, 0, gametick, soundParams);
@@ -539,13 +549,14 @@ public class SoundManager : IDisposable
         while (node != null)
         {
             nextNode = node.Next;
-            if (node.AudioData.Attenuation != Attenuation.None && node.AudioData.Priority > lowestPriority)
+            ref var audioData = ref node.AudioDataRef();
+            if (audioData.Attenuation != Attenuation.None && audioData.Priority > lowestPriority)
             {
-                var checkDistanceSquared = GetDistanceSquared(node.AudioData.SoundSource);
+                var checkDistanceSquared = GetDistanceSquared(audioData.SoundSource);
                 if (checkDistanceSquared > farthestDistanceSquared)
                 {
                     lowestPriorityNode = node;
-                    lowestPriority = node.AudioData.Priority;
+                    lowestPriority = audioData.Priority;
                     farthestDistanceSquared = checkDistanceSquared;
                 }
             }
@@ -566,12 +577,13 @@ public class SoundManager : IDisposable
 
     protected void AddWaitingSoundFromBumpedSound(IAudioSource audioSource)
     {
-        if (!audioSource.AudioData.Loop)
+        ref var audioData = ref audioSource.AudioDataRef();
+        if (!audioData.Loop)
             return;
 
-        var soundParams = new SoundParams(audioSource.AudioData.SoundSource, true, audioSource.AudioData.Attenuation);
-        CreateWaitingLoopSound(audioSource.AudioData.SoundSource, audioSource.GetPosition().Double, audioSource.GetVelocity().Double, audioSource.AudioData.SoundInfo,
-            audioSource.AudioData.Priority, audioSource.GetOffsetSeconds(), GetGameTick(), soundParams);
+        var soundParams = new SoundParams(audioData.SoundSource, true, audioData.Attenuation);
+        CreateWaitingLoopSound(audioData.SoundSource, audioSource.GetPosition().Double, audioSource.GetVelocity().Double, audioData.SoundInfo,
+            audioData.Priority, audioSource.GetOffsetSeconds(), GetGameTick(), soundParams);
     }
 
     protected virtual int GetPriority(ISoundSource soundSource, SoundInfo soundInfo, SoundParams soundParams)
@@ -599,7 +611,7 @@ public class SoundManager : IDisposable
 
         while (node != null)
         {
-            if (soundInfo == node.AudioData.SoundInfo && CheckSoundWindow(node, gametick))
+            if (soundInfo == node.AudioDataRef().SoundInfo && CheckSoundWindow(node, gametick))
                 count++;
 
             node = node.Next;
@@ -608,7 +620,7 @@ public class SoundManager : IDisposable
         node = m_soundsToPlay.Head;
         while (node != null)
         {
-            if (soundInfo == node.AudioData.SoundInfo && CheckSoundWindow(node, gametick))
+            if (soundInfo == node.AudioDataRef().SoundInfo && CheckSoundWindow(node, gametick))
                 count++;
 
             node = node.Next;
@@ -622,7 +634,7 @@ public class SoundManager : IDisposable
         if (m_sameSoundWindow == 0)
             return true;
 
-        if (gametick - audio.AudioData.GameTick <= m_sameSoundWindow)
+        if (gametick - audio.AudioDataRef().GameTick <= m_sameSoundWindow)
             return true;
 
         return false;

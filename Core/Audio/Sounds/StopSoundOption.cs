@@ -3,5 +3,5 @@
 enum StopSoundOption
 {
     BySource,
-    BySound
+    ByFurthestSound
 }

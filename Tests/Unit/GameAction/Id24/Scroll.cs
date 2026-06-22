@@ -65,10 +65,11 @@ public class Scroll
         int count = 0;
         GameActions.RunSectorPlaneSpecial(World, GameActions.GetSectorByTag(World, 4), () =>
         {
-            count++;
             AssertTwoSidedScroll(line, (-1 * count, 0.5 * count));
+            count++;
         });
 
+        GameActions.TickWorld(World, 1);
         var offset = line.Front.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current);
         GameActions.TickWorld(World, 1);
         // Sector has completed movement so scrolling stops
@@ -91,11 +92,12 @@ public class Scroll
         Vec2D current = Vec2D.Zero;
         GameActions.RunSectorPlaneSpecial(World, GameActions.GetSectorByTag(World, 5), () =>
         {
-            count++;
             current += (-count, count * 0.5);
             AssertTwoSidedScroll(line, current);
+            count++;
         });
 
+        GameActions.TickWorld(World, 1);
         var offset = line.Front.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current);
         GameActions.TickWorld(World, 1);
         // Scroll keeps moving even though sector has stopped

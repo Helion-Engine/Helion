@@ -225,7 +225,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var audio = World.SoundManager.FindBySource(Player);
             audio.Should().NotBeNull();
-            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
+            audio!.AudioDataRef().SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
 
             double[] values = new[] { 39.625, 38.5, 37.625, 37, 36.625, 36.5, 36.625, 37, 37.625, 38.5, 39.625 };
             int index = 0;
@@ -258,7 +258,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var audio = World.SoundManager.FindBySource(Player);
             audio.Should().NotBeNull();
-            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
+            audio!.AudioDataRef().SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
 
             double[] values = new[] { 39.25, 37.75, 36.5, 35.5, 34.75, 34.25, 34, 34, 34.25, 34.75, 35.5, 36.5, 37.75, 39.25 };
             int index = 0;
@@ -290,7 +290,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var audio = World.SoundManager.FindBySource(Player);
             audio.Should().NotBeNull();
-            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
+            audio!.AudioDataRef().SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
 
             double[] values = new[] { 33, 25.25, 20.5, 20.75, 21.25, 22, 23, 24.25, 25.75, 27.5, 29.5, 31.75, 34.25, 37, 40 };
             int index = 0;
@@ -372,7 +372,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var audio = World.SoundManager.FindBySource(Player);
             audio.Should().NotBeNull();
-            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
+            audio!.AudioDataRef().SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
 
             GameActions.TickWorld(World, 70);
             World.SoundManager.FindBySource(Player).Should().BeNull();
@@ -387,7 +387,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var audio = World.SoundManager.FindBySource(Player);
             audio.Should().NotBeNull();
-            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
+            audio!.AudioDataRef().SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
 
             GameActions.TickWorld(World, 70);
             World.SoundManager.FindBySource(Player).Should().BeNull();
@@ -414,7 +414,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var audio = World.SoundManager.FindBySource(Player);
             audio.Should().NotBeNull();
-            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
+            audio!.AudioDataRef().SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
 
             var sector = GameActions.GetSectorByTag(World, 3);
             sector.ActiveFloorMove.Should().BeNull();

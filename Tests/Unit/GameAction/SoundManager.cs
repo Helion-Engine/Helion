@@ -116,11 +116,11 @@ public class SoundManager
 
         GameActions.TickWorld(World, 35, () =>
         {
-            sound.Value.AudioData.Attenuation.Should().Be(Attenuation.Default);
-            sound.Value.AudioData.SoundChannelType.Should().Be(SoundChannel.Default);
-            sound.Value.AudioData.Loop.Should().BeTrue();
-            sound.Value.AudioData.SoundInfo.EntryName.Should().Be("dsstnmov");
-            sound.Value.AudioData.SoundSource.Should().Be(GameActions.GetSectorByTag(World, 1).Floor);
+            sound.Value.AudioDataRef().Attenuation.Should().Be(Attenuation.Default);
+            sound.Value.AudioDataRef().SoundChannelType.Should().Be(SoundChannel.Default);
+            sound.Value.AudioDataRef().Loop.Should().BeTrue();
+            sound.Value.AudioDataRef().SoundInfo.EntryName.Should().Be("dsstnmov");
+            sound.Value.AudioDataRef().SoundSource.Should().Be(GameActions.GetSectorByTag(World, 1).Floor);
         });
     }
 
@@ -143,17 +143,17 @@ public class SoundManager
 
         GameActions.TickWorld(World, 35, () =>
         {
-            sound.Value.AudioData.Attenuation.Should().Be(Attenuation.Default);
-            sound.Value.AudioData.SoundChannelType.Should().Be(SoundChannel.Default);
-            sound.Value.AudioData.Loop.Should().BeTrue();
-            sound.Value.AudioData.SoundInfo.EntryName.Should().Be("dsstnmov");
-            sound.Value.AudioData.SoundSource.Should().Be(GameActions.GetSectorByTag(World, 1).Floor);
+            sound.Value.AudioDataRef().Attenuation.Should().Be(Attenuation.Default);
+            sound.Value.AudioDataRef().SoundChannelType.Should().Be(SoundChannel.Default);
+            sound.Value.AudioDataRef().Loop.Should().BeTrue();
+            sound.Value.AudioDataRef().SoundInfo.EntryName.Should().Be("dsstnmov");
+            sound.Value.AudioDataRef().SoundSource.Should().Be(GameActions.GetSectorByTag(World, 1).Floor);
 
-            secondSound.Value.AudioData.Attenuation.Should().Be(Attenuation.Default);
-            secondSound.Value.AudioData.SoundChannelType.Should().Be(SoundChannel.Default);
-            secondSound.Value.AudioData.Loop.Should().BeTrue();
-            secondSound.Value.AudioData.SoundInfo.EntryName.Should().Be("dsstnmov");
-            secondSound.Value.AudioData.SoundSource.Should().Be(GameActions.GetSectorByTag(World, 2).Floor);
+            secondSound.Value.AudioDataRef().Attenuation.Should().Be(Attenuation.Default);
+            secondSound.Value.AudioDataRef().SoundChannelType.Should().Be(SoundChannel.Default);
+            secondSound.Value.AudioDataRef().Loop.Should().BeTrue();
+            secondSound.Value.AudioDataRef().SoundInfo.EntryName.Should().Be("dsstnmov");
+            secondSound.Value.AudioDataRef().SoundSource.Should().Be(GameActions.GetSectorByTag(World, 2).Floor);
         });
     }
 
@@ -462,8 +462,8 @@ public class SoundManager
         sounds = World.SoundManager.GetPlayingSounds();
         sounds.Count.Should().Be(3);
 
-        // Sector 6 should be bumped since it's now the furthest away
-        closestSector2 = GameActions.GetSector(World, 9);
+        // Sector 5 should be bumped since it's now the furthest away
+        closestSector1 = GameActions.GetSector(World, 9);
         AssertSound(sounds, closestSector1.Floor);
         AssertSound(sounds, closestSector2.Floor);
         AssertSound(sounds, "dspistol");
@@ -544,7 +544,7 @@ public class SoundManager
         var node = list.First;
         while (node != null)
         {
-            if (node.Value.AudioData.SoundSource == sectorPlane)
+            if (node.Value.AudioDataRef().SoundSource == sectorPlane)
             {
                 found = true;
                 break;
@@ -562,7 +562,7 @@ public class SoundManager
         var node = list.First;
         while (node != null)
         {
-            if (node.Value.AudioData.SoundInfo.EntryName.Equals(soundName, StringComparison.OrdinalIgnoreCase))
+            if (node.Value.AudioDataRef().SoundInfo.EntryName.Equals(soundName, StringComparison.OrdinalIgnoreCase))
             {
                 found = true;
                 break;
@@ -577,7 +577,7 @@ public class SoundManager
     private static void AssertSoundSource(LinkedListNode<IAudioSource>? node, object source)
     {
         node.Should().NotBeNull();
-        ReferenceEquals(node!.Value.AudioData.SoundSource, source).Should().BeTrue();
+        ReferenceEquals(node!.Value.AudioDataRef().SoundSource, source).Should().BeTrue();
     }
 
     private static void AssertSound(LinkedListNode<WaitingSound>? node, string soundName)
