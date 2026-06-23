@@ -637,15 +637,9 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
                 continue;
 
             if (link.Face == SectorPlaneFace.Floor && GetValidSector(world, link.SectorId, out var floorSector))
-            {
-                FloorLinks ??= [];
-                FloorLinks.Add(new SectorLink(floorSector, link.Flags));
-            }
+                AddSectorLink(new SectorLink(floorSector, link.Flags), SectorPlaneFace.Floor);
             else if (link.Face == SectorPlaneFace.Ceiling && GetValidSector(world, link.SectorId, out var ceilingSector))
-            {
-                CeilingLinks ??= [];
-                CeilingLinks.Add(new SectorLink(ceilingSector, link.Flags));
-            }
+                AddSectorLink(new SectorLink(ceilingSector, link.Flags), SectorPlaneFace.Ceiling);
         }
     }
 
