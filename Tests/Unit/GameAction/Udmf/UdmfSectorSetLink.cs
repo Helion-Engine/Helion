@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.Util.Container;
 using Helion.World.Entities.Players;
@@ -20,7 +21,7 @@ public class UdmfSectorSetLink
 
     public UdmfSectorSetLink()
     {
-        World = WorldAllocator.LoadMap("Resources/udmfsectorsetlink.zip", "udmfsectorsetlink.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/udmfsectorsetlink.zip", "udmfsectorsetlink.wad", "MAP01", GetType().Name, (world) => { world.Tick(); }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "Sector set link opens door with 3D floor")]
@@ -36,6 +37,11 @@ public class UdmfSectorSetLink
 
         parentSector1.Sectors3D.Length.Should().Be(1);
         parentSector2.Sectors3D.Length.Should().Be(1);
+
+        controlSector1.ControlLinks.Should().NotBeNull();
+        controlSector2.ControlLinks.Should().NotBeNull();
+        controlSector1.ControlLinks[0].Should().Be(linkSector);
+        controlSector2.ControlLinks[0].Should().Be(linkSector);
 
         linkSector.CeilingLinks.Should().NotBeNull();
         linkSector.FloorLinks.Should().BeNull();
@@ -84,6 +90,10 @@ public class UdmfSectorSetLink
         GameActions.ActivateLine(World, Player, 24, ActivationContext.UseLine).Should().BeTrue();
 
         AssertNoLink(linkSector.CeilingLinks);
+        controlSector1.ControlLinks.Should().NotBeNull();
+        controlSector2.ControlLinks.Should().NotBeNull();
+        controlSector1.ControlLinks.Length.Should().Be(0);
+        controlSector2.ControlLinks.Length.Should().Be(0);
 
         GameActions.ActivateLine(World, Player, 15, ActivationContext.UseLine).Should().BeTrue();
         GameActions.TickWorld(World, () => { return linkSector.Ceiling.Z < 68; }, () =>
@@ -183,6 +193,13 @@ public class UdmfSectorSetLink
         linkSector.FloorLinks.Should().NotBeNull();
         linkSector.FloorLinks.Length.Should().Be(3);
 
+        foreach (var controlSector in controlSectors)
+        {
+            controlSector.ControlLinks.Should().NotBeNull();
+            controlSector.ControlLinks.Length.Should().Be(1);
+            controlSector.ControlLinks[0].Should().Be(linkSector);
+        }
+
         AssertLiftHeights(controlSectors, linkSector, 16);
 
         GameActions.ActivateLine(World, Player, 62, ActivationContext.UseLine).Should().BeTrue();
@@ -223,6 +240,13 @@ public class UdmfSectorSetLink
         var linkSector = GameActions.GetSectorByTag(World, 12);
         var controlSectors = GameActions.GetSectorsByTag(World, 11);
         controlSectors.Count.Should().Be(2);
+
+        foreach (var controlSector in controlSectors)
+        {
+            controlSector.ControlLinks.Should().NotBeNull();
+            controlSector.ControlLinks.Length.Should().Be(1);
+            controlSector.ControlLinks[0].Should().Be(linkSector);
+        }
 
         AssertCrusherHeights(controlSectors, linkSector);
 
@@ -266,6 +290,13 @@ public class UdmfSectorSetLink
         var linkSector = GameActions.GetSectorByTag(World, 12);
         var controlSectors = GameActions.GetSectorsByTag(World, 11);
         controlSectors.Count.Should().Be(2);
+
+        foreach (var controlSector in controlSectors)
+        {
+            controlSector.ControlLinks.Should().NotBeNull();
+            controlSector.ControlLinks.Length.Should().Be(1);
+            controlSector.ControlLinks[0].Should().Be(linkSector);
+        }
 
         AssertCrusherHeights(controlSectors, linkSector);
 
@@ -312,7 +343,13 @@ public class UdmfSectorSetLink
     public void SectorSetLinkMirrorLift()
     {
         var linkSector = GameActions.GetSectorByTag(World, 17);
+        var otherLinkSector = GameActions.GetSectorByTag(World, 16);
         var controlSector = GameActions.GetSectorByTag(World, 15);
+        controlSector.ControlLinks.Should().NotBeNull();
+        controlSector.ControlLinks.Length.Should().Be(2);
+        controlSector.ControlLinks.Contains(linkSector).Should().BeTrue();
+        controlSector.ControlLinks.Contains(otherLinkSector).Should().BeTrue();
+
         GameActions.ActivateLine(World, Player, 127, ActivationContext.UseLine).Should().BeTrue();
 
         AssertLiftHeightsMirror(controlSector, linkSector);
@@ -333,7 +370,13 @@ public class UdmfSectorSetLink
     public void SectorSetLinkMirrorFloorLift()
     {
         var linkSector = GameActions.GetSectorByTag(World, 21);
+        var otherLinkSector = GameActions.GetSectorByTag(World, 19);
         var controlSector = GameActions.GetSectorByTag(World, 20);
+        controlSector.ControlLinks.Should().NotBeNull();
+        controlSector.ControlLinks.Length.Should().Be(2);
+        controlSector.ControlLinks.Contains(linkSector).Should().BeTrue();
+        controlSector.ControlLinks.Contains(otherLinkSector).Should().BeTrue();
+
         GameActions.ActivateLine(World, Player, 147, ActivationContext.UseLine).Should().BeTrue();
 
         GameActions.TickWorld(World, () => { return linkSector.Floor.Z > 60; }, () =>
@@ -357,7 +400,13 @@ public class UdmfSectorSetLink
     public void SectorSetLinkMirrorCeilingLift()
     {
         var linkSector = GameActions.GetSectorByTag(World, 19);
+        var otherLinkSector = GameActions.GetSectorByTag(World, 21);
         var controlSector = GameActions.GetSectorByTag(World, 20);
+        controlSector.ControlLinks.Should().NotBeNull();
+        controlSector.ControlLinks.Length.Should().Be(2);
+        controlSector.ControlLinks.Contains(linkSector).Should().BeTrue();
+        controlSector.ControlLinks.Contains(otherLinkSector).Should().BeTrue();
+
         GameActions.ActivateLine(World, Player, 135, ActivationContext.UseLine).Should().BeTrue();
 
         GameActions.TickWorld(World, () => { return linkSector.Floor.Z > 8; }, () =>
@@ -374,6 +423,56 @@ public class UdmfSectorSetLink
             controlSector.Ceiling.Z.Should().Be(128 - amount);
         });
         GameActions.RunSectorPlaneSpecial(World, linkSector);
+    }
+
+    [Fact(DisplayName = "Sector set link through ACS with control tag blocked")]
+    public void SectorSetLinkWithControlTagBlocked()
+    {
+        var controlSector = GameActions.GetSectorByTag(World, 26);
+        var linkSector = GameActions.GetSectorByTag(World, 27);
+        controlSector.FloorLinks.Should().NotBeNull();
+        controlSector.FloorLinks.Count.Should().Be(1);
+
+        linkSector.ControlLinks.Should().NotBeNull();
+        linkSector.ControlLinks.Length.Should().Be(1);
+        linkSector.ControlLinks[0].Should().Be(controlSector);
+
+        controlSector.Floor.Z.Should().Be(128);
+        controlSector.Ceiling.Z.Should().Be(144);
+        linkSector.Floor.Z.Should().Be(128);
+        linkSector.Ceiling.Z.Should().Be(144);
+
+        GameActions.ActivateLine(World, Player, 213, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.SetEntityPosition(World, Player, (352, -168));
+
+        GameActions.TickWorld(World, () => { return controlSector.Floor.Z > 56; }, () =>
+        {
+            controlSector.Ceiling.Z.Should().Be(144);
+            linkSector.Floor.Z.Should().Be(controlSector.Floor.Z);
+            linkSector.Ceiling.Z.Should().Be(controlSector.Floor.Z + 16);
+        });
+
+        World.Tick();
+        controlSector.Ceiling.Z.Should().Be(144);
+        linkSector.Floor.Z.Should().Be(56);
+        linkSector.Ceiling.Z.Should().Be(72);
+        World.TryMoveXY(Player, Player.Position.XY + new Vec2D(0, 8)).Success.Should().BeTrue();
+        World.Tick();
+        controlSector.Ceiling.Z.Should().Be(144);
+        linkSector.Floor.Z.Should().Be(56);
+        linkSector.Ceiling.Z.Should().Be(72);
+        World.TryMoveXY(Player, Player.Position.XY + new Vec2D(0, 8)).Success.Should().BeTrue();
+
+        GameActions.SetEntityOutOfBounds(World, Player);
+
+        GameActions.TickWorld(World, () => { return controlSector.Floor.Z > 0; }, () =>
+        {
+            controlSector.Ceiling.Z.Should().Be(144);
+            linkSector.Floor.Z.Should().Be(controlSector.Floor.Z);
+            linkSector.Ceiling.Z.Should().Be(controlSector.Floor.Z + 16);
+        });
+
+        controlSector.Floor.Z.Should().Be(0);
     }
 
     private static void AssertLiftHeightsMirror(Sector controlSector, Sector linkSector)
