@@ -402,17 +402,25 @@ public sealed partial class PhysicsManager
 
         // If an entity is blocking this and the destination is blocked then we need to stop to match vanilla behavior.
         if (isCompleted && status == SectorMoveStatus.Blocked)
-            return SectorMoveStatus.Blocked | SectorMoveStatus.Stop;
+            status = SectorMoveStatus.Blocked | SectorMoveStatus.Stop;
 
-        if (status == (SectorMoveStatus.Blocked | SectorMoveStatus.Stop))
-            return status;
-
-        if (WorldStatic.Sector3D && checkSector3D && sector.TaggedSectors3D.Length > 0)
+        if ((status & SectorMoveStatus.Blocked) == 0 && WorldStatic.Sector3D && checkSector3D && sector.TaggedSectors3D.Length > 0)
         {
-            status = TestMoveSector3D(speed, destZ, startZ, moveSpecial, sector, sectorPlane, moveType);
+            status = MoveSector3D(speed, destZ, startZ, moveSpecial, sector, sectorPlane, moveType);
+
+            // Swap startZ and destZ to return since entities probably need to be clamped again.
+            if ((status & SectorMoveStatus.Blocked) != 0)
+                MoveSector3D(speed, startZ, destZ, moveSpecial, sector, sectorPlane, moveType);
 
             if ((status & (SectorMoveStatus.Blocked | SectorMoveStatus.Stop)) != 0)
                 sectorPlane.SetZ(startZ);
+        }
+        
+        if ((status & SectorMoveStatus.Blocked) != 0 && checkSectorLinks && moveSpecial.Sector.GetSectorLinks(moveSpecial.SectorPlane.Facing, out var resetLinks))
+        {
+            MoveLinkedSectorsByAmount(moveSpecial, resetLinks, startZ - destZ, moveData.Speed, null, resetInterpolation: true);
+            moveSpecial.Sector = sector;
+            moveSpecial.SectorPlane = sectorPlane;
         }
 
         return status;
@@ -457,7 +465,7 @@ public sealed partial class PhysicsManager
         }
     }
 
-    private SectorMoveStatus TestMoveSector3D(double speed, double destZ, double startZ, SectorMoveSpecial moveSpecial, Sector sector, SectorPlane sectorPlane, SectorPlaneFace face)
+    private SectorMoveStatus MoveSector3D(double speed, double destZ, double startZ, SectorMoveSpecial moveSpecial, Sector sector, SectorPlane sectorPlane, SectorPlaneFace face)
     {
         var status = SectorMoveStatus.Success;
         var flags = moveSpecial.MoveData.Flags;

@@ -842,6 +842,9 @@ public abstract partial class WorldBase : IWorld
 
     private void SpecialManager_SectorMoveComplete(object? sender, SectorPlane sectorPlane)
     {
+        if (sectorPlane.Sector.IsMoving)
+            return;
+
         sectorPlane.Sector.MoveEventGameTick = Gametick;
         SectorMoveComplete?.Invoke(this, sectorPlane);
 
@@ -857,6 +860,9 @@ public abstract partial class WorldBase : IWorld
         {
             ref var link = ref links.Data[i];
             link.Sector.MoveEventGameTick = Gametick;
+            if (link.Sector.IsControlLinkMoving())
+                continue;
+
             if ((link.Flags & SectorLinkFlags.Floor) != 0)
                 SectorMoveComplete?.Invoke(this, link.Sector.Floor);
             if ((link.Flags & SectorLinkFlags.Ceiling) != 0)

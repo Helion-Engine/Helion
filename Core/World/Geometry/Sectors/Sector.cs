@@ -47,6 +47,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public DynamicArray<LinkableNode<DynamicIsland>> BlockmapNodes = new();
     public DynamicArray<SectorLink>? FloorLinks;
     public DynamicArray<SectorLink>? CeilingLinks;
+    public DynamicArray<Sector>? ControlLinks;
     public int[] LineIds = [];
     public Island Island = null!;
 
@@ -215,6 +216,8 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             CeilingLinks.FlushStruct();
             CeilingLinks.Clear();
         }
+
+        ControlLinks?.Clear();
 
         for (int i = 0; i < Sectors3D.Length; i++)
             Sectors3D[i].Reset();
@@ -763,6 +766,20 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             return ActiveCeilingMove != null;
     }
 
+    public bool IsControlLinkMoving()
+    {
+        if (ControlLinks == null)
+            return false;
+
+        for (int i = 0; i < ControlLinks.Length; i++)
+        {
+            if (ControlLinks[i].IsMoving)
+                return true;
+        }
+
+        return false;
+    }
+
     public Sector? GetLowestAdjacentFloor()
     {
         double lowestZ = Floor.Z;
@@ -1172,15 +1189,19 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
         {
             FloorLinks ??= new();
             FloorLinks.Add(link);
+            link.Sector.ControlLinks ??= new();
+            link.Sector.ControlLinks.Add(this);
         }
         else
         {
             CeilingLinks ??= new();
             CeilingLinks.Add(link);
+            link.Sector.ControlLinks ??= new();
+            link.Sector.ControlLinks.Add(this);
         }
     }
 
-    private static bool UpdateSectorLink(DynamicArray<SectorLink> links, SectorLink link)
+    private bool UpdateSectorLink(DynamicArray<SectorLink> links, SectorLink link)
     {
         var success = false;
         if (link.Flags == SectorLinkFlags.Unlink)
@@ -1191,6 +1212,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
                 if (checkLink.Sector != link.Sector)
                     continue;
 
+                link.Sector.ControlLinks?.Remove(this);
                 links.RemoveAt(i);
                 success = true;
             }

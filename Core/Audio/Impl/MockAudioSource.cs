@@ -119,8 +119,5 @@ internal sealed class MockAudioSource : IAudioSource
 
     }
 
-    public override string ToString()
-    {
-        return m_audioData.SoundSource.ToString();
-    }
+    public override string ToString() => m_audioData.SoundInfo.Name;
 }
