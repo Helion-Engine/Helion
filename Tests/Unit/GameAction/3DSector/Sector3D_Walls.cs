@@ -5,7 +5,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.IWad;
-using Helion.World.Geometry.Lines;
+using Helion.Util.Container;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
@@ -421,7 +421,7 @@ public class Sector3D_Walls
     public void TwoSidedWallInTranslucentSector()
     {
         var sector = GameActions.GetSectorByTag(World, 68);
-        sector.Sectors3D.Length.Should().Be(1);        
+        sector.Sectors3D.Length.Should().Be(1);
 
         var line = GameActions.GetLine(World, 862);
         line.Front.Sector.Should().Be(sector);
@@ -440,6 +440,95 @@ public class Sector3D_Walls
         // The two-sided line itself should render as normal
         SetSlices(new WallSlice(512, 0, 192, (0, 0), null), 
             new WallSlice(0, -32, 192, (0, 512), null));
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Restrict light only renders on inside walls")]
+    public void RestrictLight()
+    {
+        var sector = GameActions.GetSectorByTag(World, 78);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        var line = GameActions.GetLine(World, 957);
+        line.Back.Should().NotBeNull();
+
+        SetSlices(new WallSlice(512, 128, 128, (0, 0), null), new WallSlice(128, 32, 128, (0, 384), null), new WallSlice(32, 0, 128, (0, 480), null));
+        var side = line.Front;
+        GeometryRenderer.RenderWallSlices3D(line.Front, side.Middle, true, side, sector, sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+
+        SetSlices(new WallSlice(512, 128, 255, (0, 0), null), new WallSlice(128, 32, 255, (0, 384), null), new WallSlice(32, 0, 128, (0, 480), null));
+        side = line.Back;
+        GeometryRenderer.RenderWallSlices3D(line.Front, side.Middle, false, side, sector, sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Reset light renders normal without restrict light")]
+    public void ResetLightWithNoRestrict()
+    {
+        var sector = GameActions.GetSectorByTag(World, 75);
+        sector.Sectors3D.Length.Should().Be(3);
+
+        var line = GameActions.GetLine(World, 917);
+        line.Front.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(512, 224, 128, (0, 0), null),
+            new WallSlice(224, 192, 255, (0, 288), null),
+            new WallSlice(192, 160, 255, (0, 320), null),
+            new WallSlice(160, 128, 192, (0, 352), null),
+            new WallSlice(128, 96, 192, (0, 384), null),
+            new WallSlice(96, 64, 160, (0, 416), null),
+            new WallSlice(64, 0, 160, (0, 448), null));
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Reset light and restrict resets current light sector")]
+    public void ResetLightAndRestrict()
+    {
+        var sector = GameActions.GetSectorByTag(World, 76);
+        sector.Sectors3D.Length.Should().Be(3);
+
+        var line = GameActions.GetLine(World, 931);
+        line.Front.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(512, 224, 128, (0, 0), null),
+            new WallSlice(224, 192, 255, (0, 288), null),
+            new WallSlice(192, 160, 255, (0, 320), null),
+            new WallSlice(160, 128, 192, (0, 352), null),
+            new WallSlice(128, 96, 192, (0, 384), null),
+            new WallSlice(96, 64, 128, (0, 416), null),
+            new WallSlice(64, 0, 128, (0, 448), null));
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Reset light and then restrict resets next light sector")]
+    public void ResetLightThenRestrict()
+    {
+        var sector = GameActions.GetSectorByTag(World, 77);
+        sector.Sectors3D.Length.Should().Be(3);
+
+        var line = GameActions.GetLine(World, 945);
+        line.Front.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(512, 224, 128, (0, 0), null),
+            new WallSlice(224, 192, 255, (0, 288), null),
+            new WallSlice(192, 160, 255, (0, 320), null),
+            new WallSlice(160, 128, 192, (0, 352), null),
+            new WallSlice(128, 96, 192, (0, 384), null),
+            new WallSlice(96, 64, 128, (0, 416), null),
+            new WallSlice(64, 0, 128, (0, 448), null));
         GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
@@ -544,5 +633,15 @@ public class Sector3D_Walls
     private void AssertSlices()
     {
         m_sliceIndex.Should().Be(m_slices.Count);
+    }
+
+    record struct TestArgs(double Ceiling, double Floor, int LightLevel, Vec2F Offset);
+    private readonly DynamicArray<TestArgs> m_testArgs = [];
+
+    private RenderWallSliceResult RenderSliceTest(RenderWallSliceArgs args)
+    {
+        m_testArgs.Add(new TestArgs(args.WallSector.Ceiling.Z, args.WallSector.Floor.Z, args.LightSector.LightLevel,
+            (args.Side.Middle.Offset.X, (float)args.Side.ScrollData!.Offset(args.WallLocation, ScrollOffsetType.Current).Y)));
+        return GeometryRenderer.RenderOneSidedSlice(args);
     }
 }

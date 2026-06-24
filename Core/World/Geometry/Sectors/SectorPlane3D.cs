@@ -12,6 +12,7 @@ public struct SectorPlane3D(SectorPlane controlPlane, SectorPlane plane, Sector3
     public Sector3D? Sector3D = sector3D;
     public PlaneFace3D Face = face;
     public Sector LightSector = lightSector;
+    public Sector LightInsideSector = lightSector;
     public bool NoRenderWall;
     public PlaneSortKey SortKey;
     public int CheckCount;

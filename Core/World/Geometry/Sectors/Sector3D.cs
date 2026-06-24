@@ -337,6 +337,11 @@ public sealed class Sector3D
     {
         plane3D.LightSector = lightSector;
 
+        if ((sector3D.Flags & SectorFlags3D.RestrictLighting) == 0)
+            plane3D.LightInsideSector = lightSector;
+        else
+            plane3D.LightInsideSector = sector3D.ControlSector;
+
         if (plane3D.Face == PlaneFace3D.Bottom)
             sector3D.LightBottom = lightSector;
         else
