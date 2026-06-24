@@ -24,6 +24,7 @@ public enum SectorFlags3D
     ShootInvert = 32,
     
     DisableLighting = 128,
+    // Also forces this sector to the reset light sector.
     RestrictLighting = 256,
     Fog = 512,
     CeilingModel = 1024,
@@ -32,7 +33,8 @@ public enum SectorFlags3D
     AdditiveTransparency = 8192,
     // When this flag is not set UZDoom will render the fog color as a global blend color and not have fade density. When set it renders the fog color in the 3D sector as expected.
     NoViewFade = 65536,
-    ResetAbove = 131072,
+    // Resets the light sector to the parent sector. Will cause any sector with RestrictLighting to use this reset sector for light properties.
+    ResetLight = 131072,
 
     // Helion Flags
     NoRender = 1 << 18,
@@ -295,7 +297,12 @@ public sealed class Sector3D
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
-            if (ShouldResetLightSector(plane3D, sector3D))
+            if ((sector3D.Flags & SectorFlags3D.ResetLight) != 0)
+            {
+                resetLightSector = sector;
+                resetLightSector3D = null;
+            }
+            else if (ShouldResetLightSector(plane3D, sector3D))
             {
                 resetLightSector = sector3D.ControlSector;
                 resetLightSector3D = sector3D;
@@ -315,7 +322,7 @@ public sealed class Sector3D
     private static bool ShouldResetLightSector(in SectorPlane3D plane3D, Sector3D sector3D)
     {
         if (!sector3D.IsLightTransfer)
-            return true;
+            return (sector3D.Flags & SectorFlags3D.RestrictLighting) == 0;
 
         var planeZ = plane3D.GetZ();
         return planeZ < sector3D.ControlTop.Z && planeZ > sector3D.ControlBottom.Z;
@@ -328,17 +335,12 @@ public sealed class Sector3D
 
     private static void SetLight(Sector3D sector3D, ref SectorPlane3D plane3D, Sector lightSector)
     {
-        if ((sector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
-        {
-            if (plane3D.Face == PlaneFace3D.Top)
-                plane3D.LightSector = lightSector;
-
-            sector3D.LightTop = lightSector;
-            sector3D.LightBottom = lightSector;
-            return;
-        }
-        
         plane3D.LightSector = lightSector;
+
+        if ((sector3D.Flags & SectorFlags3D.RestrictLighting) == 0)
+            plane3D.LightInsideSector = lightSector;
+        else
+            plane3D.LightInsideSector = sector3D.ControlSector;
 
         if (plane3D.Face == PlaneFace3D.Bottom)
             sector3D.LightBottom = lightSector;
@@ -351,7 +353,10 @@ public sealed class Sector3D
         resetLight = false;
 
         if ((nextSector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
+        {
+            resetLight = true;
             return true;
+        }
 
         if ((nextSector3D.Flags & SectorFlags3D.DisableLighting) != 0)
             return true;

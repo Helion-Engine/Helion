@@ -268,7 +268,8 @@ public partial class GeometryRenderer
                 continue;
             }
 
-            args.LightSector = nextPlane3D.LightSector;
+            // Front side is normal light sector. Back side is the inside of the 3D sector and needs to use inside light sector that can be set from Sector3D.RestrictLighting flag.
+            args.LightSector = isFrontSide ? nextPlane3D.LightSector : nextPlane3D.LightInsideSector;
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
 
