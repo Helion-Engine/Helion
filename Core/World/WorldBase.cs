@@ -742,6 +742,9 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void Start(WorldModel? worldModel)
     {
+        if (WorldStatic.Sector3D)
+            WorldStatic.InfinitelyTallThings = false;
+
         AddMapSpecial();
         InitBossBrainTargets();
         SetupMusicChangers();
@@ -815,7 +818,7 @@ public abstract partial class WorldBase : IWorld
             }
 
             if (WorldStatic.Sector3D)
-                Sector3D.SetHeights3D(sector);
+                Sector3D.SetHeights3D(sector, SameAsPreviousMap ? SetHeightsMode.MapReload : SetHeightsMode.Init);
         }
     }
 

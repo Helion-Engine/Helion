@@ -956,7 +956,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             var sector = plane.Sector.TaggedSectors3D[i].ParentSector;
             sector.Floor.SetSectorMoveChanged(m_world.Gametick);
             sector.Ceiling.SetSectorMoveChanged(m_world.Gametick);
-            Sector3D.SetHeights3D(sector);
+            Sector3D.SetHeights3D(sector, SetHeightsMode.Update);
 
             for (int j = 0; j < sector.Sectors3D.Length; j++)
             {

@@ -55,6 +55,13 @@ public enum ClipStyle
     NotSolid
 }
 
+public enum SetHeightsMode
+{
+    Init,
+    Update,
+    MapReload
+}
+
 public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double prevBottomZ)
 {
     public double TopZ = topZ;
@@ -195,10 +202,14 @@ public sealed class Sector3D
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float GetOffsetY() => ControlSide.Middle.Offset.Y + ControlSide.Offset.Y;
 
-    public static void SetHeights3D(Sector sector)
+    public static void SetHeights3D(Sector sector, SetHeightsMode mode)
     {
-        if (sector.Sectors3D.Length == 0)
+        // This is expensive and can be skipped if nothing changed on MapReload
+        if (sector.Sectors3D.Length == 0 || (mode == SetHeightsMode.MapReload && !sector.HeightsUpdated3D))
             return;
+
+        if (mode == SetHeightsMode.Update)
+            sector.HeightsUpdated3D = true;
 
         if (sector.SectorPlanes3D.Length == 0)
         {

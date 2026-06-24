@@ -94,6 +94,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public bool Silent;
     public bool NoAttack;
     public bool HasDamageSector3D;
+    public bool HeightsUpdated3D;
     public bool IgnoreFogColor;
     public Sector3D? Sector3D;
     public int ActivatedByLineId = -1;
