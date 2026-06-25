@@ -140,36 +140,17 @@ public static class MathHelper
     /// <returns>True if it is, false if not.</returns>
     public static bool InNormalRange(double value) => value >= 0 && value <= 1;
 
-    /// <summary>
-    /// Gets the minimum value of two fixed point numbers.
-    /// </summary>
-    /// <param name="first">The first number.</param>
-    /// <param name="second">The second number.</param>
-    /// <returns>The minimum value of both.</returns>
-    public static Fixed Min(Fixed first, Fixed second) => first.Bits < second.Bits ? first : second;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double Max(double val1, double val2) => val1 > val2 ? val1 : val2;
 
-    /// <summary>
-    /// Gets the maximum value of two fixed point numbers.
-    /// </summary>
-    /// <param name="first">The first number.</param>
-    /// <param name="second">The second number.</param>
-    /// <returns>The maximum value of both.</returns>
-    public static Fixed Max(Fixed first, Fixed second) => first.Bits < second.Bits ? second : first;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double Min(double val1, double val2) => val1 < val2 ? val1 : val2;
 
-    /// <summary>
-    /// Gets the max of a list of integers. Avoids any allocations.
-    /// </summary>
-    /// <param name="ints">The integers to get the maximum value from.
-    /// </param>
-    /// <returns>Returns the max, or -MaxInt if the list is empty.
-    /// </returns>
-    public static int Max(params int[] ints)
-    {
-        int max = int.MinValue;
-        for (int i = 0; i < ints.Length; i++)
-            max = Math.Max(max, ints[i]);
-        return max;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Max(int val1, int val2) => val1 > val2 ? val1 : val2;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Min(int val1, int val2) => val1 < val2 ? val1 : val2;
 
     /// <summary>
     /// Converts the degrees into radians.
@@ -198,6 +179,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static short Clamp(short value, short low, short high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -210,6 +192,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ushort Clamp(ushort value, ushort low, ushort high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -222,6 +205,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Clamp(int value, int low, int high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -234,6 +218,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint Clamp(uint value, uint low, uint high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -246,6 +231,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long Clamp(long value, long low, long high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -258,6 +244,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong Clamp(ulong value, ulong low, ulong high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -271,6 +258,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Clamp(float value, float low, float high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -284,6 +272,7 @@ public static class MathHelper
     /// <param name="low">The lower bound (inclusive).</param>
     /// <param name="high">The upper bound (inclusive).</param>
     /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Clamp(double value, double low, double high)
     {
         return value < low ? low : (value > high ? high : value);
@@ -316,6 +305,7 @@ public static class MathHelper
     /// </summary>
     /// <param name="value">Double value to convert.</param>
     /// <returns>Fixed point integer in 16.16 format.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ToFixed(double value)
     {
         return (int)(value * (1 << 16));

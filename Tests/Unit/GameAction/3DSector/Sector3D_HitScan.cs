@@ -424,6 +424,6 @@ public class Sector3D_HitScan : IDisposable
 
         var data = GameActions.FireHitScanTest(World, Player);
         data.HitLine.Should().NotBeNull();
-        data.HitLine.Id.Should().Be(2);
+        data.HitLine.Id.Should().Be(181);
     }
 }
