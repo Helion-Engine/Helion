@@ -1016,6 +1016,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         if (WorldStatic.Sector3D)
         {
+            // TODO this could be removed if the move crossed lines.
             WorldStatic.CheckCounter++;
             for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
                 highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.IntersectSectors.Data[i], ref dropOffZ);

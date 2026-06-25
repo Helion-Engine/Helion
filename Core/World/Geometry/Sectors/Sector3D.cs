@@ -485,7 +485,7 @@ public sealed class Sector3D
     {
         Entity.PrevPosition.Z = ControlBottom.PrevZ;
         Entity.Position.Z = ControlBottom.Z;
-        Entity.Height = Math.Max(ControlTop.Z - ControlBottom.Z, 0);
+        Entity.Height = MathHelper.Max(ControlTop.Z - ControlBottom.Z, 0);
         return Entity;
     }
 

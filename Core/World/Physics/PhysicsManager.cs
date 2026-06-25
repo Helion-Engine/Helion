@@ -364,9 +364,9 @@ public sealed partial class PhysicsManager
                     double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
                     // Floor cannot be higher than ceiling for this reset
                     if (moveType == SectorPlaneFace.Floor)
-                        destZ = Math.Clamp(destZ, double.MinValue, sector.Ceiling.Z);
+                        destZ = MathHelper.Clamp(destZ, double.MinValue, sector.Ceiling.Z);
                     else
-                        destZ = Math.Clamp(destZ, sector.Floor.Z, double.MaxValue);
+                        destZ = MathHelper.Clamp(destZ, sector.Floor.Z, double.MaxValue);
 
                     diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
                     if (destZ < startZ)
@@ -613,7 +613,7 @@ public sealed partial class PhysicsManager
             else
                 moveFactor = (sectorFriction * 65536.0 - 0xDB34) * 0xA / 0x80 / 65536.0;
 
-            moveFactor = Math.Clamp(moveFactor, MinMoveFactor, double.MaxValue);
+            moveFactor = MathHelper.Clamp(moveFactor, MinMoveFactor, double.MaxValue);
             // The move factor was based on 2048 being default in Boom.
             moveFactor /= Constants.DefaultFrictionFactor;
         }
@@ -907,14 +907,11 @@ public sealed partial class PhysicsManager
             return GetLineOpeningWithDropoff(entity, x, y, ref line);
 
         GetLineOpening(front, back);
-        m_lineOpening.DropOffZ = Math.Min(front.Floor.Z, back.Floor.Z);
+        m_lineOpening.DropOffZ = MathHelper.Min(front.Floor.Z, back.Floor.Z);
         SetOpeningPlanes3D(entity, front, back);
 
-        if (m_testOpeningFront.FloorZ > m_testOpeningBack.FloorZ)
-            m_lineOpening.DropOffZ = Math.Max(m_testOpeningBack.DropOffZ_3D, m_lineOpening.DropOffZ);
-        else
-            m_lineOpening.DropOffZ = Math.Max(m_testOpeningFront.DropOffZ_3D, m_lineOpening.DropOffZ);
-
+        var dropOffZ_3D = MathHelper.Min(m_testOpeningFront.DropOffZ_3D, m_testOpeningBack.DropOffZ_3D);
+        m_lineOpening.DropOffZ = MathHelper.Max(dropOffZ_3D, m_lineOpening.DropOffZ);
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
         return m_lineOpening;
     }
@@ -923,6 +920,11 @@ public sealed partial class PhysicsManager
     {
         SetLineOpening3D(m_testOpeningFront, front, entity, front, back);
         SetLineOpening3D(m_testOpeningBack, back, entity, front, back);
+
+        if (m_testOpeningFront.DropOffZ_3D > m_testOpeningBack.DropOffZ_3D && back.Floor.Z > m_testOpeningBack.DropOffZ_3D)
+            m_testOpeningBack.DropOffZ_3D = m_testOpeningFront.DropOffZ_3D;
+        if (m_testOpeningBack.DropOffZ_3D > m_testOpeningFront.DropOffZ_3D && front.Floor.Z > m_testOpeningFront.DropOffZ_3D)
+            m_testOpeningFront.DropOffZ_3D = m_testOpeningBack.DropOffZ_3D;
 
         var highestFloorOpening = m_testOpeningBack.FloorZ > m_testOpeningFront.FloorZ ? m_testOpeningBack : m_testOpeningFront;
         if (highestFloorOpening.FloorZ > m_lineOpening.FloorZ)
@@ -945,23 +947,25 @@ public sealed partial class PhysicsManager
 
         if (useSector3D.Sectors3D.Length > 0)
         {
-            var anySolid = false;
+            var hasDropOff3D = false;
             for (int i = 0; i < useSector3D.Sectors3D.Length; i++)
             {
                 var sector3D = useSector3D.Sectors3D[i];
                 if (!sector3D.IsSolid)
                     continue;
 
-                anySolid = true;
                 var entity3D = sector3D.GetSectorEntity3D();
                 SetEntityLineOpening(entity, entity3D, TryMoveData, testOpening, false);
 
                 var top = entity3D.Position.Z + entity3D.Height;
                 if (top - entity.GetMaxStepHeight() <= entity.Position.Z && top > testOpening.DropOffZ_3D)
+                {
                     testOpening.DropOffZ_3D = top;
+                    hasDropOff3D = true;
+                }
             }
 
-            if (anySolid)
+            if (hasDropOff3D)
             {
                 m_lineOpening.HasDropOff3D = true;
                 return;
@@ -969,7 +973,7 @@ public sealed partial class PhysicsManager
         }
 
         testOpening.Set(front, back);
-        testOpening.DropOffZ = testOpening.FloorZ;
+        testOpening.DropOffZ = m_lineOpening.DropOffZ;
     }
 
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
@@ -984,7 +988,7 @@ public sealed partial class PhysicsManager
         // reset to zero then the jump we apply to players is lost and they
         // can never jump. Maybe we want to fix this in the future by doing
         // application of jumping after the XY movement instead of before?
-        entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
+        entity.Velocity.Z = MathHelper.Max(0, entity.Velocity.Z);
     }
 
     private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector>? intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
@@ -1493,7 +1497,7 @@ doneLinkToSectors:
         if (entity.Radius > 0.5)
         {
             double moveDistance = entity.Radius - 0.5;
-            double biggerAxis = Math.Max(Math.Abs(stepDelta.X), Math.Abs(stepDelta.Y));
+            double biggerAxis = MathHelper.Max(Math.Abs(stepDelta.X), Math.Abs(stepDelta.Y));
             numMoves = (int)(biggerAxis / moveDistance) + 1;
 
             if (numMoves > 1)
@@ -1642,10 +1646,10 @@ doneLinkToSectors:
         var boxMaxX = x + entity.Radius;
         var boxMinY = y - entity.Radius;
         var boxMaxY = y + entity.Radius;
-        int blockStartX = Math.Max(0, (int)((boxMinX - m_blockmap.Bounds.Min.X) / m_blockmap.Dimension));
-        int blockStartY = Math.Max(0, (int)((boxMinY - m_blockmap.Bounds.Min.Y) / m_blockmap.Dimension));
-        int blockEndX = Math.Min((int)((boxMaxX - m_blockmap.Bounds.Min.X) / m_blockmap.Dimension), m_blockmap.Width - 1);
-        int blockEndY = Math.Min((int)((boxMaxY - m_blockmap.Bounds.Min.Y) / m_blockmap.Dimension), m_blockmap.Height - 1);
+        int blockStartX = MathHelper.Max(0, (int)((boxMinX - m_blockmap.Bounds.Min.X) / m_blockmap.Dimension));
+        int blockStartY = MathHelper.Max(0, (int)((boxMinY - m_blockmap.Bounds.Min.Y) / m_blockmap.Dimension));
+        int blockEndX = MathHelper.Min((int)((boxMaxX - m_blockmap.Bounds.Min.X) / m_blockmap.Dimension), m_blockmap.Width - 1);
+        int blockEndY = MathHelper.Min((int)((boxMaxY - m_blockmap.Bounds.Min.Y) / m_blockmap.Dimension), m_blockmap.Height - 1);
         int intersectSectorLength = 0;
 
         for (int by = blockStartY; by <= blockEndY; by++)

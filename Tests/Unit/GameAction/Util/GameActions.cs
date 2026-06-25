@@ -607,10 +607,15 @@ namespace Helion.Tests.Unit.GameAction
             }
         }
 
-        public static bool MoveEnemy(Entity entity)
+        public static bool MoveEnemy(Entity entity, double amount = double.MinValue)
         {
+            var speed = entity.MonsterMovementSpeed;
+            if (amount != double.MinValue)
+                entity.MonsterMovementSpeed = amount;
+
             var success = entity.MoveEnemy(out _);
             entity.ResetInterpolation();
+            entity.MonsterMovementSpeed = speed;
             return success;
         }
 
