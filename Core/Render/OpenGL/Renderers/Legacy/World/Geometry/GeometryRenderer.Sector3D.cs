@@ -89,6 +89,9 @@ public partial class GeometryRenderer
                 traversePlanes3D = MergePlanes(parentSide.Sector.SectorPlanes3D, oppositeParentSide.Sector.SectorPlanes3D, sector3D);
         }
 
+        if (parentSide != null)
+            useSide.LightSector3D = parentSide.Sector;
+
         var result = RenderWallSlices3D(useSide, useSide.Middle, isFront, null!, wallSector, oppositeParentSide?.Sector!, traversePlanes3D,
             m_renderSectorSliceFunc3D,offsetSide: parentSide, renderSkySide: false, allowAlpha: true, anchorSector3D: sector3D,
             wallHeights3D: newWallHeights, style: sector3D.RenderDataStyle);
@@ -165,9 +168,6 @@ public partial class GeometryRenderer
         Assert.Precondition(wall.Location != WallLocation.Middle3D || wallHeights3D.HasValue, "Rendering 3D middle requires WallHeights3D to be set.");
 
         RenderWallSliceResult finalResult = default;
-        if (side.Sector.Sectors3D.Length == 0)
-            return finalResult;
-
         m_vertices.Clear();
 
         // Because of how the WorldTriangulator handles mapping UV coordinates based on flags they are fudged here to fix alignment.
@@ -205,7 +205,7 @@ public partial class GeometryRenderer
         m_fakeWall.Offset.X = offset.X;
         var offsetY = offset.Y;
 
-        var lightSector = side.Sector.Sectors3D[0].ParentSector;
+        var lightSector = side.LightSector3D ?? side.Sector;
         RenderWallSliceResult result;
         var args = new RenderWallSliceArgs()
         {
@@ -269,7 +269,7 @@ public partial class GeometryRenderer
             }
 
             // Front side is normal light sector. Back side is the inside of the 3D sector and needs to use inside light sector that can be set from Sector3D.RestrictLighting flag.
-            args.LightSector = isFrontSide ? nextPlane3D.LightSector : nextPlane3D.LightInsideSector;
+            args.LightSector = !isFrontSide && anchorSector3D != null ? nextPlane3D.LightInsideSector : nextPlane3D.LightSector;
             // This is a hack to force it to ignore the cached vertices
             args.Side.LastRenderGametick = -1;
 

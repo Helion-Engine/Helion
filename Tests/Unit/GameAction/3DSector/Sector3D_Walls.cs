@@ -449,19 +449,25 @@ public class Sector3D_Walls
     {
         var sector = GameActions.GetSectorByTag(World, 78);
         sector.Sectors3D.Length.Should().Be(1);
+        var sector3D = sector.Sectors3D[0];
 
         var line = GameActions.GetLine(World, 957);
         line.Back.Should().NotBeNull();
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
 
-        SetSlices(new WallSlice(512, 128, 128, (0, 0), null), new WallSlice(128, 32, 128, (0, 384), null), new WallSlice(32, 0, 128, (0, 480), null));
-        var side = line.Front;
-        GeometryRenderer.RenderWallSlices3D(line.Front, side.Middle, true, side, sector, sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice3D);
+        GeometryRenderer.SetSectorForLineRendering3D(sector3D);
+
+        SetSlices(new WallSlice(128, 32, 128, (0, 0), null));
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, false, EmptyRenderSectorWallVertices3D);
         AssertSlices();
 
-        SetSlices(new WallSlice(512, 128, 255, (0, 0), null), new WallSlice(128, 32, 255, (0, 384), null), new WallSlice(32, 0, 128, (0, 480), null));
-        side = line.Back;
-        GeometryRenderer.RenderWallSlices3D(line.Front, side.Middle, false, side, sector, sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        SetSlices(new WallSlice(128, 32, 255, (0, 0), null));
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, false, true, EmptyRenderSectorWallVertices3D);
         AssertSlices();
+
+        GeometryRenderer.RestoreSectorSliceFunc3D();
     }
 
     [Fact(DisplayName = "Reset light renders normal without restrict light")]
@@ -530,6 +536,157 @@ public class Sector3D_Walls
             new WallSlice(96, 64, 128, (0, 416), null),
             new WallSlice(64, 0, 128, (0, 448), null));
         GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light levels middle 3D")]
+    public void LightLevelsOneSided()
+    {
+        var sector = GameActions.GetSectorByTag(World, 80);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        var line = GameActions.GetLine(World, 982);
+        line.Front.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(256, 192, 255, (256, 0), null),
+            new WallSlice(192, 176, 160, (256, 64), null),
+            new WallSlice(176, 96, 160, (256, 80), null),
+            new WallSlice(96, 80, 128, (256, 160), null),
+            new WallSlice(80, 0, 128, (256, 176), null));
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light level middle 3D front side")]
+    public void LightLevelsMiddle3DFrontSide()
+    {
+        var sector = GameActions.GetSectorByTag(World, 79);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        SetSlices(new WallSlice(192, 176, 192, (0, 0), null));
+
+        var sector3D = sector.Sectors3D[0];
+        var line = GameActions.GetLine(World, 1025);
+        line.Back.Should().NotBeNull();
+        line.Back.Sector.Should().Be(sector);
+        GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice3D);
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        GeometryRenderer.SetSectorForLineRendering3D(sector3D);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RestoreSectorSliceFunc3D();
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light level middle 3D back side")]
+    public void LightLevelsMiddle3DBackSide()
+    {
+        var sector = GameActions.GetSectorByTag(World, 79);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        SetSlices(new WallSlice(192, 176, 128, (0, 0), null));
+
+        var sector3D = sector.Sectors3D[0];
+        var line = GameActions.GetLine(World, 967);
+        line.Back.Should().NotBeNull();
+        line.Front.Sector.Should().Be(sector);
+        GeometryRenderer.SetTestRenderSectorSliceFunc3D(RenderSlice3D);
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+        GeometryRenderer.SetSectorForLineRendering3D(sector3D);
+        GeometryRenderer.RenderSectorLine3D(sector3D, lineIndex, true, true, EmptyRenderSectorWallVertices3D);
+        GeometryRenderer.RestoreSectorSliceFunc3D();
+
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light level upper front side")]
+    public void LightLevelsUpperFront()
+    {
+        var sector = GameActions.GetSectorByTag(World, 81);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        var line = GameActions.GetLine(World, 998);
+        line.Front.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(256, 192, 255, (0, 0), null),
+            new WallSlice(192, 176, 160, (0, 64), null),
+            new WallSlice(176, 96, 160, (0, 80), null),
+            new WallSlice(96, 80, 128, (0, 160), null),
+            new WallSlice(80, 0, 128, (0, 176), null));
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light level upper back side")]
+    public void LightLevelsUpperBack()
+    {
+        var sector = GameActions.GetSectorByTag(World, 81);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        var line = GameActions.GetLine(World, 996);
+        line.Back.Should().NotBeNull();
+        line.Back.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(256, 192, 255, (0, 0), null),
+            new WallSlice(192, 176, 160, (0, 64), null),
+            new WallSlice(176, 96, 160, (0, 80), null),
+            new WallSlice(96, 80, 128, (0, 160), null),
+            new WallSlice(80, 0, 128, (0, 176), null));
+        GeometryRenderer.RenderWallSlices3D(line.Back, line.Back.Upper, true, line.Back, line.Back.Sector, line.Back.Sector, line.Back.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light level lower front side")]
+    public void LightLevelsLowerFront()
+    {
+        var sector = GameActions.GetSectorByTag(World, 82);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        var line = GameActions.GetLine(World, 1006);
+        line.Front.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(256, 192, 255, (0, 0), null),
+            new WallSlice(192, 176, 160, (0, 64), null),
+            new WallSlice(176, 96, 160, (0, 80), null),
+            new WallSlice(96, 80, 128, (0, 160), null),
+            new WallSlice(80, 0, 128, (0, 176), null));
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Upper, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Light level lower back side")]
+    public void LightLevelsLowerBack()
+    {
+        var sector = GameActions.GetSectorByTag(World, 82);
+        sector.Sectors3D.Length.Should().Be(2);
+
+        var line = GameActions.GetLine(World, 1004);
+        line.Back.Should().NotBeNull();
+        line.Back.Sector.Should().Be(sector);
+
+        var lineIndex = sector.Lines.IndexOf(line);
+        lineIndex.Should().NotBe(-1);
+
+        SetSlices(new WallSlice(256, 192, 255, (0, 0), null),
+            new WallSlice(192, 176, 160, (0, 64), null),
+            new WallSlice(176, 96, 160, (0, 80), null),
+            new WallSlice(96, 80, 128, (0, 160), null),
+            new WallSlice(80, 0, 128, (0, 176), null));
+        GeometryRenderer.RenderWallSlices3D(line.Back, line.Back.Upper, false, line.Back, line.Back.Sector, line.Back.Sector, line.Back.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
 
