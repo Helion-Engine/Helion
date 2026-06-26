@@ -70,6 +70,7 @@ public sealed class Side
     public RenderDataStyle RenderDataStyle;
 
     public MapUserProperties UserProperties;
+    public Sector? LightSector3D;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
         : this(id, offset, upper, middle, lower, sector, 0, false, false, false, false)

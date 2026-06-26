@@ -417,6 +417,9 @@ public sealed class Sector3D
 
     private static int HeightCompare(Sector3D x, Sector3D y)
     {
+        if (y.ControlTop.Z == x.ControlTop.Z)
+            return x.ControlSector.Id.CompareTo(y.ControlSector.Id);
+
         return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
     }
 
