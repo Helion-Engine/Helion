@@ -11,6 +11,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -49,6 +50,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
     private readonly List<Sector> m_initMoveSectors = [];
     private readonly GeometryRenderer.RenderCoverWallAction m_renderCoverWallAction;
+    private readonly DynamicVertex[] m_coverWallVertices3D = new DynamicVertex[6];
 
     private readonly Dictionary<CoverKey, StaticGeometryData> m_coverWallLookup = [];
     private readonly Dictionary<CoverKey, StaticGeometryData> m_coverFlatLookup = [];
@@ -228,7 +230,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (!world.SameAsPreviousMap)
         {
             m_coverFlatGeometry = AllocateGeometryData(GeometryType.Flat, textureIndex,
-                repeat: true, addToGeometry: false, overrideTexture: texture);
+                repeat: true, addToGeometry: false, overrideTexture: texture, label: "CoverFlat");
         }
 
         if (!m_vanillaRender)
@@ -246,9 +248,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             var sidesWithTextures = world.Sides.Count(x => x.Upper.TextureHandle != 0 || x.Lower.TextureHandle != 0);
 
             m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, textureIndex,
-                repeat: true, addToGeometry: false, sidesWithTextures * WallVertices, overrideTexture: texture);
+                repeat: true, addToGeometry: false, sidesWithTextures * WallVertices, overrideTexture: texture, "CoverWall Two-Sided");
             m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, textureIndex,
-                repeat: true, addToGeometry: false, oneSided * WallVertices, overrideTexture: texture);
+                repeat: true, addToGeometry: false, oneSided * WallVertices, overrideTexture: texture, "CoverWall One-Sided");
         }
     }
 
@@ -714,11 +716,11 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     }
 
     private GeometryData AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, bool addToGeometry = true, int vboSize = 0,
-        GLLegacyTexture? overrideTexture = null)
+        GLLegacyTexture? overrideTexture = null, string? label = null)
     {
         VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
         vboSize = Math.Max(vboSize, 32);
-        StaticVertexBuffer<StaticVertex> vbo = new($"Geometry (handle {textureHandle}, repeat {repeat})", vboSize);
+        StaticVertexBuffer<StaticVertex> vbo = new(label ?? $"Geometry (handle {textureHandle}, repeat {repeat})", vboSize);
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
         var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
@@ -1399,6 +1401,29 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (m_coverWallGeometry == null || m_coverWallGeometryOneSided == null)
             return;
 
+        Assert.Precondition(sideVertices.Length % 6 == 0, "Incorrect number of vertices. Must be sets of 6 per wall.");
+
+        if (sideVertices.Length > 6)
+        {
+            // This is for 3D sectors. Walls are sliced against other 3D sectors from top to bottom.
+            // OneSided middle walls can always take the first 6 since top and bottom Z values are projected.
+            if (oneSided && location == WallLocation.Middle)
+            {
+                sideVertices = sideVertices[..6];
+            }
+            else
+            {
+                // Upper: Take the last 6 vertices since this is the lowest Z portion. CopyCoverWallVertices projects their top heights.
+                // Lower: the first 6 since it's the highest Z portion. CopyCoverWallVertices projects their bottom heights.
+                sideVertices = location switch
+                {
+                    WallLocation.Middle or WallLocation.Middle3D => CreateMiddleCoverWall3D(sideVertices),
+                    WallLocation.Upper => sideVertices[^6..],
+                    _ => sideVertices[..6],
+                };
+            }
+        }
+
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
         var key = CoverKey.MakeCoverWallKey(side.Id, location, oneSided);
         int length = sideVertices.Length;
@@ -1426,6 +1451,18 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             HandleCoverWallUpload(geometryVbo, staticGeometryData.Index, length);
             geometryVbo.Data.Length = Math.Max(geometryVbo.Data.Length, staticGeometryData.Index + length);
         }
+    }
+
+    private Span<DynamicVertex> CreateMiddleCoverWall3D(Span<DynamicVertex> sideVertices)
+    {
+        var lowestZ = sideVertices[^1].Z;
+        for (int i = 0; i < 6; i++)
+            m_coverWallVertices3D[i] = sideVertices[i];
+
+        m_coverWallVertices3D[1].Z = lowestZ;
+        m_coverWallVertices3D[3].Z = lowestZ;
+        m_coverWallVertices3D[5].Z = lowestZ;
+        return m_coverWallVertices3D;
     }
 
     private void HandleCoverWallUpload(StaticVertexBuffer<StaticVertex> geometryVbo, int index, int length)

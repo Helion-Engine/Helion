@@ -2,7 +2,7 @@ namespace Helion.World.Geometry.Walls;
 
 public enum WallLocation
 {
-    None, // This is for 3D floors and transfer heights; any better words?
+    None,
     Upper,
     Middle,
     Lower,

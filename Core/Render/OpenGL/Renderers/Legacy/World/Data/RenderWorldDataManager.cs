@@ -2,6 +2,7 @@ using System;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Util.Assertion;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 
@@ -34,6 +35,8 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
     {
         if (m_coverWalls == null || !BufferCoverWalls)
             return;
+
+        Assert.Precondition(vertices.Length == 6, "Wall vertices should be 6");
 
         int index = m_coverWalls.Vbo.Data.Length;
         m_coverWalls.Vbo.Add(vertices);
