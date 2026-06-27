@@ -674,7 +674,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         AddVertices(vertices, sideVertices);
     }
 
-    private static GeometryType GetWallType(Side side, Wall wall, Sector3D? sector3D)
+    private GeometryType GetWallType(Side side, Wall wall, Sector3D? sector3D)
     {
         if (sector3D != null && (wall.Location == WallLocation.Middle3D || wall.Location == WallLocation.Middle))
         {
@@ -692,7 +692,12 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
 
         if (wall.Location == WallLocation.Middle3D)
+        {
+            if (m_textureManager.GetTexture(wall.TextureHandle).TransparentPixelCount > 0)
+                return GeometryType.TwoSidedMiddleWall;
+
             return GeometryType.Middle3D;
+        }
 
         return wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
     }

@@ -591,7 +591,8 @@ public partial class GeometryRenderer : IDisposable
                 var line = sector.Lines[i];
                 var onFront = line.Segment.OnRight(pos2D);
                 // Back sides must be rendered with vanilla rendering for back face sprite clipping to function.
-                var onBothSides = m_vanillaRender || onFront != line.Segment.OnRight(prevPos2D);
+                var vanillaRenderCheck = m_vanillaRender && m_glTextureManager.GetTexture(sector.Sector3D.FakeSector.Lines[i].Front.Middle.TextureHandle).TransparentPixelCount == 0;
+                var onBothSides = vanillaRenderCheck || onFront != line.Segment.OnRight(prevPos2D);
                 RenderSectorLine3D(sector.Sector3D, i, onFront || onBothSides, !onFront || onBothSides, null);
             }
 
