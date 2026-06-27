@@ -76,6 +76,7 @@ public partial class GeometryRenderer
         {
             useSide.Offset = parentSide.Offset;
             useSide.Middle.Offset = parentSide.Middle.Offset;
+            useSide.Middle.Scale = sector3D.ControlSide.Middle.Scale;
         }
 
         var traversePlanes3D = parentSide == null ? [] : parentSide.Sector.SectorPlanes3D.AsSpan();
@@ -199,6 +200,7 @@ public partial class GeometryRenderer
         m_fakeSide.ScrollData = m_fakeSideScrollData;
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Location = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location;
+        m_fakeWall.Scale = wall.Scale;
         m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Current).Y = 0;
         m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Previous).Y = 0;
 
@@ -670,11 +672,15 @@ public partial class GeometryRenderer
         if (!SetSectorsForTwoMiddleSlice(args, out var facing, out var other, out var bottomZ))
             return RenderWallSliceResult.EmptyNoAddOffset;
 
+        var saveScroll = args.Side.ScrollData;
         var saveOffset = args.Side.Middle.Offset.Y;
+        args.Side.ScrollData = null;
         args.Side.Middle.Offset.Y = (float)(bottomZ - facing.Floor.Z);
 
         RenderTwoSidedMiddle(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, 
             lightLevelSector: args.LightSector, restrictSpan: new(facing.Floor.Z, facing.Ceiling.Z, facing.Floor.PrevZ, facing.Ceiling.PrevZ));
+
+        args.Side.ScrollData = saveScroll;
         args.Side.Middle.Offset.Y = saveOffset;
         return new(sideVertices, null, null, addOffset: false);
     }
