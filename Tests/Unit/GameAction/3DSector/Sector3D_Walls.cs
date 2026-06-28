@@ -128,13 +128,55 @@ public class Sector3D_Walls
         var sector = GameActions.GetSector(World, 64);
         sector.Sectors3D.Length.Should().Be(1);
 
-        // Anchors to other ceiling (500)
-        // Y-Offsets: 500-500=0, 500-48=452, 500-32=468
-        SetSlices(new WallSlice(500, 48, 192, (0, 0)), new WallSlice(48, 32, 192, (0, 452)), new WallSlice(32, 0, 192, (0, 468)));
+        SetSlices(new WallSlice(500, 48, 192, (0, 0)), new WallSlice(48, 32, 192, (0, -48)), new WallSlice(32, 0, 192, (0, -32)));
 
         var line = GameActions.GetLine(World, 279);
         line.Flags.Unpegged.Lower.Should().BeTrue();
         GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Render two-sided middle line sliced by single 3D with lower back side ceiling")]
+    public void RenderTwoSidedMiddleSliceLowerBackCeiling()
+    {
+        var sector = GameActions.GetSector(World, 64);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        SetSlices(new WallSlice(500, 48, 192, (64, 0)), new WallSlice(48, 32, 192, (64, 208)), new WallSlice(32, 0, 192, (64, 224)));
+
+        var line = GameActions.GetLine(World, 1089);
+        line.Flags.Unpegged.Lower.Should().BeFalse();
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Back!, line.Front.Sector, line.Back!.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Render two-sided middle line sliced by single 3D sector with positive offset")]
+    public void RenderTwoSidedMiddleSliceWithPositiveOffset()
+    {
+        var sector = GameActions.GetSectorByTag(World, 83);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        SetSlices(new WallSlice(200, 48, 192, (0, 16)), new WallSlice(48, 32, 192, (0, 168)), new WallSlice(32, 0, 192, (0, 184)));
+
+        var line = GameActions.GetLine(World, 1035);
+        line.Back.Should().NotBeNull();
+        line.Front.Middle.Offset.Y.Should().Be(16);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Back!, line.Front.Sector, line.Back.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
+        AssertSlices();
+    }
+
+    [Fact(DisplayName = "Render two-sided middle line sliced by single 3D sector with positive offset")]
+    public void RenderTwoSidedMiddleSliceWithNegativeOffset()
+    {
+        var sector = GameActions.GetSectorByTag(World, 83);
+        sector.Sectors3D.Length.Should().Be(1);
+
+        SetSlices(new WallSlice(128, 48, 192, (0, -16)), new WallSlice(48, 32, 192, (0, 64)), new WallSlice(32, 0, 192, (0, 80)));
+
+        var line = GameActions.GetLine(World, 1042);
+        line.Back.Should().NotBeNull();
+        line.Front.Middle.Offset.Y.Should().Be(-16);
+        GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Back!, line.Front.Sector, line.Back.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
 
@@ -439,7 +481,7 @@ public class Sector3D_Walls
 
         // The two-sided line itself should render as normal
         SetSlices(new WallSlice(512, 0, 192, (0, 0), null), 
-            new WallSlice(0, -32, 192, (0, 512), null));
+            new WallSlice(0, -32, 192, (0, -32), null));
         GeometryRenderer.RenderWallSlices3D(line.Front, line.Front.Middle, true, line.Front, line.Front.Sector, line.Front.Sector, line.Front.Sector.SectorPlanes3D, RenderSlice);
         AssertSlices();
     }
