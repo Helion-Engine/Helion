@@ -7,6 +7,7 @@ using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.World;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
@@ -30,6 +31,8 @@ public partial class GeometryRenderer
     private readonly Sector m_sliceSector = Sector.CreateDefault();
     private readonly Sector m_emptyTraverseSector = Sector.CreateDefault();
     private readonly DynamicArray<SectorPlane3D> m_mergePlanes = new(64);
+
+    private MidTexSpan m_midTexSpan;
 
     // Intended for tests only
     public void SetTestRenderSectorSliceFunc3D(Func<RenderWallSliceArgs, RenderWallSliceResult> func) => m_renderSectorSliceFunc3D = func;
@@ -76,6 +79,7 @@ public partial class GeometryRenderer
         {
             useSide.Offset = parentSide.Offset;
             useSide.Middle.Offset = parentSide.Middle.Offset;
+            useSide.Middle.Scale = sector3D.ControlSide.Middle.Scale;
         }
 
         var traversePlanes3D = parentSide == null ? [] : parentSide.Sector.SectorPlanes3D.AsSpan();
@@ -199,6 +203,7 @@ public partial class GeometryRenderer
         m_fakeSide.ScrollData = m_fakeSideScrollData;
         m_fakeWall.TextureHandle = wall.TextureHandle;
         m_fakeWall.Location = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location;
+        m_fakeWall.Scale = wall.Scale;
         m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Current).Y = 0;
         m_fakeSideScrollData.Offset(m_fakeWall.Location, ScrollOffsetType.Previous).Y = 0;
 
@@ -220,7 +225,8 @@ public partial class GeometryRenderer
             OffsetSide = offsetSide,
             AllowAlpha = allowAlpha,
             Style = style,
-            WallLocation = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location
+            WallLocation = wall.Location == WallLocation.Middle3D ? WallLocation.Middle : wall.Location,
+            StartOffsetY = offsetY / m_fakeWall.Scale.Y
         };
 
         var renderThrough = style != RenderDataStyle.Normal;
@@ -239,6 +245,7 @@ public partial class GeometryRenderer
             
         for (int i = 0; i < traversePlanes3D.Length - 1; i++)
         {
+            args.Count = i;
             ref var plane3D = ref traversePlanes3D[i];
             ref var nextPlane3D = ref traversePlanes3D[i + 1];
 
@@ -362,6 +369,12 @@ public partial class GeometryRenderer
         {
             return otherSector.Floor;
         }
+        else if (wall.Location == WallLocation.Middle && side.PartnerSide != null)
+        {
+            if (side.Line.Flags.Unpegged.Lower)
+                return side.Sector.Floor.Z > otherSector.Floor.Z ? side.Sector.Floor : otherSector.Floor;
+            return side.Sector.Ceiling.Z < otherSector.Ceiling.Z ? side.Sector.Ceiling : otherSector.Ceiling;
+        }
 
         // Everything else is anchored to ceiling
         return side.Sector.Ceiling;
@@ -388,7 +401,9 @@ public partial class GeometryRenderer
         }
         else if (wall.Location == WallLocation.Middle && side.PartnerSide != null)
         {
-            return side.Sector.Ceiling;
+            if (side.Line.Flags.Unpegged.Lower)
+                return side.Sector.Floor.Z > otherSector.Floor.Z ? side.Sector.Floor : otherSector.Floor;
+            return side.Sector.Ceiling.Z < otherSector.Ceiling.Z ? side.Sector.Ceiling : otherSector.Ceiling;
         }
 
         return side.Line.Flags.Unpegged.Lower ? side.Sector.Floor : side.Sector.Ceiling;
@@ -619,20 +634,46 @@ public partial class GeometryRenderer
         if (texture == null || texture.Image == null || args.OtherSide == null)
             return false;
 
-        var span = GetMidTexSpan(TextureManager, texture.Image.Dimension, args.Side, args.OtherSide, args.FacingSector, args.OtherSector);
-        bottomZ = span.BottomZ;
+        var saveScroll = args.Side.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Current).Y;
+        var saveScrollPrev = args.Side.ScrollData!.Offset(WallLocation.Middle, ScrollOffsetType.Previous).Y;
+        args.Side.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Y = 0;
+        args.Side.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Previous).Y = 0;
+
+        var startOffsetY = 0.0;
+        if (args.Count == 0)
+        {
+            startOffsetY = args.StartOffsetY;
+            m_midTexSpan = GetMidTexSpan(TextureManager, texture.Image.Dimension, args.Side, args.OtherSide, args.FacingSector, args.OtherSector, startOffsetY, startOffsetY);
+        }
+
+        bottomZ = m_midTexSpan.BottomZ;
 
         var renderTopZ = args.WallSector.Ceiling.Z;
         var renderTopPrevZ = args.WallSector.Ceiling.PrevZ;
         var renderBottomZ = args.WallSector.Floor.Z;
         var renderBottomPrevZ = args.WallSector.Floor.PrevZ;
 
-        if (renderTopZ > span.TopZ && renderBottomZ > span.TopZ)
+        if (args.Side.Line.Flags.Unpegged.Lower)
+        {
+            renderBottomZ += startOffsetY;
+            renderBottomPrevZ += startOffsetY;
+        }
+        else
+        {
+            renderTopZ += startOffsetY;
+            renderTopPrevZ += startOffsetY;
+        }
+
+        args.Side.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Y = saveScroll;
+        args.Side.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Previous).Y = saveScrollPrev;
+
+        if (renderTopZ > m_midTexSpan.TopZ && renderBottomZ > m_midTexSpan.TopZ)
             return false;
-        if (renderBottomZ < span.TopZ && renderTopZ < span.BottomZ)
+        if (renderBottomZ < m_midTexSpan.TopZ && renderTopZ < m_midTexSpan.BottomZ)
             return false;
 
-        if (renderTopZ < span.TopZ)
+        startOffsetY = MathHelper.Max(startOffsetY, 0);
+        if (renderTopZ < m_midTexSpan.TopZ)
         {
             m_fakeFacing.Ceiling.Z = renderTopZ;
             m_fakeOther.Ceiling.Z = renderTopZ;
@@ -641,13 +682,13 @@ public partial class GeometryRenderer
         }
         else
         {
-            m_fakeFacing.Ceiling.Z = span.TopZ;
-            m_fakeOther.Ceiling.Z = span.TopZ;
-            m_fakeFacing.Ceiling.PrevZ = span.PrevTopZ;
-            m_fakeOther.Ceiling.PrevZ = span.PrevTopZ;
+            m_fakeFacing.Ceiling.Z = m_midTexSpan.TopZ + startOffsetY;
+            m_fakeOther.Ceiling.Z = m_midTexSpan.TopZ + startOffsetY;
+            m_fakeFacing.Ceiling.PrevZ = m_midTexSpan.PrevTopZ + startOffsetY;
+            m_fakeOther.Ceiling.PrevZ = m_midTexSpan.PrevTopZ + startOffsetY;
         }
 
-        if (renderBottomZ > span.BottomZ)
+        if (renderBottomZ > m_midTexSpan.BottomZ)
         {
             m_fakeFacing.Floor.Z = renderBottomZ;
             m_fakeOther.Floor.Z = renderBottomZ;
@@ -656,10 +697,10 @@ public partial class GeometryRenderer
         }
         else
         {
-            m_fakeFacing.Floor.Z = span.BottomZ;
-            m_fakeOther.Floor.Z = span.BottomZ;
-            m_fakeFacing.Floor.PrevZ = span.PrevBottomZ;
-            m_fakeOther.Floor.PrevZ = span.PrevBottomZ;
+            m_fakeFacing.Floor.Z = m_midTexSpan.BottomZ;
+            m_fakeOther.Floor.Z = m_midTexSpan.BottomZ;
+            m_fakeFacing.Floor.PrevZ = m_midTexSpan.PrevBottomZ;
+            m_fakeOther.Floor.PrevZ = m_midTexSpan.PrevBottomZ;
         }
 
         return true;
@@ -667,16 +708,26 @@ public partial class GeometryRenderer
 
     public RenderWallSliceResult RenderTwoSidedMiddleSlice(RenderWallSliceArgs args)
     {
+        // This is a mess because of how RenderTwoSidedMiddle currently functions
         if (!SetSectorsForTwoMiddleSlice(args, out var facing, out var other, out var bottomZ))
-            return RenderWallSliceResult.EmptyNoAddOffset;
+            return args.Side.Line.Flags.Unpegged.Lower ? RenderWallSliceResult.EmptyNoAddOffset : RenderWallSliceResult.Empty3D;
 
+        var saveScroll = args.Side.ScrollData;
         var saveOffset = args.Side.Middle.Offset.Y;
-        args.Side.Middle.Offset.Y = (float)(bottomZ - facing.Floor.Z);
+
+        if (args.Side.Line.Flags.Unpegged.Lower)
+            args.Side.Middle.Offset.Y = (float)(bottomZ - facing.Floor.Z);
+
+        if (args.Count == 0)
+            args.Side.ScrollData = null;
 
         RenderTwoSidedMiddle(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, 
             lightLevelSector: args.LightSector, restrictSpan: new(facing.Floor.Z, facing.Ceiling.Z, facing.Floor.PrevZ, facing.Ceiling.PrevZ));
+
+        args.Side.ScrollData = saveScroll;
         args.Side.Middle.Offset.Y = saveOffset;
-        return new(sideVertices, null, null, addOffset: false);
+
+        return new(sideVertices, null, null, addOffset: !args.Side.Line.Flags.Unpegged.Lower);
     }
 
     private void SetSectorToSlice(Sector wallSector, SectorPlane top, SectorPlane bottom, WallHeights? wallHeights3D)

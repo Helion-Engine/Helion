@@ -591,7 +591,8 @@ public partial class GeometryRenderer : IDisposable
                 var line = sector.Lines[i];
                 var onFront = line.Segment.OnRight(pos2D);
                 // Back sides must be rendered with vanilla rendering for back face sprite clipping to function.
-                var onBothSides = m_vanillaRender || onFront != line.Segment.OnRight(prevPos2D);
+                var vanillaRenderCheck = m_vanillaRender && m_glTextureManager.GetTexture(sector.Sector3D.FakeSector.Lines[i].Front.Middle.TextureHandle).TransparentPixelCount == 0;
+                var onBothSides = vanillaRenderCheck || onFront != line.Segment.OnRight(prevPos2D);
                 RenderSectorLine3D(sector.Sector3D, i, onFront || onBothSides, !onFront || onBothSides, null);
             }
 
@@ -1555,13 +1556,14 @@ public partial class GeometryRenderer : IDisposable
         return new(bottomZ, topZ, minBottomZ, maxTopZ);
     }
 
-    public static MidTexSpan GetMidTexSpan(TextureManager textureManager, Dimension dimension, Side front, Side back, Sector frontSector, Sector backSector)
+    public static MidTexSpan GetMidTexSpan(TextureManager textureManager, Dimension dimension, Side front, Side back, Sector frontSector, Sector backSector,
+        double offset = 0, double prevOffset = 0)
     {
         WallVertices wall = default;
         var opening = GetMidTexOpening(textureManager, front, front.Sector, backSector, false);
         var prevOpening = GetMidTexOpening(textureManager, front, front.Sector, backSector, true);
-        var offset = GetTransferHeightHackOffset(textureManager, front, back, opening.BottomZ, opening.TopZ, false);
-        var prevOffset = GetTransferHeightHackOffset(textureManager, front, back, prevOpening.BottomZ, prevOpening.TopZ, true);
+        offset += GetTransferHeightHackOffset(textureManager, front, back, opening.BottomZ, opening.TopZ, false);
+        prevOffset += GetTransferHeightHackOffset(textureManager, front, back, prevOpening.BottomZ, prevOpening.TopZ, true);
         WorldTriangulator.HandleTwoSidedMiddle(front, dimension, default, opening, prevOpening, true, ref wall, out _, offset: offset, prevOffset: prevOffset, vertexGap: false);
         return new(wall.BottomRight.Z, wall.TopLeft.Z, wall.PrevBottomZ, wall.PrevTopZ);
     }

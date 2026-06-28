@@ -4,6 +4,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+
 public struct RenderWallSliceArgs
 {
     public Side Side;
@@ -18,4 +19,6 @@ public struct RenderWallSliceArgs
     public Sector FacingSector;
     public Sector OtherSector;
     public Side? OffsetSide;
+    public double StartOffsetY;
+    public int Count;
 }

@@ -149,8 +149,8 @@ public static class WorldTriangulator
         // Set offset according to the scroll Y offset. The doom renderer would push the entire texture up/down.
         if (facingSide.ScrollData != null)
         {
-            offset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Y;
-            prevOffset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Previous).Y;
+            offset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Current).Y / facingSide.Middle.Scale.Y;
+            prevOffset += facingSide.ScrollData.Offset(WallLocation.Middle, ScrollOffsetType.Previous).Y / facingSide.Middle.Scale.Y;
         }
 
         var drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes, vertexGap, restrictSpan);
@@ -373,19 +373,21 @@ public static class WorldTriangulator
         if (facingSide.Flags.WrapMidTex)
             return new(opening.BottomZ, opening.TopZ, opening.BottomZ, opening.TopZ, prevOpening.BottomZ, prevOpening.TopZ, prevOpening.BottomZ, prevOpening.TopZ);
 
+        var textureHeight = textureDimension.Height / facingSide.Middle.Scale.Y;
         // Default rendering top down. Unpegged.Lower renders bottom up
         // TopZ is the top of the texture to render and BottomZ is the bottom
         // MaxTopZ and MinBottomZ are the min/max areas to render with Y offset. (e.g. a middle texture can render over a missing lower texture)
         double topZ = opening.TopZ;
-        double bottomZ = topZ - textureDimension.Height;
+        double bottomZ = topZ - textureHeight;
         double prevTopZ = prevOpening.TopZ;
-        double prevBottomZ = prevTopZ - textureDimension.Height;
+        double prevBottomZ = prevTopZ - textureHeight;
+
         if (line.Flags.Unpegged.Lower)
         {
             bottomZ = opening.BottomZ;
-            topZ = bottomZ + textureDimension.Height;
+            topZ = bottomZ + textureHeight;
             prevBottomZ = prevOpening.BottomZ;
-            prevTopZ = prevBottomZ + textureDimension.Height;
+            prevTopZ = prevBottomZ + textureHeight;
         }
 
         var offsetY = (facingSide.Offset.Y + facingSide.Middle.Offset.Y) / facingSide.Middle.Scale.Y;
@@ -518,8 +520,9 @@ public static class WorldTriangulator
         double textureHeight = topZ - bottomZ;
         float topV = 1.0f - (float)((visibleTopZ - bottomZ) / textureHeight);
         float bottomV = 1.0f - (float)((visibleBottomZ - bottomZ) / textureHeight);
+        var scaleY = side.Flags.WrapMidTex ? side.Middle.Scale.Y : 1;
 
-        return new WallUV(new Vec2F(leftU * side.Middle.Scale.X, topV * side.Middle.Scale.Y), new Vec2F(rightU * side.Middle.Scale.X, bottomV * side.Middle.Scale.Y));
+        return new WallUV(new Vec2F(leftU * side.Middle.Scale.X, topV * scaleY), new Vec2F(rightU * side.Middle.Scale.X, bottomV * scaleY));
     }
 
     public static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
