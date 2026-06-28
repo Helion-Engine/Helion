@@ -158,6 +158,23 @@ public class Sector3D_Physics : IDisposable
         GameActions.MoveEnemy(Imp).Should().BeTrue();
     }
 
+    [Fact(DisplayName = "Monster walks on 3D sector but stops on edge")]
+    public void MonsterWalkToDropOffToEdge()
+    {
+        var start = new Vec3D(-1296, -16, 68);
+        GameActions.SetEntityPosition(World, Imp, (-1296, -16, 68));
+        Imp.OnGround.Should().BeTrue();
+
+        Imp.AngleRadians = GameActions.GetAngle(Bearing.East);
+        Imp.SetMoveDirection(Entity.MoveDir.East);
+        for (int i = 0; i < 9; i++)
+        {
+            GameActions.MoveEnemy(Imp).Should().BeTrue();
+            Imp.Position.XY.Should().Be(start.XY + new Vec2D((i + 1) * 8, 0));
+        }
+        GameActions.MoveEnemy(Imp).Should().BeFalse();
+    }
+
     [Fact(DisplayName = "Monster falls on 3D sector")]
     public void MonsterFallSector3D()
     {
