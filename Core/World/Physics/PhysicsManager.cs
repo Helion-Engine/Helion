@@ -908,10 +908,9 @@ public sealed partial class PhysicsManager
 
         GetLineOpening(front, back);
         m_lineOpening.DropOffZ = MathHelper.Min(front.Floor.Z, back.Floor.Z);
-        SetOpeningPlanes3D(entity, front, back);
+        SetOpeningPlanes3D(entity, front, back);      
 
-        var dropOffZ_3D = MathHelper.Min(m_testOpeningFront.DropOffZ_3D, m_testOpeningBack.DropOffZ_3D);
-        m_lineOpening.DropOffZ = MathHelper.Max(dropOffZ_3D, m_lineOpening.DropOffZ);
+        m_lineOpening.DropOffZ = MathHelper.Min(m_testOpeningFront.DropOffZ, m_testOpeningBack.DropOffZ);
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
         return m_lineOpening;
     }
@@ -920,11 +919,6 @@ public sealed partial class PhysicsManager
     {
         SetLineOpening3D(m_testOpeningFront, front, entity, front, back);
         SetLineOpening3D(m_testOpeningBack, back, entity, front, back);
-
-        if (m_testOpeningFront.DropOffZ_3D > m_testOpeningBack.DropOffZ_3D && back.Floor.Z > m_testOpeningBack.DropOffZ_3D)
-            m_testOpeningBack.DropOffZ_3D = m_testOpeningFront.DropOffZ_3D;
-        if (m_testOpeningBack.DropOffZ_3D > m_testOpeningFront.DropOffZ_3D && front.Floor.Z > m_testOpeningFront.DropOffZ_3D)
-            m_testOpeningFront.DropOffZ_3D = m_testOpeningBack.DropOffZ_3D;
 
         var highestFloorOpening = m_testOpeningBack.FloorZ > m_testOpeningFront.FloorZ ? m_testOpeningBack : m_testOpeningFront;
         if (highestFloorOpening.FloorZ > m_lineOpening.FloorZ)
@@ -943,7 +937,7 @@ public sealed partial class PhysicsManager
 
     private void SetLineOpening3D(LineOpening testOpening, Sector useSector3D, Entity entity, Sector front, Sector back)
     {
-        testOpening.DropOffZ_3D = m_lineOpening.DropOffZ;
+        var dropOffZ_3D = m_lineOpening.DropOffZ;
 
         if (useSector3D.Sectors3D.Length > 0)
         {
@@ -958,22 +952,24 @@ public sealed partial class PhysicsManager
                 SetEntityLineOpening(entity, entity3D, TryMoveData, testOpening, false);
 
                 var top = entity3D.Position.Z + entity3D.Height;
-                if (top - entity.GetMaxStepHeight() <= entity.Position.Z && top > testOpening.DropOffZ_3D)
+                if (top - entity.GetMaxStepHeight() <= entity.Position.Z && top > dropOffZ_3D)
                 {
-                    testOpening.DropOffZ_3D = top;
+                    dropOffZ_3D = top;
                     hasDropOff3D = true;
                 }
             }
 
             if (hasDropOff3D)
             {
+                testOpening.DropOffZ = dropOffZ_3D;
+                testOpening.HasDropOff3D = true;
                 m_lineOpening.HasDropOff3D = true;
                 return;
             }
         }
 
+        testOpening.DropOffZ = useSector3D.Floor.Z;
         testOpening.Set(front, back);
-        testOpening.DropOffZ = m_lineOpening.DropOffZ;
     }
 
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
