@@ -734,20 +734,16 @@ public class Sector3D_Walls
 
     private RenderWallSliceResult RenderSlice(RenderWallSliceArgs args)
     {
-        // This might change later where this is called with slices that have no height.
-        // Ignore validation on them for now since they wouldn't render anything anyway.
-        if (args.WallSector.Ceiling.Z != args.WallSector.Floor.Z)
-        {
-            var slice = m_slices[m_sliceIndex++];
-            args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
-            args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
-            args.LightSector.LightLevel.Should().Be(slice.LightLevel);
+        var slice = m_slices[m_sliceIndex++];
+        args.WallSector.Ceiling.Z.Should().Be(slice.TopZ);
+        args.WallSector.Floor.Z.Should().Be(slice.BottomZ);
+        args.LightSector.LightLevel.Should().Be(slice.LightLevel);
 
-            if (slice.LightSector != null)
-                args.LightSector.Should().Be(slice.LightSector);
+        if (slice.LightSector != null)
+            args.LightSector.Should().Be(slice.LightSector);
 
-            AssertWallSliceOffset(args, slice);
-        }
+        AssertWallSliceOffset(args, slice);
+
         return GeometryRenderer.RenderOneSidedSlice(args);
     }
 
@@ -792,8 +788,10 @@ public class Sector3D_Walls
             AssertWallSliceOffset(args, slice);
             return GeometryRenderer.RenderOneSidedSlice(args);
         }
-
-        return RenderWallSliceResult.Empty3D;
+        else
+        {
+            throw new Exception("Should not generate empty slice");
+        }
     }
 
     private static void AssertWallSliceOffset(in RenderWallSliceArgs args, in WallSlice slice)

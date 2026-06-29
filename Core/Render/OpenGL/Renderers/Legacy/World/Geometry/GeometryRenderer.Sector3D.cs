@@ -230,7 +230,7 @@ public partial class GeometryRenderer
         };
 
         var renderThrough = style != RenderDataStyle.Normal;
-        SectorPlane3D? lastPlane3D = null;
+        int lastPlane3D = -1;
 
         double addOffsetZ = 0;
         double prevAddOffsetZ = 0;
@@ -248,6 +248,13 @@ public partial class GeometryRenderer
             args.Count = i;
             ref var plane3D = ref traversePlanes3D[i];
             ref var nextPlane3D = ref traversePlanes3D[i + 1];
+            var planeZ = plane3D.GetZ();
+            var nextPlaneZ = nextPlane3D.GetZ();
+            lastPlane3D = i + 1;
+            // Can't skip first since it can generate sky vertices
+            var canSkip = i != 0 || anchorSector3D != null;
+            if (canSkip && planeZ <= nextPlaneZ)
+                continue;
 
             if (plane3D.NoRenderWall || nextPlane3D.NoRenderWall)
             {
@@ -260,12 +267,15 @@ public partial class GeometryRenderer
 
             SetSectorToSlice(m_sliceSector, plane3D.Plane, nextPlane3D.Plane, wallHeights3D);
 
+            if (canSkip && m_sliceSector.Ceiling.Z <= m_sliceSector.Floor.Z)
+                continue;
+
             if (renderThrough && plane3D.Sector3D != anchorSector3D && plane3D.Sector3D?.IsSolid == true &&
                 plane3D.Face == PlaneFace3D.Top && nextPlane3D.Face == PlaneFace3D.Bottom)
             {
                 if (anchorSector3D?.ParentSectorId == plane3D.Sector3D?.ParentSectorId)
                 {
-                    anchorZ = nextPlane3D.GetZ();
+                    anchorZ = planeZ;
                     prevAnchorZ = nextPlane3D.GetPrevZ();
                 }
 
@@ -296,7 +306,9 @@ public partial class GeometryRenderer
                 }
             }
 
-            AddVertices(m_vertices, result.Vertices);
+            // Ignore vertices if the plane heights are invalid. Still may need to set generated sky vertices below.
+            if (planeZ > nextPlaneZ && m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
+                AddVertices(m_vertices, result.Vertices);
 
             if (i == 0)
             {
@@ -309,19 +321,20 @@ public partial class GeometryRenderer
             }
 
             SetWallOffsetFromResult(result, anchorSector3D, offsetY, nextPlane3D, anchorZ, prevAnchorZ);
-
-            lastPlane3D = nextPlane3D;
         }
 
         WorldStatic.LineVertexGapTopZ = saveGapZ;
         WorldStatic.LineVertexGapBottomZ = saveGapZ;
 
-        SetSectorToSlice(m_sliceSector, lastPlane3D?.Plane ?? side.Sector.Ceiling, side.Sector.Floor, wallHeights3D);
+        SetSectorToSlice(m_sliceSector, lastPlane3D == -1 ? side.Sector.Ceiling : traversePlanes3D[lastPlane3D].Plane, side.Sector.Floor, wallHeights3D);
 
-        args.LightSector = lightSector;
-        args.Side.LastRenderGametick = -1;
-        result = renderFunc(args);
-        AddVertices(m_vertices, result.Vertices);
+        if (m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
+        {
+            args.LightSector = lightSector;
+            args.Side.LastRenderGametick = -1;
+            result = renderFunc(args);
+            AddVertices(m_vertices, result.Vertices);
+        }
 
         side.Line.Flags.Unpegged = saveUnpeg;
         finalResult.Vertices = m_vertices.Data.AsSpan(0, m_vertices.Length);
