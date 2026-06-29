@@ -3640,22 +3640,36 @@ public abstract partial class WorldBase : IWorld
 
     private bool SetValidClipSpan(ref double thingTopSlope, ref double thingBottomSlope)
     {
+        var maxSpanRange = double.MinValue;
+        var bestTop = double.MinValue;
+        var bestBottom = double.MaxValue;
         for (int i = 0; i < m_visibleSpans.Count; i++)
         {
             ref var span = ref m_visibleSpans.Data[i];
             if (thingBottomSlope < span.Top && span.Bottom < thingTopSlope)
             {
-                thingTopSlope = Math.Min(thingTopSlope, span.Top);
-                thingBottomSlope = Math.Max(thingBottomSlope, span.Bottom);
+                var top = Math.Min(thingTopSlope, span.Top);
+                var bottom = Math.Max(thingBottomSlope, span.Bottom);
 
-                if (thingTopSlope <= thingBottomSlope)
+                if (top <= bottom)
                     continue;
 
-                return true;
+                var spanRange = top - bottom;
+                if (spanRange > maxSpanRange)
+                {
+                    maxSpanRange = spanRange;
+                    bestTop = top;
+                    bestBottom = bottom;
+                }
             }
         }
 
-        return false;
+        if (maxSpanRange == double.MinValue)
+            return false;
+
+        thingTopSlope = bestTop;
+        thingBottomSlope = bestBottom;
+        return true;
     }
 
     private bool CheckSlope3D(Sector sector, in Vec3D start, double segTimeLength, bool normalSolid, SolidContext context)

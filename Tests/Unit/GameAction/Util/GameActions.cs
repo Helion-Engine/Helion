@@ -356,17 +356,29 @@ namespace Helion.Tests.Unit.GameAction
             return plasma != null;
         }
 
-        public static HitScanData FireHitScanTest(WorldBase world, Entity entity, double distance = Constants.EntityShootDistance)
+        public static HitScanData FireHitScanAutoAimTest(WorldBase world, Entity entity, double distance = Constants.EntityShootDistance)
+        {
+            return FireHitScanTest(world, entity, distance, true);
+        }
+
+        public static HitScanData FireHitScanTest(WorldBase world, Entity entity, double distance = Constants.EntityShootDistance, bool autoAim = false)
         {
             var angle = entity.AngleRadians;
             var pitch = entity.PlayerObj == null ? 0 : entity.PlayerObj.PitchRadians;
             var sinAngle = Math.Sin(angle);
             var cosAngle = Math.Cos(angle);
-            var tanPitch = Math.Tan(pitch);
-            var zOffset = tanPitch * distance;
 
             var intersect = Vec3D.Zero;
             var start = entity.HitscanAttackPos;
+
+            if (autoAim)
+            {
+                if (world.GetAutoAimEntity(entity, start, entity.AngleRadians, distance, out double autoAimPitch, out _))
+                    pitch = autoAimPitch;
+            }
+
+            var tanPitch = Math.Tan(pitch);
+            var zOffset = tanPitch * distance;
             var end = new Vec3D(start.X + cosAngle * distance, start.Y + sinAngle * distance, start.Z + zOffset);
 
             var bi = world.FireHitScan(entity, start, end, 
