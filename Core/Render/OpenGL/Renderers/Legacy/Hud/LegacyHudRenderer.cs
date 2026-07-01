@@ -65,7 +65,6 @@ public class LegacyHudRenderer : HudRenderer
         AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, brightmapTexture, crop);
     }
 
-    // TODO just pass brightmap def?
     public override void DrawImage(string textureName, ResourceNamespace ns, Vec2I topLeft, Color multiplyColor,
         float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, BrightmapDefinition? brightmap = null, ImageBox2I? crop = null)
     {
