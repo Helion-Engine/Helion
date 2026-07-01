@@ -28,24 +28,23 @@ public static class PaletteUtil
     {
         var palette = PaletteIndex.Normal;
         var powerup = player.Inventory.PowerupEffectColor;
-        int damageCount = player.DamageCount;
+        var damageCount = player.DamageCount;
+        var damageIntensity = (float)config.Game.PainIntensity.Value;
 
         if (powerup != null && powerup.PowerupType == PowerupType.Strength)
-            damageCount = Math.Max(damageCount, 12 - (powerup.Ticks >> 6));
+        {
+            var berserkAmount = 12 - (powerup.Ticks >> 6);
+            var berserkIntensity = (float)config.Game.BerserkIntensity.Value;
+
+            if (berserkAmount * berserkIntensity > damageCount * damageIntensity)
+            {
+                damageCount = berserkAmount;
+                damageIntensity = berserkIntensity;
+            }
+        }
 
         if (damageCount > 0)
         {
-            float damageIntensity;
-            if (damageCount == player.DamageCount)
-            {
-                damageIntensity = (float)config.Game.PainIntensity;
-                damageCount = player.DamageCount;
-            }
-            else
-            {
-                damageIntensity = (float)config.Game.BerserkIntensity;
-            }
-
             palette = GetDamagePalette(damageCount, damageIntensity);
         }
         else if (player.BonusCount > 0)
