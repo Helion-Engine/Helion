@@ -52,6 +52,7 @@
 - Add new specials to the end of the list to match Doom behavior.
 - Fix issues with negative Y scaling for middle textures.
 - Fix issue with berserk taking priority over damage when berserk intensity is zero with palettes.
+- Fix ZDoom brightmaps from GLDEFS not using the full path for map. Fixes bmplus_spritefix.pk3 incorrectly pulling Heretic sprites when using Doom1/Doom2.
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
