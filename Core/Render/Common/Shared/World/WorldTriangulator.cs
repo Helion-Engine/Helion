@@ -373,7 +373,7 @@ public static class WorldTriangulator
         if (facingSide.Flags.WrapMidTex)
             return new(opening.BottomZ, opening.TopZ, opening.BottomZ, opening.TopZ, prevOpening.BottomZ, prevOpening.TopZ, prevOpening.BottomZ, prevOpening.TopZ);
 
-        var textureHeight = textureDimension.Height / facingSide.Middle.Scale.Y;
+        var textureHeight = textureDimension.Height / Math.Abs(facingSide.Middle.Scale.Y);
         // Default rendering top down. Unpegged.Lower renders bottom up
         // TopZ is the top of the texture to render and BottomZ is the bottom
         // MaxTopZ and MinBottomZ are the min/max areas to render with Y offset. (e.g. a middle texture can render over a missing lower texture)
@@ -448,7 +448,7 @@ public static class WorldTriangulator
 
         if (line.Flags.Unpegged.Lower)
         {
-            bottomV = 1.0f + offsetV;
+            bottomV = (1.0f / absScaleY) + offsetV;
             topV = bottomV - spanV;
         }
         else
@@ -520,9 +520,14 @@ public static class WorldTriangulator
         double textureHeight = topZ - bottomZ;
         float topV = 1.0f - (float)((visibleTopZ - bottomZ) / textureHeight);
         float bottomV = 1.0f - (float)((visibleBottomZ - bottomZ) / textureHeight);
-        var scaleY = side.Flags.WrapMidTex ? side.Middle.Scale.Y : 1;
 
-        return new WallUV(new Vec2F(leftU * side.Middle.Scale.X, topV * scaleY), new Vec2F(rightU * side.Middle.Scale.X, bottomV * scaleY));
+        if (side.Middle.Scale.Y < 0)
+        {
+            topV = 1.0f - topV;
+            bottomV = 1.0f - bottomV;
+        }
+
+        return new WallUV(new Vec2F(leftU * side.Middle.Scale.X, topV), new Vec2F(rightU * side.Middle.Scale.X, bottomV));
     }
 
     public static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
