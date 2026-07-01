@@ -11,6 +11,7 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
+using Helion.Resources.Definitions.Zdoom;
 using Helion.Util;
 using Helion.Util.Configs;
 using OpenTK.Graphics.OpenGL;
@@ -52,21 +53,21 @@ public class LegacyHudRenderer : HudRenderer
         m_drawBuffer.Clear();
     }
 
-    // TODO just pass brightmap def?
     public override void DrawImage(string textureName, ResourceNamespace ns, ImageBox2I drawArea, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, string? brightmapName = null, ImageBox2I? crop = null)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, BrightmapDefinition? brightmap = null, ImageBox2I? crop = null)
     {
         m_textureManager.TryGet(textureName, ns, out GLLegacyTexture texture);
 
         GLLegacyTexture? brightmapTexture = null;
-        if (brightmapName != null && m_textureManager.TryGet(brightmapName, ResourceNamespace.Brightmaps, out GLLegacyTexture val))
+        if (brightmap?.BrightmapName != null && m_textureManager.TryGet(brightmap.BrightmapName, ResourceNamespace.Brightmaps, out GLLegacyTexture val, brightmap: brightmap))
             brightmapTexture = val;
 
         AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, brightmapTexture, crop);
     }
 
+    // TODO just pass brightmap def?
     public override void DrawImage(string textureName, ResourceNamespace ns, Vec2I topLeft, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, string? brightmapName = null, ImageBox2I? crop = null)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, BrightmapDefinition? brightmap = null, ImageBox2I? crop = null)
     {
         m_textureManager.TryGet(textureName, ns, out GLLegacyTexture texture);
         
@@ -76,7 +77,7 @@ public class LegacyHudRenderer : HudRenderer
         ImageBox2I drawArea = new(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
 
         GLLegacyTexture? brightmapTexture = null;
-        if (brightmapName != null && m_textureManager.TryGet(brightmapName, ResourceNamespace.Brightmaps, out GLLegacyTexture val))
+        if (brightmap?.BrightmapName != null && m_textureManager.TryGet(brightmap.BrightmapName, ResourceNamespace.Brightmaps, out GLLegacyTexture val, brightmap: brightmap))
             brightmapTexture = val;
 
         AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, brightmapTexture, crop);

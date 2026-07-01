@@ -2,13 +2,14 @@ using System.Runtime.InteropServices;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Resources;
+using Helion.Resources.Definitions.Zdoom;
 
 namespace Helion.Render.OpenGL.Commands.Types;
 
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct DrawImageCommand(string textureName, ResourceNamespace ns, ImageBox2I drawArea, Color multiplyColor,
     float alpha = 1.0f, bool drawColorMap = false, bool drawFuzz = false, bool drawPalette = true, int colorMapIndex = 0,
-    string? brightmapName = null, ImageBox2I? cropArea = null)
+    BrightmapDefinition? brightmap = null, ImageBox2I? cropArea = null)
 {
     public readonly ImageBox2I DrawArea = drawArea;
     public readonly ImageBox2I CropArea = cropArea ?? default;
@@ -22,5 +23,5 @@ public readonly struct DrawImageCommand(string textureName, ResourceNamespace ns
     public readonly string TextureName = textureName;
     public readonly ResourceNamespace ResourceNamespace = ns;
     public readonly int ColorMapIndex = colorMapIndex;
-    public readonly string? BrightmapName = brightmapName;
+    public readonly BrightmapDefinition? Brightmap = brightmap;
 }

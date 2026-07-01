@@ -820,7 +820,7 @@ public partial class Renderer : IDisposable
                 cmd.DrawFuzz, 
                 cmd.DrawPalette, 
                 cmd.ColorMapIndex, 
-                cmd.BrightmapName, 
+                cmd.Brightmap, 
                 crop);
         }
         else
@@ -835,7 +835,7 @@ public partial class Renderer : IDisposable
                 cmd.DrawFuzz, 
                 cmd.DrawPalette, 
                 cmd.ColorMapIndex, 
-                cmd.BrightmapName, 
+                cmd.Brightmap, 
                 crop);
         }
     }

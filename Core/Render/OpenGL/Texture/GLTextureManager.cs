@@ -6,6 +6,7 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.Definitions.ZDoom;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -88,9 +89,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Dispose();
     }
 
-    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1)
+    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
     {
-        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture, upscalingFactor))
+        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture, upscalingFactor, brightmap))
         {
             handle = texture;
             return true;
@@ -126,7 +127,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     /// the texture you want, or it will be the null image texture.</param>
     /// <returns>True if the texture was found, false if it was not found
     /// and the out value is the null texture handle.</returns>
-    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture, int upscalingFactor = 1)
+    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
     {
         texture = NullTexture;
         if (name == Constants.NoTexture)
@@ -149,8 +150,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Image? imageForNamespace;
         if (priorityNamespace == ResourceNamespace.Undefined)
             imageForNamespace = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
-        else if (priorityNamespace == ResourceNamespace.Brightmaps)
-            imageForNamespace = ArchiveCollection.ImageRetriever.GetByFullPath(name, ResourceNamespace.Brightmaps) ?? ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
+        else if (brightmap != null)
+            imageForNamespace = brightmap.GetImage(ArchiveCollection.ImageRetriever);
         else
             imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
 
