@@ -73,7 +73,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
     public Image? GetByFullPath(string path, ResourceNamespace targetNamespace)
     {
         var entry = m_archiveCollection.FindEntryByPath(path);
-        if (entry == null || entry.Namespace != targetNamespace)
+        if (entry == null || (targetNamespace != ResourceNamespace.Undefined && entry.Namespace != targetNamespace))
             return null;
 
         return ImageFromEntry(entry);
