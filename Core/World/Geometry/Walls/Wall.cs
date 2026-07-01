@@ -32,6 +32,11 @@ public class Wall
         LightLevelAbsolute = lightLevelAbsolute;
         Offset = offset;
         Scale = scale;
+
+        if (Scale.X == 0)
+            Scale.X = 1;
+        if (Scale.Y == 0)
+            Scale.Y = 1;
     }
 
     public void Reset()
