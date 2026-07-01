@@ -81,8 +81,8 @@ public class GldefsTests
         var brightmap = definition.BrightMaps.Auto.First();
         string name = "blank";
         brightmap.Key.Should().Be(name);
-        brightmap.Value.BrightmapName.Should().Be("blank.png");
+        brightmap.Value.BrightmapName.Should().Be("brightmaps/auto/blank.png");
         brightmap.Value.TargetTexture.Should().Be(name);
-        brightmap.Value.IsFullPath.Should().BeFalse();
+        brightmap.Value.IsFullPath.Should().BeTrue();
     }
 }
