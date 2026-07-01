@@ -1,18 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
-using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.ZDoom;
 using Helion.Util;
 using Helion.Util.Configs;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
 
@@ -150,6 +149,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Image? imageForNamespace;
         if (priorityNamespace == ResourceNamespace.Undefined)
             imageForNamespace = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
+        else if (priorityNamespace == ResourceNamespace.Brightmaps)
+            imageForNamespace = ArchiveCollection.ImageRetriever.GetByFullPath(name, ResourceNamespace.Brightmaps) ?? ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
         else
             imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
 
@@ -250,8 +251,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
             };
 
             var brightmap = ArchiveCollection.GetBrightmapFor(spriteRotation.Texture.Name, ResourceNamespace.Sprites);
-            if (brightmap?.BrightmapName != null)
-                texture.BrightmapImage = ArchiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+            texture.BrightmapImage = brightmap?.GetImage(ArchiveCollection.ImageRetriever);
             bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
 
             // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.

@@ -59,7 +59,7 @@ public class GldefsDefinition
         foreach (Entry entry in archive.Entries.Where(x => x.Path.FullPath.StartsWithIgnoreCase("brightmaps/auto/")))
         {
             string name = entry.Path.Name;
-            BrightMaps.Auto[name] = new BrightmapDefinition() { TargetTexture = name, BrightmapName = name };
+            BrightMaps.Auto[name] = new BrightmapDefinition() { TargetTexture = name, BrightmapName = entry.Path.FullPath };
         }
     }
 
@@ -115,10 +115,7 @@ public class GldefsDefinition
         {
             string token = parser.ConsumeString();
             if (token.EqualsIgnoreCase("map"))
-            {
-                string filename = parser.ConsumeString();
-                def.BrightmapName = Path.GetFileNameWithoutExtension(filename);
-            }
+                def.BrightmapName = parser.ConsumeString();
             else if (token.EqualsIgnoreCase("iwad"))
                 def.IwadOnly = true;
             else if (token.EqualsIgnoreCase("thiswad"))

@@ -33,17 +33,20 @@ public class GldefsTests
 
         var sprite = definition.BrightMaps.Sprites.First();
         sprite.TargetTexture.Should().Be("POSSA1");
-        sprite.BrightmapName.Should().Be("POSSA1");
+        sprite.BrightmapName.Should().Be("brightmaps/enemies/zombieman/POSSA1.png");
+        sprite.IsFullPath.Should().BeTrue();
         sprite.IwadOnly.Should().Be(true);
 
         var texture = definition.BrightMaps.Textures.First();
         texture.TargetTexture.Should().Be("BRICKLIT");
-        texture.BrightmapName.Should().Be("BRICKLIT");
+        texture.BrightmapName.Should().Be("brightmaps/level/BRICKLIT.png");
+        texture.IsFullPath.Should().BeTrue();
         texture.SpecificWadMd5.Should().NotBeNull();
 
         var flat = definition.BrightMaps.Flats.First();
         flat.TargetTexture.Should().Be("GATE2");
-        flat.BrightmapName.Should().Be("GATE2");
+        flat.BrightmapName.Should().Be("brightmaps/level/GATE2.png");
+        flat.IsFullPath.Should().BeTrue();
     }
 
     [Fact(DisplayName = "GLDEFS parsing should error for infinitely looping #includes")]
@@ -78,7 +81,8 @@ public class GldefsTests
         var brightmap = definition.BrightMaps.Auto.First();
         string name = "blank";
         brightmap.Key.Should().Be(name);
-        brightmap.Value.BrightmapName.Should().Be(name);
+        brightmap.Value.BrightmapName.Should().Be("blank.png");
         brightmap.Value.TargetTexture.Should().Be(name);
+        brightmap.Value.IsFullPath.Should().BeFalse();
     }
 }

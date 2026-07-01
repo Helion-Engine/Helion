@@ -52,6 +52,7 @@ public class LegacyHudRenderer : HudRenderer
         m_drawBuffer.Clear();
     }
 
+    // TODO just pass brightmap def?
     public override void DrawImage(string textureName, ResourceNamespace ns, ImageBox2I drawArea, Color multiplyColor,
         float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, string? brightmapName = null, ImageBox2I? crop = null)
     {

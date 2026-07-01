@@ -11,6 +11,7 @@ using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
+using Helion.Resources.Definitions.ZDoom;
 using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Container;
@@ -404,8 +405,7 @@ public partial class TextureManager : ITickable
         texture.Image = image;
 
         var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
-        if (brightmap?.BrightmapName != null)
-            texture.BrightmapImage = ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+        texture.BrightmapImage = brightmap?.GetImage(ImageRetriever);
 
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
@@ -734,8 +734,7 @@ public partial class TextureManager : ITickable
         if (texture.BrightmapImage == null)
         {
             var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
-            if (brightmap?.BrightmapName != null)
-                texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options: options);
+            texture.BrightmapImage = brightmap?.GetImage(m_archiveCollection.ImageRetriever);
         }
 
         return true;

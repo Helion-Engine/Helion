@@ -8,7 +8,6 @@ using NLog;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Image = Helion.Graphics.Image;
@@ -69,6 +68,15 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
             .Concat(m_archiveCollection.Entries.GetNames(specificNamespace))
             .Concat(m_archiveCollection.Definitions.Textures.GetNames(specificNamespace))
             .ToList();
+    }
+
+    public Image? GetByFullPath(string path, ResourceNamespace targetNamespace)
+    {
+        var entry = m_archiveCollection.FindEntryByPath(path);
+        if (entry == null || entry.Namespace != targetNamespace)
+            return null;
+
+        return ImageFromEntry(entry);
     }
 
     public Image? GetOnly(ReadOnlySpan<char> name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default) =>

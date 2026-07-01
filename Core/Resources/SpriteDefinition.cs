@@ -1,8 +1,9 @@
-using System.Collections.Generic;
-using System.Globalization;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.ZDoom;
 using Helion.Resources.Images;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace Helion.Resources;
 
@@ -64,8 +65,8 @@ public class SpriteDefinition
         }
 
         var brightmap = archiveCollection.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
-        if (brightmap?.BrightmapName != null)
-            texture.BrightmapImage ??= imageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+        texture.BrightmapImage ??= brightmap?.GetImage(imageRetriever);
+
         bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
 
         // Does not have any rotations, just fill all 8 with the same texture for easier lookups
