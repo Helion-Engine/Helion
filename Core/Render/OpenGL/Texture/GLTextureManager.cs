@@ -1,18 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
-using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Zdoom;
+using Helion.Resources.Definitions.ZDoom;
 using Helion.Util;
 using Helion.Util.Configs;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
 
@@ -89,9 +89,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Dispose();
     }
 
-    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1)
+    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
     {
-        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture, upscalingFactor))
+        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture, upscalingFactor, brightmap))
         {
             handle = texture;
             return true;
@@ -127,7 +127,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     /// the texture you want, or it will be the null image texture.</param>
     /// <returns>True if the texture was found, false if it was not found
     /// and the out value is the null texture handle.</returns>
-    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture, int upscalingFactor = 1)
+    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
     {
         texture = NullTexture;
         if (name == Constants.NoTexture)
@@ -148,7 +148,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         // and miss the flat and then never know that there is a specific
         // flat that should have been used.
         Image? imageForNamespace;
-        if (priorityNamespace == ResourceNamespace.Undefined)
+        if (brightmap != null)
+            imageForNamespace = brightmap.GetImage(ArchiveCollection.ImageRetriever);
+        else if (priorityNamespace == ResourceNamespace.Undefined)
             imageForNamespace = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
         else
             imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
@@ -250,8 +252,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
             };
 
             var brightmap = ArchiveCollection.GetBrightmapFor(spriteRotation.Texture.Name, ResourceNamespace.Sprites);
-            if (brightmap?.BrightmapName != null)
-                texture.BrightmapImage = ArchiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+            texture.BrightmapImage = brightmap?.GetImage(ArchiveCollection.ImageRetriever);
             bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
 
             // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.

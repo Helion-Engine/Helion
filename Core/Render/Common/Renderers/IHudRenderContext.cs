@@ -1,4 +1,3 @@
-using System;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
@@ -10,7 +9,9 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Zdoom;
 using Helion.Util;
+using System;
 
 namespace Helion.Render.Common.Renderers;
 
@@ -64,29 +65,29 @@ public interface IHudRenderContext : IDisposable
 
     void Image(string texture, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1, string? brightmapName = null,
+        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1, BrightmapDefinition? brightmap = null,
         ImageBox2I? crop = null)
     {
-        Image(texture, origin, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor, brightmapName, crop);
+        Image(texture, origin, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor, brightmap, crop);
     }
 
     void Image(string texture, HudBox area, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1, string? brightmapName = null,
+        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1, BrightmapDefinition? brightmap = null,
         ImageBox2I? crop = null)
     {
-        Image(texture, area, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor, brightmapName, crop);
+        Image(texture, area, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor, brightmap, crop);
     }
 
     void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined,
         Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
-        string? brightmapName = null, ImageBox2I? crop = null);
+        BrightmapDefinition? brightmap = null, ImageBox2I? crop = null);
 
     void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined,
         Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
-        string? brightmapName = null, ImageBox2I? crop = null);
+        BrightmapDefinition? brightmap = null, ImageBox2I? crop = null);
 
     void Text(RenderableString str, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, float alpha = 1);

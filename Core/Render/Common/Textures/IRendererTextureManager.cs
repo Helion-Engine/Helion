@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Resources;
+using Helion.Resources.Definitions.Zdoom;
 
 namespace Helion.Render.Common.Textures;
 
@@ -33,7 +34,7 @@ public interface IRendererTextureManager : IDisposable
     /// <param name="upscalingFactor">Amount to upscale the texture if retrieving it 
     /// for the first time.  If 1, no upscaling is performed.</param>
     /// <returns>True if found, false if not.</returns>
-    bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1);
+    bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null);
 
     /// <summary>
     /// Get a list of texture names

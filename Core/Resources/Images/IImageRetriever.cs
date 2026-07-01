@@ -50,4 +50,6 @@ public interface IImageRetriever
     IEnumerable<string> GetNames(ResourceNamespace specificNamespace);
 
     public void Add(string name, ResourceNamespace resourceNamespace, Image image);
+
+    public Image? GetByFullPath(string path, ResourceNamespace targetNamespace);
 }

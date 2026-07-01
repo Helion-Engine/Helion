@@ -9,4 +9,5 @@ public class BrightmapDefinition
     /// <summary>Used for `thiswad` option</summary>
     public string? SpecificWadMd5 { get; set; }
     public bool DisableFullbright { get; set; }
+    public bool IsFullPath { get; set; } = true;
 }

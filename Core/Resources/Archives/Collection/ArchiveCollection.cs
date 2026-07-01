@@ -805,6 +805,7 @@ public class ArchiveCollection : IResources, IPathResolver
         {
             TargetTexture = name,
             BrightmapName = name,
+            IsFullPath = false
         };
 
         if (addToDictionary)
