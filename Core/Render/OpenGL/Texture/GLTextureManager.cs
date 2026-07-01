@@ -148,10 +148,10 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         // and miss the flat and then never know that there is a specific
         // flat that should have been used.
         Image? imageForNamespace;
-        if (priorityNamespace == ResourceNamespace.Undefined)
-            imageForNamespace = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
-        else if (brightmap != null)
+        if (brightmap != null)
             imageForNamespace = brightmap.GetImage(ArchiveCollection.ImageRetriever);
+        else if (priorityNamespace == ResourceNamespace.Undefined)
+            imageForNamespace = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
         else
             imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
 
