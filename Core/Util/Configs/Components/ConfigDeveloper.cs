@@ -33,4 +33,7 @@ public class ConfigDeveloper: ConfigElement<ConfigDeveloper>
 
     [ConfigInfo("Logs profiled execution times that take longer than the provided millisecond value. 0=off", save: true)]
     public readonly ConfigValue<double> ProfilerTimeTrigger = new(0);
+
+    [ConfigInfo("Adds debug labels to GL objects.", save: true, restartRequired: true)]
+    public readonly ConfigValue<bool> DebugLabel = new(false);
 }

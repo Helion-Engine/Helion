@@ -1,21 +1,34 @@
 using System;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Vertex;
 
+public enum VertexArrayType
+{
+    Legacy,
+    Modern
+}
+
 public class VertexArrayObject : IDisposable
 {
-    private readonly int m_name;
+    public readonly int Handle;
     private bool m_disposed;
 
-    public VertexArrayObject(string label)
+    public VertexArrayObject(string label, VertexArrayType type = VertexArrayType.Legacy)
     {
-        m_name = GL.GenVertexArray();
+        if (type == VertexArrayType.Modern)
+            GL.CreateVertexArrays(1, out Handle);
+        else
+            Handle = GL.GenVertexArray();
 
-        Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_name, $"VAO: {label}");
-        Unbind();
+        if (GLInfo.DebugLabel)
+        {
+            Bind();
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, Handle, label);
+            Unbind();
+        }
     }
 
     ~VertexArrayObject()
@@ -25,7 +38,7 @@ public class VertexArrayObject : IDisposable
 
     public void Bind()
     {
-        GL.BindVertexArray(m_name);
+        GL.BindVertexArray(Handle);
     }
 
 #pragma warning disable CA1822 // Mark members as static
@@ -40,7 +53,7 @@ public class VertexArrayObject : IDisposable
         if (m_disposed)
             return;
 
-        GL.DeleteVertexArray(m_name);
+        GL.DeleteVertexArray(Handle);
 
         m_disposed = true;
     }

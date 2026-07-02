@@ -9,21 +9,18 @@ public sealed class GeometryData
     public int TextureHandle { get; set; }
     public GLLegacyTexture Texture { get; set; }
     public GLLegacyTexture? BrightmapTexture { get; set; }
-    public StaticVertexBuffer<StaticVertex> Vbo { get; set; }
-    public VertexArrayObject Vao { get; set; }
+    public VertexPipeline<StaticVertex> Pipeline { get; set; }
 
-    public GeometryData(int textureHandle, GLLegacyTexture texture, StaticVertexBuffer<StaticVertex> vbo, VertexArrayObject vao, GLLegacyTexture? brightmapTexture = null)
+    public GeometryData(int textureHandle, GLLegacyTexture texture, VertexPipeline<StaticVertex> pipeline, GLLegacyTexture? brightmapTexture = null)
     {
         TextureHandle = textureHandle;
         Texture = texture;
         BrightmapTexture = brightmapTexture;
-        Vbo = vbo;
-        Vao = vao;
+        Pipeline = pipeline;
     }
 
     public void Dispose()
     {
-        Vbo.Dispose();
-        Vao.Dispose();
+        Pipeline.Dispose();
     }
 }
