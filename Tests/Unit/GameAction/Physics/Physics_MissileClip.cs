@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Helion.Util;
 using Xunit;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -36,7 +37,7 @@ public partial class Physics
     [Fact(DisplayName = "Missile passes hits big tree with projectile pass height of 16")]
     public void MissileClipPassHeightDisabled()
     {
-        World.Config.Compatibility.MissileClip.Value.Should().BeFalse();
+        World.Config.Compatibility.MissileClip.Value.ToBool().Should().BeFalse();
         GameActions.SetEntityPosition(World, Player, (2176, 2048));
 
         const string PlasmaRifle = "PlasmaRifle";

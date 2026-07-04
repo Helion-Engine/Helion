@@ -58,21 +58,21 @@ public class CompLevelDefinition
         switch (CompLevel)
         {
             case CompLevel.Vanilla:
-                compat.AllowItemDropoff.Set(false, writeToConfig: false);
-                compat.Doom2ProjectileWalkTriggers.Set(true, writeToConfig: false);
-                compat.InfinitelyTallThings.Set(true, writeToConfig: false);
-                compat.MissileClip.Set(true, writeToConfig: false);
-                compat.OriginalExplosion.Set(true, writeToConfig: false);
-                compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
-                compat.Stairs.Set(true, writeToConfig: false);
-                compat.VanillaMovementPhysics.Set(true, writeToConfig: false);
-                compat.VanillaSectorPhysics.Set(true, writeToConfig: false);
-                compat.VanillaSectorSound.Set(true, writeToConfig: false);
-                compat.VanillaShortestTexture.Set(true, writeToConfig: false);
-                compat.VileGhosts.Set(true, writeToConfig: false);
-                compat.MbfTelefrag.Set(false, writeToConfig: false);
+                compat.AllowItemDropoff.SetIfMutable(false);
+                compat.Doom2ProjectileWalkTriggers.SetIfMutable(true);
+                compat.InfinitelyTallThings.SetIfMutable(true);
+                compat.MissileClip.SetIfMutable(true);
+                compat.OriginalExplosion.SetIfMutable(true);
+                compat.PainElementalLostSoulLimit.SetIfMutable(true);
+                compat.Stairs.SetIfMutable(true);
+                compat.VanillaMovementPhysics.SetIfMutable(true);
+                compat.VanillaSectorPhysics.SetIfMutable(true);
+                compat.VanillaSectorSound.SetIfMutable(true);
+                compat.VanillaShortestTexture.SetIfMutable(true);
+                compat.VileGhosts.SetIfMutable(true);
+                compat.MbfTelefrag.SetIfMutable(false);
 
-                compat.Mbf21.Set(false, writeToConfig: false);
+                compat.Mbf21.SetIfMutable(false);
                 break;
             case CompLevel.Boom:
                 SetBoomCompat(compat, mbf21: false, mbfTelefrag: false);
@@ -90,12 +90,12 @@ public class CompLevelDefinition
 
     private static void SetBoomCompat(ConfigCompat compat, bool mbf21, bool mbfTelefrag)
     {
-        compat.AllowItemDropoff.Set(true, writeToConfig: false);
-        compat.Stairs.Set(false, writeToConfig: false);
-        compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
-        compat.VanillaShortestTexture.Set(false, writeToConfig: false);
+        compat.AllowItemDropoff.SetIfMutable(true);
+        compat.Stairs.SetIfMutable(false);
+        compat.VanillaSectorPhysics.SetIfMutable(false);
+        compat.VanillaShortestTexture.SetIfMutable(false);
 
-        compat.MbfTelefrag.Set(mbfTelefrag, writeToConfig: false);
-        compat.Mbf21.Set(mbf21, writeToConfig: false);
+        compat.MbfTelefrag.SetIfMutable(mbfTelefrag);
+        compat.Mbf21.SetIfMutable(mbf21);
     }
 }

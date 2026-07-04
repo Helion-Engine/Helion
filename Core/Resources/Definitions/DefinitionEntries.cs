@@ -95,7 +95,7 @@ public class DefinitionEntries
     private bool m_parseLegacyMapInfo;
     private bool m_parseWeapons;
 
-    private bool ShouldParseWeapons => m_parseWeapons || !ConfigCompatibility.PreferDehacked;
+    private bool ShouldParseWeapons => m_parseWeapons || !ConfigCompatibility.PreferDehacked.Value.ToBool();
 
     /// <summary>
     /// Creates a definition entries data structure which has no tracked
@@ -286,9 +286,9 @@ public class DefinitionEntries
         m_parseLegacyMapInfo = true;
 
         bool hasBoth = archive.AnyEntryByName("DEHACKED") && archive.AnyEntryByName("DECORATE");
-        if (ConfigCompatibility.PreferDehacked && hasBoth)
+        if (ConfigCompatibility.PreferDehacked.Value.ToBool() && hasBoth)
             m_parseDecorate = false;
-        else if (!ConfigCompatibility.PreferDehacked && hasBoth)
+        else if (!ConfigCompatibility.PreferDehacked.Value.ToBool() && hasBoth)
             m_parseDehacked = false;
 
         var ZMapInfo = archive.AnyEntryByName("ZMAPINFO");

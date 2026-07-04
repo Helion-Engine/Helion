@@ -4,6 +4,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
@@ -193,7 +194,7 @@ public sealed partial class PhysicsManager
         var moveData = moveSpecial.MoveData;
         var moveType = moveSpecial.MoveData.SectorMoveType;
         var startZ = sectorPlane.Z;
-        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
+        if (!m_world.Config.Compatibility.VanillaSectorPhysics.Value.ToBool() && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
             return SectorMoveStatus.Blocked | SectorMoveStatus.Stop;
 
         // Move lower entities first to handle stacked entities
@@ -212,7 +213,7 @@ public sealed partial class PhysicsManager
 
         bool isCompleted = moveSpecial.IsFinalDestination(destZ);
         // Doors can't be part of the clip check. Maps are reliant on this behavior (e.g. Going Down Turbo MAP23 invul)
-        if (!moveSpecial.IsDoor && !m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
+        if (!moveSpecial.IsDoor && !m_world.Config.Compatibility.VanillaSectorPhysics.Value.ToBool() && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
         {
             if ((moveData.Flags & SectorMoveFlags.NoFixClip) == 0)
                 FixPlaneClip(sector, sectorPlane, moveType);

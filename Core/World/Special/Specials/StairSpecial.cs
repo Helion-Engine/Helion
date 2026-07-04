@@ -3,6 +3,7 @@ using System.Linq;
 using Helion.Audio;
 using Helion.Models;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
@@ -50,7 +51,7 @@ public class StairSpecial : SectorMoveSpecial
     {
         base.Set(world, sector, 0, 0, new SectorMoveData(SectorPlaneFace.Floor, direction, MoveRepetition.None, speed, 0),
             new SectorSoundData(null, null, Constants.PlatStopSound));
-        m_buggedStairs = world.Config.Compatibility.Stairs;
+        m_buggedStairs = world.Config.Compatibility.Stairs.Value.ToBool();
         m_init = true;
         m_stairDelay = delay;
         m_resetTics = resetTicks == 0 ? -1 : resetTicks;

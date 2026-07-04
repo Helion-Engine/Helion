@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Xunit;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -9,7 +10,7 @@ public partial class Physics
     [Fact(DisplayName = "Missile includes z check when original explosion compat is off")]
     public void MissileExplosionWithZ()
     {
-        World.Config.Compatibility.OriginalExplosion.Value.Should().BeFalse();
+        World.Config.Compatibility.OriginalExplosion.Value.ToBool().Should().BeFalse();
 
         var imp = GameActions.GetEntity(World, 70);
         imp.Health.Should().Be(60);
@@ -25,7 +26,7 @@ public partial class Physics
     [Fact(DisplayName = "Missile explosion ignores z when original explosion compat is on")]
     public void MissileOriginalExplosion()
     {
-        World.Config.Compatibility.OriginalExplosion.Value.Should().BeFalse();
+        World.Config.Compatibility.OriginalExplosion.Value.ToBool().Should().BeFalse();
         World.Config.Compatibility.OriginalExplosion.Set(true);
 
         var imp = GameActions.GetEntity(World, 70);

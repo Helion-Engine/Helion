@@ -116,7 +116,7 @@ public class Config : ConfigElement<Config>, IConfig
 
     public Dictionary<string, ConfigComponent> GetComponents() => Components;
 
-    public void ApplyConfiguration(IList<ConfigValueModel> configValues, bool writeToConfig = true)
+    public void ApplyConfiguration(IList<ConfigValueModel> configValues)
     {
         foreach (var configModel in configValues)
         {
@@ -126,7 +126,7 @@ public class Config : ConfigElement<Config>, IConfig
                 continue;
             }
 
-            if (component.Value.Set(configModel.Value, writeToConfig) == ConfigSetResult.NotSetByBadConversion)
+            if (component.Value.Set(configModel.Value, false) == ConfigSetResult.NotSetByBadConversion)
                 Log.Error($"Bad configuration value '{configModel.Value}' for '{configModel.Key}'.");
         }
     }

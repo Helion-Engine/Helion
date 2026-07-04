@@ -10,6 +10,7 @@ using Helion.Resources;
 using Helion.Resources.Definitions;
 using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
@@ -1634,7 +1635,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     private bool CanActivateSectorSpecial(LineSpecial special, Sector sector)
     {
-        if (m_world.Config.Compatibility.VanillaSectorPhysics)
+        if (m_world.Config.Compatibility.VanillaSectorPhysics.Value.ToBool())
             return !sector.IsMoving;
 
         if (sector.ActiveCeilingMove != null && special.IsCeilingMove())

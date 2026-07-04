@@ -49,6 +49,7 @@ namespace Helion.Util.Configs
             { typeof(RenderContrastMode), Enum.GetValues<RenderContrastMode>() },
             { typeof(WeaponSwitch), Enum.GetValues<WeaponSwitch>() },
             { typeof(ConfigRenderMode), Enum.GetValues<ConfigRenderMode>() },
+            { typeof(CompatSetting), Enum.GetValues<CompatSetting>() },
         };
 
         public static Dictionary<Type, Dictionary<Enum, string>> KnownEnumLabels { get; } = new Dictionary<Type, Dictionary<Enum, string>>()
@@ -76,6 +77,7 @@ namespace Helion.Util.Configs
             { typeof(SkyRenderMode), GetDescriptions<SkyRenderMode>()},
             { typeof(WeaponSwitch), GetDescriptions<WeaponSwitch>()},
             { typeof(ConfigRenderMode), GetDescriptions<ConfigRenderMode>()},
+            { typeof(CompatSetting), GetDescriptions<CompatSetting>() },
         };
 
         private static Dictionary<Enum, string> GetDescriptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>() where T : struct, Enum

@@ -13,6 +13,11 @@ public interface IConfigValue
     object ObjectValue { get; }
 
     /// <summary>
+    /// The value to use when serializing this config value.
+    /// </summary>
+    object ObjectValueSerialize { get; }
+
+    /// <summary>
     /// Whether this config value has been temporarily set (such as by COMPLVL loaded from a WAD file)
     /// </summary>
     bool HasTemporaryValue { get; }
