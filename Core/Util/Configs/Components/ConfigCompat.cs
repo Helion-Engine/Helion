@@ -75,6 +75,10 @@ public class ConfigCompat: ConfigElement<ConfigCompat>
     [OptionMenu(OptionSectionType.Compatibility, "Enable MBF21 Features")]
     public readonly ConfigValue<bool> Mbf21 = new(true);
 
+    [ConfigInfo("MBF Telefrag Behavior that disables monster telefrags on MAP30 and only allows for icon boss spawns.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Mbf Telefrag Behavior")]
+    public readonly ConfigValue<bool> MbfTelefrag = new(true);
+
     public void ResetToUserValues()
     {
         AllowItemDropoff.ResetToUserValue();

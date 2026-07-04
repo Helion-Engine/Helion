@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
@@ -41,6 +42,8 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.DestroyCreatedEntities(World);
             // Clear any jumping ticks etc that may exist
             GameActions.TickWorld(World, 8);
+            World.MapInfo.SetOption(MapOptions.AllowMonsterTelefrags, false);
+            World.Config.Compatibility.MbfTelefrag.Set(true);
             GC.SuppressFinalize(this);
         }
 

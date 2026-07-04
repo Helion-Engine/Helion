@@ -559,6 +559,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
+        Config.Compatibility.MbfTelefrag.OnChanged += MbfTelefrag_OnChanged;
 
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
@@ -585,6 +586,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
+        Config.Compatibility.MbfTelefrag.OnChanged -= MbfTelefrag_OnChanged;
 
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
@@ -621,6 +623,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
         WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
         WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
+        WorldStatic.MbfTelefrag = Config.Compatibility.MbfTelefrag;
         WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
         WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
         WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
@@ -666,6 +669,9 @@ public abstract partial class WorldBase : IWorld
             WorldStatic.MaxSoulsphere = soulSphere.Properties.Inventory.MaxAmount;
     }
 
+
+    private void MbfTelefrag_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.MbfTelefrag = enabled;
     private void VanillaSectorSound_OnChanged(object? sender, bool enabled) =>
         WorldStatic.VanillaSectorSound = enabled;
     private void FinalDoomTeleport_OnChanged(object? sender, bool enabled) =>
