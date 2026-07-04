@@ -70,6 +70,7 @@ public class CompLevelDefinition
                 compat.VanillaSectorSound.Set(true, writeToConfig: false);
                 compat.VanillaShortestTexture.Set(true, writeToConfig: false);
                 compat.VileGhosts.Set(true, writeToConfig: false);
+                compat.MbfTelefrag.Set(false, writeToConfig: false);
 
                 compat.Mbf21.Set(false, writeToConfig: false);
                 break;
