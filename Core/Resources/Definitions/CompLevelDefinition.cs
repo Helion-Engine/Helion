@@ -1,4 +1,5 @@
 ﻿using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Loggers;
 using System;
 
@@ -73,24 +74,27 @@ public class CompLevelDefinition
                 compat.Mbf21.Set(false, writeToConfig: false);
                 break;
             case CompLevel.Boom:
+                SetBoomCompat(compat, mbf21: false, mbfTelefrag: false);
+                break;
             case CompLevel.Mbf:
-                compat.AllowItemDropoff.Set(true, writeToConfig: false);
-                compat.Stairs.Set(false, writeToConfig: false);
-                compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
-                compat.VanillaShortestTexture.Set(false, writeToConfig: false);
-
-                compat.Mbf21.Set(false, writeToConfig: false);
+                SetBoomCompat(compat, mbf21: false, mbfTelefrag: true);
                 break;
             case CompLevel.Mbf21:
-                compat.AllowItemDropoff.Set(true, writeToConfig: false);
-                compat.Stairs.Set(false, writeToConfig: false);
-                compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
-                compat.VanillaShortestTexture.Set(false, writeToConfig: false);
-
-                compat.Mbf21.Set(true, writeToConfig: false);
+                SetBoomCompat(compat, mbf21: true, mbfTelefrag: true);
                 break;
         }
 
         HelionLog.Info($"Comp level set to {CompLevel}");
+    }
+
+    private static void SetBoomCompat(ConfigCompat compat, bool mbf21, bool mbfTelefrag)
+    {
+        compat.AllowItemDropoff.Set(true, writeToConfig: false);
+        compat.Stairs.Set(false, writeToConfig: false);
+        compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
+        compat.VanillaShortestTexture.Set(false, writeToConfig: false);
+
+        compat.MbfTelefrag.Set(mbfTelefrag, writeToConfig: false);
+        compat.Mbf21.Set(mbf21, writeToConfig: false);
     }
 }

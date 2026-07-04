@@ -118,6 +118,7 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Monster telefrag")]
         public void MonsterTelefrag()
         {
+            World.Config.Compatibility.MbfTelefrag.Set(false);
             World.MapInfo.SetOption(MapOptions.AllowMonsterTelefrags, true);
             var monster = GameActions.CreateEntity(World, "Zombieman", TeleportDestination);
             monster.IsDead().Should().BeFalse();
@@ -125,7 +126,6 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.EntityCrossLine(World, teleportMonster, TeleportLine, moveOutofBounds: false).Should().BeTrue();
             GameActions.RunTeleport(World, teleportMonster, TeleportDestSector, TeleportLandingId);
             monster.IsDead().Should().BeTrue();
-            World.MapInfo.SetOption(MapOptions.AllowMonsterTelefrags, false);
         }
 
         [Fact(DisplayName = "Player telefrag z bounds checks")]

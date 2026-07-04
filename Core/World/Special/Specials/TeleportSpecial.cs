@@ -224,7 +224,7 @@ public struct TeleportSpecial
         if (teleportEntity.IsPlayer)
             return true;
 
-        if (WorldStatic.World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags))
+        if (!WorldStatic.MbfTelefrag && WorldStatic.World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags))
             return true;
 
         return WorldStatic.World.BlockmapTraverser.SolidBlockTraverse(teleportEntity, pos,
