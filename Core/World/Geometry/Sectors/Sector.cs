@@ -1020,12 +1020,12 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             if (line.Back != null)
             {
                 Side side = line.Front;
-                min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture, min);
+                min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture.Value.ToBool(), min);
 
                 if (line.Back != null)
                 {
                     side = line.Back;
-                    min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture, min);
+                    min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture.Value.ToBool(), min);
                 }
             }
         }

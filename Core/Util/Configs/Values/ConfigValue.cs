@@ -5,13 +5,10 @@ using System.Diagnostics.CodeAnalysis;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 using static Helion.Util.Configs.Values.ConfigConverters;
-
 namespace Helion.Util.Configs.Values;
 
 public class ConfigValue<T> : IConfigValue where T : notnull
 {
-
-
     // This value could be passed any type. To avoid many creations, this
     // is cached between different generic types.
     private static readonly Func<object, T> ObjectToTypeConverterOrThrow;
@@ -29,6 +26,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     }
 
     public object ObjectValue => Value;
+    public virtual object ObjectValueSerialize => Value;
     public object ObjectDefaultValue => DefaultValue;
     public object ObjectUserValue => UserValue;
     public bool HasTemporaryValue { get; private set; }
@@ -91,7 +89,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public static implicit operator T(ConfigValue<T> val) => val.Value;
 
-    public ConfigSetResult Set(object newValue, bool writeToConfig = true, bool fireChangeEvents = true)
+    public virtual ConfigSetResult Set(object newValue, bool writeToConfig = true, bool fireChangeEvents = true)
     {
         return TryConvertInternal(newValue, out var convertedValue)
             ? Set(convertedValue, writeToConfig, fireChangeEvents)
@@ -121,7 +119,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         return success;
     }
 
-    private bool TryConvertInternal(object value, [NotNullWhen(true)] out T? converted)
+    protected bool TryConvertInternal(object value, [NotNullWhen(true)] out T? converted)
     {
         try
         {

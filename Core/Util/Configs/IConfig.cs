@@ -48,7 +48,7 @@ public interface IConfig
     void ApplyQueuedChanges(ConfigSetFlags setFlags);
 
     Dictionary<string, ConfigComponent> GetComponents();
-    void ApplyConfiguration(IList<ConfigValueModel> configValues, bool writeToConfig = true);
+    void ApplyConfiguration(IList<ConfigValueModel> configValues);
 
     List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields();
 }

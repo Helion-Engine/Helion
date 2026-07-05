@@ -76,3 +76,4 @@
 - Update OpenAL-Soft dependency to 1.25.2
 - Update SDL controller database support file (for button mappings, etc.)
 - Improved performance for A_KeenDie and A_BossDeath functions for extreme cases like 100krevs.wad.
+- Add support for Always On/Always Off in compatibility options. These values will never be changed by Helion when setting a complvl.

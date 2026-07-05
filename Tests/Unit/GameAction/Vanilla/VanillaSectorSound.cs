@@ -1,12 +1,10 @@
 ﻿using FluentAssertions;
-using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
-using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
-using Helion.World.Sound;
 using Xunit;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -29,7 +27,7 @@ public class VanillaSectorSound
     [Fact(DisplayName = "Vanilla sector sound determined by bounding box")]
     public void VanillaSectorSoundSingleSector()
     {
-        World.Config.Compatibility.VanillaSectorSound.Value.Should().BeTrue();
+        World.Config.Compatibility.VanillaSectorSound.Value.ToBool().Should().BeTrue();
         var soundSector = GameActions.GetSectorByTag(World, 1);
         GameActions.ActivateLine(World, Player, 4, ActivationContext.UseLine);
         GameActions.TickWorld(World, 1);
@@ -53,7 +51,7 @@ public class VanillaSectorSound
     [Fact(DisplayName = "Vanilla sector sound with unconnected sectors")]
     public void VanillaSectorSoundUnconnectedSectors()
     {
-        World.Config.Compatibility.VanillaSectorSound.Value.Should().BeTrue();
+        World.Config.Compatibility.VanillaSectorSound.Value.ToBool().Should().BeTrue();
         var soundSector = GameActions.GetSectorByTag(World, 2);
         GameActions.ActivateLine(World, Player, 10, ActivationContext.UseLine);
         GameActions.TickWorld(World, 1);

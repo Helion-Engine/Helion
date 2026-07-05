@@ -8,6 +8,7 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
@@ -1714,7 +1715,7 @@ public static class EntityActionFunctions
 
     private static void A_PainShootSkull(Entity entity, double angle)
     {
-        if (WorldStatic.World.Config.Compatibility.PainElementalLostSoulLimit)
+        if (WorldStatic.World.Config.Compatibility.PainElementalLostSoulLimit.Value.ToBool())
         {
             var def = WorldStatic.EntityManager.DefinitionComposer.GetByName("LostSoul");
             if (def != null && WorldStatic.World.EntityCount(def.Id) > 20)

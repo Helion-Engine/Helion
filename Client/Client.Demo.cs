@@ -114,7 +114,7 @@ public partial class Client
 
     private void Player_PlaybackEnded(object? sender, EventArgs e)
     {
-        m_config.ApplyConfiguration(m_userConfigValues, writeToConfig: false);
+        m_config.ApplyConfiguration(m_userConfigValues);
         m_userConfigValues.Clear();
     }
 
@@ -155,7 +155,7 @@ public partial class Client
             m_userConfigValues.Add(new ConfigValueModel("game.rng", m_config.Game.Rng.Value));
         }
 
-        m_config.ApplyConfiguration(m_demoModel.ConfigValues, writeToConfig: false);
+        m_config.ApplyConfiguration(m_demoModel.ConfigValues);
     }
 
     private void SetDefaultDemoValues(Dictionary<string, ConfigComponent> components)

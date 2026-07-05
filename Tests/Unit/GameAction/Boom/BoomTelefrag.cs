@@ -2,13 +2,13 @@
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util.RandomGenerators;
-using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using System;
 using Xunit;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Tests.Unit.GameAction.Boom;
 
@@ -40,7 +40,7 @@ public class BoomTelefrag : IDisposable
 
     private void WorldInit(SinglePlayerWorld world)
     {
-        world.Config.Compatibility.MbfTelefrag.Value.Should().BeTrue();
+        world.Config.Compatibility.MbfTelefrag.Value.ToBool().Should().BeTrue();
         world.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags).Should().BeTrue();
     }
 

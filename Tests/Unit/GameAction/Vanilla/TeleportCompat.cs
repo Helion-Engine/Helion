@@ -5,6 +5,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using Xunit;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -36,7 +37,7 @@ public class TeleportCompat
     [Fact(DisplayName = "Normal teleport")]
     public void NormalTeleport()
     {
-        World.Config.Compatibility.FinalDoomTeleport.Value.Should().Be(false);
+        World.Config.Compatibility.FinalDoomTeleport.Value.ToBool().Should().BeFalse();
         Player.Position.Should().Be(new Vec3D(-224, -288, 128));
         GameActions.ActivateLine(World, Player, 5, ActivationContext.CrossLine);
         Player.Position.Should().Be(new Vec3D(-128, -384, 0));

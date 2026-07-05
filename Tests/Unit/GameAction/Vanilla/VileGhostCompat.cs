@@ -6,6 +6,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using Xunit;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -56,7 +57,7 @@ public class VileGhostCompat
     [Fact(DisplayName = "Monster is resurrected normally")]
     public void VileNormalResurrect()
     {
-        World.Config.Compatibility.VileGhosts.Value.Should().BeFalse();
+        World.Config.Compatibility.VileGhosts.Value.ToBool().Should().BeFalse();
         var imp = CrushAndRaiseImp();
 
         imp.Flags.Solid().Should().BeTrue();
