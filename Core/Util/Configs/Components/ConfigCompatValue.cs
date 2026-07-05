@@ -4,6 +4,7 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigCompatValue(CompatSetting value) : ConfigValue<CompatSetting>(value)
 {
+    // Save files only store true/false — Always/Never are user config pins
     public override object ObjectValueSerialize => Value.ToBool();
 
     public override ConfigSetResult Set(object newValue, bool writeToConfig = true, bool fireChangeEvents = true)

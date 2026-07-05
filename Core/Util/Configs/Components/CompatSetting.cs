@@ -1,10 +1,16 @@
-﻿namespace Helion.Util.Configs.Components;
+﻿using System.ComponentModel;
+
+namespace Helion.Util.Configs.Components;
 
 public enum CompatSetting
 {
+    [Description("Off")]
     False,
+    [Description("On")]
     True,
+    [Description("Always On")]
     Always,
+    [Description("Always Off")]
     Never
 }
 
