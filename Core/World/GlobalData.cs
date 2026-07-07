@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Helion.World;
 
-public class GlobalData
+public class GlobalData : IDisposable
 {
     public IList<MapInfoDef> VisitedMaps { get; set; } = new List<MapInfoDef>();
     public int TotalTime { get; set; }
@@ -14,9 +14,14 @@ public class GlobalData
     public ACS.WorldExecutor GetOrCreateAcsExecutor(IWorld world, bool reallocate)
     {
         if (AcsExecutor == null || reallocate)
+        {
+            AcsExecutor?.Dispose();
             AcsExecutor = new ACS.WorldExecutor(world);
+        }
         else
+        {
             AcsExecutor.UpdateWorld(world);
+        }
 
         return AcsExecutor;
     }
@@ -44,5 +49,11 @@ public class GlobalData
     public override int GetHashCode()
     {
         return base.GetHashCode();
+    }
+
+    public void Dispose()
+    {
+        AcsExecutor?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
