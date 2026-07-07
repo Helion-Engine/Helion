@@ -573,6 +573,7 @@ public partial class Client : IDisposable, IInputManagement
         m_soundManager.Dispose();
         m_layerManager.Dispose();
         m_window.Dispose();
+        m_globalData.Dispose();
 
         m_disposed = true;
     }
