@@ -28,10 +28,10 @@ public class GameConfDefinition
 
     public void Parse(Entry entry)
     {
-        string data = entry.ReadDataAsString();
         try
         {
-            var converted = (GameConf?)JsonSerializer.Deserialize(data, typeof(GameConf), GameConfSerializationContext.Default)
+            using var stream = entry.GetStream();
+            var converted = JsonSerializer.Deserialize(stream, GameConfSerializationContext.Default.GameConf)
                 ?? throw new Exception($"Gameconf was null");
             var newData = converted.Data;
 

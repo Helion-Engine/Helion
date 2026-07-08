@@ -1,4 +1,5 @@
 using Helion.Audio;
+using Helion.Resources.Definitions.Id24;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
@@ -75,6 +76,10 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
     [ConfigInfo("Enable reverb effect in MIDI/MUS playback (FluidSynth only).")]
     [OptionMenu(OptionSectionType.Audio, "Enable Reverb")]
     public readonly ConfigValue<bool> EnableReverb = new(true);
+
+    [ConfigInfo("Extra soundtracks from TRAKINFO. Can be used with extras.wad from Doom Rerelease.")]
+    [OptionMenu(OptionSectionType.Audio, "Extra Soundtrack", spacer: true)]
+    public readonly ConfigValue<Id24TrackInfoType> ExtraSoundTrack = new(Id24TrackInfoType.None);
 
     // Music volume is treated as a multiple of sound effects volume, because effects volume controls the master gain.
     public double FluidSynthVolumeNormalized => SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume);

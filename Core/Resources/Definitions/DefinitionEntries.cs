@@ -66,6 +66,7 @@ public class DefinitionEntries
     public readonly MusInfoDefinition MusInfoDefinition = new();
     public readonly Id24SkyDefinition Id24SkyDefinition = new();
     public readonly Id24TranslationDefinition Id24TranslationDefinition = new();
+    public readonly Id24TrackInfoDefinition Id24TrackInfoDefinition = new();
 
     /// <inheritdoc cref="Id24.GameConfDefinition"/>
     public readonly GameConfDefinition GameConfDefinition = new();
@@ -127,6 +128,7 @@ public class DefinitionEntries
         m_entryNameToAction["SBARDEF"] = entry => ParseSBarDef(entry);
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
+        m_entryNameToAction["TRAKINFO"] = Id24TrackInfoDefinition.Parse;
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
         m_entryNameToAction["GLDEFS"] = ParseGldefs;
         m_entryNameToAction["DOOMDEFS"] = ParseGldefs;
