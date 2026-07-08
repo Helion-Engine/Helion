@@ -78,6 +78,7 @@ public partial class Client
             m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
             m_config.Game.PistolStart.Set(m_commandLineArgs.PistolStart);
             m_config.Game.SoloNet.Set(m_commandLineArgs.SoloNet);
+            m_config.Audio.ExtraSoundTrack.OptionDisabled = m_archiveCollection.Definitions.Id24TrackInfoDefinition.TrackInfoData.Count == 0;
 
             ApplyFeatureSet();
 

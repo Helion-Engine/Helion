@@ -1,5 +1,4 @@
 ﻿using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -19,10 +18,10 @@ public class Id24TranslationDefinition
         if (Translations.TryGetValue(entry.Path.Name, out var existing))
             return existing;
 
-        string data = entry.ReadDataAsString();
         try
         {
-            var translation = (TranslationDef?)JsonSerializer.Deserialize(data, typeof(TranslationDef), TranslationDefSerializationContext.Default);
+            using var stream = entry.GetStream();
+            var translation = JsonSerializer.Deserialize(stream, TranslationDefSerializationContext.Default.TranslationDef);
             if (translation == null)
             {
                 Log.Error(ParseUtil.GetParseError(entry, "translation"));

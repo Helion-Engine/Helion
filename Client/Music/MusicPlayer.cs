@@ -13,6 +13,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ZMusicWrapper;
+using System.Security.Cryptography;
+using Helion.Resources.Definitions.Id24;
 
 public class MusicPlayer : IMusicPlayer
 {
@@ -30,6 +32,7 @@ public class MusicPlayer : IMusicPlayer
     private readonly AudioStreamFactory m_audioStreamFactory = new();
     private readonly ZMusicPlayer m_zMusicPlayer;
     private readonly Dictionary<string, byte[]> m_musicLookup = [];
+    private readonly Dictionary<string, string> m_shaToEntryNameLookup = [];
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
     private bool m_isMidi;
@@ -50,9 +53,18 @@ public class MusicPlayer : IMusicPlayer
         m_configAudio.EnableChorus.OnChanged += EnableChorus_OnChanged;
         m_configAudio.EnableReverb.OnChanged += EnableReverb_OnChanged;
         m_configAudio.Synthesizer.OnChanged += Synthesizer_OnChanged;
+        m_configAudio.ExtraSoundTrack.OnChanged += ExtraSoundTrack_OnChanged;
         string soundFontPath = GetFullSoundFontPathOrFallback(configAudio.SoundFontFile);
 
         m_zMusicPlayer = CreateZMusicPlayer(configAudio, m_audioStreamFactory, soundFontPath);
+    }
+
+    private void ExtraSoundTrack_OnChanged(object? sender, Id24TrackInfoType e)
+    {
+        if (!m_currentTrack.HasValue)
+            return;
+
+        Play(m_currentTrack.Value.Entry, m_currentTrack.Value.Options & ~MusicPlayerOptions.IgnoreAlreadyPlaying);
     }
 
     private ZMusicPlayer CreateZMusicPlayer(ConfigAudio configAudio, AudioStreamFactory streamFactory, string soundFontPath)
@@ -223,7 +235,7 @@ public class MusicPlayer : IMusicPlayer
         if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0 && (options & MusicPlayerOptions.Reload) == 0 && fullPath == m_lastEntryPath)
             return;
 
-        var data = GetMusicData(playParams.Entry);
+        var data = GetTrackInfoIfExists(playParams.Entry, GetMusicData(playParams.Entry));
 
         m_lastEntryPath = fullPath;
 
@@ -234,6 +246,36 @@ public class MusicPlayer : IMusicPlayer
 
         m_isMidi = m_zMusicPlayer.IsMIDI(data, out _);
         PlayMusic(playParams, data);
+    }
+
+    private byte[] GetTrackInfoIfExists(Entry entry, byte[] data)
+    {
+        if (m_archiveCollection.Definitions.Id24TrackInfoDefinition.TrackInfoData.Count == 0 || m_configAudio.ExtraSoundTrack.Value == Id24TrackInfoType.None)
+            return data;
+
+        var sha1 = ComputeSha1(entry, data);
+        if (m_archiveCollection.Definitions.Id24TrackInfoDefinition.TryGetTrackInfo(sha1, m_configAudio.ExtraSoundTrack.Value, out var trackName))
+        {
+            var newEntry = m_archiveCollection.FindEntry(trackName);
+            if (newEntry != null)
+                data = GetMusicData(newEntry);
+            else
+                Log.Error($"Failed to find track: {trackName}");
+        }
+
+        return data;
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5350:Do Not Use Weak Cryptographic Algorithms", Justification = "SHA1 is used for non-security content hashing")]
+    private string ComputeSha1(Entry entry, byte[] data)
+    {        
+        var fullPath = entry.Path.FullPath;
+        if (m_shaToEntryNameLookup.TryGetValue(fullPath, out var sha1))
+            return sha1;
+
+        sha1 = Convert.ToHexString(SHA1.HashData(data)).ToLowerInvariant();
+        m_shaToEntryNameLookup[fullPath] = sha1;
+        return sha1;
     }
 
     private byte[] GetMusicData(Entry entry)
@@ -303,10 +345,11 @@ public class MusicPlayer : IMusicPlayer
 
         Stop();
 
-        m_configAudio.SoundFontFile.OnChanged += SoundFontFile_OnChanged;
-        m_configAudio.EnableChorus.OnChanged += EnableChorus_OnChanged;
-        m_configAudio.EnableReverb.OnChanged += EnableReverb_OnChanged;
-        m_configAudio.Synthesizer.OnChanged += Synthesizer_OnChanged;
+        m_configAudio.SoundFontFile.OnChanged -= SoundFontFile_OnChanged;
+        m_configAudio.EnableChorus.OnChanged -= EnableChorus_OnChanged;
+        m_configAudio.EnableReverb.OnChanged -= EnableReverb_OnChanged;
+        m_configAudio.Synthesizer.OnChanged -= Synthesizer_OnChanged;
+        m_configAudio.ExtraSoundTrack.OnChanged -= ExtraSoundTrack_OnChanged;
 
         m_cancelPlayQueue.Cancel();
         m_playQueueTask.Wait(1000);

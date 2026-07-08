@@ -15,6 +15,7 @@
 - Added sound resampler options
 - Added found secret color to automap
 - Added ACS support
+- Added TRAKINFO support
 
 ## Bug Fixes:
 - Fix nextmap/previousmap breaking on WADs with maps that exit to the same map.
