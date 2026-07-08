@@ -267,7 +267,7 @@ public class MusicPlayer : IMusicPlayer
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5350:Do Not Use Weak Cryptographic Algorithms", Justification = "SHA1 is used for non-security content hashing")]
-    public string ComputeSha1(Entry entry, byte[] data)
+    private string ComputeSha1(Entry entry, byte[] data)
     {        
         var fullPath = entry.Path.FullPath;
         if (m_shaToEntryNameLookup.TryGetValue(fullPath, out var sha1))

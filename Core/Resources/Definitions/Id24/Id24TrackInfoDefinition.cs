@@ -3,6 +3,7 @@ using Helion.Util.SerializationContexts;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -10,8 +11,11 @@ namespace Helion.Resources.Definitions.Id24;
 
 public enum Id24TrackInfoType
 {
+    [Description("None")]
     None,
+    [Description("MIDI")]
     Midi,
+    [Description("Remixed")]
     Remixed,
 }
 
