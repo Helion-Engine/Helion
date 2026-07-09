@@ -140,18 +140,18 @@ public partial class IntermissionLayer
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            bool isFullscreen = IsFullscreenPatch(hud, NextMapInfo.TitlePatch, m_textUpscalingFactor);
-
+            var isFullscreen = IsFullscreenPatch(hud, NextMapInfo.TitlePatch, m_textUpscalingFactor);
             hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage, m_textUpscalingFactor), 
                 out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
 
-            if (!isFullscreen) offsetY += 5 * drawArea.Height / 4;
+            if (!isFullscreen)
+                offsetY += 5 * drawArea.Height / 4;
 
             DrawMapTitle(hud, NextMapInfo, ref offsetY, m_textUpscalingFactor);
         }
         else
         {
-            bool isFullscreen = IsFullscreenPatch(hud, CurrentMapInfo.TitlePatch, m_textUpscalingFactor);
+            var isFullscreen = IsFullscreenPatch(hud, CurrentMapInfo.TitlePatch, m_textUpscalingFactor);
             DrawMapTitle(hud, CurrentMapInfo, ref offsetY, m_textUpscalingFactor);
 
             if (!isFullscreen)
@@ -168,13 +168,14 @@ public partial class IntermissionLayer
         {
             if (hud.Textures.TryGet(mapInfo.TitlePatch, out var handle, upscalingFactor: textUpscalingFactor))
             {
-                bool isFullscreen = handle.Dimension.Width >= 320 || handle.Dimension.Height >= 200;
+                var isFullscreen = handle.Dimension.Height >= 200;
                 int drawY = isFullscreen ? 0 : offsetY;
 
                 hud.Image(mapInfo.TitlePatch, (0, drawY) + TranslateDoomOffset(handle.Offset),
                     out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: textUpscalingFactor);
 
-                if (!isFullscreen) offsetY += 5 * drawArea.Height / 4;
+                if (!isFullscreen)
+                    offsetY += 5 * drawArea.Height / 4;
             }
             
             return; 
@@ -203,12 +204,16 @@ public partial class IntermissionLayer
 
     private static bool IsFullscreenPatch(IHudRenderContext hud, string patchName, int upscalingFactor)
     {
-        if (string.IsNullOrEmpty(patchName)) return false;
+        if (string.IsNullOrEmpty(patchName))
+            return false;
 
         if (hud.Textures.TryGet(patchName, out var handle, upscalingFactor: upscalingFactor))
-            return handle.Dimension.Width >= 320 || handle.Dimension.Height >= 200;
+            return IsFullScreen(handle);
+
         return false;
     }
+
+    public static bool IsFullScreen(IRenderableTextureHandle handle) => handle.Dimension.Height >= 200;
 
     private void DrawStatistics(IHudRenderContext hud)
     {

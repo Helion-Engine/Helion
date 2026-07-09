@@ -56,6 +56,7 @@
 - Fix ZDoom brightmaps from GLDEFS not using the full path for map. Fixes bmplus_spritefix.pk3 incorrectly pulling Heretic sprites when using Doom1/Doom2.
 - Fix demos not saving.
 - Add mbf telefrag compat option. Fixes MBF maps in the MAP30 slot that expect things not telefrag when teleported.
+- Fix intermission considering wide patches as fullscreen (fixes doghouse MAP11 intermission offset).
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
