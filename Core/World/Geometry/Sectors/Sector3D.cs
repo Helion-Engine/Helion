@@ -204,43 +204,15 @@ public sealed class Sector3D
 
     public static void SetHeights3D(Sector sector, SetHeightsMode mode)
     {
-        // This is expensive and can be skipped if nothing changed on MapReload
-        if (sector.Sectors3D.Length == 0 || (mode == SetHeightsMode.MapReload && !sector.HeightsUpdated3D))
+        if (sector.Sectors3D.Length == 0)
             return;
 
         if (mode == SetHeightsMode.Update)
             sector.HeightsUpdated3D = true;
 
-        if (sector.SectorPlanes3D.Length == 0)
-        {
-            sector.SectorPlanes3D = new SectorPlane3D[(sector.Sectors3D.Length + 1) * 2];
-            var index = 0;
-
-            for (int i = 0; i < sector.Sectors3D.Length; i++)
-            {
-                var sector3D = sector.Sectors3D[i];
-                sector.SectorPlanes3D[index++] = new(sector3D.ControlTop, sector3D.FakeTop, sector3D, PlaneFace3D.Top, sector3D.ControlSector);
-                sector.SectorPlanes3D[index++] = new(sector3D.ControlBottom, sector3D.FakeBottom, sector3D, PlaneFace3D.Bottom, sector3D.ControlSector);
-            }
-
-            sector.SectorPlanes3D[index++] = new(sector.Ceiling, sector.Ceiling, null, PlaneFace3D.Top, sector);
-            sector.SectorPlanes3D[index++] = new(sector.Floor, sector.Floor, null, PlaneFace3D.Bottom, sector);
-        }
-
-        sector.TransferHeights = null;
-        sector.Sectors3D.Sort(SortSectors3D);
-
-        for (int i = 0; i < sector.Sectors3D.Length; i++)
-        {
-            var sector3D = sector.Sectors3D[i];
-            sector3D.CalculateHeights();
-            sector3D.RenderPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
-        }
-
-        for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
-            sector.SectorPlanes3D[i].UpdateSortKey();
-
-        sector.SectorPlanes3D.Sort(SortPlanesByKey3D);
+        // This can be skipped if nothing changed on MapReload. Lights still need to be set below because of transfer floor/ceiling lights being reset.
+        if (mode != SetHeightsMode.MapReload || sector.HeightsUpdated3D)
+            SetupPlanesAndSort(sector);
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
@@ -328,6 +300,40 @@ public sealed class Sector3D
             if (overlapLight && overlapLightPlane3D.Sector3D != null)
                 SetLight(overlapLightPlane3D.Sector3D, ref overlapLightPlane3D, currentLightSector);
         }
+    }
+
+    private static void SetupPlanesAndSort(Sector sector)
+    {
+        if (sector.SectorPlanes3D.Length == 0)
+        {
+            sector.SectorPlanes3D = new SectorPlane3D[(sector.Sectors3D.Length + 1) * 2];
+            var index = 0;
+
+            for (int i = 0; i < sector.Sectors3D.Length; i++)
+            {
+                var sector3D = sector.Sectors3D[i];
+                sector.SectorPlanes3D[index++] = new(sector3D.ControlTop, sector3D.FakeTop, sector3D, PlaneFace3D.Top, sector3D.ControlSector);
+                sector.SectorPlanes3D[index++] = new(sector3D.ControlBottom, sector3D.FakeBottom, sector3D, PlaneFace3D.Bottom, sector3D.ControlSector);
+            }
+
+            sector.SectorPlanes3D[index++] = new(sector.Ceiling, sector.Ceiling, null, PlaneFace3D.Top, sector);
+            sector.SectorPlanes3D[index++] = new(sector.Floor, sector.Floor, null, PlaneFace3D.Bottom, sector);
+        }
+
+        sector.TransferHeights = null;
+        sector.Sectors3D.Sort(SortSectors3D);
+
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+        {
+            var sector3D = sector.Sectors3D[i];
+            sector3D.CalculateHeights();
+            sector3D.RenderPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
+        }
+
+        for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
+            sector.SectorPlanes3D[i].UpdateSortKey();
+
+        sector.SectorPlanes3D.Sort(SortPlanesByKey3D);
     }
 
     private static bool ShouldResetLightSector(in SectorPlane3D plane3D, Sector3D sector3D)
