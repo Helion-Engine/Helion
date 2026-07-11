@@ -698,20 +698,25 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
         return false;
     }
 
-    public bool GetViewSector3D(Entity entity, [NotNullWhen(true)] out Sector3D? sector3d)
+    public bool GetViewSector3D(Entity entity, [NotNullWhen(true)] out Sector3D? sector3D)
     {
+        sector3D = null;
+
         if (WorldStatic.Sector3D && Sectors3D.Length > 0)
         {
             var viewZ = entity.Position.Z + entity.ViewZ;
-            for (int i = 0; i < Sectors3D.Length; i++)
+            for (int i = 0; i < SectorPlanes3D.Length; i++)
             {
-                sector3d = Sectors3D[i];
-                if (viewZ > sector3d.ControlBottom.Z && viewZ < sector3d.ControlTop.Z)
-                    return true;
+                ref var sectorPlane3D = ref SectorPlanes3D[i];
+                if (viewZ > sectorPlane3D.Plane.Z)
+                {
+                    if (i - 1 > 0)
+                        sector3D = SectorPlanes3D[i - 1].Sector3D;
+                    return sector3D != null;
+                }
             }
         }
 
-        sector3d = null;
         return false;
     }
 

@@ -333,8 +333,11 @@ public partial class Renderer : IDisposable
         }
 
         int viewBlendSectorFogIndex = ShaderUniforms.NoViewBlendSectorIndex;
-        if (renderInfo.SectorFog && renderInfo.ViewerEntity.Sector.GetViewSector3D(renderInfo.ViewerEntity, out var viewSector3D) && (viewSector3D.Flags & SectorFlags3D.NoViewFade) == 0)
+        if (renderInfo.SectorFog && renderInfo.ViewerEntity.Sector.GetViewSector3D(renderInfo.ViewerEntity, out var viewSector3D) &&
+            (viewSector3D.Flags & SectorFlags3D.NoViewFade) == 0 && viewSector3D.ControlSector.FogColor.Uint != 0)
+        {
             viewBlendSectorFogIndex = viewSector3D.ControlSector.Id;
+        }
 
         int maxDistance = config.Render.MaxDistance.Value;
         if (maxDistance <= 0)
