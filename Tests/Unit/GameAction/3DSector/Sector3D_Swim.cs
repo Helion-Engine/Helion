@@ -336,4 +336,41 @@ public class Sector3D_Swim : IDisposable
         GameActions.SetEntityPosition(World, Player, (-96, -192, 136));
         Player.WaterSubmersionLevel.Should().Be(SubmersionLevel.None);
     }
+
+    [Fact(DisplayName = "Player doesn't swim when submersion level is less than half")]
+    public void PlayerDoesntSwimWhenSubmersionLevelLessThanHalf()
+    {
+        GameActions.SetEntityPosition(World, Player, (960, 192, -44));
+        Player.WaterSubmersionLevel.Should().Be(SubmersionLevel.LessThanHalf);
+        Player.PitchRadians = MathHelper.ToRadians(30);
+        Player.Velocity.Should().Be(Vec3D.Zero);
+        Player.TickCommand.Add(TickCommands.Forward);
+
+        GameActions.RunPlayerCommands(World, GameActions.GetAngle(Bearing.North), [TickCommands.Forward], () => { return Player.Position.Y < 320; }, onTick: () =>
+        {
+            Player.Velocity.Y.Should().BeGreaterThan(0);
+            Player.Velocity.Z.Should().Be(0);
+        });
+
+        Player.Velocity.Y.Should().BeGreaterThan(0);
+    }
+
+    [Fact(DisplayName = "Player swims when submersion level is greater than half")]
+    public void PlayerSwimsWhenSubmersionLevelGreaterThanHalf()
+    {
+        GameActions.SetEntityPosition(World, Player, (1152, 192, -45));
+        Player.WaterSubmersionLevel.Should().Be(SubmersionLevel.MoreThanHalf);
+        Player.PitchRadians = MathHelper.ToRadians(30);
+        Player.Velocity.Should().Be(Vec3D.Zero);
+        Player.TickCommand.Add(TickCommands.Forward);
+
+        GameActions.RunPlayerCommands(World, GameActions.GetAngle(Bearing.North), [TickCommands.Forward], () => { return Player.Position.Y < 320; }, onTick: () =>
+        {
+            Player.Velocity.Y.Should().BeGreaterThan(0);
+            Player.Velocity.Z.Should().BeGreaterThan(0);
+        });
+
+        Player.Velocity.Y.Should().BeGreaterThan(0);
+        Player.Velocity.Z.Should().BeGreaterThan(0);
+    }
 }
