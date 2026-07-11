@@ -55,6 +55,8 @@ If you want to compile from source, see the link:/INSTALL.adoc[build instruction
 
 link:/ACS.md[ACS Support]
 
+link:/UDMF.md[UDMF Support]
+
 ## Contact Us
 
 If you want to talk about the game, follow development, or get involved, we have https://discord.gg/uCpmHdqnRc[a Discord server] as well as https://www.doomworld.com/forum/topic/132153-helion-c-0940-824-goodbye-bsp-tree-rendering/[a thread on the Doomworld forums].
