@@ -965,7 +965,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         if (specialLine.Special.LineSpecialType == ZDoomLineSpecialType.TransferLight)
         {
             lightFlags = (SectorLightFlags3D)specialLine.Args.Arg1 + 1;
-            sectorFlags = SectorFlags3D.NoRender | SectorFlags3D.LightTransfer;
+            sectorFlags = SectorFlags3D.NoRender | SectorFlags3D.LightTransfer | SectorFlags3D.NoViewFade;
             alpha = 1;
         }
 
