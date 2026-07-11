@@ -231,7 +231,6 @@
 - blockhitscan
 - blockuse
 - blocksight
-- jumpover
 - clipmidtex
 - wrapmidtex
 - midtex3dimpassible
