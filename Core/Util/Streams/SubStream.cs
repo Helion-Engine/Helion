@@ -8,14 +8,27 @@ public sealed class SubStream : Stream
     private readonly Stream m_base;
     private readonly long m_start;
     private readonly long m_end;
+    private readonly bool m_disposeBaseStream;
 
-    public SubStream(Stream baseStream, long start, int length)
+    public SubStream(Stream baseStream, long start, int length, bool disposeBaseStream = false)
     {
         m_base = baseStream;
         m_start = start;
         m_end = start + length;
         m_base.Seek(m_start, SeekOrigin.Begin);
+        m_disposeBaseStream = disposeBaseStream;
     }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (!m_disposeBaseStream)
+            return;
+
+        if (disposing)
+            m_base.Dispose();
+        base.Dispose(disposing);
+    }
+
 
     public override bool CanRead => m_base.CanRead;
     public override bool CanSeek => true;
