@@ -796,7 +796,7 @@ public abstract partial class WorldBase : IWorld
 
         // 3D sector heights are set after entities are spawned so the correct light sector needs to be recalculated here.
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
-            PhysicsManager.SetCeilingLightSector3D(entity);   
+            PhysicsManager.SetLightSector3D(entity);   
     }
 
     private void SetSectorData()
@@ -2632,7 +2632,7 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
-            var intersectEntity = tryMove.IntersectEntities2D[i];
+            var intersectEntity = tryMove.IntersectEntities2D.Data[i];
             if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 
@@ -2648,7 +2648,7 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
-            var intersectEntity = tryMove.IntersectEntities2D[i];
+            var intersectEntity = tryMove.IntersectEntities2D.Data[i];
             if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 

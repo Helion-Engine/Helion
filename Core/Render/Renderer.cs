@@ -32,6 +32,7 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -446,8 +447,8 @@ public partial class Renderer : IDisposable
 
         if (viewer.WaterControlSector != null && viewer.Position.Z + viewer.ViewZ < viewer.WaterControlSector.Ceiling.Z && viewer.WaterControlSector.Colormap != null)
             sectorColormap = viewer.WaterControlSector.Colormap;
-        else if (viewer.LightCeilingSector3D != null && viewer.Position.Z + viewer.ViewZ < viewer.LightCeilingSector3D.Ceiling.Z && viewer.LightCeilingSector3D.Colormap != null)
-            sectorColormap = viewer.LightCeilingSector3D.Colormap;
+        else if (Sector3D.TryGetValidViewLightSector3D(viewer, out var lightSector3D) && lightSector3D.Colormap != null)
+            sectorColormap = lightSector3D.Colormap;
         else if (viewer.Sector.Sectors3D.Length == 0 && viewer.Sector.TransferFloorLightSector.Colormap != null)
             sectorColormap = viewer.Sector.TransferFloorLightSector.Colormap;
     }

@@ -97,7 +97,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public Sector Sector;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
-    public Sector? LightCeilingSector3D;
+    // The sector's properties to use for rendering a sprite (light level, color, fog, etc). Entity rendering currently cannot generate different vertical slices so one is picked.
+    public Sector? LightSector3D;
     // Can be Sector or Entity
     public IFloorCeilingAnchor HighestFloorObject;
     public IFloorCeilingAnchor LowestCeilingObject;
@@ -224,7 +225,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         HighestFloorObject = sector;
         LowestCeilingSector = sector;
         LowestCeilingObject = sector;
-        LightCeilingSector3D = null;
+        LightSector3D = null;
         CheckOnGround();
 
         Threshold = 0;
@@ -281,7 +282,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         LowestCeilingSector = Sector;
         HighestFloorObject = Sector;
         LowestCeilingObject = Sector;
-        LightCeilingSector3D = null;
+        LightSector3D = null;
 
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
 

@@ -9,6 +9,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Sectors;
@@ -210,9 +211,7 @@ public sealed class Sector3D
         if (mode == SetHeightsMode.Update)
             sector.HeightsUpdated3D = true;
 
-        // This can be skipped if nothing changed on MapReload. Lights still need to be set below because of transfer floor/ceiling lights being reset.
-        if (mode != SetHeightsMode.MapReload || sector.HeightsUpdated3D)
-            SetupPlanesAndSort(sector);
+        SetupPlanesAndSort(sector);
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
@@ -427,6 +426,25 @@ public sealed class Sector3D
             return x.ControlSector.Id.CompareTo(y.ControlSector.Id);
 
         return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
+    }
+
+    // Returns the 3D sector that is valid for the viewer's current Z position.
+    public static bool TryGetValidViewLightSector3D(Entity viewer, [NotNullWhen(true)] out Sector? lightSector3D)
+    {
+        var viewZ = viewer.Position.Z + viewer.ViewZ;
+        for (int i = 0; i < viewer.Sector.SectorPlanes3D.Length - 1; i++)
+        {
+            ref var plane = ref viewer.Sector.SectorPlanes3D[i];
+            ref var nextPlane = ref viewer.Sector.SectorPlanes3D[i + 1];
+            if (viewZ > nextPlane.GetZ() && viewZ <= plane.GetZ())
+            {
+                lightSector3D = nextPlane.LightSector;
+                return true;
+            }
+        }
+
+        lightSector3D = null;
+        return false;
     }
 
     public void Reset()

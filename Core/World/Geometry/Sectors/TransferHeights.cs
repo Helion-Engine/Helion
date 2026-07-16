@@ -14,8 +14,8 @@ public class TransferHeights
     // Because sectors are classes returning new ones every time would put too much pressure on the GC.
     // This static rotating list will allow for up to 16 calls in the stack before they are reused.
     // A rendering function will generally call this twice, so this gives 8 stacked calls which should be more than enough.
-    private static readonly Sector[] RenderSectors = new Sector[]
-    {   Sector.CreateDefault(), Sector.CreateDefault(),
+    private static readonly Sector[] RenderSectors =
+    [   
         Sector.CreateDefault(), Sector.CreateDefault(),
         Sector.CreateDefault(), Sector.CreateDefault(),
         Sector.CreateDefault(), Sector.CreateDefault(),
@@ -23,7 +23,8 @@ public class TransferHeights
         Sector.CreateDefault(), Sector.CreateDefault(),
         Sector.CreateDefault(), Sector.CreateDefault(),
         Sector.CreateDefault(), Sector.CreateDefault(),
-    };
+        Sector.CreateDefault(), Sector.CreateDefault(),
+    ];
 
     private static int RenderSectorIndex = RenderSectors.Length;
 
@@ -75,6 +76,8 @@ public class TransferHeights
                 sector.LightLevel = ControlSector.LightLevel;
                 sector.TransferFloorLightSector = ControlSector.TransferFloorLightSector;
                 sector.TransferCeilingLightSector = ControlSector.TransferCeilingLightSector;
+                sector.SetTransferFloorLightSector = ControlSector.SetTransferFloorLightSector;
+                sector.SetTransferCeilingLightSector = ControlSector.SetTransferCeilingLightSector;
                 sector.FloorSkyTextureHandle = ControlSector.FloorSkyTextureHandle;
                 sector.CeilingSkyTextureHandle = ControlSector.CeilingSkyTextureHandle;
                 sector.SkyOptions = ControlSector.SkyOptions;
@@ -103,6 +106,8 @@ public class TransferHeights
                 sector.LightLevel = ParentSector.LightLevel;
                 sector.TransferFloorLightSector = ParentSector.TransferFloorLightSector;
                 sector.TransferCeilingLightSector = ParentSector.TransferCeilingLightSector;
+                sector.SetTransferFloorLightSector = ParentSector.SetTransferFloorLightSector;
+                sector.SetTransferCeilingLightSector = ParentSector.SetTransferCeilingLightSector;
                 sector.FloorSkyTextureHandle = ParentSector.FloorSkyTextureHandle;
                 sector.CeilingSkyTextureHandle = ParentSector.CeilingSkyTextureHandle;
                 sector.SkyOptions = ParentSector.SkyOptions;
@@ -129,6 +134,8 @@ public class TransferHeights
                 sector.LightLevel = ControlSector.LightLevel;
                 sector.TransferFloorLightSector = ControlSector.TransferFloorLightSector;
                 sector.TransferCeilingLightSector = ControlSector.TransferCeilingLightSector;
+                sector.SetTransferFloorLightSector = ControlSector.SetTransferFloorLightSector;
+                sector.SetTransferCeilingLightSector = ControlSector.SetTransferCeilingLightSector;
                 sector.FloorSkyTextureHandle = ControlSector.FloorSkyTextureHandle;
                 sector.CeilingSkyTextureHandle = ControlSector.CeilingSkyTextureHandle;
                 sector.SkyOptions = ControlSector.SkyOptions;

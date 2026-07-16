@@ -1117,8 +1117,7 @@ public sealed partial class PhysicsManager
             m_canPassData.EntityTopZ = entity.Position.Z + entity.Height;
             m_canPassData.HighestFloorZ = highestFloorZ;
             m_canPassData.LowestCeilZ = lowestCeilZ;
-            m_canPassData.LowestCeilLight3D = double.MaxValue;
-            m_canPassData.CeilingSector3D = null;
+            m_canPassData.LightSector3D = null;
             m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
             m_canPassData.ClippedWithEntity = false;
             WorldStatic.CheckCounter++;
@@ -1130,7 +1129,7 @@ public sealed partial class PhysicsManager
                     m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
 
                 for (int i = entity.IntersectMidTexLines.Length - 1; i >= 0; i--)
-                    CanPassTraverse(GetMidTexEntity(entity.IntersectMidTexLines[i]));
+                    CanPassTraverse(GetMidTexEntity(entity.IntersectMidTexLines.Data[i]));
 
                 if (WorldStatic.Sector3D)
                 {
@@ -1143,11 +1142,11 @@ public sealed partial class PhysicsManager
                 if (canPass)
                 {
                     for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
-                        CanPassTraverse(tryMove.IntersectEntities2D[i]);
+                        CanPassTraverse(tryMove.IntersectEntities2D.Data[i]);
                 }
 
                 for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
-                    CanPassTraverse(GetMidTexEntity(tryMove.IntersectMidTexLines[i]));
+                    CanPassTraverse(GetMidTexEntity(tryMove.IntersectMidTexLines.Data[i]));
 
                 if (WorldStatic.Sector3D)
                 {
@@ -1157,13 +1156,13 @@ public sealed partial class PhysicsManager
             }
 
             if (WorldStatic.Sector3D)
-                CanPassTraverseSector3D(entity.Sector);
+                CanPassTraverseSector3D(entity.Sector, setLight3D: true);
 
             highestFloorEntity = m_canPassData.HighestFloorEntity;
             lowestCeilingEntity = m_canPassData.LowestCeilingEntity;
             highestFloorZ = m_canPassData.HighestFloorZ;
             lowestCeilZ = m_canPassData.LowestCeilZ;
-            entity.LightCeilingSector3D = m_canPassData.CeilingSector3D;
+            entity.LightSector3D = m_canPassData.LightSector3D;
             entity.Flags.SetClippedEntity(m_canPassData.ClippedWithEntity);
         }
 
@@ -1184,7 +1183,7 @@ public sealed partial class PhysicsManager
             entity.LowestCeilingObject = lowestCeiling;
     }
 
-    public void SetCeilingLightSector3D(Entity entity)
+    public void SetLightSector3D(Entity entity)
     {
         m_canPassData.Entity = entity;
         m_canPassData.HighestFloorEntity = entity.HighestFloorEntity();
@@ -1192,36 +1191,47 @@ public sealed partial class PhysicsManager
         m_canPassData.EntityTopZ = entity.Position.Z + entity.Height;
         m_canPassData.HighestFloorZ = entity.HighestFloorZ;
         m_canPassData.LowestCeilZ = entity.LowestCeilingZ;
-        m_canPassData.LowestCeilLight3D = double.MaxValue;
-        m_canPassData.CeilingSector3D = null;
+        m_canPassData.LightSector3D = null;
         m_canPassData.ClampToLinkedSectors = false;
 
-        for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
-            CanPassTraverseSector3D(entity.IntersectSectors.Data[i]);
-
-        CanPassTraverseSector3D(entity.Sector);
-
-        entity.LightCeilingSector3D = m_canPassData.CeilingSector3D;
+        CanPassTraverseSector3D(entity.Sector, setLight3D: true);
+        entity.LightSector3D = m_canPassData.LightSector3D;
     }
 
-    private void CanPassTraverseSector3D(Sector sector)
+    private void CanPassTraverseSector3D(Sector sector, bool setLight3D = false)
     {
+        if (sector.Sectors3D.Length == 0)
+            return;
+
+        var setBetween = false;
+        var entityMin = m_canPassData.Entity.Position.Z;
+        var entityMax = m_canPassData.Entity.Position.Z + m_canPassData.Entity.Height;
+
+        if (setLight3D && entityMin >= sector.Sectors3D[0].WallHeights.TopZ)
+            m_canPassData.LightSector3D = sector;
+
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3D = sector.Sectors3D[i];
+            if (setLight3D && entityMin < sector3D.WallHeights.TopZ && sector3D.WallHeights.BottomZ < entityMax)
+            {
+                m_canPassData.LightSector3D = sector3D.LightBottom;
+                setBetween = true;
+            }
+            else if (setLight3D && !setBetween && entityMax < sector3D.WallHeights.BottomZ)
+            {
+                m_canPassData.LightSector3D = sector3D.LightBottom;
+            }
+
             if (sector3D.CheckCount == WorldStatic.CheckCounter)
                 continue;
 
             sector3D.CheckCount = WorldStatic.CheckCounter;
             CanPassTraverse(sector3D.GetSectorEntity3D());
-
-            if (sector3D.ControlTop.Z < m_canPassData.LowestCeilLight3D &&
-                m_canPassData.Entity.Position.Z < sector3D.ControlTop.Z)
-            {
-                m_canPassData.CeilingSector3D = sector3D.LightBottom;
-                m_canPassData.LowestCeilLight3D = m_canPassData.LowestCeilZ;
-            }
         }
+
+        if (setLight3D && entityMax <= sector.Sectors3D[^1].WallHeights.TopZ && sector.SectorPlanes3D.Length > 0)
+            m_canPassData.LightSector3D = sector.SectorPlanes3D[^1].LightSector;
     }
 
     private GridIterationStatus CanPassTraverse(Entity intersectEntity)
@@ -1396,7 +1406,7 @@ public sealed partial class PhysicsManager
             entity.SectorNodes.EnsureCapacity(tryMove.IntersectSectors.Length);
             for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
             {
-                var sector = tryMove.IntersectSectors[i];
+                var sector = tryMove.IntersectSectors.Data[i];
                 if (sector.CheckCount == checkCounter)
                     continue;
                 sector.CheckCount = checkCounter;

@@ -216,7 +216,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         var texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
-        var sector = entity.LightCeilingSector3D ?? entity.Sector.GetRenderSector(m_transferHeightView);
+        var sector = entity.LightSector3D ?? entity.Sector.GetRenderSector(m_transferHeightView);
 
         int flipU;
         int offsetX = texture.Offset.X;
