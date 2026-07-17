@@ -218,6 +218,7 @@ public sealed class Sector3D
         Sector resetLightSector = sector;
         Sector3D? resetLightSector3D = null;
         var resetLight = false;
+        var resetZ = double.MaxValue;
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
         ref var overlapLightPlane3D = ref sector.SectorPlanes3D[0];
 
@@ -226,9 +227,11 @@ public sealed class Sector3D
             ref var plane3D = ref sector.SectorPlanes3D[i];
             plane3D.NoRenderWall = false;
             var sector3D = plane3D.Sector3D;
-
-            if (resetLight)
+            
+            // If this plane is the same height as the last for transfer light then don't reset here.
+            if (resetLight && resetZ != plane3D.GetZ())
             {
+                resetZ = double.MaxValue;
                 resetLight = false;
                 currentLightSector3D = resetLightSector3D;
                 currentLightSector = resetLightSector;
@@ -279,6 +282,14 @@ public sealed class Sector3D
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
+            if (resetLight)
+            {
+                resetZ = double.MaxValue;
+                resetLight = false;
+                currentLightSector3D = resetLightSector3D;
+                currentLightSector = resetLightSector;
+            }
+
             if ((sector3D.Flags & SectorFlags3D.ResetLight) != 0)
             {
                 resetLightSector = sector;
@@ -290,7 +301,7 @@ public sealed class Sector3D
                 resetLightSector3D = sector3D;
             }
 
-            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, true, out resetLight))
+            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, true, out resetLight, out resetZ))
                 continue;
 
             currentLightSector = sector3D.ControlSector;
@@ -364,8 +375,9 @@ public sealed class Sector3D
             sector3D.LightTop = lightSector;
     }
 
-    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, in SectorPlane3D nextPlane3D, bool checkLightTransfer, out bool resetLight)
+    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, in SectorPlane3D nextPlane3D, bool checkLightTransfer, out bool resetLight, out double resetZ)
     {
+        resetZ = double.MaxValue;
         resetLight = false;
 
         if ((nextSector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
@@ -392,7 +404,10 @@ public sealed class Sector3D
                     break;
                 case SectorLightFlags3D.ToControlFloor:
                     if (nextSector3D == currentLightSector3D && nextPlane3D.Face == PlaneFace3D.Bottom)
+                    {
+                        resetZ = nextPlane3D.GetZ();
                         resetLight = true;
+                    }
                     break;
             }
 
@@ -779,5 +794,5 @@ public sealed class Sector3D
         return WallLocation.Middle;
     }
 
-    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} Style={RenderDataStyle} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";
+    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} Style={RenderDataStyle} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]{ControlSector.ToStringColors()}";
 }

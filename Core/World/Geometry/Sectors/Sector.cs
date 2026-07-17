@@ -1103,7 +1103,20 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
     public override int GetHashCode() => Id.GetHashCode();
 
-    public override string ToString() => Sector3D?.ToString() ?? $"Id={Id} [{Floor.Z} -> {Ceiling.Z}] LightLevel={LightLevel}";
+    public override string ToString() => Sector3D?.ToString() ?? $"Id={Id} [{Floor.Z} -> {Ceiling.Z}] LightLevel={LightLevel}{ToStringColors()}";
+
+    public string ToStringColors()
+    {
+        if (LightColor.Uint == 0 && FogColor.Uint == 0)
+            return string.Empty;
+
+        var str = "";
+        if (LightColor.Uint != 0)
+            str = $" Color={LightColor}";
+        if (FogColor.Uint != 0)
+            str += $" Fog={FogColor} ";
+        return str;
+    }
 
     public void UnlinkFromWorld(IWorld world)
     {
