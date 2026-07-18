@@ -5,6 +5,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
 using System.Linq;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Helion.Tests.Unit.GameAction._3DSector;
 
@@ -200,6 +201,64 @@ public class Sector3D_PlaneSort
 
         foreach (var plane in sector.SectorPlanes3D)
             plane.NoRenderWall.Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Simple transfer light")]
+    public void TransferLightSimple()
+    {
+        var sector = GameActions.GetSectorByTag(World, 89);
+        var redSector = GameActions.GetSector(World, 306);
+        AssertPlanes3D(sector,
+            new PlaneData(80, PlaneFace3D.Top, sector),
+            new PlaneData(80, PlaneFace3D.Top, redSector, RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(0, PlaneFace3D.Bottom, redSector, RenderPlanes: SectorPlanes.Ceiling),
+            new PlaneData(0, PlaneFace3D.Bottom, redSector, RenderPlanes: SectorPlanes.Ceiling)
+        );
+    }
+
+    [Fact(DisplayName = "Multiple 3D sectors with transfer light")]
+    public void SectorsWithTransferLight()
+    {
+        var sector = GameActions.GetSectorByTag(World, 88);
+        var yellowSector = GameActions.GetSector(World, 305);
+        var redSector = GameActions.GetSector(World, 306);
+
+        var topSector = GameActions.GetSector(World, 303);
+        var bottomSector = GameActions.GetSector(World, 304);
+
+        AssertPlanes3D(sector,
+            new PlaneData(512, PlaneFace3D.Top, sector),
+            new PlaneData(192, PlaneFace3D.Top, sector),
+            new PlaneData(176, PlaneFace3D.Bottom, yellowSector),
+            new PlaneData(176, PlaneFace3D.Top, topSector),
+            new PlaneData(96, PlaneFace3D.Bottom, yellowSector),
+            new PlaneData(96, PlaneFace3D.Top, yellowSector),
+            new PlaneData(80, PlaneFace3D.Bottom, redSector),
+            new PlaneData(80, PlaneFace3D.Top, bottomSector),
+            new PlaneData(0, PlaneFace3D.Bottom, redSector),
+            new PlaneData(0, PlaneFace3D.Bottom, redSector)
+        );
+    }
+
+    [Fact(DisplayName = "Multiple 3D sectors with transfer light overlap")]
+    public void SectorsWithTransferLightOverlap()
+    {
+        var sector = GameActions.GetSectorByTag(World, 90);
+        var yellowSector = GameActions.GetSector(World, 311);
+        var redSector = GameActions.GetSector(World, 312);
+
+        AssertPlanes3D(sector,
+            new PlaneData(512, PlaneFace3D.Top, sector),
+            new PlaneData(224, PlaneFace3D.Top, sector),
+            new PlaneData(192, PlaneFace3D.Top, yellowSector),
+            new PlaneData(176, PlaneFace3D.Bottom, yellowSector),
+            new PlaneData(96, PlaneFace3D.Top, yellowSector),
+            new PlaneData(88, PlaneFace3D.Bottom, yellowSector),
+            new PlaneData(88, PlaneFace3D.Top, yellowSector),
+            new PlaneData(80, PlaneFace3D.Bottom, redSector),
+            new PlaneData(0, PlaneFace3D.Bottom, redSector),
+            new PlaneData(-88, PlaneFace3D.Bottom, redSector)
+        );
     }
 
     private static void AssertPlanes3D(Sector sector, params PlaneData[] planes)

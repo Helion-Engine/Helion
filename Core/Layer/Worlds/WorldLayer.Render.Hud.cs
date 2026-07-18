@@ -29,6 +29,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
@@ -520,9 +521,11 @@ public partial class WorldLayer
 
     private static short GetLightLevel(Player player)
     {
-        // TODO this should probably use RenderInfo
-        var sector = player.LightCeilingSector3D ?? player.Sector.GetRenderSector(player.Sector, player.Position.Z + player.ViewHeight);
-        return (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
+        if (Sector3D.TryGetValidViewLightSector3D(player, out var lightSector3D))
+            return lightSector3D.LightLevel;
+
+        var sector = player.Sector.GetRenderSector(player.Sector, player.Position.Z + player.ViewHeight);
+        return (short)((sector.SetTransferFloorLightSector.LightLevel + sector.SetTransferCeilingLightSector.LightLevel) / 2);
     }
 
     private void DrawHudWeapon(IHudRenderContext hud, in FrameState frameState, int yOffset, bool flash)
