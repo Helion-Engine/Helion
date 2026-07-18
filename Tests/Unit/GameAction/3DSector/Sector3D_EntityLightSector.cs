@@ -94,6 +94,14 @@ public class Sector3D_EntityLightSector
         Player.LightSector3D.Should().Be(redSector);
         Sector3D.TryGetValidViewLightSector3D(Player, out lightSector3D).Should().BeTrue();
         lightSector3D.Should().Be(yellowSector);
+
+        // Light sector needs to overlap at least 16 map units
+        GameActions.SetEntityPosition(World, Player, (-2000, 1760, 39));
+        Player.Sector.Id.Should().Be(219);
+        Player.LightSector3D.Should().NotBeNull();
+        Player.LightSector3D.Should().Be(redSector);
+        Sector3D.TryGetValidViewLightSector3D(Player, out lightSector3D).Should().BeTrue();
+        lightSector3D.Should().Be(yellowSector);
     }
 
     [Fact(DisplayName = "Entity light sector 5")]
