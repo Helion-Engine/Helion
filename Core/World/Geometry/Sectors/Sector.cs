@@ -676,26 +676,51 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
     public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;
 
-    public bool GetWaterSubmersionHeight(Entity entity, out double height, [NotNullWhen(true)] out Sector3D? sector3D)
+    public void GetSectorProperties3D(Entity entity, out double waterHeight, out Sector3D? waterSector, out Sector? lightSector3D)
     {
-        if (WorldStatic.Sector3D && Sectors3D.Length > 0)
+        lightSector3D = null;
+        waterSector = null;
+        waterHeight = 0;
+
+        if (!WorldStatic.Sector3D || Sectors3D.Length == 0)
+            return;
+
+        var setBetween = false;
+        var entityMin = entity.Position.Z;
+        var entityMax = entity.Position.Z + entity.Height;
+        var centerZ = entity.Position.Z + (entity.Height / 2);
+        var lightHeight = entity.Height / 3.5;
+
+        if (entityMin >= Sectors3D[0].WallHeights.TopZ)
+            lightSector3D = this;
+
+        for (int i = 0; i < Sectors3D.Length; i++)
         {
-            var centerZ = entity.Position.Z + (entity.Height / 2);
-            for (int i = 0; i < Sectors3D.Length; i++)
+            var sector3D = Sectors3D[i];
+
+            if (sector3D.WallHeights.TopZ - entityMin > lightHeight)
             {
-                sector3D = Sectors3D[i];
-
-                if (!sector3D.IsSwimmable || sector3D.ControlBottom.Z > centerZ || sector3D.ControlTop.Z <= entity.Position.Z)
-                    continue;
-
-                height = sector3D.ControlTop.Z;
-                return true; 
+                if (entityMin < sector3D.WallHeights.TopZ && sector3D.WallHeights.BottomZ < entityMax)
+                {
+                    lightSector3D = sector3D.LightBottom;
+                    setBetween = true;
+                }
+                else if (!setBetween && entityMax < sector3D.WallHeights.BottomZ)
+                {
+                    lightSector3D = sector3D.LightBottom;
+                }
             }
+
+            if (waterSector != null || !sector3D.IsSwimmable || sector3D.ControlBottom.Z > centerZ || sector3D.ControlTop.Z <= entity.Position.Z)
+                continue;
+
+            waterSector = sector3D;
+            waterHeight = sector3D.ControlTop.Z;
         }
 
-        sector3D = null;
-        height = 0;
-        return false;
+        var lastSector3D = Sectors3D[^1];
+        if (SectorPlanes3D.Length > 0 && entityMax <= lastSector3D.WallHeights.TopZ && lastSector3D.WallHeights.TopZ - entityMin > lightHeight)
+            lightSector3D = SectorPlanes3D[^1].LightSector;
     }
 
     public bool GetViewSector3D(Entity entity, [NotNullWhen(true)] out Sector3D? sector3D)

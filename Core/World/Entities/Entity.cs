@@ -1165,17 +1165,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         return (Flags.Flags3 & EntityFlags.TranslationFlag) >> 11;
     }
 
-    public void SetWaterSubmersionLevel()
+    public void SetSectorProperties3D()
     {
-        if (!Sector.GetWaterSubmersionHeight(this, out var height, out var sector3d))
+        Sector.GetSectorProperties3D(this, out var waterHeight, out var waterSector, out var lightSector3D);
+        LightSector3D = lightSector3D;
+
+        if (waterSector == null)
         {
             WaterControlSector = null;
             WaterSubmersionLevel = SubmersionLevel.None;
             return;
         }
 
-        WaterControlSector = sector3d.ControlSector;
-        var depth = height - Position.Z;
+        WaterControlSector = waterSector.ControlSector;
+        var depth = waterHeight - Position.Z;
         if (depth <= 0)
         {
             WaterSubmersionLevel = SubmersionLevel.None;

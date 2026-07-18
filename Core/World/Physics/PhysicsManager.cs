@@ -1041,7 +1041,10 @@ public sealed partial class PhysicsManager
             prevOnEntity.SetOverEntity(null);
 
         if (WorldStatic.Sector3D)
-            entity.SetWaterSubmersionLevel();
+        {
+            // TODO set light level here
+            entity.SetSectorProperties3D();
+        }
 
         entity.CheckOnGround();
         m_onEntities.Clear();
@@ -1117,7 +1120,6 @@ public sealed partial class PhysicsManager
             m_canPassData.EntityTopZ = entity.Position.Z + entity.Height;
             m_canPassData.HighestFloorZ = highestFloorZ;
             m_canPassData.LowestCeilZ = lowestCeilZ;
-            m_canPassData.LightSector3D = null;
             m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
             m_canPassData.ClippedWithEntity = false;
             WorldStatic.CheckCounter++;
@@ -1156,13 +1158,12 @@ public sealed partial class PhysicsManager
             }
 
             if (WorldStatic.Sector3D)
-                CanPassTraverseSector3D(entity.Sector, setLight3D: true);
+                CanPassTraverseSector3D(entity.Sector);
 
             highestFloorEntity = m_canPassData.HighestFloorEntity;
             lowestCeilingEntity = m_canPassData.LowestCeilingEntity;
             highestFloorZ = m_canPassData.HighestFloorZ;
             lowestCeilZ = m_canPassData.LowestCeilZ;
-            entity.LightSector3D = m_canPassData.LightSector3D;
             entity.Flags.SetClippedEntity(m_canPassData.ClippedWithEntity);
         }
 
@@ -1191,47 +1192,25 @@ public sealed partial class PhysicsManager
         m_canPassData.EntityTopZ = entity.Position.Z + entity.Height;
         m_canPassData.HighestFloorZ = entity.HighestFloorZ;
         m_canPassData.LowestCeilZ = entity.LowestCeilingZ;
-        m_canPassData.LightSector3D = null;
         m_canPassData.ClampToLinkedSectors = false;
 
-        CanPassTraverseSector3D(entity.Sector, setLight3D: true);
-        entity.LightSector3D = m_canPassData.LightSector3D;
+        CanPassTraverseSector3D(entity.Sector);
     }
 
-    private void CanPassTraverseSector3D(Sector sector, bool setLight3D = false)
+    private void CanPassTraverseSector3D(Sector sector)
     {
         if (sector.Sectors3D.Length == 0)
             return;
 
-        var setBetween = false;
-        var entityMin = m_canPassData.Entity.Position.Z;
-        var entityMax = m_canPassData.Entity.Position.Z + m_canPassData.Entity.Height;
-
-        if (setLight3D && entityMin >= sector.Sectors3D[0].WallHeights.TopZ)
-            m_canPassData.LightSector3D = sector;
-
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3D = sector.Sectors3D[i];
-            if (setLight3D && entityMin < sector3D.WallHeights.TopZ && sector3D.WallHeights.BottomZ < entityMax)
-            {
-                m_canPassData.LightSector3D = sector3D.LightBottom;
-                setBetween = true;
-            }
-            else if (setLight3D && !setBetween && entityMax < sector3D.WallHeights.BottomZ)
-            {
-                m_canPassData.LightSector3D = sector3D.LightBottom;
-            }
-
             if (sector3D.CheckCount == WorldStatic.CheckCounter)
                 continue;
 
             sector3D.CheckCount = WorldStatic.CheckCounter;
             CanPassTraverse(sector3D.GetSectorEntity3D());
         }
-
-        if (setLight3D && entityMax <= sector.Sectors3D[^1].WallHeights.TopZ && sector.SectorPlanes3D.Length > 0)
-            m_canPassData.LightSector3D = sector.SectorPlanes3D[^1].LightSector;
     }
 
     private GridIterationStatus CanPassTraverse(Entity intersectEntity)
@@ -2259,7 +2238,7 @@ doneLinkToSectors:
                     entity.Velocity.Z = previousVelocity.Z + ((entity.Velocity.Z - previousVelocity.Z) * 0.125);
             }
 
-            entity.SetWaterSubmersionLevel();
+            entity.SetSectorProperties3D();
         }
     }
 }
