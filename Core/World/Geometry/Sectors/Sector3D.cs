@@ -469,6 +469,7 @@ public sealed class Sector3D
 
         FakeBottom.Reset(0);
         FakeTop.Reset(0);
+        FakeSector.Reset();
     }
 
     public bool IsInvertedByContext(SolidContext context)
