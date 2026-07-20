@@ -465,7 +465,11 @@ public sealed class Sector3D
     public void Reset()
     {
         for (int i = 0; i < FakeSector.Lines.Length; i++)
-            FakeSector.Lines[i].Front.Reset();
+        {
+            var line = FakeSector.Lines[i];
+            line.Front.Reset();
+            line.Back?.Reset();
+        }
 
         FakeBottom.Reset(0);
         FakeTop.Reset(0);
