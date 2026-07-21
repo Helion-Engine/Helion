@@ -49,7 +49,7 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         Vbo.Clear();
     }
     
-    public void Draw(PrimitiveType primitive)
+    public void Draw()
     {
         if (Vbo.Empty)
             return;
@@ -65,7 +65,7 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         Vbo.Bind();
 
         Vbo.Upload();
-        Vbo.DrawArraysInstanced();
+        Vbo.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4);
 
         Vbo.Unbind();
         Vao.Unbind();
