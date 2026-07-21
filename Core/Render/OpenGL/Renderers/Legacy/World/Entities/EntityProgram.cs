@@ -88,8 +88,14 @@ public class EntityProgram : RenderProgramBase
         flat out vec4 sectorFogColorFrag;
 
         out vec2 uvFrag;
+        out float dist2D;
+        out float dist3D;
+        out float fuzzDist;
+        out float renderDistSquared;
+        out float depthFrag;
 
         uniform mat4 mvp;
+        uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
         uniform vec2 prevViewRightNormal;
         uniform float timeFrac;
@@ -150,18 +156,23 @@ public class EntityProgram : RenderProgramBase
 
             uvFrag = vec2(u, v);
 
-            //gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
+            dist2D = (mvpNoPitch * vec4(cornerPos, 1.0)).${Depth};
+            dist3D = (mvp * vec4(cornerPos, 1.0)).${Depth};
+
             gl_Position = mvp * vec4(cornerPos, 1);
             zPosFrag = gl_Position.z;
             centerPosFrag = gl_Position.xyz;
+            depthFrag = gl_Position.${Depth};
+            zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
             minPosFrag = minPos;
             maxPosFrag = maxPos;
         }
     "
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag"))
     .Replace("${BoxDefines}", BoxDefines)
-    .Replace("${DepthBiasBase}", ShaderVars.ReversedZ? "25e-6" : "5e-4")
-    .Replace("${MinMaxPos}", GetMinMaxPos());
+    .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
+    .Replace("${MinMaxPos}", GetMinMaxPos())
+    .Replace("${Depth}", ShaderVars.Depth);
 
     //protected override string? GeometryShader() => @"
     //    #version 330 core
@@ -303,16 +314,20 @@ public class EntityProgram : RenderProgramBase
     {
         if (this is EntityHealthBarProgram)
         {
-            return @"            
-                vec3 minPos = pos;
-                vec3 maxPos = pos;
+            return @"
+                vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
+                interpolatedPos.z += offsetZOut;
+                vec3 minPos = interpolatedPos;
+                vec3 maxPos = interpolatedPos;
                 minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut);
                 maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut);";
         }
 
         return @"
-            vec3 minPos = pos - offsetXY;
-            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
+            vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
+            interpolatedPos.z += offsetZOut;
+            vec3 minPos = interpolatedPos - offsetXY;
+            vec3 maxPos = interpolatedPos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
     }
 
     private static string AdjustSpriteVertexClip()
