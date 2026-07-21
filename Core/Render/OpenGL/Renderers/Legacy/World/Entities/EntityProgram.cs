@@ -137,7 +137,6 @@ public class EntityProgram : RenderProgramBase
             ${MinMaxPos}
 
             centerPosFrag = pos;
-            zPosFrag = pos.z;
 
             float xSelect = float(gl_VertexID & 1);     // 0,1,0,1
             float ySelect = float(gl_VertexID >> 1);    // 0,0,1,1
@@ -183,6 +182,7 @@ public class EntityProgram : RenderProgramBase
         {
             return @"
                 vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
+                zPosFrag = interpolatedPos.z;
                 interpolatedPos.z += offsetZ;
                 vec3 minPos = interpolatedPos;
                 vec3 maxPos = interpolatedPos;
@@ -192,6 +192,7 @@ public class EntityProgram : RenderProgramBase
 
         return @"
             vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
+            zPosFrag = interpolatedPos.z;
             interpolatedPos.z += offsetZ;
             vec3 minPos = interpolatedPos - offsetXY;
             vec3 maxPos = interpolatedPos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
