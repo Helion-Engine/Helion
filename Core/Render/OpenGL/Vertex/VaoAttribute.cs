@@ -13,10 +13,11 @@ public class VaoAttribute
     public readonly bool Normalized;
     public readonly bool Required;
     public int Stride;
+    public int Divisor;
 
     private string PointerTypeToString => (PointerType != null ? PointerType.ToString() : IntegerType?.ToString()) ?? "N/A";
 
-    public VaoAttribute(string name, int index, int size, VertexAttribPointerType type, int offset, bool normalized, int stride, bool required)
+    public VaoAttribute(string name, int index, int size, VertexAttribPointerType type, int offset, bool normalized, int stride, bool required, int divisor)
     {
         Name = name;
         Index = index;
@@ -26,6 +27,7 @@ public class VaoAttribute
         Normalized = normalized;
         Stride = stride;
         Required = required;
+        Divisor = divisor;
     }
     
     public VaoAttribute(string name, int index, int size, VertexAttribIntegerType type, int offset, int stride, bool required)

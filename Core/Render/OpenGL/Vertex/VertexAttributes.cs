@@ -19,13 +19,14 @@ public class VertexAttributeAttribute : Attribute
     public bool InferIndex => Index == InferFromField;
     public bool InferSize => Size == InferFromField;
     public bool InferType => Type == (VertexAttribPointerType)InferFromField;
+    public int Divisor;
 
-    public VertexAttributeAttribute(string? name = null, int index = InferFromField, int size = InferFromField, bool isIntegral = false, bool normalized = false, bool required = true) :
-        this((VertexAttribPointerType)InferFromField, name, index, size, isIntegral, normalized, required)
+    public VertexAttributeAttribute(string? name = null, int index = InferFromField, int size = InferFromField, bool isIntegral = false, bool normalized = false, bool required = true, int divisor = -1) :
+        this((VertexAttribPointerType)InferFromField, name, index, size, isIntegral, normalized, required, divisor)
     {
     }
 
-    public VertexAttributeAttribute(VertexAttribPointerType type, string? name = null, int index = InferFromField, int size = InferFromField, bool isIntegral = false, bool normalized = false, bool required = true)
+    public VertexAttributeAttribute(VertexAttribPointerType type, string? name = null, int index = InferFromField, int size = InferFromField, bool isIntegral = false, bool normalized = false, bool required = true, int divisor = -1)
     {
         Name = name;
         Index = index;
@@ -34,6 +35,7 @@ public class VertexAttributeAttribute : Attribute
         IsIntegral = isIntegral;
         Normalized = normalized;
         Required = required;
+        Divisor = divisor;
     }
 
     public override string ToString() => $"[{Index}] {Name} {Type} (size: {Size}, integral: {IsIntegral}, normalized: {Normalized})";

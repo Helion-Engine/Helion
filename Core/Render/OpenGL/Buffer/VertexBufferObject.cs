@@ -19,6 +19,15 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
         Precondition(Uploaded, "Forgot to upload VBO data");
         GL.DrawArrays(type, 0, Count);
     }
+
+    public void DrawArraysInstanced()
+    {
+        if (Count == 0)
+            return;
+
+        Precondition(Uploaded, "Forgot to upload VBO data");
+        GL.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, Count);
+    }
 }
 
 public class DynamicVertexBuffer<T> : VertexBufferObject<T> where T : struct

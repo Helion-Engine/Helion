@@ -65,7 +65,7 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         Vbo.Bind();
 
         Vbo.Upload();
-        Vbo.DrawArrays(primitive);
+        Vbo.DrawArraysInstanced();
 
         Vbo.Unbind();
         Vao.Unbind();
