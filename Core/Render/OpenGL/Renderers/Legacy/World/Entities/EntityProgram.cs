@@ -126,7 +126,7 @@ public class EntityProgram : RenderProgramBase
 
             intOptions = floatBitsToInt(offsetXYZ);
             offsetXYOut = (intOptions >> 16) & 0x3FFF;
-            // TODO offsetZOut
+
             float offsetZOut = float(intOptions & 0x3FFF);
             float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
@@ -142,30 +142,32 @@ public class EntityProgram : RenderProgramBase
 
             ${MinMaxPos}
 
-            // Push depth biased by the base times the renderIndex to prevent z-fighting
-            float depthBias = float(renderIndex) * ${DepthBiasBase};
+            float xSelect = float(gl_VertexID & 1);     // 0,1,0,1
+            float ySelect = float(gl_VertexID >> 1);    // 0,0,1,1
 
-            vec4 glPosMin = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
-            vec4 glPosMax = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-            vec3 cornerPos;
+            float x = mix(minPos.x, maxPos.x, float(xSelect));
+            float y = mix(minPos.y, maxPos.y, float(xSelect));
+            float z = mix(minPos.z, maxPos.z, float(ySelect));
 
-            if (gl_VertexID == 0) cornerPos = vec3(minPos.x, minPos.y, minPos.z);
-            if (gl_VertexID == 1) cornerPos = vec3(maxPos.x, maxPos.y, minPos.z);
-            if (gl_VertexID == 2) cornerPos = vec3(minPos.x, minPos.y, maxPos.z);
-            if (gl_VertexID == 3) cornerPos = vec3(maxPos.x, maxPos.y, maxPos.z);
+            vec3 cornerPos = vec3(x, y, z);
 
             float leftU = clamp(flipUOut, 0, 1);
             float rightU = 1 - clamp(flipUOut, 0, 1);
 
-            float u = (gl_VertexID & 1) == 1 ? rightU : leftU;
-            float v = (gl_VertexID >> 1) == 1 ? 0.0 : 1.0;
+            float u = mix(leftU, rightU, xSelect);
+            float v = mix(1.0, 0.0, ySelect);
 
             uvFrag = vec2(u, v);
 
             dist2D = (mvpNoPitch * vec4(cornerPos, 1.0)).${Depth};
             dist3D = (mvp * vec4(cornerPos, 1.0)).${Depth};
 
-            gl_Position = mvp * vec4(cornerPos, 1);
+            // Push depth biased by the base times the renderIndex to prevent z-fighting
+            float depthBias = float(renderIndex) * ${DepthBiasBase};
+            vec4 clip = mvp * vec4(cornerPos, 1);
+            ${AdjustSpriteVertexClip}
+
+            gl_Position = clip;
             zPosFrag = gl_Position.z;
             centerPosFrag = gl_Position.xyz;
             depthFrag = gl_Position.${Depth};
@@ -179,6 +181,7 @@ public class EntityProgram : RenderProgramBase
     .Replace("${BoxDefines}", BoxDefines)
     .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
     .Replace("${MinMaxPos}", GetMinMaxPos())
+    .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip())
     .Replace("${Depth}", ShaderVars.Depth);
 
     //protected override string? GeometryShader() => @"
