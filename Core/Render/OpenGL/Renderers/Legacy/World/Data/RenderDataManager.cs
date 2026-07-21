@@ -2,7 +2,6 @@
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util.Assertion;
-using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics.CodeAnalysis;
 

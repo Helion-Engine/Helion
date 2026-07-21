@@ -184,142 +184,6 @@ public class EntityProgram : RenderProgramBase
     .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip())
     .Replace("${Depth}", ShaderVars.Depth);
 
-    //protected override string? GeometryShader() => @"
-    //    #version 330 core
-    //    ${BoxDefines}
-
-    //    layout(points) in;
-    //    layout(triangle_strip, max_vertices = 4) out;
-
-    //    flat in float lightLevelOut[];
-    //    flat in float alphaOut[];
-    //    flat in float fuzzOut[];
-    //    flat in float flipUOut[];
-    //    flat in float colorMapTranslationOut[];
-    //    flat in float positionZOut[];
-    //    flat in float offsetZOut[];
-    //    flat in float offsetXYOut[];
-    //    flat in float renderIndexOut[];
-    //    flat in vec3 sectorColorMapIndexOut[];
-    //    flat in vec4 sectorFogOut[];
-    //    flat in ivec2 textureDimOut[];
-
-    //    out vec2 uvFrag;
-    //    out float dist2D;
-    //    out float dist3D;
-    //    out float fuzzDist;
-    //    out float renderDistSquared;
-    //    flat out float lightLevelFrag;
-    //    flat out float alphaFrag;
-    //    flat out float fuzzFrag;
-    //    flat out float colorMapTranslationFrag;
-    //    flat out float zPosFrag;
-    //    flat out float zPosDepthFrag;
-    //    flat out float textureWidthFrag;
-    //    flat out vec3 centerPosFrag;
-    //    flat out vec3 minPosFrag;
-    //    flat out vec3 maxPosFrag;
-    //    flat out vec3 sectorColorMapIndexFrag;
-    //    flat out vec4 sectorFogColorFrag;
-    //    out float depthFrag;
-
-    //    uniform mat4 mvp;
-    //    uniform mat4 mvpNoPitch;
-    //    uniform vec2 viewRightNormal;
-    //    uniform vec2 prevViewRightNormal;
-    //    uniform float timeFrac;
-    //    uniform vec3 viewPos;
-    //    uniform int healthBarMode;
-
-    //    float distSquared(vec2 v1, vec2 v2) {
-    //        vec2 length = v1.xy - v2.xy;
-    //        return (length.x * length.x) + (length.y * length.y);
-    //    }
-
-    //    void main()
-    //    {
-    //        float leftU = clamp(flipUOut[0], 0, 1);
-    //        float rightU = 1 - clamp(flipUOut[0], 0, 1);
-
-    //        vec3 pos = gl_in[0].gl_Position.xyz;
-    //        zPosFrag = pos.z;
-    //        pos.z += offsetZOut[0];
-
-    //        vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
-    //        vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
-
-    //        ${MinMaxPos}
-
-    //        // fuzzDist is going to be the center of min/max.
-    //        // This keeps the fuzz consistent across the texture.
-    //        vec4 glPosMin = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
-    //        vec4 glPosMax = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-    //        fuzzDist = (glPosMin.${Depth} + glPosMax.${Depth}) / 2;
-    //        // Render distance squared in 2d space for fade in/out effect
-    //        renderDistSquared = distSquared(viewPos.xy, pos.xy);
-
-    //        textureWidthFrag = textureDimOut[0].x;
-    //        centerPosFrag = pos;
-    //        minPosFrag = minPos;
-    //        maxPosFrag = maxPos;
-    //        zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
-
-    //        lightLevelFrag = lightLevelOut[0];
-    //        alphaFrag = alphaOut[0];
-    //        fuzzFrag = fuzzOut[0];
-    //        colorMapTranslationFrag = colorMapTranslationOut[0];
-    //        sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
-    //        sectorFogColorFrag = sectorFogOut[0];
-
-    //        // Push depth biased by the base times the renderIndex to prevent z-fighting
-    //        float depthBias = float(renderIndexOut[0]) * ${DepthBiasBase};
-
-    //        vec4 clip;
-    //        clip = glPosMin;
-    //        ${AdjustSpriteVertexClip}
-    //        gl_Position = clip;
-    //        dist2D = (mvpNoPitch * vec4(minPos, 1.0)).${Depth};
-    //        dist3D = (mvp * vec4(minPos, 1.0)).${Depth};
-    //        uvFrag = vec2(leftU, 1);
-    //        depthFrag = gl_Position.${Depth};
-    //        EmitVertex();
-
-    //        clip = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1.0);
-    //        ${AdjustSpriteVertexClip}
-    //        gl_Position = clip;
-    //        dist2D = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
-    //        dist3D = (mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
-    //        uvFrag = vec2(rightU, 1);
-    //        depthFrag = gl_Position.${Depth};
-    //        EmitVertex();
-
-    //        clip = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1.0);
-    //        ${AdjustSpriteVertexClip}
-    //        gl_Position = clip;
-    //        dist2D = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
-    //        dist3D = (mvp * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
-    //        uvFrag = vec2(leftU, 0);
-    //        depthFrag = gl_Position.${Depth};
-    //        EmitVertex();
-
-    //        clip = glPosMax;
-    //        ${AdjustSpriteVertexClip}
-    //        gl_Position = clip;
-    //        dist2D = (mvpNoPitch * vec4(maxPos, 1.0)).${Depth};
-    //        dist3D = (mvp * vec4(maxPos, 1.0)).${Depth};
-    //        uvFrag = vec2(rightU, 0);
-    //        depthFrag = gl_Position.${Depth};
-    //        EmitVertex();
-
-    //        EndPrimitive();
-    //    }  
-    //"
-    //.Replace("${Depth}", ShaderVars.Depth)
-    //.Replace("${BoxDefines}", BoxDefines)
-    //.Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
-    //.Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip())
-    //.Replace("${MinMaxPos}", GetMinMaxPos());
-
     private string GetMinMaxPos()
     {
         if (this is EntityHealthBarProgram)
@@ -329,8 +193,8 @@ public class EntityProgram : RenderProgramBase
                 interpolatedPos.z += offsetZOut;
                 vec3 minPos = interpolatedPos;
                 vec3 maxPos = interpolatedPos;
-                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut);
-                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut);";
+                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationFrag);
+                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationFrag);";
         }
 
         return @"

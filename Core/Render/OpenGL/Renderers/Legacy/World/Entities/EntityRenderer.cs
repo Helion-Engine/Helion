@@ -30,7 +30,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly EntityProgram m_program = new("Main");
-    //private readonly EntityHealthBarProgram m_healthBarProgram = new();
+    private readonly EntityHealthBarProgram m_healthBarProgram = new();
     private readonly EntityTransparentProgram m_programTransparent = new();
     private readonly EntityCompositeProgram m_programComposite = new();
     private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
@@ -413,12 +413,12 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         SetUniforms(m_program, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal);
 
-        //if (m_healthBars)
-        //{
-        //    m_healthBarProgram.Bind();
-        //    SetUniforms(m_healthBarProgram, renderInfo);
-        //    m_dataManager.RenderHealthBars();
-        //}
+        if (m_healthBars)
+        {
+            m_healthBarProgram.Bind();
+            SetUniforms(m_healthBarProgram, renderInfo);
+            m_dataManager.RenderHealthBars();
+        }
     }
 
     public void RenderOitTransparentPass(RenderInfo renderInfo)
