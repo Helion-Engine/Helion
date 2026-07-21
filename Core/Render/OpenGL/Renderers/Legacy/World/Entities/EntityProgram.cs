@@ -98,12 +98,18 @@ public class EntityProgram : RenderProgramBase
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
         uniform vec2 prevViewRightNormal;
+        uniform vec3 viewPos;
         uniform float timeFrac;
         uniform int useSectorColor;
         uniform int useSectorFog;
         uniform sampler2D boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
+
+        float distSquared(vec2 v1, vec2 v2) {
+            vec2 length = v1.xy - v2.xy;
+            return (length.x * length.x) + (length.y * length.y);
+        }
 
         void main()
         {
@@ -166,6 +172,7 @@ public class EntityProgram : RenderProgramBase
             zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
             minPosFrag = minPos;
             maxPosFrag = maxPos;
+            renderDistSquared = distSquared(viewPos.xy, pos.xy);
         }
     "
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag"))
@@ -532,8 +539,8 @@ public class EntityProgram : RenderProgramBase
         return clearAlpha + @"   
         ${HealthBar}
 
-        //float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
-        //fragColor.a = mix(fragColor.a, fragColor.a * fade, float(renderDistSquared > maxDistanceSquared - fadeDistance));
+        float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
+        fragColor.a = mix(fragColor.a, fragColor.a * fade, float(renderDistSquared > maxDistanceSquared - fadeDistance));
         ".Replace("${HealthBar}", GetOitOptions() == OitOptions.None ? GetHealthBar() : "");
     }
 
