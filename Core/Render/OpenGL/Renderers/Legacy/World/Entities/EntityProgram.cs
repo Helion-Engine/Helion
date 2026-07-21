@@ -142,6 +142,9 @@ public class EntityProgram : RenderProgramBase
 
             ${MinMaxPos}
 
+            centerPosFrag = pos;
+            zPosFrag = pos.z;
+
             float xSelect = float(gl_VertexID & 1);     // 0,1,0,1
             float ySelect = float(gl_VertexID >> 1);    // 0,0,1,1
 
@@ -168,8 +171,6 @@ public class EntityProgram : RenderProgramBase
             ${AdjustSpriteVertexClip}
 
             gl_Position = clip;
-            zPosFrag = gl_Position.z;
-            centerPosFrag = gl_Position.xyz;
             depthFrag = gl_Position.${Depth};
             zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
             minPosFrag = minPos;
