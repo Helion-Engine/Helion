@@ -164,6 +164,7 @@ public class EntityProgram : RenderProgramBase
             gl_Position = clip;
             dist3D = gl_Position.${Depth};
             dist2D = (mvpNoPitch * vec4(cornerPos, 1.0)).${Depth};
+            fuzzDist = dist3D;
             minPosFrag = minPos;
             maxPosFrag = maxPos;
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
