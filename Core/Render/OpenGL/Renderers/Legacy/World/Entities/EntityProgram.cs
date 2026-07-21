@@ -70,16 +70,11 @@ public class EntityProgram : RenderProgramBase
         layout(location = 3) in float offsetXYZ;
         layout(location = 4) in float renderOptions;
 
-        flat out float flipUOut;
-        flat out float positionZOut;
-        flat out float offsetXYOut;
-
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
-        flat out float zPosDepthFrag;
         flat out float textureWidthFrag;
         flat out vec3 centerPosFrag;
         flat out vec3 minPosFrag;
@@ -92,7 +87,6 @@ public class EntityProgram : RenderProgramBase
         out float dist3D;
         out float fuzzDist;
         out float renderDistSquared;
-        out float depthFrag;
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
@@ -116,7 +110,7 @@ public class EntityProgram : RenderProgramBase
             int intOptions = floatBitsToInt(surfaceOptions);
             alphaFrag = (intOptions & 0xFF) / 255.0;
             fuzzFrag = (intOptions >> 8) & 1;
-            flipUOut = (intOptions >> 9) & 1;
+            int flipU = (intOptions >> 9) & 1;
             lightLevelFrag = (intOptions >> 10) & 0xFF;
             colorMapTranslationFrag = (intOptions >> 18);
 
@@ -125,20 +119,20 @@ public class EntityProgram : RenderProgramBase
             int renderIndex = intOptions & 0xFFF;
 
             intOptions = floatBitsToInt(offsetXYZ);
-            offsetXYOut = (intOptions >> 16) & 0x3FFF;
+            float offsetXYOption = float((intOptions >> 16) & 0x3FFF);
 
-            float offsetZOut = float(intOptions & 0x3FFF);
+            float offsetZ = float(intOptions & 0x3FFF);
             float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
-            offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
-            offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
+            offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
+            offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
             ivec2 textureDim = textureSize(boundTexture, 0);
             textureWidthFrag = textureDim.x;
             
             ${SectorColorMapVertexFunction}
 
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
-            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut, 0);
+            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOption, 0);
 
             ${MinMaxPos}
 
@@ -154,16 +148,13 @@ public class EntityProgram : RenderProgramBase
 
             vec3 cornerPos = vec3(x, y, z);
 
-            float leftU = clamp(flipUOut, 0, 1);
-            float rightU = 1 - clamp(flipUOut, 0, 1);
+            float leftU = clamp(flipU, 0, 1);
+            float rightU = 1 - clamp(flipU, 0, 1);
 
             float u = mix(leftU, rightU, xSelect);
             float v = mix(1.0, 0.0, ySelect);
 
             uvFrag = vec2(u, v);
-
-            dist2D = (mvpNoPitch * vec4(cornerPos, 1.0)).${Depth};
-            dist3D = (mvp * vec4(cornerPos, 1.0)).${Depth};
 
             // Push depth biased by the base times the renderIndex to prevent z-fighting
             float depthBias = float(renderIndex) * ${DepthBiasBase};
@@ -171,8 +162,8 @@ public class EntityProgram : RenderProgramBase
             ${AdjustSpriteVertexClip}
 
             gl_Position = clip;
-            depthFrag = gl_Position.${Depth};
-            zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
+            dist3D = gl_Position.${Depth};
+            dist2D = (mvpNoPitch * vec4(cornerPos, 1.0)).${Depth};
             minPosFrag = minPos;
             maxPosFrag = maxPos;
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
@@ -191,7 +182,7 @@ public class EntityProgram : RenderProgramBase
         {
             return @"
                 vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
-                interpolatedPos.z += offsetZOut;
+                interpolatedPos.z += offsetZ;
                 vec3 minPos = interpolatedPos;
                 vec3 maxPos = interpolatedPos;
                 minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationFrag);
@@ -200,7 +191,7 @@ public class EntityProgram : RenderProgramBase
 
         return @"
             vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
-            interpolatedPos.z += offsetZOut;
+            interpolatedPos.z += offsetZ;
             vec3 minPos = interpolatedPos - offsetXY;
             vec3 maxPos = interpolatedPos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
     }
@@ -227,12 +218,10 @@ public class EntityProgram : RenderProgramBase
         flat in float fuzzFrag;
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
-        flat in float zPosDepthFrag;
         flat in float textureWidthFrag;
         flat in vec3 centerPosFrag;
         flat in vec3 minPosFrag;
         flat in vec3 maxPosFrag;
-        in float depthFrag;
 
         ${SectorColorMapFragVariables}
 
@@ -330,11 +319,11 @@ public class EntityProgram : RenderProgramBase
             vec3 planeClip = texelFetch(planeClipTexture, sampleCoords, 0).rgb;
 
             // Floor
-            if (planeClip.b == 1 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
+            if (planeClip.b == 1 && planeClip.g < dist3D && planeClip.r > zPosFrag)
                 return true;
 
             // Ceiling
-            if (planeClip.b == 2 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
+            if (planeClip.b == 2 && planeClip.g < dist3D && zPosFrag >= planeClip.r)
                 return true;
             
             if (wallClip.r >= 0) {
@@ -370,7 +359,7 @@ public class EntityProgram : RenderProgramBase
                         return false;
                 }
 
-                if (wallClip.a < depthFrag) {
+                if (wallClip.a < dist3D) {
                     // Discard if the sprite isn't on the same side of the line as the camera or when the sprite line doesn't intersect the line
                     return viewFront != entityFront || !lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
                 }
