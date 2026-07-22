@@ -90,7 +90,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         if (m_config is FileConfig fileConfig)
         {
             fileConfig.AppRestartRequired += Config_AppRestartRequired;
-            fileConfig.MapRestartRequired += Config_MapRestartRequired;
         }
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);

@@ -31,7 +31,6 @@ public class FileConfig : Config
     private bool m_noFileExistedWhenRead;
 
     public event EventHandler? AppRestartRequired;
-    public event EventHandler? MapRestartRequired;
 
     public FileConfig(string filePath, bool addDefaultsIfNew)
     {
