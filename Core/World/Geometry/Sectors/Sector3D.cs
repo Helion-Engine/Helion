@@ -9,6 +9,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Sectors;
@@ -204,49 +205,20 @@ public sealed class Sector3D
 
     public static void SetHeights3D(Sector sector, SetHeightsMode mode)
     {
-        // This is expensive and can be skipped if nothing changed on MapReload
-        if (sector.Sectors3D.Length == 0 || (mode == SetHeightsMode.MapReload && !sector.HeightsUpdated3D))
+        if (sector.Sectors3D.Length == 0)
             return;
 
         if (mode == SetHeightsMode.Update)
             sector.HeightsUpdated3D = true;
 
-        if (sector.SectorPlanes3D.Length == 0)
-        {
-            sector.SectorPlanes3D = new SectorPlane3D[(sector.Sectors3D.Length + 1) * 2];
-            var index = 0;
-
-            for (int i = 0; i < sector.Sectors3D.Length; i++)
-            {
-                var sector3D = sector.Sectors3D[i];
-                sector.SectorPlanes3D[index++] = new(sector3D.ControlTop, sector3D.FakeTop, sector3D, PlaneFace3D.Top, sector3D.ControlSector);
-                sector.SectorPlanes3D[index++] = new(sector3D.ControlBottom, sector3D.FakeBottom, sector3D, PlaneFace3D.Bottom, sector3D.ControlSector);
-            }
-
-            sector.SectorPlanes3D[index++] = new(sector.Ceiling, sector.Ceiling, null, PlaneFace3D.Top, sector);
-            sector.SectorPlanes3D[index++] = new(sector.Floor, sector.Floor, null, PlaneFace3D.Bottom, sector);
-        }
-
-        sector.TransferHeights = null;
-        sector.Sectors3D.Sort(SortSectors3D);
-
-        for (int i = 0; i < sector.Sectors3D.Length; i++)
-        {
-            var sector3D = sector.Sectors3D[i];
-            sector3D.CalculateHeights();
-            sector3D.RenderPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
-        }
-
-        for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
-            sector.SectorPlanes3D[i].UpdateSortKey();
-
-        sector.SectorPlanes3D.Sort(SortPlanesByKey3D);
+        SetupPlanesAndSort(sector);
 
         var currentLightSector = sector;
         Sector3D? currentLightSector3D = null;
         Sector resetLightSector = sector;
         Sector3D? resetLightSector3D = null;
         var resetLight = false;
+        var resetZ = double.MaxValue;
         ref var lastPlane3D = ref sector.SectorPlanes3D[0];
         ref var overlapLightPlane3D = ref sector.SectorPlanes3D[0];
 
@@ -255,9 +227,11 @@ public sealed class Sector3D
             ref var plane3D = ref sector.SectorPlanes3D[i];
             plane3D.NoRenderWall = false;
             var sector3D = plane3D.Sector3D;
-
-            if (resetLight)
+            
+            // If this plane is the same height as the last for transfer light then don't reset here.
+            if (resetLight && resetZ != plane3D.GetZ())
             {
+                resetZ = double.MaxValue;
                 resetLight = false;
                 currentLightSector3D = resetLightSector3D;
                 currentLightSector = resetLightSector;
@@ -308,6 +282,14 @@ public sealed class Sector3D
             lastPlane3D = ref plane3D;
             SetLight(sector3D, ref plane3D, currentLightSector);
 
+            if (resetLight)
+            {
+                resetZ = double.MaxValue;
+                resetLight = false;
+                currentLightSector3D = resetLightSector3D;
+                currentLightSector = resetLightSector;
+            }
+
             if ((sector3D.Flags & SectorFlags3D.ResetLight) != 0)
             {
                 resetLightSector = sector;
@@ -319,7 +301,7 @@ public sealed class Sector3D
                 resetLightSector3D = sector3D;
             }
 
-            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, true, out resetLight))
+            if (ShouldCarryLight(currentLightSector3D, sector3D, plane3D, true, out resetLight, out resetZ))
                 continue;
 
             currentLightSector = sector3D.ControlSector;
@@ -328,6 +310,40 @@ public sealed class Sector3D
             if (overlapLight && overlapLightPlane3D.Sector3D != null)
                 SetLight(overlapLightPlane3D.Sector3D, ref overlapLightPlane3D, currentLightSector);
         }
+    }
+
+    private static void SetupPlanesAndSort(Sector sector)
+    {
+        if (sector.SectorPlanes3D.Length == 0)
+        {
+            sector.SectorPlanes3D = new SectorPlane3D[(sector.Sectors3D.Length + 1) * 2];
+            var index = 0;
+
+            for (int i = 0; i < sector.Sectors3D.Length; i++)
+            {
+                var sector3D = sector.Sectors3D[i];
+                sector.SectorPlanes3D[index++] = new(sector3D.ControlTop, sector3D.FakeTop, sector3D, PlaneFace3D.Top, sector3D.ControlSector);
+                sector.SectorPlanes3D[index++] = new(sector3D.ControlBottom, sector3D.FakeBottom, sector3D, PlaneFace3D.Bottom, sector3D.ControlSector);
+            }
+
+            sector.SectorPlanes3D[index++] = new(sector.Ceiling, sector.Ceiling, null, PlaneFace3D.Top, sector);
+            sector.SectorPlanes3D[index++] = new(sector.Floor, sector.Floor, null, PlaneFace3D.Bottom, sector);
+        }
+
+        sector.TransferHeights = null;
+        sector.Sectors3D.Sort(SortSectors3D);
+
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+        {
+            var sector3D = sector.Sectors3D[i];
+            sector3D.CalculateHeights();
+            sector3D.RenderPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
+        }
+
+        for (int i = 0; i < sector.SectorPlanes3D.Length; i++)
+            sector.SectorPlanes3D[i].UpdateSortKey();
+
+        sector.SectorPlanes3D.Sort(SortPlanesByKey3D);
     }
 
     private static bool ShouldResetLightSector(in SectorPlane3D plane3D, Sector3D sector3D)
@@ -359,8 +375,9 @@ public sealed class Sector3D
             sector3D.LightTop = lightSector;
     }
 
-    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, in SectorPlane3D nextPlane3D, bool checkLightTransfer, out bool resetLight)
+    private static bool ShouldCarryLight(Sector3D? currentLightSector3D, Sector3D nextSector3D, in SectorPlane3D nextPlane3D, bool checkLightTransfer, out bool resetLight, out double resetZ)
     {
+        resetZ = double.MaxValue;
         resetLight = false;
 
         if ((nextSector3D.Flags & SectorFlags3D.RestrictLighting) != 0)
@@ -387,7 +404,10 @@ public sealed class Sector3D
                     break;
                 case SectorLightFlags3D.ToControlFloor:
                     if (nextSector3D == currentLightSector3D && nextPlane3D.Face == PlaneFace3D.Bottom)
+                    {
+                        resetZ = nextPlane3D.GetZ();
                         resetLight = true;
+                    }
                     break;
             }
 
@@ -423,13 +443,37 @@ public sealed class Sector3D
         return y.ControlTop.Z.CompareTo(x.ControlTop.Z);
     }
 
+    // Returns the 3D sector that is valid for the viewer's current Z position.
+    public static bool TryGetValidViewLightSector3D(Entity viewer, [NotNullWhen(true)] out Sector? lightSector3D)
+    {
+        var viewZ = viewer.Position.Z + viewer.ViewZ;
+        for (int i = 0; i < viewer.Sector.SectorPlanes3D.Length - 1; i++)
+        {
+            ref var plane = ref viewer.Sector.SectorPlanes3D[i];
+            ref var nextPlane = ref viewer.Sector.SectorPlanes3D[i + 1];
+            if (viewZ > nextPlane.GetZ() && viewZ <= plane.GetZ())
+            {
+                lightSector3D = nextPlane.LightSector;
+                return true;
+            }
+        }
+
+        lightSector3D = null;
+        return false;
+    }
+
     public void Reset()
     {
         for (int i = 0; i < FakeSector.Lines.Length; i++)
-            FakeSector.Lines[i].Front.Reset();
+        {
+            var line = FakeSector.Lines[i];
+            line.Front.Reset();
+            line.Back?.Reset();
+        }
 
         FakeBottom.Reset(0);
         FakeTop.Reset(0);
+        FakeSector.Reset();
     }
 
     public bool IsInvertedByContext(SolidContext context)
@@ -755,5 +799,5 @@ public sealed class Sector3D
         return WallLocation.Middle;
     }
 
-    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} Style={RenderDataStyle} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";
+    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} Flags={Flags} LightLevel={ControlSector.LightLevel} Style={RenderDataStyle} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]{ControlSector.ToStringColors()}";
 }

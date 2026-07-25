@@ -13,67 +13,71 @@ public class ConfigCompat: ConfigElement<ConfigCompat>
 
     [ConfigInfo("Use vanilla method for finding shortest texture. Emulates bug with AASHITTY.", save: false, serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Find Shortest Texture", spacer: true)]
-    public readonly ConfigValue<bool> VanillaShortestTexture = new(true);
+    public readonly ConfigCompatValue VanillaShortestTexture = new(CompatSetting.True);
 
     [ConfigInfo("Use DeHackEd over DECORATE if both are available.", demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Use DeHackEd over DECORATE")]
-    public readonly ConfigValue<bool> PreferDehacked = new(true);
+    public readonly ConfigCompatValue PreferDehacked = new(CompatSetting.True);
 
     [ConfigInfo("Allow items to drop off tall ledges.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Items Drop Off Ledges")]
-    public readonly ConfigValue<bool> AllowItemDropoff = new(true);
+    public readonly ConfigCompatValue AllowItemDropoff = new(CompatSetting.True);
 
     [ConfigInfo("Use vanilla sector physics. Floors can move through ceilings. Only one move special per sector at a time.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla Sector Physics")]
-    public readonly ConfigValue<bool> VanillaSectorPhysics = new(false);
+    public readonly ConfigCompatValue VanillaSectorPhysics = new(CompatSetting.False);
 
     [ConfigInfo("Use vanilla movement physics. Velocity is maintained when hitting things.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla Movement Physics")]
-    public readonly ConfigValue<bool> VanillaMovementPhysics = new(true);
+    public readonly ConfigCompatValue VanillaMovementPhysics = new(CompatSetting.True);
 
     [ConfigInfo("Use vanilla sector sound calculation. Sound is calculated from the center of the sector's bounding box.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla Sector Sound")]
-    public readonly ConfigValue<bool> VanillaSectorSound = new(false);
+    public readonly ConfigCompatValue VanillaSectorSound = new(CompatSetting.False);
 
     [ConfigInfo("Emulate vanilla infinitely tall things.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Infinitely Tall Things")]
-    public readonly ConfigValue<bool> InfinitelyTallThings = new(false);
+    public readonly ConfigCompatValue InfinitelyTallThings = new(CompatSetting.False);
 
     [ConfigInfo("Things use their original vanilla heights for projectile collision checks.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla Missile Height Collision")]
-    public readonly ConfigValue<bool> MissileClip = new(false);
+    public readonly ConfigCompatValue MissileClip = new(CompatSetting.False);
 
     [ConfigInfo("Limit lost souls spawned by pain elementals to 21.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Limit Pain Elemental Lost Souls to 21")]
-    public readonly ConfigValue<bool> PainElementalLostSoulLimit = new(false);
+    public readonly ConfigCompatValue PainElementalLostSoulLimit = new(CompatSetting.False);
 
     [ConfigInfo("Disable item drop tossing.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Disable Item Drop Tossing")]
-    public readonly ConfigValue<bool> NoTossDrops = new(false);
+    public readonly ConfigCompatValue NoTossDrops = new(CompatSetting.False);
 
     [ConfigInfo("Use Doom's bugged stair building.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Use Bugged Stair Building")]
-    public readonly ConfigValue<bool> Stairs = new(false);
+    public readonly ConfigCompatValue Stairs = new(CompatSetting.False);
 
     [ConfigInfo("Enable Doom 2 projectiles triggering walk specials.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Doom 2 Projectiles Trigger Walk Specials")]
-    public readonly ConfigValue<bool> Doom2ProjectileWalkTriggers = new(false);
+    public readonly ConfigCompatValue Doom2ProjectileWalkTriggers = new(CompatSetting.False);
 
     [ConfigInfo("Use original Doom explosion behavior.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Use Original Doom Explosion Behavior")]
-    public readonly ConfigValue<bool> OriginalExplosion = new(false);
+    public readonly ConfigCompatValue OriginalExplosion = new(CompatSetting.False);
 
     [ConfigInfo("Enable vile ghosts.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Vile Ghosts")]
-    public readonly ConfigValue<bool> VileGhosts = new(false);
+    public readonly ConfigCompatValue VileGhosts = new(CompatSetting.False);
 
     [ConfigInfo("Enable Final Doom teleports. Disables forcing to floor.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Final Doom Teleport")]
-    public readonly ConfigValue<bool> FinalDoomTeleport = new(false);
+    public readonly ConfigCompatValue FinalDoomTeleport = new(CompatSetting.False);
 
     [ConfigInfo("Enable MBF21 features.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Enable MBF21 Features")]
-    public readonly ConfigValue<bool> Mbf21 = new(true);
+    public readonly ConfigCompatValue Mbf21 = new(CompatSetting.True);
+
+    [ConfigInfo("MBF Telefrag Behavior that disables monster telefrags on MAP30 and only allows for icon boss spawns.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Mbf Telefrag Behavior")]
+    public readonly ConfigCompatValue MbfTelefrag = new(CompatSetting.True);
 
     public void ResetToUserValues()
     {
@@ -92,5 +96,6 @@ public class ConfigCompat: ConfigElement<ConfigCompat>
         VanillaShortestTexture.ResetToUserValue();
         VileGhosts.ResetToUserValue();
         Mbf21.ResetToUserValue();
+        MbfTelefrag.ResetToUserValue();
     }
 }

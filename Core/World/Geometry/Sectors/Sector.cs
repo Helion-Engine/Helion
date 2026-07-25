@@ -676,42 +676,72 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
     public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;
 
-    public bool GetWaterSubmersionHeight(Entity entity, out double height, [NotNullWhen(true)] out Sector3D? sector3d)
+    public void GetSectorProperties3D(Entity entity, out double waterHeight, out Sector3D? waterSector, out Sector? lightSector3D)
     {
-        if (WorldStatic.Sector3D && Sectors3D.Length > 0)
+        lightSector3D = null;
+        waterSector = null;
+        waterHeight = 0;
+
+        if (!WorldStatic.Sector3D || Sectors3D.Length == 0)
+            return;
+
+        var setBetween = false;
+        var entityMin = entity.Position.Z;
+        var entityMax = entity.Position.Z + entity.Height;
+        var centerZ = entity.Position.Z + (entity.Height / 2);
+        var lightHeight = entity.Height / 3.5;
+
+        if (entityMin >= Sectors3D[0].WallHeights.TopZ)
+            lightSector3D = this;
+
+        for (int i = 0; i < Sectors3D.Length; i++)
         {
-            var centerZ = entity.Position.Z + (entity.Height / 2);
-            for (int i = 0; i < Sectors3D.Length; i++)
+            var sector3D = Sectors3D[i];
+
+            if (sector3D.WallHeights.TopZ - entityMin > lightHeight)
             {
-                sector3d = Sectors3D[i];
-
-                if (!sector3d.IsSwimmable || sector3d.ControlBottom.Z > centerZ || sector3d.ControlTop.Z <= entity.Position.Z)
-                    continue;
-
-                height = sector3d.ControlTop.Z;
-                return true; 
+                if (entityMin < sector3D.WallHeights.TopZ && sector3D.WallHeights.BottomZ < entityMax)
+                {
+                    lightSector3D = sector3D.LightBottom;
+                    setBetween = true;
+                }
+                else if (!setBetween && entityMax < sector3D.WallHeights.BottomZ)
+                {
+                    lightSector3D = sector3D.LightBottom;
+                }
             }
+
+            if (waterSector != null || !sector3D.IsSwimmable || sector3D.ControlBottom.Z > centerZ || sector3D.ControlTop.Z <= entity.Position.Z)
+                continue;
+
+            waterSector = sector3D;
+            waterHeight = sector3D.ControlTop.Z;
         }
 
-        sector3d = null;
-        height = 0;
-        return false;
+        var lastSector3D = Sectors3D[^1];
+        if (SectorPlanes3D.Length > 0 && entityMax <= lastSector3D.WallHeights.TopZ && lastSector3D.WallHeights.TopZ - entityMin > lightHeight)
+            lightSector3D = SectorPlanes3D[^1].LightSector;
     }
 
-    public bool GetViewSector3D(Entity entity, [NotNullWhen(true)] out Sector3D? sector3d)
+    public bool GetViewSector3D(Entity entity, [NotNullWhen(true)] out Sector3D? sector3D)
     {
+        sector3D = null;
+
         if (WorldStatic.Sector3D && Sectors3D.Length > 0)
         {
             var viewZ = entity.Position.Z + entity.ViewZ;
-            for (int i = 0; i < Sectors3D.Length; i++)
+            for (int i = 0; i < SectorPlanes3D.Length; i++)
             {
-                sector3d = Sectors3D[i];
-                if (viewZ > sector3d.ControlBottom.Z && viewZ < sector3d.ControlTop.Z)
-                    return true;
+                ref var sectorPlane3D = ref SectorPlanes3D[i];
+                if (viewZ > sectorPlane3D.Plane.Z)
+                {
+                    if (i - 1 > 0)
+                        sector3D = SectorPlanes3D[i - 1].Sector3D;
+                    return sector3D != null;
+                }
             }
         }
 
-        sector3d = null;
         return false;
     }
 
@@ -1020,12 +1050,12 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             if (line.Back != null)
             {
                 Side side = line.Front;
-                min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture, min);
+                min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture.Value.ToBool(), min);
 
                 if (line.Back != null)
                 {
                     side = line.Back;
-                    min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture, min);
+                    min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture.Value.ToBool(), min);
                 }
             }
         }
@@ -1098,7 +1128,20 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
     public override int GetHashCode() => Id.GetHashCode();
 
-    public override string ToString() => Sector3D?.ToString() ?? $"Id={Id} [{Floor.Z} -> {Ceiling.Z}] LightLevel={LightLevel}";
+    public override string ToString() => Sector3D?.ToString() ?? $"Id={Id} [{Floor.Z} -> {Ceiling.Z}] LightLevel={LightLevel}{ToStringColors()}";
+
+    public string ToStringColors()
+    {
+        if (LightColor.Uint == 0 && FogColor.Uint == 0)
+            return string.Empty;
+
+        var str = "";
+        if (LightColor.Uint != 0)
+            str = $" Color={LightColor}";
+        if (FogColor.Uint != 0)
+            str += $" Fog={FogColor} ";
+        return str;
+    }
 
     public void UnlinkFromWorld(IWorld world)
     {

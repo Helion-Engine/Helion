@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Helion.World.StatusBar;
+using Helion.Resources.Definitions.Id24;
 
 namespace Helion.Util.Configs
 {
@@ -49,6 +50,8 @@ namespace Helion.Util.Configs
             { typeof(RenderContrastMode), Enum.GetValues<RenderContrastMode>() },
             { typeof(WeaponSwitch), Enum.GetValues<WeaponSwitch>() },
             { typeof(ConfigRenderMode), Enum.GetValues<ConfigRenderMode>() },
+            { typeof(CompatSetting), Enum.GetValues<CompatSetting>() },
+            { typeof(Id24TrackInfoType), Enum.GetValues<Id24TrackInfoType>() },
         };
 
         public static Dictionary<Type, Dictionary<Enum, string>> KnownEnumLabels { get; } = new Dictionary<Type, Dictionary<Enum, string>>()
@@ -76,6 +79,8 @@ namespace Helion.Util.Configs
             { typeof(SkyRenderMode), GetDescriptions<SkyRenderMode>()},
             { typeof(WeaponSwitch), GetDescriptions<WeaponSwitch>()},
             { typeof(ConfigRenderMode), GetDescriptions<ConfigRenderMode>()},
+            { typeof(CompatSetting), GetDescriptions<CompatSetting>() },
+            { typeof(Id24TrackInfoType), GetDescriptions<Id24TrackInfoType>() },
         };
 
         private static Dictionary<Enum, string> GetDescriptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>() where T : struct, Enum

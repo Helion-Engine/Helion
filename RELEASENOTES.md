@@ -15,6 +15,7 @@
 - Added sound resampler options
 - Added found secret color to automap
 - Added ACS support
+- Added TRAKINFO support
 
 ## Bug Fixes:
 - Fix nextmap/previousmap breaking on WADs with maps that exit to the same map.
@@ -53,6 +54,9 @@
 - Fix issues with negative Y scaling for middle textures.
 - Fix issue with berserk taking priority over damage when berserk intensity is zero with palettes.
 - Fix ZDoom brightmaps from GLDEFS not using the full path for map. Fixes bmplus_spritefix.pk3 incorrectly pulling Heretic sprites when using Doom1/Doom2.
+- Fix demos not saving.
+- Add mbf telefrag compat option. Fixes MBF maps in the MAP30 slot that expect things not telefrag when teleported.
+- Fix intermission considering wide patches as fullscreen (fixes doghouse MAP11 intermission offset).
 
 ## Misc:
 - Refactor of old Status Bar renderer to data-driven SBARDEF format.
@@ -74,3 +78,4 @@
 - Update OpenAL-Soft dependency to 1.25.2
 - Update SDL controller database support file (for button mappings, etc.)
 - Improved performance for A_KeenDie and A_BossDeath functions for extreme cases like 100krevs.wad.
+- Add support for Always On/Always Off in compatibility options. These values will never be changed by Helion when setting a complvl.

@@ -1,5 +1,4 @@
 ﻿using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -16,10 +15,10 @@ public class Id24SkyDefinition
 
     public void Parse(Entry entry)
     {
-        string data = entry.ReadDataAsString();
         try
         {
-            var converted = (SkyDefinitions?)JsonSerializer.Deserialize(data, typeof(SkyDefinitions), SkyDefinitionSerializationContext.Default) ?? throw new Exception("Data was null");
+            using var stream = entry.GetStream();
+            var converted = JsonSerializer.Deserialize(stream, SkyDefinitionSerializationContext.Default.SkyDefinitions) ?? throw new Exception("Data was null");
             Data = converted.Data;
 
             if (Data.FlatMapping != null)

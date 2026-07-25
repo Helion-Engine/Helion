@@ -26,6 +26,7 @@ using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
@@ -559,6 +560,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
+        Config.Compatibility.MbfTelefrag.OnChanged += MbfTelefrag_OnChanged;
 
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
@@ -585,6 +587,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
+        Config.Compatibility.MbfTelefrag.OnChanged -= MbfTelefrag_OnChanged;
 
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
@@ -614,17 +617,18 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SlowTickTracerMultiplier = (short)Config.SlowTick.TracerMultiplier;
         WorldStatic.IsFastMonsters = IsFastMonsters;
         WorldStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
-        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
-        WorldStatic.MissileClip = Config.Compatibility.MissileClip;
-        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
-        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
-        WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
+        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings.Value.ToBool();
+        WorldStatic.MissileClip = Config.Compatibility.MissileClip.Value.ToBool();
+        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff.Value.ToBool();
+        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops.Value.ToBool();
+        WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics.Value.ToBool();
         WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
-        WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
-        WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
-        WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
-        WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
-        WorldStatic.VanillaSectorSound = Config.Compatibility.VanillaSectorSound;
+        WorldStatic.Mbf21 = Config.Compatibility.Mbf21.Value.ToBool();
+        WorldStatic.MbfTelefrag = Config.Compatibility.MbfTelefrag.Value.ToBool();
+        WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers.Value.ToBool();
+        WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion.Value.ToBool();
+        WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport.Value.ToBool();
+        WorldStatic.VanillaSectorSound = Config.Compatibility.VanillaSectorSound.Value.ToBool();
         WorldStatic.RespawnTicks = SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
@@ -666,26 +670,29 @@ public abstract partial class WorldBase : IWorld
             WorldStatic.MaxSoulsphere = soulSphere.Properties.Inventory.MaxAmount;
     }
 
-    private void VanillaSectorSound_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.VanillaSectorSound = enabled;
-    private void FinalDoomTeleport_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.FinalDoomTeleport = enabled;
-    private void OriginalExplosion_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.OriginalExplosion = enabled;
-    private void Doom2ProjectileWalkTriggers_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.Doom2ProjectileWalkTriggers = enabled;
-    private void Mbf21_OnChanged(object? sender, bool enabled) =>
-       WorldStatic.Mbf21 = enabled;
-    private void VanillaMovementPhysics_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.VanillaMovementPhysics = enabled;
-    private void NoTossDrops_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.NoTossDrops = enabled;
-    private void InfinitelyTallThings_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.InfinitelyTallThings = !WorldStatic.Sector3D && enabled;
-    private void AllowItemDropoff_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.AllowItemDropoff = enabled;
-    private void MissileClip_OnChanged(object? sender, bool enabled) =>
-        WorldStatic.MissileClip = enabled;
+
+    private void MbfTelefrag_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.MbfTelefrag = enabled.ToBool();
+    private void VanillaSectorSound_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.VanillaSectorSound = enabled.ToBool();
+    private void FinalDoomTeleport_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.FinalDoomTeleport = enabled.ToBool();
+    private void OriginalExplosion_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.OriginalExplosion = enabled.ToBool();
+    private void Doom2ProjectileWalkTriggers_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.Doom2ProjectileWalkTriggers = enabled.ToBool();
+    private void Mbf21_OnChanged(object? sender, CompatSetting enabled) =>
+       WorldStatic.Mbf21 = enabled.ToBool();
+    private void VanillaMovementPhysics_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.VanillaMovementPhysics = enabled.ToBool();
+    private void NoTossDrops_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.NoTossDrops = enabled.ToBool();
+    private void InfinitelyTallThings_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.InfinitelyTallThings = !WorldStatic.Sector3D && enabled.ToBool();
+    private void AllowItemDropoff_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.AllowItemDropoff = enabled.ToBool();
+    private void MissileClip_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.MissileClip = enabled.ToBool();
     private void SlowTickEnabled_OnChanged(object? sender, bool enabled) =>
         WorldStatic.SlowTickEnabled = enabled;
     private void SlowTickDistance_OnChanged(object? sender, int distance) =>
@@ -789,7 +796,7 @@ public abstract partial class WorldBase : IWorld
 
         // 3D sector heights are set after entities are spawned so the correct light sector needs to be recalculated here.
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
-            PhysicsManager.SetCeilingLightSector3D(entity);   
+            PhysicsManager.SetLightSector3D(entity);   
     }
 
     private void SetSectorData()
@@ -845,9 +852,6 @@ public abstract partial class WorldBase : IWorld
 
     private void SpecialManager_SectorMoveComplete(object? sender, SectorPlane sectorPlane)
     {
-        if (sectorPlane.Sector.IsMoving)
-            return;
-
         sectorPlane.Sector.MoveEventGameTick = Gametick;
         SectorMoveComplete?.Invoke(this, sectorPlane);
 
@@ -2625,7 +2629,7 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
-            var intersectEntity = tryMove.IntersectEntities2D[i];
+            var intersectEntity = tryMove.IntersectEntities2D.Data[i];
             if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 
@@ -2641,7 +2645,7 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
-            var intersectEntity = tryMove.IntersectEntities2D[i];
+            var intersectEntity = tryMove.IntersectEntities2D.Data[i];
             if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 
@@ -4041,7 +4045,7 @@ public abstract partial class WorldBase : IWorld
         if (m_healChaseData.HealSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
-        bool setVileGhost = Config.Compatibility.VileGhosts && entity.Flags.CrushGiblets();
+        bool setVileGhost = Config.Compatibility.VileGhosts.Value.ToBool() && entity.Flags.CrushGiblets();
         entity.SetRaiseState(!setVileGhost);
         if (setVileGhost)
         {

@@ -66,6 +66,7 @@ public class DefinitionEntries
     public readonly MusInfoDefinition MusInfoDefinition = new();
     public readonly Id24SkyDefinition Id24SkyDefinition = new();
     public readonly Id24TranslationDefinition Id24TranslationDefinition = new();
+    public readonly Id24TrackInfoDefinition Id24TrackInfoDefinition = new();
 
     /// <inheritdoc cref="Id24.GameConfDefinition"/>
     public readonly GameConfDefinition GameConfDefinition = new();
@@ -95,7 +96,7 @@ public class DefinitionEntries
     private bool m_parseLegacyMapInfo;
     private bool m_parseWeapons;
 
-    private bool ShouldParseWeapons => m_parseWeapons || !ConfigCompatibility.PreferDehacked;
+    private bool ShouldParseWeapons => m_parseWeapons || !ConfigCompatibility.PreferDehacked.Value.ToBool();
 
     /// <summary>
     /// Creates a definition entries data structure which has no tracked
@@ -127,6 +128,7 @@ public class DefinitionEntries
         m_entryNameToAction["SBARDEF"] = entry => ParseSBarDef(entry);
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
+        m_entryNameToAction["TRAKINFO"] = Id24TrackInfoDefinition.Parse;
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
         m_entryNameToAction["GLDEFS"] = ParseGldefs;
         m_entryNameToAction["DOOMDEFS"] = ParseGldefs;
@@ -286,9 +288,9 @@ public class DefinitionEntries
         m_parseLegacyMapInfo = true;
 
         bool hasBoth = archive.AnyEntryByName("DEHACKED") && archive.AnyEntryByName("DECORATE");
-        if (ConfigCompatibility.PreferDehacked && hasBoth)
+        if (ConfigCompatibility.PreferDehacked.Value.ToBool() && hasBoth)
             m_parseDecorate = false;
-        else if (!ConfigCompatibility.PreferDehacked && hasBoth)
+        else if (!ConfigCompatibility.PreferDehacked.Value.ToBool() && hasBoth)
             m_parseDehacked = false;
 
         var ZMapInfo = archive.AnyEntryByName("ZMAPINFO");

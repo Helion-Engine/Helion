@@ -966,7 +966,7 @@ public class Player : Entity
 
     private Vec3D CalculateForwardMovement(double speed)
     {
-        if (Flags.NoGravity() || WaterSubmersionLevel > SubmersionLevel.None)
+        if (Flags.NoGravity() || WaterSubmersionLevel >= SubmersionLevel.MoreThanHalf)
             return Vec3D.UnitSphere(AngleRadians, PitchRadians) * speed;
 
         return new(Math.Cos(AngleRadians) * speed, Math.Sin(AngleRadians) * speed, 0);

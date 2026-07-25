@@ -116,7 +116,7 @@ public partial class WorldBase
             if (!component.Attribute.Serialize)
                 continue;
 
-            s_configValueModels.Add(new ConfigValueModel(path, component.Value.ObjectValue));
+            s_configValueModels.Add(new ConfigValueModel(path, component.Value.ObjectValueSerialize));
         }
         return s_configValueModels;
     }

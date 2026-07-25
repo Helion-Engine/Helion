@@ -48,7 +48,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
-    private readonly List<Sector> m_initMoveSectors = [];
     private readonly GeometryRenderer.RenderCoverWallAction m_renderCoverWallAction;
     private readonly DynamicVertex[] m_coverWallVertices3D = new DynamicVertex[6];
 
@@ -135,9 +134,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 AddSectorPlane(sector, SectorPlaneFace.Floor, true);
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, SectorPlaneFace.Ceiling, false);
-
-            if (sector.IsMoving)
-                m_initMoveSectors.Add(sector);
         }
 
         if (WorldStatic.Sector3D)
@@ -163,19 +159,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
             AddLine(line);
         }
-
-        // Sectors can be actively moving loading a save game.
-        WorldBase worldBase = (WorldBase)world;
-        for (int i = 0; i < m_initMoveSectors.Count; i++)
-        {
-            var sector = world.Sectors[i];
-            if (sector.ActiveFloorMove != null)
-                HandleSectorMoveStart(worldBase, sector.Floor);
-            if (sector.ActiveCeilingMove != null)
-                HandleSectorMoveStart(worldBase, sector.Ceiling);
-        }
-
-        m_initMoveSectors.Clear();
 
         foreach (var list in m_geometry.GetAllGeometry())
         {

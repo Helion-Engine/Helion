@@ -839,6 +839,7 @@ public partial class Client
 
     private void NewGame(MapInfoDef mapInfo)
     {
+        m_globalData?.Dispose();
         m_globalData = new();
         QueueLoadMap(mapInfo, null, null, LevelChangeEvent.Default);
     }

@@ -82,7 +82,7 @@ public class Wad : Archive
     public Stream GetStream(WadEntry entry)
     {
         Precondition(entry.Parent == this, "Bad entry parent");
-        return new SubStream(GetFileStream(), entry.Offset, entry.Size);
+        return new SubStream(GetFileStream(), entry.Offset, entry.Size, disposeBaseStream: true);
     }
 
     public override void Dispose()

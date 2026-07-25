@@ -2,6 +2,7 @@
 {
     using Helion.Maps.Shared;
     using Helion.Models;
+    using Helion.Util.Configs.Components;
     using Helion.Util.RandomGenerators;
     using System.Text.Json.Serialization;
 
@@ -12,6 +13,7 @@
     [JsonSerializable(typeof(DemoModel), TypeInfoPropertyName = "DemoModel")]
     [JsonSerializable(typeof(SkillLevel), TypeInfoPropertyName = "SkillLevel")]
     [JsonSerializable(typeof(RngMethod), TypeInfoPropertyName = "RngMethod")]
+    [JsonSerializable(typeof(WeaponSwitch), TypeInfoPropertyName = "WeaponSwitch" )]
     public partial class DemoModelSerializationContext : JsonSerializerContext
     {
     }
