@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL;
 
@@ -18,6 +19,12 @@ public class VertexPipeline<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
     private bool m_disposed;
 
     public VertexPipeline(RenderProgram program, VertexBufferObject<TVertex> vbo, string vaoLabel)
+        : this(MemoryMarshal.CreateSpan(ref program, 1), vbo, vaoLabel)
+    {
+
+    }
+
+    public VertexPipeline(Span<RenderProgram> programs, VertexBufferObject<TVertex> vbo, string vaoLabel)
     {
         Vbo = vbo;
 
@@ -26,7 +33,8 @@ public class VertexPipeline<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
             if (SharedVao == null)
             {
                 SharedVao = new(vaoLabel, VertexArrayType.Modern);
-                Attributes.ApplyModern(Vbo, SharedVao, program.Attributes);
+                for (int i = 0; i < programs.Length; i++)
+                    Attributes.ApplyModern(Vbo, SharedVao, programs[i].Attributes);
             }
 
             Vao = SharedVao;
@@ -35,7 +43,8 @@ public class VertexPipeline<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
         {
             Vao = new(vaoLabel, VertexArrayType.Legacy);
             Vao.Bind();
-            Attributes.BindAndApply(Vbo, Vao, program.Attributes);
+            for (int i = 0; i < programs.Length; i++)
+                Attributes.BindAndApply(Vbo, Vao, programs[i].Attributes);
         }
     }
 
