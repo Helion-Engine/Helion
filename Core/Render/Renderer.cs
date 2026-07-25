@@ -678,7 +678,7 @@ public partial class Renderer : IDisposable
         Log.Info("GL_ARB_clip_control {0}", GLInfo.ClipControlSupported);
         Log.Info("GL_ARB_shader_image_load_store {0}", GLInfo.MemoryBarrierSupported);
         Log.Info("GL_ARB_buffer_storage {0}", GLInfo.MapPersistentBitSupported);
-        Log.Info("GL_ARB_vertex_attrib_binding {0}", GLInfo.DsaSupported);
+        Log.Info("GL_ARB_direct_state_access", GLInfo.DsaSupported);
 
         InfoPrinted = true;
     }
