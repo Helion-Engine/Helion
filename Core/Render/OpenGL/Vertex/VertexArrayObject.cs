@@ -16,7 +16,7 @@ public class VertexArrayObject : IDisposable
     public readonly int Handle;
     private bool m_disposed;
 
-    public VertexArrayObject(string label, VertexArrayType type = VertexArrayType.Legacy)
+    public VertexArrayObject(string label, VertexArrayType type)
     {
         if (type == VertexArrayType.Modern)
             GL.CreateVertexArrays(1, out Handle);
