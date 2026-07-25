@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
@@ -18,7 +19,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
     public readonly string Label;
     public DynamicArray<T> Data;
-    protected readonly int BufferId;
+    public readonly int BufferId;
     protected bool Uploaded;
     private bool m_disposed;
 
@@ -38,9 +39,12 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         Label = label;
         BufferId = GL.GenBuffer();
 
-        Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, BufferId, $"{LabelPrefix}: {label}");
-        Unbind();
+        if (GLInfo.DebugLabel)
+        {
+            Bind();
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, BufferId, $"{LabelPrefix}: {label}");
+            Unbind();
+        }
     }
 
     ~BufferObject()

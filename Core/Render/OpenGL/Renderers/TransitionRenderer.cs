@@ -1,7 +1,6 @@
 ﻿using GlmSharp;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Framebuffer;
-using Helion.Render.OpenGL.Vertex;
 using Helion.Window;
 using Helion.World;
 using OpenTK.Graphics.OpenGL;
@@ -12,8 +11,7 @@ namespace Helion.Render.OpenGL.Renderers;
 public class TransitionRenderer : IDisposable
 {
     private readonly IWindow m_window;
-    private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Transition");
-    private readonly VertexArrayObject m_vao = new("Transition");
+    private readonly VertexPipeline<FramebufferVertex> m_pipeline;
 
     private readonly FadeTransitionProgram m_fadeProgram = new();
     private readonly MeltTransitionProgram m_meltProgram = new();
@@ -30,9 +28,7 @@ public class TransitionRenderer : IDisposable
         m_window = window;
         m_startBuffer = GetNewFramebuffer();
 
-        Attributes.BindAndApply(m_vbo, m_vao, m_fadeProgram.Attributes);
-        Attributes.BindAndApply(m_vbo, m_vao, m_meltProgram.Attributes);
-        Attributes.BindAndApply(m_vbo, m_vao, m_noProgram.Attributes);
+        m_pipeline = new([m_fadeProgram, m_meltProgram, m_noProgram], new StaticVertexBuffer<FramebufferVertex>("Transition"), "Transition");
 
         UploadVertices();
     }
@@ -79,11 +75,11 @@ public class TransitionRenderer : IDisposable
         FramebufferVertex bottomLeft = new((-1, -1), (0, 0));
         FramebufferVertex bottomRight = new((1, -1), (1, 0));
 
-        m_vbo.Bind();
-        m_vbo.Add(topLeft, bottomLeft, topRight);
-        m_vbo.Add(topRight, bottomLeft, bottomRight);
-        m_vbo.Upload();
-        m_vbo.Unbind();
+        m_pipeline.Vbo.Bind();
+        m_pipeline.Vbo.Add(topLeft, bottomLeft, topRight);
+        m_pipeline.Vbo.Add(topRight, bottomLeft, bottomRight);
+        m_pipeline.Vbo.Upload();
+        m_pipeline.Vbo.Unbind();
     }
 
     public void Render(GLFramebuffer targetBuffer, float progress)
@@ -110,9 +106,9 @@ public class TransitionRenderer : IDisposable
         else
             m_program.SetUniforms(BindTextures.BoundTexture, mat4.Identity);
 
-        m_vao.Bind();
-        m_vbo.DrawArrays();
-        m_vao.Unbind();
+        m_pipeline.Bind();
+        m_pipeline.DrawArrays();
+        m_pipeline.Unbind();
 
         m_program.Unbind();
     }
@@ -122,8 +118,7 @@ public class TransitionRenderer : IDisposable
         if (m_disposed)
             return;
 
-        m_vbo.Dispose();
-        m_vao.Dispose();
+        m_pipeline.Dispose();
         m_meltProgram.Dispose();
         m_fadeProgram.Dispose();
         m_noProgram.Dispose();

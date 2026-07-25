@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
@@ -8,7 +9,6 @@ using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Assertion;
@@ -61,6 +61,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private IWorld m_world = null!;
     private bool m_disposed;
     private bool m_worldReload;
+
     private readonly bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
@@ -163,8 +164,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         {
             foreach (var data in list)
             {
-                data.Vbo.Bind();
-                data.Vbo.UploadIfNeeded();
+                data.Pipeline.Vbo.Bind();
+                data.Pipeline.Vbo.UploadIfNeeded();
             }
         }
 
@@ -700,20 +701,20 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (!m_textureToGeometryLookup.TryGetValue(type, textureHandle, repeatY, out GeometryData? geometryData))
             geometryData = AllocateGeometryData(type, textureHandle, repeatY);
 
-        return geometryData.Vbo.Data;
+        return geometryData.Pipeline.Vbo.Data;
     }
+
 
     private GeometryData AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, bool addToGeometry = true, int vboSize = 0,
         GLLegacyTexture? overrideTexture = null, string? label = null)
     {
-        VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
         vboSize = Math.Max(vboSize, 32);
-        StaticVertexBuffer<StaticVertex> vbo = new(label ?? $"Geometry (handle {textureHandle}, repeat {repeat})", vboSize);
-        Attributes.BindAndApply(vbo, vao, m_program.Attributes);
-
+        label ??= GetGeometryLabel(type, textureHandle, repeat);
         var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
         var brightmapTexture = m_textureManager.GetBrightmapTexture(textureHandle, repeat);
-        var data = new GeometryData(textureHandle, texture, vbo, vao, brightmapTexture);
+        var vbo = new StaticVertexBuffer<StaticVertex>(label, vboSize);
+        var pipeline = new VertexPipeline<StaticVertex>(m_program, vbo, label);
+        var data = new GeometryData(textureHandle, texture, pipeline, brightmapTexture);
 
         if (addToGeometry)
         {
@@ -745,9 +746,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (world.SameAsPreviousMap)
         {
             m_geometry.ClearVbo();
-            ClearVbo(m_coverWallGeometry?.Vbo);
-            ClearVbo(m_coverWallGeometryOneSided?.Vbo);
-            ClearVbo(m_coverFlatGeometry?.Vbo);
+            ClearVbo(m_coverWallGeometry?.Pipeline.Vbo);
+            ClearVbo(m_coverWallGeometryOneSided?.Pipeline.Vbo);
+            ClearVbo(m_coverFlatGeometry?.Pipeline.Vbo);
         }
         else
         {
@@ -768,7 +769,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_transferHeightsLookup.SetAll(null);
     }
 
-    private static void ClearVbo<T>(StaticVertexBuffer<T>? vbo) where T : struct
+    private static void ClearVbo<T>(VertexBufferObject<T>? vbo) where T : struct
     {
         if (vbo == null)
             return;
@@ -878,19 +879,20 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         GL.ActiveTexture(BindTextures.BrightmapTexture);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
-        data.Vbo.UploadCapacity();
-
-        data.Vao.Bind();
-        data.Vbo.Bind();
-        data.Vbo.DrawArrays();
+        data.Pipeline.Vbo.UploadCapacity();
+        data.Pipeline.Bind();
+        data.Pipeline.DrawArrays();
     }
 
     private void RenderGeometry(List<GeometryData> geometry)
     {
+        if (geometry.Count == 0)
+            return;
+
         for (int i = 0; i < geometry.Count; i++)
         {
             var data = geometry[i];
-            if (data.Vbo.Count == 0)
+            if (data.Pipeline.Vbo.Count == 0)
                 continue;
 
             GL.ActiveTexture(BindTextures.BoundTexture);
@@ -911,11 +913,10 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             else
                 GL.BindTexture(TextureTarget.Texture2D, 0);
 
-            data.Vbo.UploadIfNeeded();
+            data.Pipeline.Vbo.UploadIfNeeded();
 
-            data.Vao.Bind();
-            data.Vbo.Bind();
-            data.Vbo.DrawArrays();
+            data.Pipeline.Bind();
+            data.Pipeline.DrawArrays();
         }
     }
 
@@ -1368,20 +1369,21 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
 
         var startIndex = staticGeometry.Index;
-        CopyVertices(staticGeometry.GeometryData.Vbo.Data.Data, vertices, startIndex);
+        var vbo = staticGeometry.GeometryData.Pipeline.Vbo;
+        CopyVertices(vbo.Data.Data, vertices, startIndex);
 
         if (m_worldReload)
         {
-            staticGeometry.GeometryData.Vbo.SetNotUploaded();
+            vbo.SetNotUploaded();
         }
         else
         {
-            staticGeometry.GeometryData.Vbo.Bind();
-            staticGeometry.GeometryData.Vbo.UploadSubData(startIndex, vertices.Length);
+            vbo.Bind();
+            vbo.UploadSubData(startIndex, vertices.Length);
         }
 
         // On map reloads the Vbo length is cleared. This ensures it's expanded back out correctly.
-        staticGeometry.GeometryData.Vbo.Data.Length = Math.Max(staticGeometry.GeometryData.Vbo.Data.Length, startIndex + vertices.Length);
+        vbo.Data.Length = Math.Max(vbo.Data.Length, startIndex + vertices.Length);
     }
 
     private void AddOrUpdateCoverWall(Side side, Span<DynamicVertex> sideVertices, WallLocation location, bool oneSided)
@@ -1417,7 +1419,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         int length = sideVertices.Length;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData) && staticGeometryData.GeometryData != null)
         {
-            var geometryVbo = staticGeometryData.GeometryData.Vbo;
+            var geometryVbo = staticGeometryData.GeometryData.Pipeline.Vbo;
             EnsureCoverWallVboCapacity(staticGeometryData, sideVertices, geometryVbo);
 
             CoverWallUtil.CopyCoverWallVertices(side, geometryVbo.Data.Data, sideVertices, staticGeometryData.Index, location);
@@ -1427,7 +1429,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         else
         {
             var useGeometry = oneSided ? m_coverWallGeometryOneSided : m_coverWallGeometry;
-            var geometryVbo = useGeometry.Vbo;
+            var geometryVbo = useGeometry.Pipeline.Vbo;
             EnsureCoverWallVboCapacity(staticGeometryData, sideVertices, geometryVbo);
             var vertices = geometryVbo.Data;
             geometryVbo.Data.EnsureCapacity(vertices.Length + sideVertices.Length);
@@ -1453,7 +1455,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         return m_coverWallVertices3D;
     }
 
-    private void HandleCoverWallUpload(StaticVertexBuffer<StaticVertex> geometryVbo, int index, int length)
+    private void HandleCoverWallUpload(VertexBufferObject<StaticVertex> geometryVbo, int index, int length)
     {
         if (m_worldReload)
         {
@@ -1466,7 +1468,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
     }
 
-    private static void EnsureCoverWallVboCapacity(in StaticGeometryData staticGeometryData, Span<DynamicVertex> sideVertices, StaticVertexBuffer<StaticVertex> geometryVbo)
+    private static void EnsureCoverWallVboCapacity(in StaticGeometryData staticGeometryData, Span<DynamicVertex> sideVertices, VertexBufferObject<StaticVertex> geometryVbo)
     {
         // This generally shouldn't happen but vanilla sprite clipping emulation renders two-sided middle cover walls that may overflow the original calculation since textures can move/change.
         if (geometryVbo.Data.Capacity < staticGeometryData.Index + sideVertices.Length)
@@ -1487,7 +1489,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             return;
 
         var key = CoverKey.MakeFlatKey(sector.Id, plane.Facing);
-        var vbo = m_coverFlatGeometry.Vbo;
+        var vbo = m_coverFlatGeometry.Pipeline.Vbo;
         if (m_coverFlatLookup.TryGetValue(key, out var coverGeometry))
         {
             int newLength = coverGeometry.Index + coverGeometry.Length;
@@ -1536,39 +1538,47 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeatY, out GeometryData? data))
         {
             SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeatY, sector3D);
-            AddVertices(data.Vbo.Data, vertices);
+            AddVertices(data.Pipeline.Vbo.Data, vertices);
             // TODO this causes the entire vbo to be uploaded when we could use sub-buffer
-            data.Vbo.SetNotUploaded();
+            data.Pipeline.Vbo.SetNotUploaded();
             return;
         }
 
         data = AllocateGeometryData(geometryType, textureHandle, repeatY, overrideTexture: texture);
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeatY, sector3D);
-        AddVertices(data.Vbo.Data, vertices);
-        data.Vbo.SetNotUploaded();
+        AddVertices(data.Pipeline.Vbo.Data, vertices);
+        data.Pipeline.Vbo.SetNotUploaded();
     }
 
     private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, Span<DynamicVertex> vertices, bool repeat, Sector3D? sector3D)
     {
         if (side != null && wall != null)
         {
-            SetSideData(ref wall.Static, GetWallType(side, wall, sector3D), textureHandle, geometryData.Vbo.Count, vertices.Length, repeat, geometryData);
+            SetSideData(ref wall.Static, GetWallType(side, wall, sector3D), textureHandle, geometryData.Pipeline.Vbo.Count, vertices.Length, repeat, geometryData);
             return;
         }
 
         if (plane != null)
         {
             plane.Static.GeometryData = geometryData;
-            plane.Static.Index = geometryData.Vbo.Count;
+            plane.Static.Index = geometryData.Pipeline.Vbo.Count;
             plane.Static.Length = vertices.Length;
         }
     }
 
     private static unsafe void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
     {
-        ref var reference = ref geometryData.Vbo.Data.Data[startIndex];
+        ref var reference = ref geometryData.Pipeline.Vbo.Data.Data[startIndex];
         Unsafe.InitBlockUnaligned(ref Unsafe.As<StaticVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<StaticVertex>() * length));
-        geometryData.Vbo.Bind();
-        geometryData.Vbo.UploadSubData(startIndex, length);
+        geometryData.Pipeline.Vbo.Bind();
+        geometryData.Pipeline.Vbo.UploadSubData(startIndex, length);
+    }
+
+    private static string GetGeometryLabel(GeometryType type, int textureHandle, bool repeat)
+    {
+        if (GLInfo.DebugLabel)
+            return $"Geometry (type {type}, handle {textureHandle}, repeat {repeat})";
+        else
+            return "Geometry";
     }
 }

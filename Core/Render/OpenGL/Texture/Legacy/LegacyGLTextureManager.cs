@@ -106,7 +106,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         if (resourceNamespace == ResourceNamespace.Sprites || resourceNamespace == ResourceNamespace.Undefined)
             flags = TextureFlags.ClampX | TextureFlags.ClampY;
 
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
+        if (GLInfo.DebugLabel)
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
 
         fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
         {

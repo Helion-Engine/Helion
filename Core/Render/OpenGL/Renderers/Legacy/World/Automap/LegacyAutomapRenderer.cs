@@ -30,9 +30,8 @@ public class LegacyAutomapRenderer : IDisposable
     readonly record struct KeyColors(Color Color, Color ImageColor);
     readonly record struct ColorRange(int Start, Vec3F Color);
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly StreamVertexBuffer<AutomapVertex> m_vbo;
-    private readonly VertexArrayObject m_vao;
     private readonly AutomapShader m_shader;
+    private readonly VertexPipeline<AutomapVertex> m_pipeline;
     private readonly List<ColorRange> m_vboRanges = [];
     private readonly List<ColorRange> m_highlightVboRanges = [];
     private readonly DynamicArray<vec2> m_points = [];
@@ -95,11 +94,8 @@ public class LegacyAutomapRenderer : IDisposable
     public LegacyAutomapRenderer(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
-        m_vao = new("Automap");
-        m_vbo = new("Automap");
         m_shader = new();
-
-        Attributes.BindAndApply(m_vbo, m_vao, m_shader.Attributes);
+        m_pipeline = new(m_shader, new StreamVertexBuffer<AutomapVertex>("Automap"), "Automap");
     }
 
     ~LegacyAutomapRenderer()
@@ -147,10 +143,12 @@ public class LegacyAutomapRenderer : IDisposable
     {
         m_shader.Bind();
         m_shader.Mvp(CalculateMvp(renderInfo, world.Config));
+        m_pipeline.Bind();
+
         for (int i = 0; i < vboRanges.Count; i++)
         {
             (int first, Vec3F color) = vboRanges[i];
-            int count = i == vboRanges.Count - 1 ? m_vbo.Count - first : vboRanges[i + 1].Start - first;
+            int count = i == vboRanges.Count - 1 ? m_pipeline.Vbo.Count - first : vboRanges[i + 1].Start - first;
 
             if (changeColorAmount > 0)
             {
@@ -160,11 +158,10 @@ public class LegacyAutomapRenderer : IDisposable
             }
 
             m_shader.Color(color);
-            m_vao.Bind();
             GL.DrawArrays(PrimitiveType.Lines, first, count);
-            m_vao.Unbind();
         }
 
+        m_pipeline.Unbind();
         m_shader.Unbind();
     }
 
@@ -233,7 +230,7 @@ public class LegacyAutomapRenderer : IDisposable
     {
         Player? player = renderInfo.ViewerEntity.PlayerObj;
         m_mapMarkers.Clear();
-        m_vbo.Clear();
+        m_pipeline.Vbo.Clear();
         PopulateColoredLines(world, player);
         PopulateThings(world, player, renderInfo);
         // Prevent the player arrow from being too small, perceptually targeting 1080p;
@@ -252,7 +249,7 @@ public class LegacyAutomapRenderer : IDisposable
 
         TransferLineDataIntoBuffer(m_colorPoints, m_vboRanges, out box2F);
         TransferLineDataIntoBuffer(m_highlightColorPoints, m_highlightVboRanges, out _);
-        m_vbo.UploadIfNeeded();
+        m_pipeline.Vbo.UploadIfNeeded();
     }
 
     private void DrawAutomapTracers(IWorld world, Player player)
@@ -613,7 +610,7 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
 
             Vec3F colorVec = new(color.R / 255f, color.G / 255f, color.B / 255f);
-            vboRanges.Add(new(m_vbo.Count, colorVec));
+            vboRanges.Add(new(m_pipeline.Vbo.Count, colorVec));
 
             for (int j = 0; j < lines.Length; j++)
                 AddLineToVbo(lines[j], ref minX, ref minY, ref maxX, ref maxY);
@@ -633,7 +630,7 @@ public class LegacyAutomapRenderer : IDisposable
 
     void AddLineToVbo(vec2 line, ref float minX, ref float minY, ref float maxX, ref float maxY)
     {
-        m_vbo.Add(new AutomapVertex(line.x, line.y));
+        m_pipeline.Vbo.Add(new AutomapVertex(line.x, line.y));
 
         if (line.x < minX)
             minX = line.x;
@@ -657,8 +654,7 @@ public class LegacyAutomapRenderer : IDisposable
             return;
 
         m_shader.Dispose();
-        m_vbo.Dispose();
-        m_vao.Dispose();
+        m_pipeline.Dispose();
 
         m_disposed = true;
     }

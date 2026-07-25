@@ -124,7 +124,8 @@ public partial class Client : IDisposable, IInputManagement
         }
 
         GLFW.WindowHint(WindowHintString.WaylandAppID, "Helion");
-        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, CheckOpenGLSupport);
+        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, 
+            () => CheckOpenGLSupport(!commandLineArgs.GlVersion.HasValue));
         m_screenshotGenerator = new(m_window.Renderer);
         m_soundManager.SoundCreated += m_window.JoystickAdapter.RumbleForSoundCreated;
         SetIcon(m_window);
@@ -259,11 +260,13 @@ public partial class Client : IDisposable, IInputManagement
         GlVersion.Minor = minVersion.Minor;
     }
 
-    private static void CheckOpenGLSupport()
+    private void CheckOpenGLSupport(bool checkExtensions)
     {
-        GLInfo.ClipControlSupported = GlVersion.IsVersionSupported(4, 5) || GLExtensions.Supports("GL_ARB_clip_control");
-        GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4) || GLExtensions.Supports("GL_ARB_buffer_storage");
-        GLInfo.MemoryBarrierSupported = GlVersion.IsVersionSupported(4, 2) || GLExtensions.Supports("GL_ARB_shader_image_load_store");
+        GLInfo.DebugLabel = m_config.Developer.DebugLabel;
+        GLInfo.ClipControlSupported = GlVersion.IsVersionSupported(4, 5) || (checkExtensions && GLExtensions.Supports("GL_ARB_clip_control"));
+        GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4) || (checkExtensions && GLExtensions.Supports("GL_ARB_buffer_storage"));
+        GLInfo.MemoryBarrierSupported = GlVersion.IsVersionSupported(4, 2) || (checkExtensions && GLExtensions.Supports("GL_ARB_shader_image_load_store"));
+        GLInfo.DsaSupported = GlVersion.IsVersionSupported(4, 5) || (checkExtensions && GLExtensions.Supports("GL_ARB_direct_state_access"));
     }
 
     private static void SetIcon(Window window)

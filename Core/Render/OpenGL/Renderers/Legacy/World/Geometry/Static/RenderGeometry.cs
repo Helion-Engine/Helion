@@ -31,8 +31,9 @@ public class RenderGeometry
             var list = items[i];
             for (int j = 0; j < list.Count; j++)
             {
-                list[j].Vbo.Data.Data.ZeroArray();
-                list[j].Vbo.Clear();
+                var item = list[j];
+                item.Pipeline.Vbo.Data.Data.ZeroArray();
+                item.Pipeline.Vbo.Clear();
             }
         }
     }

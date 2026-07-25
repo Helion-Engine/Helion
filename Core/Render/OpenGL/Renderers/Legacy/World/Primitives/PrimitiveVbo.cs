@@ -1,18 +1,15 @@
 ﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Vertex;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 
 sealed class PrimitiveVbo
 {
-    public PrimitiveVbo(string name, int lineWidth)
+    public PrimitiveVbo(PrimitiveShader program, string name, int lineWidth)
     {
-        Vbo = new(name);
-        Vao = new(name);
+        Pipeline = new(program, new StreamVertexBuffer<PrimitiveVertex>("Primitive"), "Primitive");
         LineWidth = lineWidth;
     }
 
-    public readonly StreamVertexBuffer<PrimitiveVertex> Vbo;
-    public readonly VertexArrayObject Vao;
+    public readonly VertexPipeline<PrimitiveVertex> Pipeline;
     public readonly int LineWidth;
 }

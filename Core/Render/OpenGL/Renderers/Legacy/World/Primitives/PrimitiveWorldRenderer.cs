@@ -36,8 +36,7 @@ public class PrimitiveWorldRenderer : IDisposable
             if (value == PrimitiveRenderType.Rail)
                 lineWidth = 5;
 
-            var data = new PrimitiveVbo($"Primitive {value}", lineWidth);
-            Attributes.BindAndApply(data.Vbo, data.Vao, m_program.Attributes);
+            var data = new PrimitiveVbo(m_program, $"Primitive {value}", lineWidth);
             items.Add(data);
         }
     }
@@ -55,8 +54,8 @@ public class PrimitiveWorldRenderer : IDisposable
         bool transparent = alpha < 1;
 
         var vboData = transparent ? m_drawItemsTransparent[(int)type] : m_drawItems[(int)type];
-        vboData.Vbo.Add(start);
-        vboData.Vbo.Add(end);
+        vboData.Pipeline.Vbo.Add(start);
+        vboData.Pipeline.Vbo.Add(end);
         if (transparent)
             HasTransparent |= true;
         else
@@ -94,7 +93,7 @@ public class PrimitiveWorldRenderer : IDisposable
     private static void Clear(DynamicArray<PrimitiveVbo> items)
     {
         for (int i = 0; i < items.Length; i++)
-            items[i].Vbo.Clear();
+            items[i].Pipeline.Clear();
     }
 
     private void Render(RenderInfo renderInfo, DynamicArray<PrimitiveVbo> items)
@@ -105,15 +104,15 @@ public class PrimitiveWorldRenderer : IDisposable
         for (int i = 0; i < items.Length; i++)
         {
             var item = items[i];
-            if (item.Vbo.Empty)
+            if (item.Pipeline.Empty)
                 continue;
 
             GL.LineWidth(item.LineWidth);
 
-            item.Vbo.UploadIfNeeded();
-            item.Vao.Bind();
-            item.Vbo.DrawArrays(PrimitiveType.Lines);
-            item.Vao.Unbind();
+            item.Pipeline.Vbo.UploadIfNeeded();
+            item.Pipeline.Bind();
+            item.Pipeline.DrawArrays(PrimitiveType.Lines);
+            item.Pipeline.Unbind();
         }
 
         GL.LineWidth(1); // Any automap drawing should return to normal afterwards.
@@ -129,8 +128,7 @@ public class PrimitiveWorldRenderer : IDisposable
         for (int i = 0; i < m_drawItems.Count; i++)
         {
             var item = m_drawItems[i];
-            item.Vbo.Dispose();
-            item.Vao.Dispose();
+            item.Pipeline.Dispose();
         }
         m_disposed = true;
     }

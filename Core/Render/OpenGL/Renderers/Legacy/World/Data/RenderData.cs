@@ -1,7 +1,6 @@
 ﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -11,8 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
-    public DynamicVertexBuffer<TVertex> Vbo;
-    public VertexArrayObject Vao;
+    public VertexPipeline<TVertex> Pipeline;
     public GLLegacyTexture Texture;
     public GLLegacyTexture? BrightMapTexture;
     public DynamicArray<TVertex> ArrayData;
@@ -26,10 +24,8 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
 
     public RenderData(RenderProgram program)
     {
-        Vao = new("Entity VAO");
-        Vbo = new("Entity VBO");
-        Attributes.BindAndApply(Vbo, Vao, program.Attributes);
-        ArrayData = Vbo.Data;
+        Pipeline = new(program, new DynamicVertexBuffer<TVertex>("Entity VBO"), "Entity VAO");
+        ArrayData = Pipeline.Vbo.Data;
         Texture = null!;
     }
     
@@ -46,12 +42,12 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
     
     public void Clear()
     {
-        Vbo.Clear();
+        Pipeline.Clear();
     }
     
     public void Draw(PrimitiveType primitive)
     {
-        if (Vbo.Empty)
+        if (Pipeline.Empty)
             return;
 
         GL.ActiveTexture(BindTextures.BoundTexture);
@@ -61,14 +57,11 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
             BrightMapTexture.Bind();
         else
             GL.BindTexture(TextureTarget.Texture2D, 0);
-        Vao.Bind();
-        Vbo.Bind();
 
-        Vbo.Upload();
-        Vbo.DrawArrays(primitive);
+        Pipeline.Bind(true);
+        Pipeline.Vbo.Upload();
+        Pipeline.Vbo.DrawArrays(primitive);
 
-        Vbo.Unbind();
-        Vao.Unbind();
         Texture.Unbind();
     }
 
@@ -77,9 +70,7 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         if (m_disposed)
             return;
 
-        Vao.Dispose();
-        Vbo.Dispose();
-
+        Pipeline.Dispose();
         m_disposed = true;
     }
 

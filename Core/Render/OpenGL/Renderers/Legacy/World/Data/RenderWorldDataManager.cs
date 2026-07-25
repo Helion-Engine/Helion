@@ -38,9 +38,9 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
 
         Assert.Precondition(vertices.Length == 6, "Wall vertices should be 6");
 
-        int index = m_coverWalls.Vbo.Data.Length;
-        m_coverWalls.Vbo.Add(vertices);
-        CoverWallUtil.SetCoverWallVertices(side, m_coverWalls.Vbo.Data.Data, index, location);
+        int index = m_coverWalls.Pipeline.Vbo.Data.Length;
+        m_coverWalls.Pipeline.Vbo.Add(vertices);
+        CoverWallUtil.SetCoverWallVertices(side, m_coverWalls.Pipeline.Vbo.Data.Data, index, location);
     }
 
     public void AddCoverFlatVertices(DynamicVertex[] vertices)
@@ -48,7 +48,7 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
         if (m_coverWalls == null || !BufferCoverWalls)
             return;
 
-        m_coverWalls.Vbo.Add(vertices);
+        m_coverWalls.Pipeline.Vbo.Add(vertices);
     }
 
     public void Clear()
