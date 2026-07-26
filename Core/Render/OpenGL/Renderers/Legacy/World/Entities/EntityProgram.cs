@@ -138,6 +138,8 @@ public class EntityProgram : RenderProgramBase
 
             centerPosFrag = pos;
 
+            // This is called 4 times per vertex with DrawArraysInstanced. gl_VertexID is used to determine what corners to generate.
+            // Attrib divisor is set to advance the vertex once per instance instead of each invocation.
             float xSelect = float(gl_VertexID & 1);     // 0,1,0,1
             float ySelect = float(gl_VertexID >> 1);    // 0,0,1,1
 
