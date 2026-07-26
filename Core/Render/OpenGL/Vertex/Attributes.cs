@@ -162,8 +162,8 @@ public static class Attributes
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
             ProgramAttribute? progAttr = FindShaderAttribute(shaderAttribs, attr.Name);
-            //if (progAttr == null && attr.Required)
-            //    throw new($"Cannot find shader attribute named {attr.Name}, was it optimized out?");
+            if (progAttr == null && attr.Required)
+                throw new($"Cannot find shader attribute named {attr.Name}, was it optimized out?");
 
             // TODO: This doesn't work because Size = 1 for Vec2, but we supply Size = 2 for Float.
             // This means we need to be able to find out if different types are the same size, since
