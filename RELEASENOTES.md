@@ -1,81 +1,10 @@
-# 1.0.0.0 (Pre-release)
+# 1.1.0.0 (Pre-release)
 
 ## Features:
-- Added "Detailed" HUD
-- Ability to swap between multiple HUD layouts defined in SBARDEF.lmp (Options, or +/- keys)
-- Added Sector_Set3dFloor, Sector_SetFade, Sector_SetLink, and ExtraFloor_LightOnly
-- Added NoiseAlert, Thing_Activate, Thing_Deactivate, HealThing, Thing_Hate, Thing_Raise, Thing_Stop, Thing_Damage, Thing_Move, ThrustThingZ, Thing_ChangeTID, and Thing_SetSpecial
-- Added Light_RaiseByValue, Light_LowerByValue, Light_Glow, Light_Flicker, and Light_Strobe, and Light_Fade
-- Added Sector_SetRotation, Sector_SetCeilingPanning, Sector_SetFloorPanning, Sector_SetCeilingScale, Sector_SetFloorScale, Sector_SetDamage, and Sector_SetGravity
-- Added Line_SetBlocking
-- Added TeleportGroup and TeleportInSector
-- Added Floor_LowerInstant, Floor_RaiseInstant, Ceiling_LowerInstant, Ceiling_RaiseInstant
-- Added Radius_Quake
-- Added feature to show enemy's health in crosshair when targeted
-- Added sound resampler options
-- Added found secret color to automap
-- Added ACS support
-- Added TRAKINFO support
 
 ## Bug Fixes:
-- Fix nextmap/previousmap breaking on WADs with maps that exit to the same map.
-- Fix thing specials activated on death to correctly target the killer thing.
-- Fix friendly monsters not targeting enemies.
-- Fix line pass through flag to not check line blocking to match boom behavior (fixes Tele-Direct MAP11 elevator).
-- Fix intermission font character width setting. (fixes Tele-Direct intermission font numbers).
-- Fix parsing both UMAPINFO and ZMAPINFO when present. ZMAPINFO takes priority. (fixes Crematomania MAP30 endgame).
-- Fix chainsaw/punch always using zero pitch when autoaim is on and there nothing to aim at.
-- Fix issue with software emulation that would cause issues with sprites rendering over lowers when a two-sided middle wall was set on the opposite side.
-- Fix lite amp goggles/render.fullbright not increasing the light level when using palette color with true color overlays disabled.
-- Fix sprites being generated and duplicated at runtime in true color.
-- Fix font coloring that was rendering dark in menus (fixes Antaresian Reliquary colored font rendering).
-- Fix sky texture not working when it's not in the texture namespace.
-- Right-extend "block" characters in ENDOOM to emulate VGA "line graphics enable" mode.
-- Fix A_Refire not calling noise alert.
-- Match Doom behavior in the thing tick function that wouldn't advance the state for zero duration frames and leave them in a -1 loop.
-- Fix PNGs with fully transparent pixels loading colors that causes rendering issues when used with texture filtering.
-- Fix spawn blood to use hard-coded vanilla frames when dehacked is present.
-- Fix tracer lines drawing over sprites with software emulation.
-- Fix to match boom behavior to parsing dehacked integers with failures defaulting to zero.
-- Fix SBARDEF crash when children element was explicity set to null.
-- Fix dehacked dropped ammo types only giving half ammo.
-- Fix "Compact HUD" (Tate/Portrait Window) behavior for SBARDEF.
-- Fix cycling order with SBARDEF.
-- Fix mono spaced font width rendering in SBARDEF.
-- Fix hud transparency config option not working with SBARDEF.
-- Fix monster closet setting for monsters resetting on map loads.
-- Support multiple boss death triggers. Fixes Crate Expectations MAP07.
-- Fix new dehacked definitions to default height to zero. Fixes Eye Juice ceiling light offsets.
-- Fix A_MonsterBulletAttack, A_MonsterMeleeAttack, A_WeaponBulletAttack, and A_WeaponMeleeAttack to use default parameters when not specified from dehacked instead of checking for zero to match other ports.
-- Fix rendering issue with vertical scrolling two-sided middle textures.
-- Fix line scrolling using boom accel model not loading correctly from save.
-- Fix monsters not activating secret door lines.
-- Add new specials to the end of the list to match Doom behavior.
-- Fix issues with negative Y scaling for middle textures.
-- Fix issue with berserk taking priority over damage when berserk intensity is zero with palettes.
-- Fix ZDoom brightmaps from GLDEFS not using the full path for map. Fixes bmplus_spritefix.pk3 incorrectly pulling Heretic sprites when using Doom1/Doom2.
-- Fix demos not saving.
-- Add mbf telefrag compat option. Fixes MBF maps in the MAP30 slot that expect things not telefrag when teleported.
-- Fix intermission considering wide patches as fullscreen (fixes doghouse MAP11 intermission offset).
 
 ## Misc:
-- Refactor of old Status Bar renderer to data-driven SBARDEF format.
-- Add suicide message.
-- Add average scrolling for things in multiple scroll sectors to match UZDoom for appropriate UDMF namespaces.
-- Log config file path to console.
-- Add color to mark player special trigger lines in automap.
-- Verify file order in saves and include more detail on why a save is incompatible with the loaded files.
-- Update TBOs that use RGB32F to use RGBA32F for 3.3 cards that were never updated to support ARB_texture_buffer_object_rgb32.
-- Use colormap index one for lite amp goggles instead of zero to match original doom behavior.
-- Removed sprite overlap code from CPU and use sprite detph bias on GPU instead to fix z-fighting.
-- Add support for transparent rendering in static shader.
-- Add pool for entity sprite VBO/VAOs to fix stutter when encountering a new sprite to render.
-- Update order independent transparency weight to be more stable across a higher range.
-- Use ColorAdd render style for Revenant fireball to match UZDoom.
-- Always load Helion's minimal and detailed HUDs when loading a mod that loads an SBARDEF.
-- Replace checked-in binaries for SDL, OpenAL-Soft, ZMusic, and GLFW with Nuget packages built via GitHub pipeline
-- Update SDL dependency to 2.32.10
-- Update OpenAL-Soft dependency to 1.25.2
-- Update SDL controller database support file (for button mappings, etc.)
-- Improved performance for A_KeenDie and A_BossDeath functions for extreme cases like 100krevs.wad.
-- Add support for Always On/Always Off in compatibility options. These values will never be changed by Helion when setting a complvl.
+- Use modern OpenGL functions for VAO attributes when supported.
+- Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
+- Use FramebufferSize in MacOS to fix windowed mode not rendering to the entire window for MacOS.
