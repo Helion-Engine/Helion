@@ -48,18 +48,20 @@ public class Window : GameWindow, IWindow
     {
         get
         {
-            var size = ClientSize;
+            var size = m_isMacOS ? FramebufferSize : ClientSize;
             // See UpdateWindow BorderlessFullscreen case
             if (IsWindowsBorderlessFullscreen)
                 size.Y--;
             return new((int)(size.X * m_clientScaling.X), (int)(size.Y * m_clientScaling.Y));
         }
     }
+
     private bool m_firstResizeEvent = true;
     private DateTime m_windowStateUpdateTimestamp;
     private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
     private readonly bool m_isLinuxX11 = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.X11;
     private readonly bool m_isWindows = OperatingSystem.IsWindows();
+    private readonly bool m_isMacOS = OperatingSystem.IsMacOS();
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
