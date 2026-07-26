@@ -58,7 +58,7 @@ jobs:
         bodyFile: "RELEASENOTES.md"
   
   buildReleaseWindows:
-    runs-on: windows-2022
+    runs-on: windows-2025-vs2026
     needs: buildReleaseLinux
 
     steps:
