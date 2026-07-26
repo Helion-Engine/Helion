@@ -31,6 +31,8 @@ public static class GLInfo
     public static bool ClipControlSupported = true;
     public static bool MapPersistentBitSupported = true;
     public static bool MemoryBarrierSupported = true;
+    public static bool DsaSupported = true;
+    public static bool DebugLabel;
 
     static GLInfo()
     {

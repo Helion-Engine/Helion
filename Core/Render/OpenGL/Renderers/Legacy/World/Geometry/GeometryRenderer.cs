@@ -794,7 +794,7 @@ public partial class GeometryRenderer : IDisposable
         {
             var geometryType = GetGeometryType(style, baseType);
             var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
-            renderData.Vbo.Add(data);
+            renderData.Pipeline.Vbo.Add(data);
             if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
         }
@@ -1156,7 +1156,7 @@ public partial class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
-                renderData.Vbo.Add(data);
+                renderData.Pipeline.Vbo.Add(data);
             }
             vertices = data;
             skyVertices = null;
@@ -1274,7 +1274,7 @@ public partial class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
-                renderData.Vbo.Add(data);
+                renderData.Pipeline.Vbo.Add(data);
             }
             vertices = data;
             skyVertices = null;
@@ -1461,7 +1461,7 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
-            renderData.Vbo.Add(data);
+            renderData.Pipeline.Vbo.Add(data);
         }
         vertices = data;
     }
@@ -1717,7 +1717,7 @@ public partial class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
-                renderData.Vbo.Add(lookupData);
+                renderData.Pipeline.Vbo.Add(lookupData);
                 // Don't need to clip floor on lower view and ceiling on upper view
                 if (sector.TransferHeights != null
                     && !(m_transferHeightsView == TransferHeightView.Bottom && floor) 

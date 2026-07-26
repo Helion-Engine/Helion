@@ -6,7 +6,6 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
@@ -23,8 +22,7 @@ public class SkySphereRenderer : IDisposable
     private static readonly SkySphereVertex[] SpherePoints = new SkySphereVertex[VerticalSpherePoints * HorizontalSpherePoints * 6];
     private static bool SphereInitialized;
 
-    private readonly StaticVertexBuffer<SkySphereVertex> m_vbo;
-    private readonly VertexArrayObject m_vao;
+    private readonly VertexPipeline<SkySphereVertex> m_pipeline;
     private readonly SkySphereShader m_skyProgram;
     private readonly SkySphereForegroundShader m_foregroundProgram;
     private readonly SkySphereTexture m_texture;
@@ -33,15 +31,11 @@ public class SkySphereRenderer : IDisposable
 
     public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
     {
-        m_vao = new("Sky sphere");
-        m_vbo = new("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6);
         m_skyProgram = new();
         m_foregroundProgram = new();
+        m_pipeline = new([m_skyProgram, m_foregroundProgram], new StaticVertexBuffer<SkySphereVertex>("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6), "Sky sphere");
         m_texture = new(archiveCollection, textureManager, textureHandle);
         m_texture.LoadTextures();
-
-        Attributes.BindAndApply(m_vbo, m_vao, m_skyProgram.Attributes);
-        Attributes.BindAndApply(m_vbo, m_vao, m_foregroundProgram.Attributes);
 
         GenerateSphereVerticesAndUpload();
     }
@@ -112,9 +106,9 @@ public class SkySphereRenderer : IDisposable
     private void DrawSphere(GLLegacyTexture texture)
     {
         texture.Bind();
-        m_vao.Bind();
-        m_vbo.DrawArrays();
-        m_vao.Unbind();
+        m_pipeline.Bind();
+        m_pipeline.Vbo.DrawArrays();
+        m_pipeline.Unbind();
         texture.Unbind();
     }
 
@@ -126,10 +120,10 @@ public class SkySphereRenderer : IDisposable
             InitializeSpherePoints();
         }
 
-        m_vbo.Data.Data = SpherePoints;
-        m_vbo.Data.Length = SpherePoints.Length;
-        m_vbo.SetNotUploaded();
-        m_vbo.UploadIfNeeded();
+        m_pipeline.Vbo.Data.Data = SpherePoints;
+        m_pipeline.Vbo.Data.Length = SpherePoints.Length;
+        m_pipeline.Vbo.SetNotUploaded();
+        m_pipeline.Vbo.UploadIfNeeded();
     }
 
     private static void InitializeSpherePoints()
@@ -213,8 +207,7 @@ public class SkySphereRenderer : IDisposable
     {
         m_skyProgram.Dispose();
         m_foregroundProgram.Dispose();
-        m_vao.Dispose();
-        m_vbo.Dispose();
+        m_pipeline.Dispose();
         m_texture.Dispose();
     }
 }

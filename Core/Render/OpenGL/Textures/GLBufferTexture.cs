@@ -1,8 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Render.OpenGL.Textures;
 
@@ -34,8 +35,9 @@ public class GLBufferTexture<T> : IDisposable where T : struct
             GL.BufferStorage(BufferTarget.TextureBuffer, data.Length * size, 0, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit);
         else
             GL.BufferData(BufferTarget.TextureBuffer, data.Length * size, m_data, BufferUsageHint.DynamicDraw);
-        
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
+
+        if (GLInfo.DebugLabel)
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
         UnbindBuffer();
     }
 

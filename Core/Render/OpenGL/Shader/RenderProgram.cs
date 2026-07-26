@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace Helion.Render.OpenGL.Shader;
 
@@ -19,7 +20,8 @@ public abstract class RenderProgram : IDisposable
         CreateAndCompileShaderOrThrow();
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Program, m_program, $"Program: {label}");
+        if (GLInfo.DebugLabel)
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Program, m_program, $"Program: {label}");
         Uniforms.Populate(m_program);
         Attributes.Populate(m_program);
         Unbind();
@@ -112,7 +114,8 @@ public abstract class RenderProgram : IDisposable
         GL.ShaderSource(shaderHandle, source);
         GL.CompileShader(shaderHandle);
         ThrowIfShaderCompileFailure(shaderHandle, type);
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Shader, shaderHandle, $"{type} - {Label}");
+        if (GLInfo.DebugLabel)
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Shader, shaderHandle, $"{type} - {Label}");
         GL.AttachShader(m_program, shaderHandle);
         return shaderHandle;
     }

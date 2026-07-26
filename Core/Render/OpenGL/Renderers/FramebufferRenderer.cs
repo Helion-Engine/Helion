@@ -70,14 +70,13 @@ public class FramebufferProgram : RenderProgram
 
 public class FramebufferRenderer : IDisposable
 {
-    private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Framebuffer");
-    private readonly VertexArrayObject m_vao = new("Framebuffer");
+    private readonly VertexPipeline<FramebufferVertex> m_pipeline;
     private readonly FramebufferProgram m_program = new();
     private bool m_disposed;
 
     public FramebufferRenderer()
     {
-        Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
+        m_pipeline = new(m_program, new StaticVertexBuffer<FramebufferVertex>("Framebuffer"), "Framebuffer");
         UploadVertices();
     }
 
@@ -93,11 +92,11 @@ public class FramebufferRenderer : IDisposable
         FramebufferVertex bottomLeft = new((-1, -1), (0, 0));
         FramebufferVertex bottomRight = new((1, -1), (1, 0));
 
-        m_vbo.Bind();
-        m_vbo.Add(topLeft, bottomLeft, topRight);
-        m_vbo.Add(topRight, bottomLeft, bottomRight);
-        m_vbo.Upload();
-        m_vbo.Unbind();
+        m_pipeline.Vbo.Bind();
+        m_pipeline.Vbo.Add(topLeft, bottomLeft, topRight);
+        m_pipeline.Vbo.Add(topRight, bottomLeft, bottomRight);
+        m_pipeline.Vbo.Upload();
+        m_pipeline.Vbo.Unbind();
     }
 
     public void Render(GLFramebuffer buffer, mat4 mvp)
@@ -109,9 +108,9 @@ public class FramebufferRenderer : IDisposable
         m_program.BoundTexture(BindTextures.BoundTexture);
         m_program.Mvp(mvp);
 
-        m_vao.Bind();
-        m_vbo.DrawArrays();
-        m_vao.Unbind();
+        m_pipeline.Bind();
+        m_pipeline.DrawArrays();
+        m_pipeline.Unbind();
 
         m_program.Unbind();
     }
@@ -121,8 +120,7 @@ public class FramebufferRenderer : IDisposable
         if (m_disposed)
             return;
 
-        m_vbo.Dispose();
-        m_vao.Dispose();
+        m_pipeline.Dispose();
         m_program.Dispose();
 
         m_disposed = true;

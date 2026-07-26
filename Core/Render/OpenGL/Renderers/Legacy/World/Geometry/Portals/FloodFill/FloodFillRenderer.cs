@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Buffer;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
@@ -50,9 +50,9 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
     private FloodFillInfo CreateFloodFillInfo(SectorPlane plane)
     {
-        string label = $"Flood fill (Texture {plane.TextureHandle}, Z = {plane.Z})";
-        RenderableStaticVertices<FloodFillVertex> vertices = new(label, m_program.Attributes);
-        return new(plane.TextureHandle, plane.Z, vertices);
+        var label = GetLabel(plane);
+        var pipeline = new VertexPipeline<FloodFillVertex>(m_program, new StaticVertexBuffer<FloodFillVertex>(label), label);
+        return new(plane.TextureHandle, plane.Z, pipeline);
     }
 
     private unsafe FloodFillInfo GetOrCreateFloodFillInfo(SectorPlane plane)
@@ -122,7 +122,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomZ),
             prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.RenderOptions, mapId);
 
-        var vbo = floodInfo.Vertices.Vbo;
+        var vbo = floodInfo.Pipeline.Vbo;
         vbo.Data[data.VboOffset] = topLeft;
         vbo.Data[data.VboOffset + 1] = bottomLeft;
         vbo.Data[data.VboOffset + 2] = topRight;
@@ -177,7 +177,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
         // Zero means "no handle" which the callers use to tell they don't have a handle.
         int newKey = m_floodGeometry.Length + 1;
-        var vbo = floodFillInfo.Vertices.Vbo;
+        var vbo = floodFillInfo.Pipeline.Vbo;
 
         m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, overrideLightIndex, lightBufferIndex, vbo.Count, vertexCount));
 
@@ -264,7 +264,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         {
             int listIndex = m_textureHandleToFloodFillInfoIndex[data.TextureHandle];
             FloodFillInfo info = m_floodFillInfos[listIndex];
-            OverwriteAndSubUploadVboWithZero(info.Vertices.Vbo, data.VboOffset, data.Vertices);
+            OverwriteAndSubUploadVboWithZero(info.Pipeline.Vbo, data.VboOffset, data.Vertices);
 
             if (m_freeNodes.Length > 0)
             {
@@ -307,7 +307,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {
             var info = m_floodFillInfos[i];
-            if (info.Vertices.Vbo.Empty)
+            if (info.Pipeline.Empty)
                 continue;
 
             if (!wallClip)
@@ -323,9 +323,9 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
                     GL.BindTexture(TextureTarget.Texture2D, 0);
             }
 
-            info.Vertices.Vbo.UploadIfNeeded();
-            info.Vertices.Vao.Bind();
-            info.Vertices.Vbo.DrawArrays();
+            info.Pipeline.Vbo.UploadIfNeeded();
+            info.Pipeline.Bind();
+            info.Pipeline.DrawArrays();
         }
     }
 
@@ -365,7 +365,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {
             var info = m_floodFillInfos[i];
-            info.Vertices.Vbo.Clear();
+            info.Pipeline.Clear();
         }
 
         m_floodGeometry.Clear();
@@ -396,5 +396,13 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    private static string GetLabel(SectorPlane plane)
+    {
+        if (GLInfo.DebugLabel)
+            return $"Flood fill (Texture {plane.TextureHandle}, Z = {plane.Z})";
+        else
+            return "";
     }
 }

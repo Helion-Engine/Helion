@@ -9,7 +9,6 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
 using Helion.Resources.Definitions.Zdoom;
 using Helion.Util;
@@ -22,8 +21,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 public class LegacyHudRenderer : HudRenderer
 {
     private readonly LegacyGLTextureManager m_textureManager;
-    private readonly VertexArrayObject m_vao;
-    private readonly StreamVertexBuffer<HudVertex> m_vbo;
+    private readonly VertexPipeline<HudVertex> m_pipeline;
     private readonly LegacyHudShader m_program;
     private readonly HudDrawBuffer m_drawBuffer;
     private readonly IConfig m_config;
@@ -33,12 +31,9 @@ public class LegacyHudRenderer : HudRenderer
     {
         m_config = config;
         m_textureManager = textureManager;
-        m_vao = new("Hud renderer");
-        m_vbo = new("Hud renderer");
         m_program = new();
+        m_pipeline = new(m_program, new StreamVertexBuffer<HudVertex>("Hud"), "Hud");
         m_drawBuffer = new(dataCache);
-
-        Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
     }
 
     ~LegacyHudRenderer()
@@ -49,7 +44,7 @@ public class LegacyHudRenderer : HudRenderer
     public override void Clear()
     {
         DrawDepth = 1.0f;
-        m_vbo.Clear();
+        m_pipeline.Clear();
         m_drawBuffer.Clear();
     }
 
@@ -167,6 +162,8 @@ public class LegacyHudRenderer : HudRenderer
         m_program.ScreenBounds((viewport.Width, viewport.Height));
         m_program.UseBrightmaps(uniforms.UseBrightmaps);
 
+        m_pipeline.Bind();
+
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {
             HudDrawBufferData data = m_drawBuffer.DrawBuffer[i];
@@ -179,12 +176,11 @@ public class LegacyHudRenderer : HudRenderer
                 data.BrightmapTexture.Bind();
             else
                 GL.BindTexture(TextureTarget.Texture2D, 0);
-            m_vao.Bind();
-            m_vbo.DrawArrays();
-            m_vao.Unbind();
+            m_pipeline.Vbo.DrawArrays();
             data.Texture.Unbind();
         }
 
+        m_pipeline.Unbind();
         m_program.Unbind();
     }
 
@@ -224,23 +220,23 @@ public class LegacyHudRenderer : HudRenderer
     {
         Precondition(data.Vertices.Length != 0, "Should have at least some vertices to draw for some hud texture");
 
-        m_vbo.Clear();
-        m_vbo.Bind();
+        m_pipeline.Clear();
+        m_pipeline.Vbo.Bind();
 
         var vertices = data.Vertices;
-        m_vbo.Data.EnsureCapacity(vertices.Length);
+        m_pipeline.Vbo.Data.EnsureCapacity(vertices.Length);
 
         fixed (HudVertex* pSrc = &vertices.Data[0])
-        fixed (HudVertex* pDst = &m_vbo.Data.Data[0])
+        fixed (HudVertex* pDst = &m_pipeline.Vbo.Data.Data[0])
         {
             var bufferSize = vertices.Length * sizeof(HudVertex);
             System.Buffer.MemoryCopy(pSrc, pDst, bufferSize, bufferSize);
         }
 
-        m_vbo.Data.Length = vertices.Length;
+        m_pipeline.Vbo.Data.Length = vertices.Length;
 
-        m_vbo.Upload();
-        m_vbo.Unbind();
+        m_pipeline.Vbo.Upload();
+        m_pipeline.Vbo.Unbind();
     }
 
     private void AddImage(GLLegacyTexture texture, ImageBox2I drawArea, Color multiplyColor,
@@ -311,8 +307,7 @@ public class LegacyHudRenderer : HudRenderer
 
     private void ReleaseUnmanagedResources()
     {
-        m_vao.Dispose();
-        m_vbo.Dispose();
+        m_pipeline.Dispose();
         m_program.Dispose();
     }
 }

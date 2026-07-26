@@ -68,6 +68,9 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
     
     public void Render()
     {
+        if (m_dataToRender.Length == 0)
+            return;
+
         for (int i = 0; i < m_dataToRender.Length; i++)
             m_dataToRender[i].Draw();
     }

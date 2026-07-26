@@ -2,7 +2,6 @@ using System;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -11,18 +10,14 @@ public class RenderWorldData : IDisposable
 {
     public readonly GLLegacyTexture Texture;
     public readonly GLLegacyTexture? BrightmapTexture;
-    public readonly StreamVertexBuffer<DynamicVertex> Vbo;
-    public readonly VertexArrayObject Vao;
+    public readonly VertexPipeline<DynamicVertex> Pipeline;
     public int RenderCount;
 
     public RenderWorldData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
     {
         Texture = texture;
         BrightmapTexture = brightmapTexture;
-        Vao = new($"Attributes for {texture.Name}");
-        Vbo = new($"Vertices for {texture.Name}");
-
-        Attributes.BindAndApply(Vbo, Vao, program.Attributes);
+        Pipeline = new(program, new DynamicVertexBuffer<DynamicVertex>(texture.Name), texture.Name);
     }
 
     ~RenderWorldData()
@@ -32,12 +27,12 @@ public class RenderWorldData : IDisposable
 
     public void Clear()
     {
-        Vbo.Clear();
+        Pipeline.Clear();
     }
 
     public void Draw()
     {
-        if (Vbo.Empty)
+        if (Pipeline.Empty)
             return;
 
         // We are doing binding manually since apparently these are all
@@ -51,14 +46,11 @@ public class RenderWorldData : IDisposable
             BrightmapTexture.Bind();
         else
             GL.BindTexture(TextureTarget.Texture2D, 0);
-        Vao.Bind();
-        Vbo.Bind();
 
-        Vbo.Upload();
-        Vbo.DrawArrays();
-
-        Vbo.Unbind();
-        Vao.Unbind();
+        Pipeline.Bind(true);
+        Pipeline.Vbo.Upload();
+        Pipeline.DrawArrays();
+        Pipeline.Unbind();
         Texture.Unbind();
     }
 
@@ -70,8 +62,7 @@ public class RenderWorldData : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        Vbo.Dispose();
-        Vao.Dispose();
+        Pipeline.Dispose();
     }
 
     public override string ToString()

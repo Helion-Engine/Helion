@@ -1,9 +1,8 @@
 ﻿using System;
-using Helion.Render.OpenGL.Buffer;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
-public record FloodFillInfo(int TextureHandle, double Z, RenderableVertices<FloodFillVertex> Vertices) : IDisposable
+public record FloodFillInfo(int TextureHandle, double Z, VertexPipeline<FloodFillVertex> Pipeline) : IDisposable
 {
     private bool m_disposed;
 
@@ -16,8 +15,8 @@ public record FloodFillInfo(int TextureHandle, double Z, RenderableVertices<Floo
     {
         if (m_disposed)
             return;
-        
-        Vertices.Dispose();
+
+        Pipeline.Dispose();
 
         m_disposed = true;
     }
