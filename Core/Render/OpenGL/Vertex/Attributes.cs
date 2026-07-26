@@ -225,6 +225,9 @@ public static class Attributes
                 );
             }
 
+            if (attr.Divisor > 0)
+                GL.VertexArrayBindingDivisor(vao.Handle, attr.Index, attr.Divisor);
+
             GL.VertexArrayAttribBinding(vao.Handle, attr.Index, attr.Index);
         }
     }
