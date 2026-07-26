@@ -82,7 +82,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     public override void Render(RenderDataStyle style)
     {
-        m_dataManager.RenderByRenderStyle(style, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(style);
     }
 
     public void UpdateTo(IWorld world)
@@ -411,7 +411,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_program.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal);
 
         if (m_healthBars)
         {
@@ -427,11 +427,11 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_programTransparent.RenderFuzz(false);
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Add);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
         m_programTransparent.ColorClamp(0.9f);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd);
         m_programTransparent.Unbind();
     }
 
@@ -441,7 +441,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_programTransparent.RenderFuzz(true);
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
         m_programTransparent.Unbind();
     }
 
@@ -458,7 +458,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
         m_programFuzzRefraction.Unbind();
     }
 

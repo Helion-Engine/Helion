@@ -62,6 +62,7 @@ public class EntityProgram : RenderProgramBase
 
     protected override string VertexShader() => @"
         #version 330
+        ${BoxDefines}
 
         layout(location = 0) in vec3 pos;
         layout(location = 1) in float surfaceOptions;
@@ -69,103 +70,35 @@ public class EntityProgram : RenderProgramBase
         layout(location = 3) in float offsetXYZ;
         layout(location = 4) in float renderOptions;
 
-        flat out float lightLevelOut;
-        flat out float alphaOut;
-        flat out float fuzzOut;
-        flat out float flipUOut;
-        flat out float colorMapTranslationOut;
-        flat out float positionZOut;
-        flat out float offsetZOut;
-        flat out float offsetXYOut;
-        flat out float renderIndexOut;
-        flat out vec3 sectorColorMapIndexOut;
-        flat out vec4 sectorFogOut;
-        flat out ivec2 textureDimOut;
-
-        uniform float timeFrac;
-        uniform int useSectorColor;
-        uniform int useSectorFog;
-        uniform sampler2D boundTexture;
-        uniform samplerBuffer sectorColormapTexture;
-        uniform samplerBuffer sectorFogTexture;
-
-        void main()
-        {
-            int intOptions = floatBitsToInt(surfaceOptions);
-            alphaOut = (intOptions & 0xFF) / 255.0;
-            fuzzOut = (intOptions >> 8) & 1;
-            flipUOut = (intOptions >> 9) & 1;
-            lightLevelOut = (intOptions >> 10) & 0xFF;
-            colorMapTranslationOut = (intOptions >> 18);
-
-            intOptions = floatBitsToInt(renderOptions);
-            int lightIndexInt = (intOptions >> 12) & 0xFFFFF;
-            int renderIndex = intOptions & 0xFFF;
-
-            intOptions = floatBitsToInt(offsetXYZ);
-            offsetXYOut = (intOptions >> 16) & 0x3FFF;
-            offsetZOut = intOptions & 0x3FFF;
-            float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
-            float offsetZSign = float(((intOptions >> 30) & 1) > 0);
-            offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
-            offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
-            renderIndexOut = renderIndex;
-            textureDimOut = textureSize(boundTexture, 0);
-            
-            ${SectorColorMapVertexFunction}
-
-            gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
-            positionZOut = gl_Position.z;
-        }
-    "
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexOut", "sectorFogOut"));
-
-    protected override string? GeometryShader() => @"
-        #version 330 core
-        ${BoxDefines}
-
-        layout(points) in;
-        layout(triangle_strip, max_vertices = 4) out;
-
-        flat in float lightLevelOut[];
-        flat in float alphaOut[];
-        flat in float fuzzOut[];
-        flat in float flipUOut[];
-        flat in float colorMapTranslationOut[];
-        flat in float positionZOut[];
-        flat in float offsetZOut[];
-        flat in float offsetXYOut[];
-        flat in float renderIndexOut[];
-        flat in vec3 sectorColorMapIndexOut[];
-        flat in vec4 sectorFogOut[];
-        flat in ivec2 textureDimOut[];
-
-        out vec2 uvFrag;
-        out float dist2D;
-        out float dist3D;
-        out float fuzzDist;
-        out float renderDistSquared;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
-        flat out float zPosDepthFrag;
         flat out float textureWidthFrag;
         flat out vec3 centerPosFrag;
         flat out vec3 minPosFrag;
         flat out vec3 maxPosFrag;
         flat out vec3 sectorColorMapIndexFrag;
         flat out vec4 sectorFogColorFrag;
-        out float depthFrag;
+
+        out vec2 uvFrag;
+        out float dist2D;
+        out float dist3D;
+        out float fuzzDist;
+        out float renderDistSquared;
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
         uniform vec2 prevViewRightNormal;
-        uniform float timeFrac;
         uniform vec3 viewPos;
-        uniform int healthBarMode;
+        uniform float timeFrac;
+        uniform int useSectorColor;
+        uniform int useSectorFog;
+        uniform sampler2D boundTexture;
+        uniform samplerBuffer sectorColormapTexture;
+        uniform samplerBuffer sectorFogTexture;
 
         float distSquared(vec2 v1, vec2 v2) {
             vec2 length = v1.xy - v2.xy;
@@ -174,102 +107,97 @@ public class EntityProgram : RenderProgramBase
 
         void main()
         {
-            float leftU = clamp(flipUOut[0], 0, 1);
-            float rightU = 1 - clamp(flipUOut[0], 0, 1);
+            int intOptions = floatBitsToInt(surfaceOptions);
+            alphaFrag = (intOptions & 0xFF) / 255.0;
+            fuzzFrag = (intOptions >> 8) & 1;
+            int flipU = (intOptions >> 9) & 1;
+            lightLevelFrag = (intOptions >> 10) & 0xFF;
+            colorMapTranslationFrag = (intOptions >> 18);
 
-            vec3 pos = gl_in[0].gl_Position.xyz;
-            zPosFrag = pos.z;
-            pos.z += offsetZOut[0];
+            intOptions = floatBitsToInt(renderOptions);
+            int lightIndexInt = (intOptions >> 12) & 0xFFFFF;
+            int renderIndex = intOptions & 0xFFF;
+
+            intOptions = floatBitsToInt(offsetXYZ);
+            float offsetXYOption = float((intOptions >> 16) & 0x3FFF);
+
+            float offsetZ = float(intOptions & 0x3FFF);
+            float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
+            float offsetZSign = float(((intOptions >> 30) & 1) > 0);
+            offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
+            offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
+            ivec2 textureDim = textureSize(boundTexture, 0);
+            textureWidthFrag = textureDim.x;
+            
+            ${SectorColorMapVertexFunction}
 
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
-            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
+            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOption, 0);
 
             ${MinMaxPos}
 
-            // fuzzDist is going to be the center of min/max.
-            // This keeps the fuzz consistent across the texture.
-            vec4 glPosMin = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
-            vec4 glPosMax = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-            fuzzDist = (glPosMin.${Depth} + glPosMax.${Depth}) / 2;
-            // Render distance squared in 2d space for fade in/out effect
-            renderDistSquared = distSquared(viewPos.xy, pos.xy);
-
-            textureWidthFrag = textureDimOut[0].x;
             centerPosFrag = pos;
-            minPosFrag = minPos;
-            maxPosFrag = maxPos;
-            zPosDepthFrag = (mvp * vec4(centerPosFrag, 1.0)).${Depth};
 
-            lightLevelFrag = lightLevelOut[0];
-            alphaFrag = alphaOut[0];
-            fuzzFrag = fuzzOut[0];
-            colorMapTranslationFrag = colorMapTranslationOut[0];
-            sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
-            sectorFogColorFrag = sectorFogOut[0];
+            // This is called 4 times per vertex with DrawArraysInstanced. gl_VertexID is used to determine what corners to generate.
+            // Attrib divisor is set to advance the vertex once per instance instead of each invocation.
+            float xSelect = float(gl_VertexID & 1);     // 0,1,0,1
+            float ySelect = float(gl_VertexID >> 1);    // 0,0,1,1
+
+            float x = mix(minPos.x, maxPos.x, float(xSelect));
+            float y = mix(minPos.y, maxPos.y, float(xSelect));
+            float z = mix(minPos.z, maxPos.z, float(ySelect));
+
+            vec3 cornerPos = vec3(x, y, z);
+
+            float leftU = clamp(flipU, 0, 1);
+            float rightU = 1 - clamp(flipU, 0, 1);
+
+            float u = mix(leftU, rightU, xSelect);
+            float v = mix(1.0, 0.0, ySelect);
+
+            uvFrag = vec2(u, v);
 
             // Push depth biased by the base times the renderIndex to prevent z-fighting
-            float depthBias = float(renderIndexOut[0]) * ${DepthBiasBase};
-
-            vec4 clip;
-            clip = glPosMin;
+            float depthBias = float(renderIndex) * ${DepthBiasBase};
+            vec4 clip = mvp * vec4(cornerPos, 1);
             ${AdjustSpriteVertexClip}
-            gl_Position = clip;
-            dist2D = (mvpNoPitch * vec4(minPos, 1.0)).${Depth};
-            dist3D = (mvp * vec4(minPos, 1.0)).${Depth};
-            uvFrag = vec2(leftU, 1);
-            depthFrag = gl_Position.${Depth};
-            EmitVertex();
 
-            clip = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1.0);
-            ${AdjustSpriteVertexClip}
             gl_Position = clip;
-            dist2D = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
-            dist3D = (mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1.0)).${Depth};
-            uvFrag = vec2(rightU, 1);
-            depthFrag = gl_Position.${Depth};
-            EmitVertex();
-
-            clip = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1.0);
-            ${AdjustSpriteVertexClip}
-            gl_Position = clip;
-            dist2D = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
-            dist3D = (mvp * vec4(minPos.x, minPos.y, maxPos.z, 1.0)).${Depth};
-            uvFrag = vec2(leftU, 0);
-            depthFrag = gl_Position.${Depth};
-            EmitVertex();
-
-            clip = glPosMax;
-            ${AdjustSpriteVertexClip}
-            gl_Position = clip;
-            dist2D = (mvpNoPitch * vec4(maxPos, 1.0)).${Depth};
-            dist3D = (mvp * vec4(maxPos, 1.0)).${Depth};
-            uvFrag = vec2(rightU, 0);
-            depthFrag = gl_Position.${Depth};
-            EmitVertex();
-
-            EndPrimitive();
-        }  
+            dist3D = gl_Position.${Depth};
+            dist2D = (mvpNoPitch * vec4(cornerPos, 1.0)).${Depth};
+            fuzzDist = dist3D;
+            minPosFrag = minPos;
+            maxPosFrag = maxPos;
+            renderDistSquared = distSquared(viewPos.xy, pos.xy);
+        }
     "
-    .Replace("${Depth}", ShaderVars.Depth)
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag"))
     .Replace("${BoxDefines}", BoxDefines)
     .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
+    .Replace("${MinMaxPos}", GetMinMaxPos())
     .Replace("${AdjustSpriteVertexClip}", AdjustSpriteVertexClip())
-    .Replace("${MinMaxPos}", GetMinMaxPos());
+    .Replace("${Depth}", ShaderVars.Depth);
 
     private string GetMinMaxPos()
     {
         if (this is EntityHealthBarProgram)
         {
-            return @"            
-                vec3 minPos = pos;
-                vec3 maxPos = pos;
-                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
-                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);";
+            return @"
+                vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
+                zPosFrag = interpolatedPos.z;
+                interpolatedPos.z += offsetZ;
+                vec3 minPos = interpolatedPos;
+                vec3 maxPos = interpolatedPos;
+                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationFrag);
+                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationFrag);";
         }
 
         return @"
-            vec3 minPos = pos - offsetXY;
-            vec3 maxPos = pos + (posMoveDir * textureDimOut[0].x) + (vec3(0, 0, 1) * textureDimOut[0].y) - offsetXY;";
+            vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
+            zPosFrag = interpolatedPos.z;
+            interpolatedPos.z += offsetZ;
+            vec3 minPos = interpolatedPos - offsetXY;
+            vec3 maxPos = interpolatedPos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
     }
 
     private static string AdjustSpriteVertexClip()
@@ -294,12 +222,10 @@ public class EntityProgram : RenderProgramBase
         flat in float fuzzFrag;
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
-        flat in float zPosDepthFrag;
         flat in float textureWidthFrag;
         flat in vec3 centerPosFrag;
         flat in vec3 minPosFrag;
         flat in vec3 maxPosFrag;
-        in float depthFrag;
 
         ${SectorColorMapFragVariables}
 
@@ -397,11 +323,11 @@ public class EntityProgram : RenderProgramBase
             vec3 planeClip = texelFetch(planeClipTexture, sampleCoords, 0).rgb;
 
             // Floor
-            if (planeClip.b == 1 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
+            if (planeClip.b == 1 && planeClip.g < dist3D && planeClip.r > zPosFrag)
                 return true;
 
             // Ceiling
-            if (planeClip.b == 2 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
+            if (planeClip.b == 2 && planeClip.g < dist3D && zPosFrag >= planeClip.r)
                 return true;
             
             if (wallClip.r >= 0) {
@@ -437,7 +363,7 @@ public class EntityProgram : RenderProgramBase
                         return false;
                 }
 
-                if (wallClip.a < depthFrag) {
+                if (wallClip.a < dist3D) {
                     // Discard if the sprite isn't on the same side of the line as the camera or when the sprite line doesn't intersect the line
                     return viewFront != entityFront || !lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
                 }

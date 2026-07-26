@@ -7,19 +7,19 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct EntityVertex
 {    
-    [VertexAttribute]
+    [VertexAttribute(divisor: 1)]
     public Vec3F Pos;
 
-    [VertexAttribute]
+    [VertexAttribute(divisor: 1)]
     // X offset written to surface option portions when in health bar mode
     public float SurfaceOptions;
 
-    [VertexAttribute]
+    [VertexAttribute(divisor: 1)]
     public Vec3F PrevPos;
 
-    [VertexAttribute]
+    [VertexAttribute(divisor: 1)]
     public float OffsetXYZ;
 
-    [VertexAttribute]
+    [VertexAttribute(divisor: 1)]
     public float RenderOptions;
 }

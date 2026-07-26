@@ -2,7 +2,6 @@
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util.Assertion;
-using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -54,13 +53,13 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     public RenderData<TVertex> GetHealthBarData() => m_healthBarData;
 
     public void RenderHealthBars() =>
-        m_healthBarData.Draw(PrimitiveType.Points);
+        m_healthBarData.Draw();
 
     public RenderData<TVertex> GetByRenderStyle(RenderStyle style, GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null) =>
          m_renderDataStyles[(int)RenderStyleLookup[(int)style]].Get(texture, brightmapTexture);
 
-    public void RenderByRenderStyle(RenderDataStyle style, PrimitiveType primitive) =>
-        m_renderDataStyles[(int)style].Render(primitive);
+    public void RenderByRenderStyle(RenderDataStyle style) =>
+        m_renderDataStyles[(int)style].Render();
 
     protected virtual void Dispose(bool disposing)
     {

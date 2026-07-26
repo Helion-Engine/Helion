@@ -66,13 +66,13 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         return data;
     }
     
-    public void Render(PrimitiveType primitive)
+    public void Render()
     {
         if (m_dataToRender.Length == 0)
             return;
 
         for (int i = 0; i < m_dataToRender.Length; i++)
-            m_dataToRender[i].Draw(primitive);
+            m_dataToRender[i].Draw();
     }
     
     protected virtual void Dispose(bool disposing)

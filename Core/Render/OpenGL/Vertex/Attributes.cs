@@ -117,7 +117,7 @@ public static class Attributes
 
             VaoAttribute attr = codeAttr.IsIntegral ?
                 new(name, index, size, integerType, offset, stride, codeAttr.Required) :
-                new(name, index, size, pointerType, offset, codeAttr.Normalized, stride, codeAttr.Required);
+                new(name, index, size, pointerType, offset, codeAttr.Normalized, stride, codeAttr.Required, codeAttr.Divisor);
             
             attributes.Add(attr);
 
@@ -187,6 +187,9 @@ public static class Attributes
             else if (attr.IntegerType.HasValue)
                 GL.VertexAttribIPointer(attr.Index, attr.Size, attr.IntegerType.Value, attr.Stride, new(attr.Offset));
 
+            if (attr.Divisor > 0)
+                GL.VertexAttribDivisor(attr.Index, attr.Divisor);
+
             GL.EnableVertexAttribArray(attr.Index);
         }
     }
@@ -221,6 +224,9 @@ public static class Attributes
                     attr.Offset
                 );
             }
+
+            if (attr.Divisor > 0)
+                GL.VertexArrayBindingDivisor(vao.Handle, attr.Index, attr.Divisor);
 
             GL.VertexArrayAttribBinding(vao.Handle, attr.Index, attr.Index);
         }

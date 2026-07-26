@@ -45,7 +45,7 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         Pipeline.Clear();
     }
     
-    public void Draw(PrimitiveType primitive)
+    public void Draw()
     {
         if (Pipeline.Empty)
             return;
@@ -60,7 +60,7 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
 
         Pipeline.Bind(true);
         Pipeline.Vbo.Upload();
-        Pipeline.Vbo.DrawArrays(primitive);
+        Pipeline.Vbo.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4);
 
         Texture.Unbind();
     }
