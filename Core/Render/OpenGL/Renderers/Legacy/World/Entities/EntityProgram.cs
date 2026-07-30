@@ -81,12 +81,12 @@ public class EntityProgram : RenderProgramBase
         flat out vec3 maxPosFrag;
         flat out vec3 sectorColorMapIndexFrag;
         flat out vec4 sectorFogColorFrag;
+        flat out float fuzzDist;
+        flat out float renderDistSquared;
 
         out vec2 uvFrag;
         out float dist2D;
         out float dist3D;
-        out float fuzzDist;
-        out float renderDistSquared;
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
@@ -133,19 +133,20 @@ public class EntityProgram : RenderProgramBase
 
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOption, 0);
+            vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
 
             ${MinMaxPos}
 
-            centerPosFrag = pos;
+            centerPosFrag = interpolatedPos;
 
             // This is called 4 times per vertex with DrawArraysInstanced. gl_VertexID is used to determine what corners to generate.
             // Attrib divisor is set to advance the vertex once per instance instead of each invocation.
             float xSelect = float(gl_VertexID & 1);     // 0,1,0,1
             float ySelect = float(gl_VertexID >> 1);    // 0,0,1,1
 
-            float x = mix(minPos.x, maxPos.x, float(xSelect));
-            float y = mix(minPos.y, maxPos.y, float(xSelect));
-            float z = mix(minPos.z, maxPos.z, float(ySelect));
+            float x = mix(minPos.x, maxPos.x, xSelect);
+            float y = mix(minPos.y, maxPos.y, xSelect);
+            float z = mix(minPos.z, maxPos.z, ySelect);
 
             vec3 cornerPos = vec3(x, y, z);
 
@@ -168,7 +169,7 @@ public class EntityProgram : RenderProgramBase
             fuzzDist = dist3D;
             minPosFrag = minPos;
             maxPosFrag = maxPos;
-            renderDistSquared = distSquared(viewPos.xy, pos.xy);
+            renderDistSquared = distSquared(viewPos.xy, interpolatedPos.xy);
         }
     "
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag"))
@@ -183,7 +184,6 @@ public class EntityProgram : RenderProgramBase
         if (this is EntityHealthBarProgram)
         {
             return @"
-                vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
                 zPosFrag = interpolatedPos.z;
                 interpolatedPos.z += offsetZ;
                 vec3 minPos = interpolatedPos;
@@ -193,7 +193,6 @@ public class EntityProgram : RenderProgramBase
         }
 
         return @"
-            vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
             zPosFrag = interpolatedPos.z;
             interpolatedPos.z += offsetZ;
             vec3 minPos = interpolatedPos - offsetXY;
@@ -215,8 +214,8 @@ public class EntityProgram : RenderProgramBase
         in vec2 uvFrag;
         in float dist2D;
         in float dist3D;
-        in float fuzzDist;
-        in float renderDistSquared;
+        flat in float fuzzDist;
+        flat in float renderDistSquared;
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
