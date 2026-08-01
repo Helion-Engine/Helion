@@ -362,7 +362,9 @@ public partial class WorldLayer
         {
             var alpha = powerup.DrawAlpha;
             if (powerup.PowerupType == PowerupType.Strength)
-                alpha *= (float)m_config.Game.BerserkIntensity;
+                alpha *= (float)m_config.Game.BerserkIntensity.Value;
+            else if (powerup.PowerupType == PowerupType.IronFeet)
+                alpha *= (float)m_config.Game.RadSuitIntensity.Value;
 
             hud.Clear(box, powerup.DrawColor.Value, alpha);
         }

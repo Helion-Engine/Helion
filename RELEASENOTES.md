@@ -1,6 +1,7 @@
 # 1.1.0.0 (Pre-release)
 
 ## Features:
+- Add Radsuit intensity.
 
 ## Bug Fixes:
 

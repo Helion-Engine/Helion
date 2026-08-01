@@ -52,7 +52,7 @@ public static class PaletteUtil
             palette = GetBonusPalette(player.BonusCount);
         }
 
-        if (palette == PaletteIndex.Normal && powerup != null &&
+        if (palette == PaletteIndex.Normal && powerup != null && config.Game.RadSuitIntensity.Value != 0 &&
             powerup.PowerupType == PowerupType.IronFeet && powerup.DrawPowerupEffect)
         {
             palette = PaletteIndex.Green;
