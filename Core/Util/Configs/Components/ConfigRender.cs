@@ -150,11 +150,11 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Automatically colors blood for Cacodemons, Hell Knights and Barons. Does not affect custom blood definitions.")]
     [OptionMenu(OptionSectionType.Render, "Colored Blood")]
-    public readonly ConfigValue<bool> AutoColoredBlood = new(true);
+    public readonly ConfigValue<bool> AutoColoredBlood = new(false);
 
     [ConfigInfo("Sets blood to shadow for shadow monsters like spectres.")]
     [OptionMenu(OptionSectionType.Render, "Fuzz Blood")]
-    public readonly ConfigValue<bool> FuzzBlood = new(true);
+    public readonly ConfigValue<bool> FuzzBlood = new(false);
 
     [ConfigInfo("Enable sprite transparency.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Transparency")]
