@@ -13,6 +13,7 @@ actor BaronOfHell 3003
     SeeSound "baron/sight"
     SpawnID 3
     Speed 8
+    AutoBloodColor "green"
     
     MONSTER
     +BOSSDEATH

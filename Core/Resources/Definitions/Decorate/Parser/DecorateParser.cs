@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Graphics.Palettes;
 using Helion.Util.Parser;
 using NLog;
 
@@ -12,13 +13,15 @@ public partial class DecorateParser : ParserBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public readonly IList<ActorDefinition> ActorDefinitions = new List<ActorDefinition>();
+    public readonly IList<ActorDefinition> ActorDefinitions = [];
     public readonly Dictionary<string, double> Variables = new(StringComparer.OrdinalIgnoreCase);
     protected readonly string Path;
     protected readonly Func<string, string?> IncludeResolver;
-    private ActorDefinition m_currentDefinition = new ActorDefinition("none", null, null, null);
+    private ActorDefinition m_currentDefinition = new("none", null, null, null);
     private int m_frameIndex;
     private string? m_immediatelySeenLabel;
+
+    public readonly HashSet<PaletteColor> BloodColors = [];
 
     public DecorateParser(string path, Func<string, string?> includeResolver)
     {
@@ -59,22 +62,19 @@ public partial class DecorateParser : ParserBase
             ActorDefinitions.Add(def);
         foreach (var pair in parser.Variables)
             Variables[pair.Key] = pair.Value;
+
+        foreach (var color in parser.BloodColors)
+            BloodColors.Add(color);
     }
 
     private void ConsumeInclude()
     {
-        Token? token = GetCurrentToken();
-        if (token == null)
-            throw MakeException("Expected value to follow preprocessor include symbol");
-
+        Token? token = GetCurrentToken() ?? throw MakeException("Expected value to follow preprocessor include symbol");
         Consume("include");
-        string includePath = ConsumeString();
+        var includePath = ConsumeString();
+        var includeText = IncludeResolver.Invoke(includePath) ?? throw new ParserException(token.Value, $"Could not locate include at {includePath}");
 
-        string? includeText = IncludeResolver.Invoke(includePath);
-        if (includeText == null)
-            throw new ParserException(token.Value, $"Could not locate include at {includePath}");
-
-        DecorateParser parser = new DecorateParser(includePath, IncludeResolver);
+        var parser = new DecorateParser(includePath, IncludeResolver);
         if (!parser.Parse(includeText))
             throw new ParserException(token.Value, $"Failed to parse include path at {includePath}");
 

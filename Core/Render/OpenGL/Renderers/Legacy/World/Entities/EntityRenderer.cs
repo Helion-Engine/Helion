@@ -201,12 +201,20 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             rotation = CalculateRotation(viewAngle, entityAngle);
         }
 
+        var shadow = entity.Flags.Shadow() || entity.RenderStyle == RenderStyle.Fuzzy;
         var colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
-        if (WorldStatic.BloodColor && entity.Definition.Type == EntityType.Blood)
+        if (WorldStatic.HasCustomBlood() && entity.Definition.Type == EntityType.Blood)
         {
             var owner = entity.Owner();
-            if (owner != null && owner.Properties.BloodPaletteColor.HasValue)
-                colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.BloodPaletteColor.Value).Index;
+            if (owner != null)
+            {
+                if (owner.Properties.BloodPaletteColor.HasValue)
+                    colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.BloodPaletteColor.Value).Index;
+                else if (WorldStatic.AutoColoredBlood && owner.Properties.AutoBloodPaletteColor.HasValue)
+                    colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.AutoBloodPaletteColor.Value).Index;
+                else if (WorldStatic.FuzzBlood && owner.Flags.Shadow())
+                    shadow = true;
+            }
         }
 
         var shouldMirror = entity.Flags.Mirror();
@@ -233,7 +241,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         var disableFullbright = spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
-        var shadow = entity.Flags.Shadow() || entity.RenderStyle == RenderStyle.Fuzzy;
+        
 
         int fuzz;
         RenderStyle renderStyle;

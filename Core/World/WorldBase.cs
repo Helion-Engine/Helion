@@ -566,6 +566,8 @@ public abstract partial class WorldBase : IWorld
         Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
         Config.Game.DamageReceiveMultiplier.OnChanged += DamageReceiveMultiplier_OnChanged;
         Config.Game.MirrorCorpse.OnChanged += MirrorCorpse_OnChanged;
+        Config.Render.AutoColoredBlood.OnChanged += AutoColoredBlood_OnChanged;
+        Config.Render.FuzzBlood.OnChanged += FuzzBlood_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -593,6 +595,9 @@ public abstract partial class WorldBase : IWorld
         Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
         Config.Game.DamageReceiveMultiplier.OnChanged -= DamageReceiveMultiplier_OnChanged;
         Config.Game.MirrorCorpse.OnChanged -= MirrorCorpse_OnChanged;
+        
+        Config.Render.AutoColoredBlood.OnChanged -= AutoColoredBlood_OnChanged;
+        Config.Render.FuzzBlood.OnChanged -= FuzzBlood_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -658,6 +663,8 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SectorFriction = false;
         WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
         WorldStatic.MirrorCorpse = Config.Game.MirrorCorpse;
+        WorldStatic.AutoColoredBlood = Config.Render.AutoColoredBlood;
+        WorldStatic.AutoColoredBlood = Config.Render.FuzzBlood;
 
         if (!SameAsPreviousMap)
             WorldStatic.Sector3D = false;
@@ -669,7 +676,6 @@ public abstract partial class WorldBase : IWorld
         if (soulSphere != null)
             WorldStatic.MaxSoulsphere = soulSphere.Properties.Inventory.MaxAmount;
     }
-
 
     private void MbfTelefrag_OnChanged(object? sender, CompatSetting enabled) =>
         WorldStatic.MbfTelefrag = enabled.ToBool();
@@ -716,6 +722,10 @@ public abstract partial class WorldBase : IWorld
         IsFastMonsters = SkillDefinition.IsFastMonsters(Config);
         WorldStatic.IsFastMonsters = IsFastMonsters;
     }
+    private void FuzzBlood_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.FuzzBlood = enabled;
+    private void AutoColoredBlood_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.AutoColoredBlood = enabled;
 
     private List<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
     {

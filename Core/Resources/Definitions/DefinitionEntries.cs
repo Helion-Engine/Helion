@@ -434,12 +434,17 @@ public class DefinitionEntries
 
         if (DehackedDefinition != null && DehackedDefinition.HasBloodColor)
             CreateBloodColorMaps(palette, dataEntries.PaletteColorLookup, colormapBytes, DehackedDefinition.BloodColors);
+
+        CreateBloodColorMaps(palette, dataEntries.PaletteColorLookup, colormapBytes, Decorate.BloodColors);
     }
 
     private void CreateBloodColorMaps(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colormapBytes, IEnumerable<PaletteColor> paletteColors)
     {
         foreach (var paletteColor in paletteColors)
         {
+            if (m_bloodColorMaps.TryGetValue((int)paletteColor, out _))
+                continue;
+
             var colormap = Colormap.TranslateToNearestMatch(palette, paletteColorLookup, colormapBytes, paletteColor);
             if (colormap == null)
                 continue;

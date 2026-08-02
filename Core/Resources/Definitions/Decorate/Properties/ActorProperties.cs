@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Graphics;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
@@ -121,4 +122,5 @@ public class ActorProperties
     public double? XScale;
     public double? YScale;
     public string? RipSound;
+    public PaletteColor? AutoBloodPaletteColor;
 }

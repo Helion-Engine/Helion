@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Helion.Graphics;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
@@ -1341,8 +1342,22 @@ public partial class DecorateParser
             case "RIPSOUND":
                 m_currentDefinition.Properties.RipSound = ConsumeString();
                 break;
+            case "AUTOBLOODCOLOR":
+                m_currentDefinition.Properties.AutoBloodPaletteColor = GetPaletteColor(ConsumeString());
+                break;
             default:
                 throw MakeException($"Unknown property '{property}' on actor '{m_currentDefinition.Name}'");
         }
     }
+
+    private PaletteColor? GetPaletteColor(string value)
+    {
+        if (Enum.TryParse(value, true, out PaletteColor color) && color != PaletteColor.None)
+        {
+            BloodColors.Add(color);
+            return color;
+        }
+        return null;
+    }
 }
+    
