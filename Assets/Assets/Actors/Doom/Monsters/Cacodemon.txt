@@ -13,6 +13,7 @@ actor Cacodemon 3005
     SeeSound "caco/sight"
     SpawnID 19
     Speed 8
+    AutoBloodColor "blue"
     
     MONSTER
     +FLOAT

@@ -7,6 +7,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World;
 
@@ -42,6 +43,8 @@ public static class WorldStatic
     public static bool Udmf;
     public static bool SectorFriction;
     public static bool BloodColor;
+    public static bool AutoColoredBlood;
+    public static bool FuzzBlood;
     public static bool MirrorCorpse;
     public static bool Sector3D;
     public static bool MbfTelefrag;
@@ -57,6 +60,9 @@ public static class WorldStatic
     public static float DamageApplyMultiplier = 1;
     public static float DamageReceiveMultiplier = 1;
     public static int MaxSoulsphere = 200;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool HasCustomBlood() => BloodColor || AutoColoredBlood || FuzzBlood;
 
     public static EntityDefinition DoomImpBall = EntityDefinition.Default;
     public static EntityDefinition ArachnotronPlasma = EntityDefinition.Default;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Parser;
@@ -10,6 +11,8 @@ namespace Helion.Resources.Definitions.Decorate;
 
 public class DecorateDefinitions
 {
+    public readonly HashSet<PaletteColor> BloodColors = [];
+
     private readonly Dictionary<string, ActorDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Dictionary<string, ActorDefinition>.AlternateLookup<ReadOnlySpan<char>> m_definitionsBySpan;
@@ -30,12 +33,15 @@ public class DecorateDefinitions
 
     public void AddDecorateDefinitions(Entry entry)
     {
-        DecorateParser parser = new DecorateParser(entry.Path.FullPath, MakeIncludeLocator());
+        var parser = new DecorateParser(entry.Path.FullPath, MakeIncludeLocator());
         if (parser.Parse(entry))
         {
             foreach (var def in parser.ActorDefinitions)
                 AddDefinition(def);
         }
+
+        foreach (var color in parser.BloodColors)
+            BloodColors.Add(color);
     }
 
     private Func<string, string?> MakeIncludeLocator()

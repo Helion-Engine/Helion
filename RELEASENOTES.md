@@ -2,6 +2,7 @@
 
 ## Features:
 - Add Radsuit intensity.
+- Automatic blood color and fuzz blood options.
 
 ## Bug Fixes:
 

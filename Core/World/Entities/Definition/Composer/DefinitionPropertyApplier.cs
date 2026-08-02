@@ -205,5 +205,7 @@ public static class DefinitionPropertyApplier
         }
 
         definition.Properties.RenderStyle = properties.RenderStyle;
+
+        definition.Properties.AutoBloodPaletteColor = properties.AutoBloodPaletteColor;
     }
 }

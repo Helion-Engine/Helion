@@ -66,6 +66,7 @@ public class EntityProperties
     public string? TranslationEntry;
     public int? ColormapIndex;
     public PaletteColor? BloodPaletteColor;
+    public PaletteColor? AutoBloodPaletteColor;
     public int HealthBarOffset;
     public int HealthBarWidth;
     public RenderStyle RenderStyle = RenderStyle.Normal;
