@@ -561,6 +561,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
         Config.Compatibility.MbfTelefrag.OnChanged += MbfTelefrag_OnChanged;
+        Config.Compatibility.MbfPlayerMovement.OnChanged += MbfPlayerMovement_OnChanged;
 
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
@@ -590,6 +591,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
         Config.Compatibility.MbfTelefrag.OnChanged -= MbfTelefrag_OnChanged;
+        Config.Compatibility.MbfPlayerMovement.OnChanged -= MbfPlayerMovement_OnChanged;
 
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
@@ -630,6 +632,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
         WorldStatic.Mbf21 = Config.Compatibility.Mbf21.Value.ToBool();
         WorldStatic.MbfTelefrag = Config.Compatibility.MbfTelefrag.Value.ToBool();
+        WorldStatic.MbfPlayerMovement = Config.Compatibility.MbfPlayerMovement.Value.ToBool();
         WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers.Value.ToBool();
         WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion.Value.ToBool();
         WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport.Value.ToBool();
@@ -679,6 +682,8 @@ public abstract partial class WorldBase : IWorld
 
     private void MbfTelefrag_OnChanged(object? sender, CompatSetting enabled) =>
         WorldStatic.MbfTelefrag = enabled.ToBool();
+    private void MbfPlayerMovement_OnChanged(object? sender, CompatSetting enabled) =>
+        WorldStatic.MbfPlayerMovement = enabled.ToBool();
     private void VanillaSectorSound_OnChanged(object? sender, CompatSetting enabled) =>
         WorldStatic.VanillaSectorSound = enabled.ToBool();
     private void FinalDoomTeleport_OnChanged(object? sender, CompatSetting enabled) =>
