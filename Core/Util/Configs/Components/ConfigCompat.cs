@@ -79,6 +79,10 @@ public class ConfigCompat: ConfigElement<ConfigCompat>
     [OptionMenu(OptionSectionType.Compatibility, "Mbf Telefrag Behavior")]
     public readonly ConfigCompatValue MbfTelefrag = new(CompatSetting.True);
 
+    [ConfigInfo("MBF Player movement that allowed player to move out of stuck lines.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "MBF Player Movement")]
+    public readonly ConfigCompatValue MbfPlayerMovement = new(CompatSetting.True);
+
     public void ResetToUserValues()
     {
         AllowItemDropoff.ResetToUserValue();

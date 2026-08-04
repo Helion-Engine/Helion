@@ -71,24 +71,25 @@ public class CompLevelDefinition
                 compat.VanillaShortestTexture.SetIfMutable(true);
                 compat.VileGhosts.SetIfMutable(true);
                 compat.MbfTelefrag.SetIfMutable(false);
+                compat.MbfPlayerMovement.SetIfMutable(false);
 
                 compat.Mbf21.SetIfMutable(false);
                 break;
             case CompLevel.Boom:
-                SetBoomCompat(compat, mbf21: false, mbfTelefrag: false);
+                SetBoomCompat(compat, mbf21: false, mbfTelefrag: false, mbfPlayerMovement: false);
                 break;
             case CompLevel.Mbf:
-                SetBoomCompat(compat, mbf21: false, mbfTelefrag: true);
+                SetBoomCompat(compat, mbf21: false, mbfTelefrag: true, mbfPlayerMovement: true);
                 break;
             case CompLevel.Mbf21:
-                SetBoomCompat(compat, mbf21: true, mbfTelefrag: true);
+                SetBoomCompat(compat, mbf21: true, mbfTelefrag: true, mbfPlayerMovement: true);
                 break;
         }
 
         HelionLog.Info($"Comp level set to {CompLevel}");
     }
 
-    private static void SetBoomCompat(ConfigCompat compat, bool mbf21, bool mbfTelefrag)
+    private static void SetBoomCompat(ConfigCompat compat, bool mbf21, bool mbfTelefrag, bool mbfPlayerMovement)
     {
         compat.AllowItemDropoff.SetIfMutable(true);
         compat.Stairs.SetIfMutable(false);
@@ -96,6 +97,7 @@ public class CompLevelDefinition
         compat.VanillaShortestTexture.SetIfMutable(false);
 
         compat.MbfTelefrag.SetIfMutable(mbfTelefrag);
+        compat.MbfPlayerMovement.SetIfMutable(mbfPlayerMovement);
         compat.Mbf21.SetIfMutable(mbf21);
     }
 }

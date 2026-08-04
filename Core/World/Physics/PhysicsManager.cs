@@ -1549,7 +1549,7 @@ doneLinkToSectors:
 
             success = false;
 
-            if (ShouldClearSlide(entity, TryMoveData))
+            if (ShouldClearSlide(TryMoveData))
             {
                 entity.Velocity.X = 0;
                 entity.Velocity.Y = 0;
@@ -1842,14 +1842,6 @@ doneLinkToSectors:
         if (AttemptAxisMove(entity, stepDelta, Axis2D.X, tryMove))
             return;
 
-        // If we cannot find the line or thing that is blocking us, then we
-        // are fully done moving horizontally.
-        if (ShouldClearSlide(entity, tryMove))
-        {
-            entity.Velocity.X = 0;
-            entity.Velocity.Y = 0;
-        }
-
         stepDelta.X = 0;
         stepDelta.Y = 0;
         movesLeft = 0;
@@ -2049,7 +2041,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, nextX, entity.Position.Y, tryMove))
             {
                 MoveTo(entity, nextX, entity.Position.Y, tryMove);
-                if (ShouldClearSlide(entity, tryMove))
+                if (ShouldClearSlide(tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
                 return true;
@@ -2061,7 +2053,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, entity.Position.X, nextY, tryMove))
             {
                 MoveTo(entity, entity.Position.X, nextY, tryMove);
-                if (ShouldClearSlide(entity, tryMove))
+                if (ShouldClearSlide(tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;
                 return true;
@@ -2072,7 +2064,7 @@ doneLinkToSectors:
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ShouldClearSlide(Entity entity, TryMoveData tryMove)
+    private static bool ShouldClearSlide(TryMoveData tryMove)
     {
         if (!tryMove.BlockedLineClearsVelocity)
             return false;

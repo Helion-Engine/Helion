@@ -34,6 +34,7 @@ public static class WorldStatic
     public static bool AllowItemDropoff;
     public static bool NoTossDrops;
     public static bool VanillaMovementPhysics;
+    public static bool MbfPlayerMovement;
     public static bool Dehacked;
     public static bool Mbf21;
     public static bool Doom2ProjectileWalkTriggers;

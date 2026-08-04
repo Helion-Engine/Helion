@@ -300,7 +300,7 @@ public sealed class Line
 
     public static bool CanMoveOutOf(Entity entity, double x, double y, in Seg2D seg, bool oneSided)
     {
-        if (entity.PlayerObj == null || entity.PlayerObj.IsVooDooDoll)
+        if (!WorldStatic.MbfPlayerMovement || entity.PlayerObj == null || entity.PlayerObj.IsVooDooDoll)
             return false;
 
         // Boom appears to check if the player was previously clipped with the line
