@@ -215,7 +215,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
         if (renderTexture == null && texture.BrightmapImage != null)
         {
-            renderTexture = CreateTexture(texture.BrightmapImage, $"[BRIGHTMAP] {texture.Name}", ResourceNamespace.Brightmaps, repeatY);
+            renderTexture = CreateBrightMapTexture(texture.BrightmapImage, $"[BRIGHTMAP] {texture.Name}", ResourceNamespace.Brightmaps, repeatY);
             texture.SetBrightmapGLTexture(renderTexture, repeatY);
         }
 
@@ -255,10 +255,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
             texture.BrightmapImage = brightmap?.GetImage(ArchiveCollection.ImageRetriever);
             bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
 
-            // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.
-            var brightmapTexture = CreateTexture(texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
-            if (brightmapTexture == NullTexture)
-                brightmapTexture = TransparentNullTexture;
+            var brightmapTexture = CreateBrightMapTexture(texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
 
             translationRotation = new SpriteRotation(texture, spriteRotation.Mirror, brightmapNoFullbright)
             {
@@ -272,7 +269,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         else
         {
             spriteRotation.RenderStore ??= CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
-            spriteRotation.BrightmapRenderStore ??= CreateTexture(spriteRotation.Texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
+            spriteRotation.BrightmapRenderStore ??= CreateBrightMapTexture(spriteRotation.Texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
         }
 
         return spriteRotation;
@@ -292,7 +289,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
                     continue;
 
                 rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
-                rotation.Texture.BrightmapRenderStore = CreateTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
+                rotation.Texture.BrightmapRenderStore = CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
             }
         }
     }
@@ -368,6 +365,15 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     {
         int smallerAxis = Math.Min(dimension.Width, dimension.Height);
         return (int)Math.Floor(Math.Log(smallerAxis, 2));
+    }
+
+    protected GLTextureType CreateBrightMapTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
+    {
+        var texture = CreateTexture(image, name, resourceNamespace, repeatY);
+        // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.
+        if (texture == NullTexture)
+            return TransparentNullTexture;
+        return texture;
     }
 
     protected GLTextureType CreateTexture(Image? image, bool repeatY) => CreateTexture(image, null, ResourceNamespace.Global, repeatY);
