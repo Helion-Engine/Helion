@@ -243,7 +243,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     private void AddSpecialNodeNotNull(ISpecial? special)
     {
         if (special != null)
-            AddSpecialNode(special);
+            AddSpecial(special);
     }
 
     public void ResetInterpolation()
@@ -450,12 +450,19 @@ public sealed class SpecialManager : ITickable, IDisposable
     public SectorMoveSpecial AddDelayedSpecial(SectorMoveSpecial special, int delayTics)
     {
         special.SetDelayTics(delayTics);
-        AddSpecialNode(special);
+        AddSpecial(special);
         return special;
     }
 
     public void AddSpecial(ISpecial special)
     {
+        if (special.SectorBaseSpecialType == SectorBaseSpecialType.ScrollPlane && special is ScrollSpecial scrollSpecial &&
+            scrollSpecial.SectorPlane != null && (scrollSpecial.Options & ScrollPlaneOptions.Textures) != 0)
+        {
+            StaticDataApplier.SetSectorDynamic(m_world, scrollSpecial.SectorPlane.Sector, 
+                scrollSpecial.SectorPlane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
+        }
+
         m_specials.AddLast(m_world.DataCache.GetSpecialNode(special));
     }
 
@@ -1260,7 +1267,6 @@ public sealed class SpecialManager : ITickable, IDisposable
                 if (!replace || !FindAndSetScroller(sectorPlane, ScrollPlaneOptions.Textures, speeds.ScrollSpeed.Value))
                 {
                     AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures | carryOptions, sectorPlane, speeds.ScrollSpeed.Value, changeScroll, flags));
-                    StaticDataApplier.SetSectorDynamic(m_world, sector, sectorPlane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
                 }
             }
             else if(replace)
@@ -2282,9 +2288,9 @@ public sealed class SpecialManager : ITickable, IDisposable
             floor = CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, floorSpeed);
 
         if (floor != null)
-            AddSpecialNode(floor);
+            AddSpecial(floor);
         if (ceiling != null)
-            AddSpecialNode(ceiling);
+            AddSpecial(ceiling);
 
         return floor != null || ceiling != null;
     }
@@ -2575,11 +2581,6 @@ public sealed class SpecialManager : ITickable, IDisposable
     {
         Sector? destSector = sector.GetHighestAdjacentCeiling();
         return destSector?.Ceiling.Z ?? MinDest;
-    }
-
-    private void AddSpecialNode(ISpecial special)
-    {
-        m_specials.AddFirst(m_world.DataCache.GetSpecialNode(special));
     }
 
     private void RemoveSpecialNode(LinkedListNode<ISpecial> node)

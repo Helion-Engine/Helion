@@ -5,4 +5,5 @@ public enum SectorBaseSpecialType
     Default,
     Move,
     Light,
+    ScrollPlane,
 }
