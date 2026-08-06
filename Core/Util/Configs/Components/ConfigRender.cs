@@ -105,7 +105,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     public readonly ConfigRenderFilter Filter = new();
 
-    [ConfigInfo("Render missing textures as a red/black checkered texture.", mapRestartRequired: true)]
+    [ConfigInfo("Render missing textures as a red/black checkered texture.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Render Null Textures", spacer: true)]
     public readonly ConfigValue<bool> NullTexture = new(false);
 
