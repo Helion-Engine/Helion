@@ -123,7 +123,6 @@ public sealed class UdmfMap : IMap, IMapSpecials
             if ((flags & UdmfScrollSectorFlags.Texture) != 0 && scrollSpeeds.ScrollSpeed.HasValue)
             {
                 world.SpecialManager.AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures | carryOptions, plane, scrollSpeeds.ScrollSpeed.Value));
-                StaticDataApplier.SetSectorDynamic(world, sector, plane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
             }
 
             flags &= ~UdmfScrollSectorFlags.Texture;

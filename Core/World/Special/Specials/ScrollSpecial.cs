@@ -46,9 +46,12 @@ public class ScrollSpecial : ISpecial
 
     public ScrollPlaneOptions Options => m_options;
 
+    public SectorBaseSpecialType SectorBaseSpecialType => m_baseType;
+
     private readonly ScrollPlaneOptions m_options;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
     private readonly ZDoomLineScroll m_lineScroll;
+    private readonly SectorBaseSpecialType m_baseType;
     private ScrollSides m_scrollSides;
     private SideScrollData? m_frontScroll;
     private SideScrollData? m_backScroll;
@@ -86,6 +89,7 @@ public class ScrollSpecial : ISpecial
     public ScrollSpecial(ScrollPlaneOptions flags, SectorPlane sectorPlane, in Vec2D speed, Sector? accelSector = null,
         ZDoomScroll scrollFlags = ZDoomScroll.None)
     {
+        m_baseType = SectorBaseSpecialType.ScrollPlane;
         m_options = flags;
         SectorPlane = sectorPlane;
         Speed = speed;
