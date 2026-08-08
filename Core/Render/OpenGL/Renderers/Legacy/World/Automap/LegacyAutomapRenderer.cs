@@ -158,7 +158,7 @@ public class LegacyAutomapRenderer : IDisposable
             }
 
             m_shader.Color(color);
-            GL.DrawArrays(PrimitiveType.Lines, first, count);
+            m_pipeline.DrawArrays(PrimitiveType.Lines, first, count);
         }
 
         m_pipeline.Unbind();

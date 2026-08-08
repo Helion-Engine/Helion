@@ -107,7 +107,7 @@ public class SkySphereRenderer : IDisposable
     {
         texture.Bind();
         m_pipeline.Bind();
-        m_pipeline.Vbo.DrawArrays();
+        m_pipeline.DrawArrays();
         m_pipeline.Unbind();
         texture.Unbind();
     }

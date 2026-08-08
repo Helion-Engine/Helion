@@ -176,7 +176,7 @@ public class LegacyHudRenderer : HudRenderer
                 data.BrightmapTexture.Bind();
             else
                 GL.BindTexture(TextureTarget.Texture2D, 0);
-            m_pipeline.Vbo.DrawArrays();
+            m_pipeline.DrawArrays();
             data.Texture.Unbind();
         }
 
