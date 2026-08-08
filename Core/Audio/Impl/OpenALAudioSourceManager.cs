@@ -99,15 +99,14 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         if (m_sources.Count >= MaxSounds)
             return null;
 
-        OpenALBuffer? buffer = GetBuffer(sound);
+        var buffer = GetBuffer(sound);
         if (buffer == null)
             return null;
 
-        OpenALAudioSource source = m_archiveCollection.DataCache.GetAudioSource(this, buffer, audioData);
+        var source = m_archiveCollection.DataCache.GetAudioSource(this, buffer, audioData);
         if (m_currentResampler != null)
-        {
             source.SetResampler(m_currentResampler);
-        }
+        source.SetGain((float)AudioSystem.Gain);
         m_sources.Add(source);
         return source;
     }

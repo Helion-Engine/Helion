@@ -188,6 +188,12 @@ public class OpenALAudioSource : IAudioSource
 
     public void Update(in UpdateParams updateParams)
     {
+        if (Owner.AudioSystem.Gain == 0)
+        {
+            AL.Source(m_sourceId, ALSourcef.Gain, NoGain);
+            return;
+        }
+
         if (m_audioData.Attenuation == Attenuation.None)
         {
             AL.Source(m_sourceId, ALSourcef.Gain, m_gain * m_audioData.Volume);
@@ -195,7 +201,7 @@ public class OpenALAudioSource : IAudioSource
         }
 
         var dist = updateParams.DistanceFromListener * m_audioData.AttenuationFactor;
-        if (dist > MaxAudibleDistance || Owner.AudioSystem.Gain == 0)
+        if (dist > MaxAudibleDistance)
         {
             AL.Source(m_sourceId, ALSourcef.Gain, NoGain);
         }
