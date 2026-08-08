@@ -1,5 +1,4 @@
 ﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
@@ -12,8 +11,6 @@ namespace Helion.Render.OpenGL;
 public class VertexPipeline<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable
     where TVertex : struct
 {
-    private static VertexArrayObject? SharedVao;
-
     public VertexArrayObject Vao;
     public VertexBufferObject<TVertex> Vbo;
     private bool m_disposed;
