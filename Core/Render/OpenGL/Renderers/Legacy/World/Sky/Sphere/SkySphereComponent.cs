@@ -57,7 +57,7 @@ public class SkySphereComponent : ISkyComponent
         m_pipeline.Vbo.UploadIfNeeded();
 
         m_pipeline.Bind();
-        m_pipeline.Vbo.DrawArrays();
+        m_pipeline.DrawArrays();
         m_pipeline.Unbind();
 
         m_geometryProgram.Unbind();

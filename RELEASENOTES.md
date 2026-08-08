@@ -10,7 +10,6 @@
 - Fix scrolling floors/ceilings not rendering movement after loading a game in non-UDMF maps.
 
 ## Misc:
-- Use modern OpenGL functions for VAO attributes when supported.
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
 - Use FramebufferSize in MacOS to fix windowed mode not rendering to the entire window for MacOS.
 - Add compat option for MbfPlayerMovement

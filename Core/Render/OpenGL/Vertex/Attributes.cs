@@ -194,44 +194,6 @@ public static class Attributes
         }
     }
 
-    public static void ApplyModern<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(VertexBufferObject<TVertex> vbo, VertexArrayObject vao, ProgramAttributes shaderAttribs)
-        where TVertex : struct
-    {
-        AssertCorrectMappingOrThrow<TVertex>(shaderAttribs);
-
-        foreach (var attr in ReadStructAttributes<TVertex>())
-        {
-            GL.EnableVertexArrayAttrib(vao.Handle, attr.Index);
-
-            if (attr.PointerType.HasValue)
-            {
-                GL.VertexArrayAttribFormat(
-                    vao.Handle,
-                    attr.Index,
-                    attr.Size,
-                    (VertexAttribType)attr.PointerType.Value,
-                    attr.Normalized,
-                    attr.Offset
-                );
-            }
-            else if (attr.IntegerType.HasValue)
-            {
-                GL.VertexArrayAttribIFormat(
-                    vao.Handle,
-                    attr.Index,
-                    attr.Size,
-                    (VertexAttribIType)attr.IntegerType.Value,
-                    attr.Offset
-                );
-            }
-
-            if (attr.Divisor > 0)
-                GL.VertexArrayBindingDivisor(vao.Handle, attr.Index, attr.Divisor);
-
-            GL.VertexArrayAttribBinding(vao.Handle, attr.Index, attr.Index);
-        }
-    }
-
     public static void BindAndApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(VertexBufferObject<TVertex> vbo, VertexArrayObject vao, ProgramAttributes shaderAttribs)
         where TVertex : struct
     {
@@ -242,27 +204,6 @@ public static class Attributes
 
         vbo.Unbind();
         vao.Unbind();
-    }
-
-    public static void BindVertexBuffer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(VertexBufferObject<TVertex> vbo, VaoAttribute[] attributes)
-        where TVertex : struct
-    {
-        foreach (var attr in attributes)
-            GL.BindVertexBuffer(attr.Index, vbo.BufferId, 0, attr.Stride);
-    }
-
-    public static void BindVertexBuffer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(VertexBufferObject<TVertex> vbo)
-        where TVertex : struct
-    {
-        foreach (var attr in ReadStructAttributes<TVertex>())
-            GL.BindVertexBuffer(attr.Index, vbo.BufferId, 0, attr.Stride);
-    }
-
-    public static void BindVertexArrayBuffer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(VertexArrayObject vao, VertexBufferObject<TVertex> vbo)
-        where TVertex : struct
-    {
-        foreach (var attr in ReadStructAttributes<TVertex>())
-            GL.VertexArrayVertexBuffer(vao.Handle, attr.Index, vbo.BufferId, 0, attr.Stride);
     }
 
     private static ProgramAttribute? FindShaderAttribute(ProgramAttributes shaderAttribs, string name)
