@@ -69,6 +69,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly DiscordHandler m_discord = new();
     private readonly Stopwatch m_stopwatch = Stopwatch.StartNew();
     private readonly FrameLimiter m_frameLimiter = new();
+    private readonly IClipboard m_clipboard;
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
@@ -130,8 +131,10 @@ public partial class Client : IDisposable, IInputManagement
         m_soundManager.SoundCreated += m_window.JoystickAdapter.RumbleForSoundCreated;
         SetIcon(m_window);
 
+        m_clipboard = new GlfwClipboard(m_window);
+
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
-            m_pathsManager, m_soundManager, m_saveGameManager, m_profiler, m_screenshotGenerator);
+            m_pathsManager, m_soundManager, m_saveGameManager, m_profiler, m_screenshotGenerator, m_clipboard);
 
         m_layerManager.GameLayerAdded += GameLayerManager_GameLayerAdded;
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
