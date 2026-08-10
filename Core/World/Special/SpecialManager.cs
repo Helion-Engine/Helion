@@ -288,13 +288,18 @@ public sealed class SpecialManager : ITickable, IDisposable
         if (ShouldCreateSwitchSpecial(args))
         {
             var switchSpecial = GetExistingSwitchSpecial(args.ActivateLineSpecial);
-            if (switchSpecial != null)
-                RemoveSpecial(switchSpecial);
-            switchSpecial = m_dataCache.GetSwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
-            if (switchSpecial.Tick() == SpecialTickStatus.Destroy)
-                FreeSpecial(switchSpecial);
+            if (switchSpecial == null)
+            {
+                switchSpecial = m_dataCache.GetSwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
+                if (switchSpecial.Tick() == SpecialTickStatus.Destroy)
+                    FreeSpecial(switchSpecial);
+                else
+                    AddSpecial(switchSpecial);
+            }
             else
-                AddSpecial(switchSpecial);
+            {
+                switchSpecial.Toggle();
+            }
         }
 
         args.ActivateLineSpecial.SetActivated(true);

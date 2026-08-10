@@ -334,8 +334,8 @@ public class MarkSpecials
 
         if (SwitchManager.IsLineSwitch(world.ArchiveCollection, line))
         {
-            var location = SwitchManager.GetLineLineSwitchTexture(world.ArchiveCollection, line, false);
-            switch (location.Item2)
+            var switchTexture = SwitchManager.GetLineLineSwitchTexture(world.ArchiveCollection, line, SwitchTextureType.Current);
+            switch (switchTexture.Location)
             {
                 case WallLocation.Upper:
                     return lineCenter.To3D((line.Back.Sector.Ceiling.Z + line.Front.Sector.Ceiling.Z) / 2);

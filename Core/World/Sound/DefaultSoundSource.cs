@@ -11,8 +11,8 @@ public class DefaultSoundSource : ISoundSource
     public static readonly DefaultSoundSource Default = new();
 
     private IAudioSource? m_audioSource;
-    private readonly Vec3D m_position;
-    private readonly bool m_attenuate;
+    private Vec3D m_position;
+    private bool m_attenuate;
 
     public DefaultSoundSource()
     {
@@ -21,6 +21,12 @@ public class DefaultSoundSource : ISoundSource
     }
 
     public DefaultSoundSource(in Vec3D position)
+    {
+        m_position = position;
+        m_attenuate = true;
+    }
+
+    public void SetPosition(in Vec3D position)
     {
         m_position = position;
         m_attenuate = true;

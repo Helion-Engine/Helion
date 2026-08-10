@@ -10,6 +10,7 @@
 - Fix scrolling floors/ceilings not rendering movement after loading a game in non-UDMF maps.
 - Fix sounds without attenuation playing at full volume when sound volume is zero.
 - Fix sounds randomly having old gain values when sound volume is changed.
+- Fix repeat switch behavior when it starts with the off texture (fixes E3M1 repeat door close switch).
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
