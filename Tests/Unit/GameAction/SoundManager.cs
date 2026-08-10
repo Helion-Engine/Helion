@@ -397,15 +397,15 @@ public class SoundManager
         ActivateSpecialLine(2);
         ActivateSpecialLine(0);
 
-        World.SoundManager.GetPlayingSounds().Count.Should().Be(4);
+        World.SoundManager.GetPlayingSounds().Count.Should().Be(3);
         AssertSoundsPlaying(World.SoundManager.GetPlayingSounds(), true);
 
         World.SoundManager.Pause();
-        World.SoundManager.GetPlayingSounds().Count.Should().Be(4);
+        World.SoundManager.GetPlayingSounds().Count.Should().Be(3);
         AssertSoundsPlaying(World.SoundManager.GetPlayingSounds(), false);
 
         World.SoundManager.Resume();
-        World.SoundManager.GetPlayingSounds().Count.Should().Be(4);
+        World.SoundManager.GetPlayingSounds().Count.Should().Be(3);
         AssertSoundsPlaying(World.SoundManager.GetPlayingSounds(), true);
     }
 
@@ -432,7 +432,7 @@ public class SoundManager
         World.SoundManager.CreateSoundOn(entity2, "imp/sight1", new SoundParams(entity2, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
 
         World.Tick();
-        World.SoundManager.GetPlayingSounds().Count.Should().Be(6);
+        World.SoundManager.GetPlayingSounds().Count.Should().Be(5);
         waitingSounds.Count.Should().Be(1);
 
         World.SoundManager.ClearSounds();

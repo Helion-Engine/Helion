@@ -9,7 +9,7 @@ using Helion.World.Special.Switches;
 
 namespace Helion.World.Special.Specials;
 
-public class SwitchChangeSpecial : ISpecial
+public class SwitchChangeSpecial : DefaultSoundSource, ISpecial
 {
     private const int SwitchDelayTicks = 35;
 
@@ -18,6 +18,7 @@ public class SwitchChangeSpecial : ISpecial
     private bool m_init = true;
     private bool m_repeat;
     private int m_switchDelayTics;
+    private int m_startTextureHandle = Constants.NoTextureIndex;
 
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -56,12 +57,15 @@ public class SwitchChangeSpecial : ISpecial
         Line = line;
         m_repeat = model.Repeat;
         m_switchDelayTics = model.Tics;
+        if (model.Texture == Constants.NoTextureIndex)
+            m_startTextureHandle = SwitchManager.GetLineLineSwitchTexture(World.ArchiveCollection, Line, SwitchTextureType.Off).TextureHandle;
     }
 
     public void Free()
     {
         World = null!;
         m_init = true;
+        m_startTextureHandle = Constants.NoTextureIndex;
         m_switchDelayTics = 0;
     }
 
@@ -71,7 +75,8 @@ public class SwitchChangeSpecial : ISpecial
         {
             LineId = Line.Id,
             Repeat = m_repeat,
-            Tics = m_switchDelayTics
+            Tics = m_switchDelayTics,
+            Texture = m_startTextureHandle
         };
     }
 
@@ -88,7 +93,16 @@ public class SwitchChangeSpecial : ISpecial
             return SpecialTickStatus.Continue;
         }
 
-        SwitchManager.SetLineSwitch(World, Line, !m_init);
+        if (m_init)
+        {
+            m_startTextureHandle = SwitchManager.GetLineLineSwitchTexture(World.ArchiveCollection, Line, SwitchTextureType.Current).TextureHandle;
+            SwitchManager.SetLineSwitch(World, Line, SwitchTextureType.Flip);
+        }
+        else
+        {
+            if (m_startTextureHandle != Constants.NoTextureIndex)
+                SwitchManager.SetLineSwitch(World, Line, m_startTextureHandle);
+        }
 
         if (m_repeat)
         {
@@ -107,15 +121,24 @@ public class SwitchChangeSpecial : ISpecial
         return SpecialTickStatus.Destroy;
     }
 
+    public void Toggle()
+    {
+        if (!Line.Flags.Repeat)
+            return;
+
+        PlaySwitchSound(World.SoundManager, Line);
+        SwitchManager.SetLineSwitch(World, Line, SwitchTextureType.Flip);
+    }
+
     public bool Use(Entity entity)
     {
         return false;
     }
 
-    private static void PlaySwitchSound(WorldSoundManager soundManager, Line line)
+    private void PlaySwitchSound(WorldSoundManager soundManager, Line line)
     {
         Vec2D pos = line.Segment.FromTime(0.5);
-        DefaultSoundSource soundSource = new(pos.To3D(line.Front.Sector.ToFloorZ(pos)));
-        soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, new SoundParams(soundSource));
+        SetPosition(pos.To3D(line.Front.Sector.ToFloorZ(pos)));
+        soundManager.CreateSoundOn(this, Constants.SwitchNormSound, new SoundParams(this));
     }
 }

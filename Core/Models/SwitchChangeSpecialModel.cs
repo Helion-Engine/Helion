@@ -8,6 +8,7 @@ public struct SwitchChangeSpecialModel : ISpecialModel
     public int LineId { get; set; }
     public bool Repeat { get; set; }
     public int Tics { get; set; }
+    public int Texture { get; set; }
 
     public readonly ISpecial? ToWorldSpecial(IWorld world)
     {
