@@ -617,11 +617,11 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.Frames = ArchiveCollection.Definitions.EntityFrameTable.Frames;
         WorldStatic.Random = Random;
         WorldStatic.SlowTickEnabled = Config.SlowTick.Enabled.Value;
-        WorldStatic.SlowTickChaseFailureSkipCount = (short)Config.SlowTick.ChaseFailureSkipCount;
-        WorldStatic.SlowTickDistance = (short)Config.SlowTick.Distance;
-        WorldStatic.SlowTickChaseMultiplier = (short)Config.SlowTick.ChaseMultiplier;
-        WorldStatic.SlowTickLookMultiplier = (short)Config.SlowTick.LookMultiplier;
-        WorldStatic.SlowTickTracerMultiplier = (short)Config.SlowTick.TracerMultiplier;
+        WorldStatic.SlowTickChaseFailureSkipCount = (short)Config.SlowTick.ChaseFailureSkipCount.Value;
+        WorldStatic.SlowTickDistance = (short)Config.SlowTick.Distance.Value;
+        WorldStatic.SlowTickChaseMultiplier = (short)Config.SlowTick.ChaseMultiplier.Value;
+        WorldStatic.SlowTickLookMultiplier = (short)Config.SlowTick.LookMultiplier.Value;
+        WorldStatic.SlowTickTracerMultiplier = (short)Config.SlowTick.TracerMultiplier.Value;
         WorldStatic.IsFastMonsters = IsFastMonsters;
         WorldStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
         WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings.Value.ToBool();
@@ -641,8 +641,8 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
         WorldStatic.Udmf = MapType == MapType.UDMF;
-        WorldStatic.DamageApplyMultiplier = (float)Config.Game.DamageApplyMultiplier;
-        WorldStatic.DamageReceiveMultiplier = (float)Config.Game.DamageReceiveMultiplier;
+        WorldStatic.DamageApplyMultiplier = (float)Config.Game.DamageApplyMultiplier.Value;
+        WorldStatic.DamageReceiveMultiplier = (float)Config.Game.DamageReceiveMultiplier.Value;
 
         WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
         WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");
@@ -667,7 +667,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
         WorldStatic.MirrorCorpse = Config.Game.MirrorCorpse;
         WorldStatic.AutoColoredBlood = Config.Render.AutoColoredBlood;
-        WorldStatic.AutoColoredBlood = Config.Render.FuzzBlood;
+        WorldStatic.FuzzBlood = Config.Render.FuzzBlood;
 
         if (!SameAsPreviousMap)
             WorldStatic.Sector3D = false;
