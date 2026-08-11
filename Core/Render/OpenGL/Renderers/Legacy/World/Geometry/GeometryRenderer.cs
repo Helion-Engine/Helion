@@ -161,84 +161,6 @@ public partial class GeometryRenderer : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public void RenderSubsector(Subsector subsector, in Vec3D position, bool hasRenderedSector)
-    {
-        m_buffer = true;
-        SetSectorRendering(subsector.Sector);
-
-        if (subsector.Sector.TransferHeights != null)
-        {
-            RenderSubsectorWalls(subsector, position, position.XY);
-            if (!hasRenderedSector)
-                RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(subsector.Sector, position.Z), subsector.Sector.TransferHeights.ControlSector);
-            return;
-        }
-
-        RenderSubsectorWalls(subsector, position, position.XY);
-        if (!hasRenderedSector)
-            RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
-    }
-
-    // TODO this is copied
-    private void RenderSubsectorWalls(Subsector subsector, in Vec3D position, in Vec2D pos2D)
-    {
-        var sector = subsector.Sector;
-        for (int i = 0; i < subsector.SegCount; i++)
-        {
-            ref var edge = ref m_world.BspTree.Segments.Data[subsector.SegIndex + i];
-            if (edge.LineId == -1)
-                continue;
-
-            if (m_hitLines.Get(edge.LineId))
-                continue;
-
-            m_hitLines.Set(edge.LineId, true);
-
-            var line = m_world.Lines[edge.LineId];
-
-            var onFront = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) <= 0;
-
-            var onBothSides = false;
-            //var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
-
-            AddLineClip(ref edge, line);
-
-            if (line.Back != null)
-                CheckFloodFillLine(line.Front, line.Back);
-
-            // Need to force render for alternative flood fill from the front side.
-            if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
-            {
-                RenderSectorSideWall(sector, line.Front, true);
-            }
-            else if (m_vanillaRender && line.Back != null)
-            {
-                m_renderCoverOnly = true;
-                RenderSectorSideWall(sector, line.Front, true);
-                m_renderCoverOnly = false;
-            }
-            // Need to force render for alternative flood fill from the back side.
-            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
-            {
-                RenderSectorSideWall(sector, line.Back, false);
-            }
-            else if (m_vanillaRender && line.Back != null)
-            {
-                m_renderCoverOnly = true;
-                RenderSectorSideWall(sector, line.Back, false);
-                m_renderCoverOnly = false;
-            }
-        }
-    }
-
-    private void AddLineClip(ref SubsectorSegment edge, Line line)
-    {
-        if (line.Back == null)
-            m_viewClipper.AddLine(edge.Start, edge.End);
-        else if (RenderBlock.IsBlocked(line))
-            m_viewClipper.AddLine(edge.Start, edge.End);
-    }
-
     public void UpdateTo(IWorld world, bool unitTest = false)
     {
         m_world = world;
@@ -439,6 +361,10 @@ public partial class GeometryRenderer : IDisposable
         m_tickFraction = tickFraction;
         if (newTick)
             m_skyRenderer.Clear();
+    }
+
+    public void ClearBsp()
+    {
         m_hitLines.SetAll(false);
     }
 
@@ -474,6 +400,52 @@ public partial class GeometryRenderer : IDisposable
 
     public void RenderStaticStyle(RenderDataStyle style) =>
         m_staticCacheGeometryRenderer.Render(style.ToGeometryType());
+
+    private void RenderSubsectorWalls(Subsector subsector, in Vec2D pos2D)
+    {
+        var sector = subsector.Sector;
+        for (int i = 0; i < subsector.SegCount; i++)
+        {
+            ref var edge = ref m_world.BspTree.Segments.Data[subsector.SegIndex + i];
+            if (edge.LineId == -1)
+                continue;
+
+            if (m_hitLines.Get(edge.LineId))
+                continue;
+
+            m_hitLines.Set(edge.LineId, true);
+
+            var line = m_world.Lines[edge.LineId];
+            AddLineClip(edge, line);
+            RenderSectorLine(line, sector, pos2D, pos2D);
+        }
+    }
+
+    private void AddLineClip(in SubsectorSegment edge, Line line)
+    {
+        if (line.Back == null)
+            m_viewClipper.AddLine(edge.Start, edge.End);
+        else if (RenderBlock.IsBlocked(line))
+            m_viewClipper.AddLine(edge.Start, edge.End);
+    }
+
+    public void RenderSubsector(Subsector subsector, in Vec3D position, in Vec2D pos2D, bool hasRenderedSector)
+    {
+        m_buffer = true;
+        SetSectorRendering(subsector.Sector);
+
+        if (subsector.Sector.TransferHeights != null)
+        {
+            RenderSubsectorWalls(subsector, pos2D);
+            if (!hasRenderedSector)
+                RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(subsector.Sector, position.Z), subsector.Sector.TransferHeights.ControlSector);
+            return;
+        }
+
+        RenderSubsectorWalls(subsector, pos2D);
+        if (!hasRenderedSector)
+            RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
+    }
 
     public void RenderSector(Sector sector, in Vec3D viewPosition, in Vec3D prevViewPosition)
     {
@@ -686,36 +658,38 @@ public partial class GeometryRenderer : IDisposable
         }
 
         for (int i = 0; i < sector.Lines.Length; i++)
+            RenderSectorLine(sector.Lines[i], sector, pos2D, prevPos2D);
+    }
+
+    private void RenderSectorLine(Line line, Sector sector, Vec2D pos2D, Vec2D prevPos2D)
+    {
+        var onFront = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) <= 0;
+        var onBothSides = onFront != ((line.Segment.Delta.X * (prevPos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (prevPos2D.X - line.Segment.Start.X)) <= 0);
+
+        if (line.Back != null)
+            CheckFloodFillLine(line.Front, line.Back);
+
+        // Need to force render for alternative flood fill from the front side.
+        if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
         {
-            var line = sector.Lines[i];
-            var onFront = line.Segment.OnRight(pos2D);
-            var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
-
-            if (line.Back != null)
-                CheckFloodFillLine(line.Front, line.Back);
-
-            // Need to force render for alternative flood fill from the front side.
-            if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
-            {
-                RenderSectorSideWall(sector, line.Front, true);
-            }
-            else if (m_vanillaRender && line.Back != null)
-            {
-                m_renderCoverOnly = true;
-                RenderSectorSideWall(sector, line.Front, true);
-                m_renderCoverOnly = false;
-            }
-            // Need to force render for alternative flood fill from the back side.
-            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
-            {
-                RenderSectorSideWall(sector, line.Back, false);
-            }
-            else if (m_vanillaRender && line.Back != null)
-            {
-                m_renderCoverOnly = true;
-                RenderSectorSideWall(sector, line.Back, false);
-                m_renderCoverOnly = false;
-            }
+            RenderSectorSideWall(sector, line.Front, true);
+        }
+        else if (m_vanillaRender && line.Back != null)
+        {
+            m_renderCoverOnly = true;
+            RenderSectorSideWall(sector, line.Front, true);
+            m_renderCoverOnly = false;
+        }
+        // Need to force render for alternative flood fill from the back side.
+        if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
+        {
+            RenderSectorSideWall(sector, line.Back, false);
+        }
+        else if (m_vanillaRender && line.Back != null)
+        {
+            m_renderCoverOnly = true;
+            RenderSectorSideWall(sector, line.Back, false);
+            m_renderCoverOnly = false;
         }
     }
 
