@@ -2,6 +2,8 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Render.Common.Shared;
+using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -10,14 +12,15 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
+using Helion.World.Bsp;
 using Helion.World.Entities;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -69,12 +72,15 @@ public class LegacyWorldRenderer : WorldRenderer
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
+    private readonly ViewClipper m_viewClipper = new();
+    private FrustumPlanes m_frustumPlanes;
+
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
         m_entityRenderer = new(config, textureManager, archiveCollection);
         m_primitiveRenderer = new();
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;
@@ -145,21 +151,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView);
 
-        m_renderData.ViewerEntity = renderInfo.ViewerEntity;
-        m_renderData.ViewPosInterpolated = renderInfo.Camera.PositionInterpolated.XY.Double;
-        m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
-        m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
-        m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.SubsectorToIslandId[renderInfo.ViewerEntity.SubsectorId]];
-
-        m_viewerEntity = renderInfo.ViewerEntity;
-        m_geometryRenderer.Clear(renderInfo.TickFraction, true);
-        m_renderData.CheckCount = ++WorldStatic.CheckCounter;
-
-        m_renderData.MaxDistance = renderInfo.Uniforms.MaxDistance;
-
-        m_renderData.MaxDistanceSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
-        m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
+        SetupRenderData(world, renderInfo);
         Box2D box = new(m_renderData.ViewPosInterpolated.X, m_renderData.ViewPosInterpolated.Y, m_renderData.MaxDistance);
 
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
@@ -188,6 +180,25 @@ public class LegacyWorldRenderer : WorldRenderer
         }
 
         m_lastTicker = world.GameTicker;
+    }
+
+    private void SetupRenderData(IWorld world, RenderInfo renderInfo)
+    {
+        m_renderData.ViewerEntity = renderInfo.ViewerEntity;
+        m_renderData.ViewPosInterpolated = renderInfo.Camera.PositionInterpolated.XY.Double;
+        m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
+        m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
+        m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
+        m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.SubsectorToIslandId[renderInfo.ViewerEntity.SubsectorId]];
+
+        m_viewerEntity = renderInfo.ViewerEntity;
+        m_geometryRenderer.Clear(renderInfo.TickFraction, true);
+        m_renderData.CheckCount = ++WorldStatic.CheckCounter;
+
+        m_renderData.MaxDistance = renderInfo.Uniforms.MaxDistance;
+
+        m_renderData.MaxDistanceSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
+        m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
     }
 
     private static bool BlockInView(int x, int y, int dimension, in Vec2D origin, in Vec2D viewPos, in Vec2D viewDirection)
@@ -286,7 +297,8 @@ public class LegacyWorldRenderer : WorldRenderer
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
-        m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
+        //m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
+        m_renderStatic = false;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
         Clear(world, renderInfo);
 
@@ -305,7 +317,8 @@ public class LegacyWorldRenderer : WorldRenderer
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
-        IterateBlockmap(world, renderInfo);
+        TraverseBsp(world, renderInfo);
+        //IterateBlockmap(world, renderInfo);
         PopulatePrimitives(world);
 
         m_geometryRenderer.RenderSkies(renderInfo);
@@ -387,6 +400,87 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
+    }
+
+    private int m_renderCount;
+
+    private void TraverseBsp(IWorld world, RenderInfo renderInfo)
+    {
+        SetupRenderData(world, renderInfo);
+        SetFrustum(renderInfo);
+
+        GeometryRenderer.DebugCount++;
+        var position = renderInfo.Camera.PositionInterpolated.XY.Double;
+        var position3D = renderInfo.Camera.PositionInterpolated.Double;
+        var viewDirection = renderInfo.Camera.Direction.XY.Double;
+
+        m_geometryRenderer.SetRenderMode(GeometryRenderMode.All, renderInfo.TransferHeightView);
+        // TODO prev pos
+        m_geometryRenderer.SetViewPosition(renderInfo.Camera.Position.Double, renderInfo.Camera.Position.Double);
+
+        m_viewClipper.Clear();
+        m_viewClipper.Center = position;
+
+        m_renderCount = ++WorldStatic.CheckCounter;
+        RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
+    }
+    private void SetFrustum(RenderInfo renderInfo)
+    {
+        Frustum.SetFrustumPlanes(ref renderInfo.Uniforms.MvpNoPitch, ref m_frustumPlanes);
+    }
+
+    private unsafe void RecursivelyRenderBsp(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, IWorld world)
+    {
+        var pos2D = position.XY;
+        while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
+        {
+            fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
+            {
+                if (Occluded(node->BoundingBox, pos2D, viewDirection))
+                    return;
+
+                var onRight = (node->SplitDelta.X * (position.Y - node->SplitStart.Y)) - (node->SplitDelta.Y * (position.X - node->SplitStart.X)) < 0;
+                int front = *(byte*)&onRight;
+                int back = front ^ 1;
+
+                RecursivelyRenderBsp(node->Children[front], position, viewDirection, world);
+                nodeIndex = node->Children[back];
+            }
+        }
+
+        var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
+        if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
+            return;
+
+        bool hasRenderedSector = subsector.Sector.CheckCount == m_renderCount;
+        m_geometryRenderer.RenderSubsector(subsector, position, hasRenderedSector);
+
+        // Entities are rendered by the sector
+        if (hasRenderedSector)
+            return;
+
+        subsector.Sector.CheckCount = m_renderCount;
+  
+        for (var node = subsector.Sector.Entities.Head; node != null; node = node.Next)
+            m_entityRenderer.RenderEntity(node.Value, pos2D, subsector.Id);
+    }
+
+    private bool Occluded(in Box2D box, in Vec2D position, in Vec2D viewDirection)
+    {
+        if (box.Contains(position))
+            return false;
+
+        //if (m_occlude && !box.InView(m_occludeViewPos, viewDirection))
+        //    return true;
+
+        if (m_occlude)
+        {
+            if (!m_frustumPlanes.BoxInFront(box))
+                return true;
+        }
+
+        box.GetSpanningEdge(position, out var first, out var second);
+        return m_viewClipper.InsideAnyRange(first, second);
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)

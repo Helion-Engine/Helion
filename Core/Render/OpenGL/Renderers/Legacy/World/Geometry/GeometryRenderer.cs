@@ -1,5 +1,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Render.Common.Shared;
 using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
@@ -9,6 +10,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
+using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -99,9 +101,11 @@ public partial class GeometryRenderer : IDisposable
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
     public StaticCacheGeometryRenderer StaticRenderer => m_staticCacheGeometryRenderer;
     public Side FogSide => m_fogSide;
+    private readonly ViewClipper m_viewClipper;
+    private BitArray m_hitLines = new(0);
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, bool unitTest = false)
+        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, ViewClipper viewClipper, bool unitTest = false)
     {
         m_config = config;
         m_program = program;
@@ -149,6 +153,7 @@ public partial class GeometryRenderer : IDisposable
             m_wallVertices[i].SurfaceOptions = options;
 
         m_world = null!;
+        m_viewClipper = viewClipper;
     }
 
     ~GeometryRenderer()
@@ -156,11 +161,91 @@ public partial class GeometryRenderer : IDisposable
         ReleaseUnmanagedResources();
     }
 
+    public void RenderSubsector(Subsector subsector, in Vec3D position, bool hasRenderedSector)
+    {
+        m_buffer = true;
+        SetSectorRendering(subsector.Sector);
+
+        if (subsector.Sector.TransferHeights != null)
+        {
+            RenderSubsectorWalls(subsector, position, position.XY);
+            if (!hasRenderedSector)
+                RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(subsector.Sector, position.Z), subsector.Sector.TransferHeights.ControlSector);
+            return;
+        }
+
+        RenderSubsectorWalls(subsector, position, position.XY);
+        if (!hasRenderedSector)
+            RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
+    }
+
+    public static int DebugCount;
+
+    private void RenderSubsectorWalls(Subsector subsector, in Vec3D position, in Vec2D pos2D)
+    {
+        var sector = subsector.Sector;
+        for (int i = 0; i < subsector.SegCount; i++)
+        {
+            ref var edge = ref m_world.BspTree.Segments.Data[subsector.SegIndex + i];
+            if (edge.LineId == -1)
+                continue;
+
+            if (m_hitLines.Get(edge.LineId))
+                continue;
+
+            m_hitLines.Set(edge.LineId, true);
+
+            var line = m_world.Lines[edge.LineId];
+            var onFront = line.Segment.OnRight(pos2D);
+            var onBothSides = false;
+            //var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
+
+            AddLineClip(ref edge, line);
+            line.DebugCount = DebugCount;
+
+            if (line.Back != null)
+                CheckFloodFillLine(line.Front, line.Back);
+
+            // Need to force render for alternative flood fill from the front side.
+            if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
+            {
+                RenderSectorSideWall(sector, line.Front, true);
+            }
+            else if (m_vanillaRender && line.Back != null)
+            {
+                m_renderCoverOnly = true;
+                RenderSectorSideWall(sector, line.Front, true);
+                m_renderCoverOnly = false;
+            }
+            // Need to force render for alternative flood fill from the back side.
+            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
+            {
+                RenderSectorSideWall(sector, line.Back, false);
+            }
+            else if (m_vanillaRender && line.Back != null)
+            {
+                m_renderCoverOnly = true;
+                RenderSectorSideWall(sector, line.Back, false);
+                m_renderCoverOnly = false;
+            }
+        }
+    }
+
+    private void AddLineClip(ref SubsectorSegment edge, Line line)
+    {
+        if (line.Back == null)
+            m_viewClipper.AddLine(edge.Start, edge.End);
+        else if (RenderBlock.IsBlocked(line))
+            m_viewClipper.AddLine(edge.Start, edge.End);
+    }
+
     public void UpdateTo(IWorld world, bool unitTest = false)
     {
         m_world = world;
         if (!world.SameAsPreviousMap)
             m_skyRenderer.Reset();
+
+        m_hitLines = new(world.Lines.Count);
 
         m_vanillaRender = world.Config.Render.VanillaRender;
         m_pixelGapCorrection = world.Config.Render.PixelGapCorrection;
@@ -354,6 +439,7 @@ public partial class GeometryRenderer : IDisposable
         m_tickFraction = tickFraction;
         if (newTick)
             m_skyRenderer.Clear();
+        m_hitLines.SetAll(false);
     }
 
     public void RenderStaticGeometryWalls() =>
@@ -1582,6 +1668,12 @@ public partial class GeometryRenderer : IDisposable
         }
         Portals.SetTransferHeightView(view);
         SetBufferCoverWall(true);
+    }
+
+    public void SetViewPosition(in Vec3D viewPosition, in Vec3D prevViewPosition)
+    {
+        m_viewPosition = viewPosition;
+        m_prevViewPosition = prevViewPosition;
     }
 
     public void SetBuffer(bool set) => m_buffer = set;

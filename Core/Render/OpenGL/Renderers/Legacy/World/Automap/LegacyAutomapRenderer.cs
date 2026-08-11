@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
@@ -339,7 +340,9 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
 
             bool markedLine = IsLineMarked(ref line, markSecrets, markFlood, checkMarkedSectors);
-            if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap() || line.AutomapFlags.NeverDraw))
+            //if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap() || line.AutomapFlags.NeverDraw))
+            //    continue;
+            if (line.Line.DebugCount != GeometryRenderer.DebugCount)
                 continue;
 
             if (!markedLine && line.LockKey != -1)

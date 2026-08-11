@@ -107,29 +107,29 @@ public class AutomapMarker
             if (token.IsCancellationRequested)
                 return;
 
-            var viewport = GetViewport();
-            m_stopwatch.Restart();
+            //var viewport = GetViewport();
+            //m_stopwatch.Restart();
 
-            while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
-            {
-                // Don't let the queue fill up indefinitely when processing too slowly
-                if (m_positions.Count > ClearCount)
-                    m_positions.Clear();
+            //while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
+            //{
+            //    // Don't let the queue fill up indefinitely when processing too slowly
+            //    if (m_positions.Count > ClearCount)
+            //        m_positions.Clear();
 
-                if (token.IsCancellationRequested)
-                    return;
+            //    if (token.IsCancellationRequested)
+            //        return;
 
-                m_viewClipper.Clear();
-                m_viewClipper.Center = pos.Position.XY;
-                m_hitLines.SetAll(false);
+            //    m_viewClipper.Clear();
+            //    m_viewClipper.Center = pos.Position.XY;
+            //    m_hitLines.SetAll(false);
 
-                SetFrustum(viewport, pos);
-                MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
-            }
+            //    SetFrustum(viewport, pos);
+            //    MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
+            //}
 
-            m_stopwatch.Stop();
-            if (m_stopwatch.ElapsedMilliseconds >= ticks)
-                continue;
+            //m_stopwatch.Stop();
+            //if (m_stopwatch.ElapsedMilliseconds >= ticks)
+            //    continue;
 
             Thread.Sleep(Math.Max(ticks - (int)m_stopwatch.ElapsedMilliseconds, 0));
         }
