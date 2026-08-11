@@ -340,9 +340,7 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
 
             bool markedLine = IsLineMarked(ref line, markSecrets, markFlood, checkMarkedSectors);
-            //if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap() || line.AutomapFlags.NeverDraw))
-            //    continue;
-            if (line.Line.DebugCount != GeometryRenderer.DebugCount)
+            if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap() || line.AutomapFlags.NeverDraw))
                 continue;
 
             if (!markedLine && line.LockKey != -1)

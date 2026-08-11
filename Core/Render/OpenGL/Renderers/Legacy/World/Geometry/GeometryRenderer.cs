@@ -179,8 +179,7 @@ public partial class GeometryRenderer : IDisposable
             RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
-    public static int DebugCount;
-
+    // TODO this is copied
     private void RenderSubsectorWalls(Subsector subsector, in Vec3D position, in Vec2D pos2D)
     {
         var sector = subsector.Sector;
@@ -196,12 +195,13 @@ public partial class GeometryRenderer : IDisposable
             m_hitLines.Set(edge.LineId, true);
 
             var line = m_world.Lines[edge.LineId];
-            var onFront = line.Segment.OnRight(pos2D);
+
+            var onFront = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) <= 0;
+
             var onBothSides = false;
             //var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
 
             AddLineClip(ref edge, line);
-            line.DebugCount = DebugCount;
 
             if (line.Back != null)
                 CheckFloodFillLine(line.Front, line.Back);

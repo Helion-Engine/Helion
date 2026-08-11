@@ -409,7 +409,6 @@ public class LegacyWorldRenderer : WorldRenderer
         SetupRenderData(world, renderInfo);
         SetFrustum(renderInfo);
 
-        GeometryRenderer.DebugCount++;
         var position = renderInfo.Camera.PositionInterpolated.XY.Double;
         var position3D = renderInfo.Camera.PositionInterpolated.Double;
         var viewDirection = renderInfo.Camera.Direction.XY.Double;
