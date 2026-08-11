@@ -402,8 +402,6 @@ public class LegacyWorldRenderer : WorldRenderer
         RenderTransparent(renderInfo, framebuffer);
     }
 
-    private int m_renderCount;
-
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
     {
         SetupRenderData(world, renderInfo);
@@ -420,7 +418,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper.Clear();
         m_viewClipper.Center = position;
 
-        m_renderCount = ++WorldStatic.CheckCounter;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
     }
     private void SetFrustum(RenderInfo renderInfo)
@@ -451,14 +448,14 @@ public class LegacyWorldRenderer : WorldRenderer
         if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
             return;
 
-        bool hasRenderedSector = subsector.Sector.CheckCount == m_renderCount;
+        var hasRenderedSector = subsector.Sector.CheckCount == m_renderData.CheckCount;
         m_geometryRenderer.RenderSubsector(subsector, position, hasRenderedSector);
 
         // Entities are rendered by the sector
         if (hasRenderedSector)
             return;
 
-        subsector.Sector.CheckCount = m_renderCount;
+        subsector.Sector.CheckCount = m_renderData.CheckCount;
   
         for (var node = subsector.Sector.Entities.Head; node != null; node = node.Next)
             m_entityRenderer.RenderEntity(node.Value, pos2D, subsector.Id);
@@ -469,14 +466,8 @@ public class LegacyWorldRenderer : WorldRenderer
         if (box.Contains(position))
             return false;
 
-        //if (m_occlude && !box.InView(m_occludeViewPos, viewDirection))
-        //    return true;
-
-        if (m_occlude)
-        {
-            if (!m_frustumPlanes.BoxInFront(box))
-                return true;
-        }
+        if (m_occlude && !m_frustumPlanes.BoxInFront(box))
+            return true;
 
         box.GetSpanningEdge(position, out var first, out var second);
         return m_viewClipper.InsideAnyRange(first, second);
