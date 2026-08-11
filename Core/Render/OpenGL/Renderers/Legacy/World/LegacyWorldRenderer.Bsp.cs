@@ -63,7 +63,7 @@ public partial class LegacyWorldRenderer
         subsector.Sector.CheckCount = m_renderData.CheckCount;
 
         for (var node = subsector.Sector.Entities.Head; node != null; node = node.Next)
-            m_entityRenderer.RenderEntity(node.Value, pos2D, subsector.Id);
+            RenderEntity(world, node.Value, subsector.Id);
     }
 
     private bool Occluded(in Box2D box, in Vec2D position, in Vec2D viewDirection)

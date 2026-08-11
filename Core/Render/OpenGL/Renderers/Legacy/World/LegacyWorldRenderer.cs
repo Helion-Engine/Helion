@@ -12,11 +12,11 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
-using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using NLog;
@@ -107,8 +107,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         else
             m_wallClipFrameBuffer?.Dispose();
 
-        if (m_previousWorld != null)
-            m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
+        m_previousWorld?.OnResetInterpolation -= World_OnResetInterpolation;
 
         var spriteDefinitions = m_archiveCollection.TextureManager.SpriteDefinitions;
         for (int i = 0; i < spriteDefinitions.Length; i++)
@@ -264,16 +263,17 @@ public partial class LegacyWorldRenderer : WorldRenderer
         if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible() || entity.Flags.NoSector() || entity == m_viewerEntity || entity.Properties.RenderStyle == RenderStyle.None)
             return;
 
-        // Not in front 180 FOV
         if (m_renderData.OccludePos.HasValue)
         {
-            Vec2D entityToTarget = new(entity.Position.X - m_renderData.OccludePos.Value.X, entity.Position.Y - m_renderData.OccludePos.Value.Y);
-            if (entityToTarget.Dot(m_renderData.ViewDirection) < 0)
+            var entityDx = entity.Position.X - m_renderData.OccludePos.Value.X;
+            var entityDy = entity.Position.Y - m_renderData.OccludePos.Value.Y;
+            var dot = entityDx * m_renderData.ViewDirection.X + entityDy * m_renderData.ViewDirection.Y;
+            if (dot < 0)
                 return;
         }
 
-        double dx = Math.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
-        double dy = Math.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
+        var dx = MathHelper.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, MathHelper.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
+        var dy = MathHelper.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, MathHelper.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
         entity.RenderDistanceSquared = dx * dx + dy * dy;
         if (entity.RenderDistanceSquared > m_renderData.MaxDistanceSquared)
             return;
@@ -287,8 +287,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
-        m_renderStatic = false;
-        //m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
+        m_renderStatic = !m_config.Render.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
         Clear(world, renderInfo);
 
