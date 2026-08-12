@@ -6,12 +6,14 @@ using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
-public class RenderWorldDataList
+public class RenderWorldDataList(RenderWorldDataPool pool)
 {
     public List<RenderWorldData> RenderData = [];
     private RenderWorldData?[] m_allRenderData = new RenderWorldData?[1024];
-    private readonly DynamicArray<RenderWorldData> m_dataToRender = new();
+    private readonly DynamicArray<RenderWorldData> m_dataToRender = new(1024);
+    private readonly RenderWorldDataPool m_pool = pool;
     private int m_renderCount;
+
 
     public RenderWorldData Add(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
     {
@@ -25,7 +27,7 @@ public class RenderWorldDataList
         var data = m_allRenderData[texture.TextureId];
         if (data == null)
         {
-            data = new(texture, program, brightmapTexture);
+            data = m_pool.Get(texture, brightmapTexture);
             m_allRenderData[texture.TextureId] = data;
             RenderData.Add(data);
         }

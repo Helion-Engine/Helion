@@ -10,10 +10,28 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
 {
-    private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup = new(() => new RenderWorldDataList());
+    const int PoolSize = 1024;
+    private readonly RenderWorldDataPool m_pool;
+    private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup;
     private RenderWorldData? m_coverWalls;
 
     public bool BufferCoverWalls = true;
+
+    public RenderWorldDataManager(RenderProgram program)
+    {
+        m_pool = new(program, PoolSize);
+        m_lookup = new(AllocateDataList);
+    }
+
+    private RenderWorldDataList AllocateDataList()
+    {
+        return new RenderWorldDataList(m_pool);
+    }
+
+    public void RefillPool()
+    {
+        m_pool.RefillPool(PoolSize / 2);
+    }
 
     ~RenderWorldDataManager()
     {

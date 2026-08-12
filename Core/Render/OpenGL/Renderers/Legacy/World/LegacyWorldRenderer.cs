@@ -48,7 +48,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private readonly StaticWallClipAlphaShader m_staticWallClipAlphaProgram = new();
     private readonly StaticTransparentShader m_staticTransparentProgram = new();
     private readonly StaticCompositeShader m_staticCompositeProgram = new();
-    private readonly RenderWorldDataManager m_worldDataManager = new();
+    private readonly RenderWorldDataManager m_worldDataManager;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly Stopwatch m_stopwatch = new();
@@ -74,6 +74,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_config = config;
         m_entityRenderer = new(config, textureManager, archiveCollection);
         m_primitiveRenderer = new();
+        m_worldDataManager = new(m_interpolationProgram);
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
