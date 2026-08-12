@@ -856,7 +856,7 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var geometryType = GetGeometryType(style, baseType);
-            var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
+            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.Add(data);
             if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
@@ -1218,7 +1218,7 @@ public partial class GeometryRenderer : IDisposable
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
+                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.Add(data);
             }
             vertices = data;
@@ -1336,7 +1336,7 @@ public partial class GeometryRenderer : IDisposable
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
+                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.Add(data);
             }
             vertices = data;
@@ -1523,7 +1523,7 @@ public partial class GeometryRenderer : IDisposable
         // See RenderOneSided() for an ASCII image of why we do this.
         if (m_buffer)
         {
-            var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
+            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.Add(data);
         }
         vertices = data;
@@ -1785,7 +1785,7 @@ public partial class GeometryRenderer : IDisposable
             vertices = lookupData;
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
+                var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
                 renderData.Pipeline.Vbo.Add(lookupData);
                 // Don't need to clip floor on lower view and ceiling on upper view
                 if (sector.TransferHeights != null
