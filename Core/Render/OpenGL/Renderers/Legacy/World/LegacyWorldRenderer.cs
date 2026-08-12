@@ -290,7 +290,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_lastRenderStatic = m_renderStatic;
         m_renderStatic = !m_config.Render.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
-        Clear(world, renderInfo);
+
+        if (!m_config.Render.Lock.Value)
+            Clear(world, renderInfo);
 
         if (framebuffer.DepthTexture == null)
             throw new Exception("Framebuffer must have a depth texture.");
@@ -302,13 +304,13 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_downscaleVanillaBuffer = m_config.Render.DownScaleVanillaRenderSampleBuffer.Value > 1;
         SetupClipBuffers(framebuffer, dimension, prevDownscale != m_downscaleVanillaBuffer);
 
-        if (m_lastTicker != world.GameTicker)
+        if (!m_config.Render.Lock.Value && m_lastTicker != world.GameTicker)
             m_entityRenderer.Start(renderInfo);
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
 
-        if (HasRenderTickChange(world))
+        if (!m_config.Render.Lock.Value && HasRenderTickChange(world))
         {
             SetupRenderData(world, renderInfo);
 

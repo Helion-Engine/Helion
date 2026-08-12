@@ -34,7 +34,7 @@ public partial class LegacyWorldRenderer
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
             ref var node = ref world.BspTree.Nodes[nodeIndex];
-            if (Occluded(node.BoundingBox, pos2D, viewDirection))
+            if (Occluded(node.BoundingBox, prevPos2D))
                 return;
 
             var onRight = (node.SplitDelta.X * (position.Y - node.SplitStart.Y)) - (node.SplitDelta.Y * (position.X - node.SplitStart.X)) < 0;
@@ -46,7 +46,7 @@ public partial class LegacyWorldRenderer
         }
 
         var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
+        if (Occluded(subsector.BoundingBox, prevPos2D))
             return;
 
         var hasRenderedSector = subsector.Sector.CheckCount == m_renderData.CheckCount;
@@ -62,7 +62,7 @@ public partial class LegacyWorldRenderer
             RenderEntity(world, node.Value, subsector.Id);
     }
 
-    private bool Occluded(in Box2D box, in Vec2D position, in Vec2D viewDirection)
+    private bool Occluded(in Box2D box, in Vec2D position)
     {
         // TODO is this needed?
         if (box.Contains(position))

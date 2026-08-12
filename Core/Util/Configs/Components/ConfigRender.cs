@@ -226,4 +226,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Forces renderer to use BSP rendering.")]
     public readonly ConfigValue<bool> ForceBsp = new(false);
+
+    [ConfigInfo("Locks rendering to current state.", save: false)]
+    public readonly ConfigValue<bool> Lock = new(false);
 }
