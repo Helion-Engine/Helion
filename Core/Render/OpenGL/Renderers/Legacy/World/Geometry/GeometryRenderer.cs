@@ -165,9 +165,11 @@ public partial class GeometryRenderer : IDisposable
     {
         m_world = world;
         if (!world.SameAsPreviousMap)
+        {
             m_skyRenderer.Reset();
+            m_worldDataManager.Reset();
+        }
 
-        m_worldDataManager.RefillPool();
         m_hitLines = new(world.Lines.Count);
 
         m_vanillaRender = world.Config.Render.VanillaRender;

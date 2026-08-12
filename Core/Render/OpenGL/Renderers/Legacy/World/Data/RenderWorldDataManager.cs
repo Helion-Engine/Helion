@@ -10,7 +10,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
 {
-    const int PoolSize = 1024;
     private readonly RenderWorldDataPool m_pool;
     private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup;
     private RenderWorldData? m_coverWalls;
@@ -19,7 +18,7 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
 
     public RenderWorldDataManager(RenderProgram program)
     {
-        m_pool = new(program, PoolSize);
+        m_pool = new(program, 1024);
         m_lookup = new(AllocateDataList);
     }
 
@@ -28,9 +27,11 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
         return new RenderWorldDataList(m_pool);
     }
 
-    public void RefillPool()
+    public void Reset()
     {
-        m_pool.RefillPool(PoolSize / 2);
+        var items = m_lookup.GetItems();
+        for (int i = 0; i < items.Length; i++)
+            items[i].Reset();
     }
 
     ~RenderWorldDataManager()
@@ -43,10 +44,10 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
         m_coverWalls ??= new(texture, program, brightmapTexture);
     }
 
-    public RenderWorldData GetRenderData(GLLegacyTexture texture, RenderProgram program, GeometryType type, GLLegacyTexture? brightmapTexture = null)
+    public RenderWorldData GetRenderData(GLLegacyTexture texture, GeometryType type, GLLegacyTexture? brightmapTexture = null)
     {
         var renderDataList = m_lookup.Get(type);
-        return renderDataList.Add(texture, program, brightmapTexture);
+        return renderDataList.Add(texture, brightmapTexture);
     }
 
     public void AddCoverWallVertices(Side side, Span<DynamicVertex> vertices, WallLocation location, bool oneSided)

@@ -30,6 +30,14 @@ public class RenderWorldDataPool
             m_renderData.AddUnsafe(new RenderWorldData(m_program));
     }
 
+    public void Add(RenderWorldData renderData)
+    {
+        renderData.Texture = null!;
+        renderData.BrightmapTexture = null;
+        m_renderData.Add(renderData);
+        UseCount--;
+    }
+
     public RenderWorldData Get(GLLegacyTexture texture, GLLegacyTexture? brightMapTexture = null)
     {
         if (m_renderData.Length > 0)

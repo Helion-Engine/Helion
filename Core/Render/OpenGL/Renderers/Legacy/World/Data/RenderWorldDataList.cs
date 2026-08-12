@@ -14,8 +14,21 @@ public class RenderWorldDataList(RenderWorldDataPool pool)
     private readonly RenderWorldDataPool m_pool = pool;
     private int m_renderCount;
 
+    public void Reset()
+    {
+        for (int i = 0; i < m_allRenderData.Length; i++)
+        {
+            var renderData = m_allRenderData[i];
+            if (renderData != null)
+                m_pool.Add(renderData);
 
-    public RenderWorldData Add(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
+            m_allRenderData[i] = null;
+        }
+
+        RenderData.Clear();
+    }
+
+    public RenderWorldData Add(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         if (m_allRenderData.Length <= texture.TextureId)
         {
