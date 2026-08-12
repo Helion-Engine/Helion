@@ -49,8 +49,9 @@ public partial class LegacyWorldRenderer
         if (Occluded(subsector.BoundingBox, prevPos2D))
             return;
 
+        // Flats are rendered by sector, walls are rendered by subsector
         var hasRenderedSector = subsector.Sector.CheckCount == m_renderData.CheckCount;
-        m_geometryRenderer.RenderSubsector(subsector, pos2D, prevPos2D, hasRenderedSector);
+        m_geometryRenderer.RenderSubsector(subsector, pos2D, prevPos2D, !hasRenderedSector);
 
         // Entities are rendered by the sector
         if (hasRenderedSector)
