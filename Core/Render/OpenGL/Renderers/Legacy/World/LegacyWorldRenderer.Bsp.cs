@@ -25,11 +25,11 @@ public partial class LegacyWorldRenderer
         m_viewClipper.Clear();
         m_viewClipper.Center = m_renderData.ViewPosInterpolated;
 
-        RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, m_renderData.ViewPos3D, m_renderData.ViewPos3D.XY, m_renderData.ViewPosInterpolated, m_renderData.ViewDirection, world);
+        RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, m_renderData.ViewPos3D, m_renderData.ViewPos3D.XY, m_renderData.ViewPosInterpolated, world);
         m_lastTicker = world.GameTicker;
     }
 
-    private unsafe void RecursivelyRenderBsp(uint nodeIndex, in Vec3D position, in Vec2D pos2D, in Vec2D prevPos2D, in Vec2D viewDirection, IWorld world)
+    private unsafe void RecursivelyRenderBsp(uint nodeIndex, in Vec3D position, in Vec2D pos2D, in Vec2D prevPos2D, IWorld world)
     {
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
@@ -41,7 +41,7 @@ public partial class LegacyWorldRenderer
             int front = *(byte*)&onRight;
             int back = front ^ 1;
 
-            RecursivelyRenderBsp(node.Children[front], position, pos2D, prevPos2D, viewDirection, world);
+            RecursivelyRenderBsp(node.Children[front], position, pos2D, prevPos2D, world);
             nodeIndex = node.Children[back];
         }
 
