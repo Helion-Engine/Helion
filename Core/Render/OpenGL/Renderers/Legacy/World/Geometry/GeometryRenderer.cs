@@ -431,28 +431,29 @@ public partial class GeometryRenderer : IDisposable
             m_viewClipper.AddLine(edge.Start, edge.End);
     }
 
-    public void RenderSubsector(Subsector subsector, in Vec3D position, in Vec2D pos2D, in Vec2D prevPos2D, bool hasRenderedSector)
+    public void RenderSubsector(Subsector subsector, in Vec2D pos2D, in Vec2D prevPos2D, bool hasRenderedSector)
     {
         m_buffer = true;
-        SetSectorRendering(subsector.Sector);
+        var sector = subsector.Sector;
+        SetSectorRendering(sector);
 
-        if (subsector.Sector.TransferHeights != null)
+        if (sector.TransferHeights != null)
         {
             RenderSubsectorWalls(subsector, pos2D, prevPos2D);
             if (!hasRenderedSector)
-                RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(subsector.Sector, position.Z), subsector.Sector.TransferHeights.ControlSector);
+                RenderSectorFlats(sector, sector.GetRenderSector(m_transferHeightsView), sector.TransferHeights.ControlSector);
             return;
         }
 
-        if (!hasRenderedSector && WorldStatic.Sector3D && subsector.Sector.Sectors3D.Length > 0)
+        if (!hasRenderedSector && WorldStatic.Sector3D && sector.Sectors3D.Length > 0)
         {
-            for (int i = 0; i < subsector.Sector.Sectors3D.Length; i++)
+            for (int i = 0; i < sector.Sectors3D.Length; i++)
                 RenderSector(subsector.Sector.Sectors3D[i].FakeSector, m_viewPosition, m_prevViewPosition);
         }
 
         RenderSubsectorWalls(subsector, pos2D, prevPos2D);
         if (!hasRenderedSector)
-            RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
+            RenderSectorFlats(sector, sector, subsector.Sector);
     }
 
     public void RenderSector(Sector sector, in Vec3D viewPosition, in Vec3D prevViewPosition)

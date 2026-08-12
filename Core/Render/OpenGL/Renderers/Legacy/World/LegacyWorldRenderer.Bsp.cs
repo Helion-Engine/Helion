@@ -50,7 +50,7 @@ public partial class LegacyWorldRenderer
             return;
 
         var hasRenderedSector = subsector.Sector.CheckCount == m_renderData.CheckCount;
-        m_geometryRenderer.RenderSubsector(subsector, position, pos2D, prevPos2D, hasRenderedSector);
+        m_geometryRenderer.RenderSubsector(subsector, pos2D, prevPos2D, hasRenderedSector);
 
         // Entities are rendered by the sector
         if (hasRenderedSector)
