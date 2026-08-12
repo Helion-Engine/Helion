@@ -563,7 +563,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         var hasEntityFuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var hasEntityAlphaData = m_entityRenderer.HasAlphaToRender();
         var hasDynamicAlphaGeometry = m_worldDataManager.HasAlphaToRender();
-        var hasStaticAlphaGeometry = m_geometryRenderer.StaticRenderer.HasAlphaToRender();
+        var hasStaticAlphaGeometry = m_renderStatic && m_geometryRenderer.StaticRenderer.HasAlphaToRender();
         if (!hasEntityFuzzData && !hasEntityAlphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
 
