@@ -1,6 +1,5 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Render.Common.Shared;
 using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
@@ -404,7 +403,7 @@ public partial class GeometryRenderer : IDisposable
     public void RenderStaticStyle(RenderDataStyle style) =>
         m_staticCacheGeometryRenderer.Render(style.ToGeometryType());
 
-    private void RenderSubsectorWalls(Subsector subsector, in Vec2D pos2D)
+    private void RenderSubsectorWalls(Subsector subsector, in Vec2D pos2D, in Vec2D prevPos2D)
     {
         var sector = subsector.Sector;
         for (int i = 0; i < subsector.SegCount; i++)
@@ -420,7 +419,7 @@ public partial class GeometryRenderer : IDisposable
 
             var line = m_world.Lines[edge.LineId];
             AddLineClip(edge, line);
-            RenderSectorLine(line, sector, pos2D, pos2D);
+            RenderSectorLine(line, sector, pos2D, prevPos2D);
         }
     }
 
@@ -432,20 +431,26 @@ public partial class GeometryRenderer : IDisposable
             m_viewClipper.AddLine(edge.Start, edge.End);
     }
 
-    public void RenderSubsector(Subsector subsector, in Vec3D position, in Vec2D pos2D, bool hasRenderedSector)
+    public void RenderSubsector(Subsector subsector, in Vec3D position, in Vec2D pos2D, in Vec2D prevPos2D, bool hasRenderedSector)
     {
         m_buffer = true;
         SetSectorRendering(subsector.Sector);
 
         if (subsector.Sector.TransferHeights != null)
         {
-            RenderSubsectorWalls(subsector, pos2D);
+            RenderSubsectorWalls(subsector, pos2D, prevPos2D);
             if (!hasRenderedSector)
                 RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(subsector.Sector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
 
-        RenderSubsectorWalls(subsector, pos2D);
+        if (!hasRenderedSector && WorldStatic.Sector3D && subsector.Sector.Sectors3D.Length > 0)
+        {
+            for (int i = 0; i < subsector.Sector.Sectors3D.Length; i++)
+                RenderSector(subsector.Sector.Sectors3D[i].FakeSector, m_viewPosition, m_prevViewPosition);
+        }
+
+        RenderSubsectorWalls(subsector, pos2D, prevPos2D);
         if (!hasRenderedSector)
             RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
