@@ -12,7 +12,6 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -28,6 +27,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public partial class LegacyWorldRenderer : WorldRenderer
 {
+    const int EntityRenderIndexMax = 100;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
@@ -162,9 +162,12 @@ public partial class LegacyWorldRenderer : WorldRenderer
                 if (m_renderStatic)
                     RenderSides(world, index);
 
-                int renderIndex = 0;
+                var renderIndex = 0;
                 for (var entity = world.RenderBlockmap.HeadRenderEntities[index]; entity != null; entity = entity.RenderBlockNext)
+                {
+                    renderIndex = renderIndex % EntityRenderIndexMax;
                     RenderEntity(world, entity, renderIndex++);
+                }
             }
         }
 

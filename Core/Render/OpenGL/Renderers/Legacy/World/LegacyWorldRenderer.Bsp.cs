@@ -1,7 +1,6 @@
 ﻿using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Shared;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.World;
@@ -19,7 +18,6 @@ public partial class LegacyWorldRenderer
         Frustum.SetFrustumPlanes(ref renderInfo.Uniforms.MvpNoPitch, ref m_frustumPlanes);
 
         m_geometryRenderer.ClearBsp();
-        m_geometryRenderer.SetRenderMode(GeometryRenderMode.All, renderInfo.TransferHeightView);
         m_geometryRenderer.SetViewPosition(m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
 
         m_viewClipper.Clear();
@@ -59,8 +57,12 @@ public partial class LegacyWorldRenderer
 
         subsector.Sector.CheckCount = m_renderData.CheckCount;
 
+        var renderIndex = 0;
         for (var node = subsector.Sector.Entities.Head; node != null; node = node.Next)
-            RenderEntity(world, node.Value, subsector.Id);
+        {
+            renderIndex = renderIndex % EntityRenderIndexMax;
+            RenderEntity(world, node.Value, renderIndex++);
+        }
     }
 
     private bool Occluded(in Box2D box, in Vec2D position)
