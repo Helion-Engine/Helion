@@ -65,7 +65,6 @@ public partial class LegacyWorldRenderer
 
     private bool Occluded(in Box2D box, in Vec2D position)
     {
-        // TODO is this needed?
         if (box.Contains(position))
             return false;
 

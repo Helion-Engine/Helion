@@ -534,14 +534,7 @@ public partial class GeometryRenderer : IDisposable
         var subsectors = m_subsectors[sectorForSubsectors.Id];
         set.LastRenderGametick = m_world.Gametick;
 
-        var floorZ = renderSector.Floor.Z;
-        var prevFloorZ = renderSector.Floor.PrevZ;
-        var ceilingZ = renderSector.Ceiling.Z;
-        var prevCeilingZ = renderSector.Ceiling.PrevZ;
-
-        var floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= prevFloorZ || sector3D != null;
-        var ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= prevCeilingZ || sector3D != null;
-        if (floorVisible && (m_renderMode == GeometryRenderMode.All || !geometrySector.IsFloorStatic))
+        if (m_renderMode == GeometryRenderMode.All || !geometrySector.IsFloorStatic)
         {
             geometrySector.Floor.LastRenderGametick = m_world.Gametick;
             set.Floor.LastRenderGametick = m_world.Gametick;
@@ -549,23 +542,23 @@ public partial class GeometryRenderer : IDisposable
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Ceiling) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
                     if (sector3D.FakeTopFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Floor, subsectors[0].Sector.Floor, true, false, m_floorVertexLookupInvalidated, out _, out _);
+                RenderFlat(subsectors, renderSector.Floor, subsectors[0].Sector.Floor, floor: true,  renderFlood: false, checkViewPos: true, m_floorVertexLookupInvalidated, out _, out _);
             }
         }
 
-        if (ceilingVisible && (m_renderMode == GeometryRenderMode.All || !geometrySector.IsCeilingStatic))
+        if (m_renderMode == GeometryRenderMode.All || !geometrySector.IsCeilingStatic)
         {
             geometrySector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
@@ -573,19 +566,19 @@ public partial class GeometryRenderer : IDisposable
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Floor) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
                     if (sector3D.FakeBottomFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Ceiling, subsectors[0].Sector.Ceiling, floor: false, false, m_ceilingVertexLookupInvalidated, out _, out _);
+                RenderFlat(subsectors, renderSector.Ceiling, subsectors[0].Sector.Ceiling, floor: false, renderFlood: false, checkViewPos: true, m_ceilingVertexLookupInvalidated, out _, out _);
             }
         }
 
@@ -1680,19 +1673,28 @@ public partial class GeometryRenderer : IDisposable
 
         var subsectors = m_subsectors[renderSector.Id];
         var invalidatedLookup = floor ? m_floorVertexLookupInvalidated : m_ceilingVertexLookupInvalidated;
-        RenderFlat(subsectors, renderPlane, geometryPlane, floor, renderFlood, invalidatedLookup, out vertices, out skyVertices, lightLevelSector, allowAlpha, alpha, style: style);
+        RenderFlat(subsectors, renderPlane, geometryPlane, floor, renderFlood, checkViewPos: false, invalidatedLookup, out vertices, out skyVertices, 
+            lightLevelSector, allowAlpha, alpha, style: style);
     }
 
     // Doom would render flats with no texture ("-") as black. If the flat isn't flagged to allow alpha then the black texture must be used.
     public int GetFlatTextureHandle(int textureHandle, bool allowAlpha) => 
         !allowAlpha && textureHandle == Constants.NoTextureIndex ? TextureManager.BlackTextureIndex : textureHandle;
 
-    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood,
+    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood, bool checkViewPos,
         BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
         Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1, RenderDataStyle style = RenderDataStyle.Normal)
     {
         var textureHandle = GetFlatTextureHandle(renderPlane.TextureHandle, allowAlpha);
         var isSky = TextureManager.IsSkyTexture(textureHandle);
+
+        if (checkViewPos && !isSky && ViewPositionForFlatInvalid(renderPlane, floor))
+        {
+            vertices = null;
+            skyVertices = null;
+            return;
+        }
+
         var texture = m_glTextureManager.GetTexture(textureHandle);
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(textureHandle);
 
@@ -1802,6 +1804,13 @@ public partial class GeometryRenderer : IDisposable
                 }
             }
         }
+    }
+
+    private bool ViewPositionForFlatInvalid(SectorPlane renderPlane, bool floor)
+    {
+        if (floor)
+            return m_viewPosition.Z < renderPlane.Z && m_prevViewPosition.Z < renderPlane.PrevZ;
+        return m_viewPosition.Z > renderPlane.Z && m_prevViewPosition.Z > renderPlane.PrevZ;
     }
 
     private static readonly DynamicVertex[][] EmptyLookup = new DynamicVertex[1][];
