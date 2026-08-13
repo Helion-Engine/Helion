@@ -66,6 +66,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
+    private TransferHeightView m_lastTransferHeightsView;
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
@@ -126,6 +127,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_previousWorld = world;
         m_lastTicker = -1;
         m_pixelGapCorrection = m_config.Render.PixelGapCorrection.Value;
+        m_lastTransferHeightsView = TransferHeightView.Middle;
 
         m_stopwatch.Stop();
         Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
@@ -137,7 +139,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         ResetInterpolation((IWorld)sender!);
     }
 
-    private bool HasRenderTickChange(IWorld world) => m_lastTicker != world.GameTicker || m_renderStatic != m_lastRenderStatic;
+    private bool NeedsRenderTickChange(IWorld world, TransferHeightView view) => m_lastTicker != world.GameTicker || m_renderStatic != m_lastRenderStatic || m_lastTransferHeightsView != view;
 
     private void IterateBlockmap(IWorld world)
     {
@@ -296,11 +298,13 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_renderStatic = !m_config.Render.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
 
+        var renderTickChange = !m_config.Render.Lock.Value && NeedsRenderTickChange(world, renderInfo.TransferHeightView);
+        m_lastTransferHeightsView = renderInfo.TransferHeightView;
+
         if (!m_config.Render.Lock.Value)
             Clear(world, renderInfo);
 
-        var newTick = !m_config.Render.Lock.Value && HasRenderTickChange(world);
-        m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView, newTick);
+        m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView, renderTickChange);
 
         if (framebuffer.DepthTexture == null)
             throw new Exception("Framebuffer must have a depth texture.");
@@ -318,7 +322,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
 
-        if (newTick)
+        if (renderTickChange)
         {
             SetupRenderData(world, renderInfo);
 
