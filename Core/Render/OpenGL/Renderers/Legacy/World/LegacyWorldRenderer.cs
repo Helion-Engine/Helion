@@ -139,10 +139,8 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private bool HasRenderTickChange(IWorld world) => m_lastTicker != world.GameTicker || m_renderStatic != m_lastRenderStatic;
 
-    private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
+    private void IterateBlockmap(IWorld world)
     {
-        m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView);
-
         Box2D box = new(m_renderData.ViewPosInterpolated.X, m_renderData.ViewPosInterpolated.Y, m_renderData.MaxDistance);
 
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
@@ -298,6 +296,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
         if (!m_config.Render.Lock.Value)
             Clear(world, renderInfo);
 
+        var newTick = !m_config.Render.Lock.Value && HasRenderTickChange(world);
+        m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView, newTick);
+
         if (framebuffer.DepthTexture == null)
             throw new Exception("Framebuffer must have a depth texture.");
 
@@ -314,12 +315,12 @@ public partial class LegacyWorldRenderer : WorldRenderer
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
 
-        if (!m_config.Render.Lock.Value && HasRenderTickChange(world))
+        if (newTick)
         {
             SetupRenderData(world, renderInfo);
 
             if (m_renderStatic)
-                IterateBlockmap(world, renderInfo);
+                IterateBlockmap(world);
             else
                 TraverseBsp(world, renderInfo);
         }
@@ -405,9 +406,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
-    }
-
-    
+    }   
 
     private void RenderFloodFill(RenderInfo renderInfo)
     {

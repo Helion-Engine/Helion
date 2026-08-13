@@ -1630,11 +1630,12 @@ public partial class GeometryRenderer : IDisposable
         return new(wall.BottomRight.Z, wall.TopLeft.Z, wall.PrevBottomZ, wall.PrevTopZ);
     }
 
-    public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view)
+    public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view, bool newTick = false)
     {
         m_renderMode = renderMode;
         m_prevTransferHeightsView = m_transferHeightsView;
         m_transferHeightsView = view;
+
         if (m_prevTransferHeightsView != m_transferHeightsView)
         {
             m_vertexLookupInvalidated.SetAll(true);
@@ -1642,7 +1643,12 @@ public partial class GeometryRenderer : IDisposable
             m_floorVertexLookupInvalidated.SetAll(true);
             m_ceilingVertexLookupInvalidated.SetAll(true);
         }
-        Portals.SetTransferHeightView(view);
+
+        var clearFloodVertices = !m_config.Render.Lock;
+        if (clearFloodVertices && !newTick)
+            clearFloodVertices = false;
+
+        Portals.SetRenderMode(renderMode, view, clearFloodVertices);
         SetBufferCoverWall(true);
     }
 
