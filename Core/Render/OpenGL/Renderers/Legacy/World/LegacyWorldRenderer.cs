@@ -193,16 +193,20 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private static bool BlockInView(int x, int y, int dimension, in Vec2D origin, in Vec2D viewPos, in Vec2D viewDirection)
     {
-        double minX = x * dimension + origin.X;
-        double minY = y * dimension + origin.Y;
-        double maxX = minX + dimension;
-        double maxY = minY + dimension;
+        var minX = x * dimension + origin.X;
+        var minY = y * dimension + origin.Y;
+        var maxX = minX + dimension;
+        var maxY = minY + dimension;
 
-        Vec2D p1 = new(minX - viewPos.X, minY - viewPos.Y);
-        Vec2D p2 = new(maxX - viewPos.X, maxY - viewPos.Y);
-        Vec2D p3 = new(minX - viewPos.X, maxY - viewPos.Y);
-        Vec2D p4 = new(maxX - viewPos.X, minY - viewPos.Y);
-        return p1.Dot(viewDirection) >= 0 || p2.Dot(viewDirection) >= 0 || p3.Dot(viewDirection) >= 0 || p4.Dot(viewDirection) >= 0;
+        var vx = viewDirection.X;
+        var vy = viewDirection.Y;
+
+        var dxMin = minX - viewPos.X;
+        var dxMax = maxX - viewPos.X;
+        var dyMin = minY - viewPos.Y;
+        var dyMax = maxY - viewPos.Y;
+
+        return (dxMin * vx + dyMin * vy) >= 0 | (dxMax * vx + dyMax * vy) >= 0 | (dxMin * vx + dyMax * vy) >= 0 | (dxMax * vx + dyMin * vy) >= 0;
     }
 
     private void RenderSectors(IWorld world, int blockIndex)
