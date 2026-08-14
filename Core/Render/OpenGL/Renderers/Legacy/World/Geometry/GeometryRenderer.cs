@@ -1693,7 +1693,9 @@ public partial class GeometryRenderer : IDisposable
         var textureHandle = GetFlatTextureHandle(renderPlane.TextureHandle, allowAlpha);
         var isSky = TextureManager.IsSkyTexture(textureHandle);
 
-        if (checkViewPos && !isSky && ViewPositionForFlatInvalid(renderPlane, floor))
+        var generateSector3D = WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null;
+
+        if (checkViewPos && !isSky && !generateSector3D && ViewPositionForFlatInvalid(renderPlane, floor))
         {
             vertices = null;
             skyVertices = null;
@@ -1710,8 +1712,6 @@ public partial class GeometryRenderer : IDisposable
         var renderSector = sector.GetRenderSector(m_transferHeightsView);
         lightLevelSector ??= renderSector;
         var textureVector = new Vec2F(texture.Dimension.Vector.X, texture.Dimension.Vector.Y);
-
-        var generateSector3D = WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null;
 
         var invalidated = flatInvalidatedVertexLookup[id];
         if (invalidated)
