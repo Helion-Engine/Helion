@@ -167,9 +167,8 @@ public partial class GeometryRenderer : IDisposable
         {
             m_skyRenderer.Reset();
             m_worldDataManager.Reset();
+            m_hitLines = new(world.Lines.Count);
         }
-
-        m_hitLines = new(world.Lines.Count);
 
         m_vanillaRender = world.Config.Render.VanillaRender;
         m_pixelGapCorrection = world.Config.Render.PixelGapCorrection;
