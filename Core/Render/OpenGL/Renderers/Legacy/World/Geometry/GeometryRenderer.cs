@@ -166,7 +166,8 @@ public partial class GeometryRenderer : IDisposable
         if (!world.SameAsPreviousMap)
         {
             m_skyRenderer.Reset();
-            m_worldDataManager.Reset();
+            // Null for unit tests
+            m_worldDataManager?.Reset();
             m_hitLines = new(world.Lines.Count);
         }
 

@@ -209,6 +209,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         var dyMin = minY - viewPos.Y;
         var dyMax = maxY - viewPos.Y;
 
+        // Avoid branch misprediction by forcing computation with bitwise or
         return (dxMin * vx + dyMin * vy) >= 0 | (dxMax * vx + dyMax * vy) >= 0 | (dxMin * vx + dyMax * vy) >= 0 | (dxMax * vx + dyMin * vy) >= 0;
     }
 
@@ -413,7 +414,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
-    }   
+    }
 
     private void RenderFloodFill(RenderInfo renderInfo)
     {
