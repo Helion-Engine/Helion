@@ -30,7 +30,7 @@ public class Sector3D_Walls
     public Sector3D_Walls()
     {
         World = WorldAllocator.LoadMap("Resources/sector3d-map.zip", "sector3d-map.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
-        GeometryRenderer = new GeometryRenderer(World.Config, World.ArchiveCollection, null!, null!, null!, null!, unitTest: true);
+        GeometryRenderer = new GeometryRenderer(World.Config, World.ArchiveCollection, null!, null!, null!, null!, null!, unitTest: true);
         GeometryRenderer.UpdateTo(World, unitTest: true);
         GeometryRenderer.SetBuffer(false);
     }

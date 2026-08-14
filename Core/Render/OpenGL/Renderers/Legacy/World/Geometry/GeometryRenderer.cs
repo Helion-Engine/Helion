@@ -9,6 +9,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
+using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -99,9 +100,11 @@ public partial class GeometryRenderer : IDisposable
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
     public StaticCacheGeometryRenderer StaticRenderer => m_staticCacheGeometryRenderer;
     public Side FogSide => m_fogSide;
+    private readonly ViewClipper m_viewClipper;
+    private BitArray m_hitLines = new(0);
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, bool unitTest = false)
+        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, ViewClipper viewClipper, bool unitTest = false)
     {
         m_config = config;
         m_program = program;
@@ -149,6 +152,7 @@ public partial class GeometryRenderer : IDisposable
             m_wallVertices[i].SurfaceOptions = options;
 
         m_world = null!;
+        m_viewClipper = viewClipper;
     }
 
     ~GeometryRenderer()
@@ -160,7 +164,12 @@ public partial class GeometryRenderer : IDisposable
     {
         m_world = world;
         if (!world.SameAsPreviousMap)
+        {
             m_skyRenderer.Reset();
+            // Null for unit tests
+            m_worldDataManager?.Reset();
+            m_hitLines = new(world.Lines.Count);
+        }
 
         m_vanillaRender = world.Config.Render.VanillaRender;
         m_pixelGapCorrection = world.Config.Render.PixelGapCorrection;
@@ -356,6 +365,11 @@ public partial class GeometryRenderer : IDisposable
             m_skyRenderer.Clear();
     }
 
+    public void ClearBsp()
+    {
+        m_hitLines.SetAll(false);
+    }
+
     public void RenderStaticGeometryWalls() =>
         m_staticCacheGeometryRenderer.RenderWalls();
 
@@ -388,6 +402,59 @@ public partial class GeometryRenderer : IDisposable
 
     public void RenderStaticStyle(RenderDataStyle style) =>
         m_staticCacheGeometryRenderer.Render(style.ToGeometryType());
+
+    private void RenderSubsectorWalls(Subsector subsector, in Vec2D pos2D, in Vec2D prevPos2D)
+    {
+        var sector = subsector.Sector;
+        for (int i = 0; i < subsector.SegCount; i++)
+        {
+            ref var edge = ref m_world.BspTree.Segments.Data[subsector.SegIndex + i];
+            if (edge.LineId == -1)
+                continue;
+
+            if (m_hitLines.Get(edge.LineId))
+                continue;
+
+            m_hitLines.Set(edge.LineId, true);
+
+            var line = m_world.Lines[edge.LineId];
+            AddLineClip(edge, line);
+            RenderSectorLine(line, sector, pos2D, prevPos2D);
+        }
+    }
+
+    private void AddLineClip(in SubsectorSegment edge, Line line)
+    {
+        if (line.Back == null)
+            m_viewClipper.AddLine(edge.Start, edge.End);
+        else if (RenderBlock.IsBlocked(line))
+            m_viewClipper.AddLine(edge.Start, edge.End);
+    }
+
+    public void RenderSubsector(Subsector subsector, in Vec2D pos2D, in Vec2D prevPos2D, bool renderSectorFlats)
+    {
+        m_buffer = true;
+        var sector = subsector.Sector;
+        SetSectorRendering(sector);
+
+        if (sector.TransferHeights != null)
+        {
+            RenderSubsectorWalls(subsector, pos2D, prevPos2D);
+            if (renderSectorFlats)
+                RenderSectorFlats(sector, sector.GetRenderSector(m_transferHeightsView), sector.TransferHeights.ControlSector);
+            return;
+        }
+
+        if (renderSectorFlats && WorldStatic.Sector3D && sector.Sectors3D.Length > 0)
+        {
+            for (int i = 0; i < sector.Sectors3D.Length; i++)
+                RenderSector(subsector.Sector.Sectors3D[i].FakeSector, m_viewPosition, m_prevViewPosition);
+        }
+
+        RenderSubsectorWalls(subsector, pos2D, prevPos2D);
+        if (renderSectorFlats)
+            RenderSectorFlats(sector, sector, subsector.Sector);
+    }
 
     public void RenderSector(Sector sector, in Vec3D viewPosition, in Vec3D prevViewPosition)
     {
@@ -467,14 +534,7 @@ public partial class GeometryRenderer : IDisposable
         var subsectors = m_subsectors[sectorForSubsectors.Id];
         set.LastRenderGametick = m_world.Gametick;
 
-        var floorZ = renderSector.Floor.Z;
-        var prevFloorZ = renderSector.Floor.PrevZ;
-        var ceilingZ = renderSector.Ceiling.Z;
-        var prevCeilingZ = renderSector.Ceiling.PrevZ;
-
-        var floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= prevFloorZ || sector3D != null;
-        var ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= prevCeilingZ || sector3D != null;
-        if (floorVisible && (m_renderMode == GeometryRenderMode.All || !geometrySector.IsFloorStatic))
+        if (m_renderMode == GeometryRenderMode.All || !geometrySector.IsFloorStatic)
         {
             geometrySector.Floor.LastRenderGametick = m_world.Gametick;
             set.Floor.LastRenderGametick = m_world.Gametick;
@@ -482,23 +542,23 @@ public partial class GeometryRenderer : IDisposable
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Ceiling) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
                     if (sector3D.FakeTopFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Floor, subsectors[0].Sector.Floor, true, false, m_floorVertexLookupInvalidated, out _, out _);
+                RenderFlat(subsectors, renderSector.Floor, subsectors[0].Sector.Floor, floor: true,  renderFlood: false, checkViewPos: true, m_floorVertexLookupInvalidated, out _, out _);
             }
         }
 
-        if (ceilingVisible && (m_renderMode == GeometryRenderMode.All || !geometrySector.IsCeilingStatic))
+        if (m_renderMode == GeometryRenderMode.All || !geometrySector.IsCeilingStatic)
         {
             geometrySector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
@@ -506,19 +566,19 @@ public partial class GeometryRenderer : IDisposable
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Floor) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
                     if (sector3D.FakeBottomFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Ceiling, subsectors[0].Sector.Ceiling, floor: false, false, m_ceilingVertexLookupInvalidated, out _, out _);
+                RenderFlat(subsectors, renderSector.Ceiling, subsectors[0].Sector.Ceiling, floor: false, renderFlood: false, checkViewPos: true, m_ceilingVertexLookupInvalidated, out _, out _);
             }
         }
 
@@ -600,36 +660,38 @@ public partial class GeometryRenderer : IDisposable
         }
 
         for (int i = 0; i < sector.Lines.Length; i++)
+            RenderSectorLine(sector.Lines[i], sector, pos2D, prevPos2D);
+    }
+
+    private void RenderSectorLine(Line line, Sector sector, Vec2D pos2D, Vec2D prevPos2D)
+    {
+        var onFront = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) <= 0;
+        var onBothSides = onFront != ((line.Segment.Delta.X * (prevPos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (prevPos2D.X - line.Segment.Start.X)) <= 0);
+
+        if (line.Back != null)
+            CheckFloodFillLine(line.Front, line.Back);
+
+        // Need to force render for alternative flood fill from the front side.
+        if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
         {
-            var line = sector.Lines[i];
-            var onFront = line.Segment.OnRight(pos2D);
-            var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
-
-            if (line.Back != null)
-                CheckFloodFillLine(line.Front, line.Back);
-
-            // Need to force render for alternative flood fill from the front side.
-            if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
-            {
-                RenderSectorSideWall(sector, line.Front, true);
-            }
-            else if (m_vanillaRender && line.Back != null)
-            {
-                m_renderCoverOnly = true;
-                RenderSectorSideWall(sector, line.Front, true);
-                m_renderCoverOnly = false;
-            }
-            // Need to force render for alternative flood fill from the back side.
-            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
-            {
-                RenderSectorSideWall(sector, line.Back, false);
-            }
-            else if (m_vanillaRender && line.Back != null)
-            {
-                m_renderCoverOnly = true;
-                RenderSectorSideWall(sector, line.Back, false);
-                m_renderCoverOnly = false;
-            }
+            RenderSectorSideWall(sector, line.Front, true);
+        }
+        else if (m_vanillaRender && line.Back != null)
+        {
+            m_renderCoverOnly = true;
+            RenderSectorSideWall(sector, line.Front, true);
+            m_renderCoverOnly = false;
+        }
+        // Need to force render for alternative flood fill from the back side.
+        if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
+        {
+            RenderSectorSideWall(sector, line.Back, false);
+        }
+        else if (m_vanillaRender && line.Back != null)
+        {
+            m_renderCoverOnly = true;
+            RenderSectorSideWall(sector, line.Back, false);
+            m_renderCoverOnly = false;
         }
     }
 
@@ -793,7 +855,7 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var geometryType = GetGeometryType(style, baseType);
-            var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
+            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.Add(data);
             if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
@@ -1155,7 +1217,7 @@ public partial class GeometryRenderer : IDisposable
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
+                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.Add(data);
             }
             vertices = data;
@@ -1273,7 +1335,7 @@ public partial class GeometryRenderer : IDisposable
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
+                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.Add(data);
             }
             vertices = data;
@@ -1460,7 +1522,7 @@ public partial class GeometryRenderer : IDisposable
         // See RenderOneSided() for an ASCII image of why we do this.
         if (m_buffer)
         {
-            var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
+            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.Add(data);
         }
         vertices = data;
@@ -1568,11 +1630,12 @@ public partial class GeometryRenderer : IDisposable
         return new(wall.BottomRight.Z, wall.TopLeft.Z, wall.PrevBottomZ, wall.PrevTopZ);
     }
 
-    public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view)
+    public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view, bool newTick = false)
     {
         m_renderMode = renderMode;
         m_prevTransferHeightsView = m_transferHeightsView;
         m_transferHeightsView = view;
+
         if (m_prevTransferHeightsView != m_transferHeightsView)
         {
             m_vertexLookupInvalidated.SetAll(true);
@@ -1580,8 +1643,19 @@ public partial class GeometryRenderer : IDisposable
             m_floorVertexLookupInvalidated.SetAll(true);
             m_ceilingVertexLookupInvalidated.SetAll(true);
         }
-        Portals.SetTransferHeightView(view);
+
+        var clearFloodVertices = !m_config.Developer.LockRender;
+        if (clearFloodVertices && !newTick)
+            clearFloodVertices = false;
+
+        Portals.SetRenderMode(renderMode, view, clearFloodVertices);
         SetBufferCoverWall(true);
+    }
+
+    public void SetViewPosition(in Vec3D viewPosition, in Vec3D prevViewPosition)
+    {
+        m_viewPosition = viewPosition;
+        m_prevViewPosition = prevViewPosition;
     }
 
     public void SetBuffer(bool set) => m_buffer = set;
@@ -1605,19 +1679,30 @@ public partial class GeometryRenderer : IDisposable
 
         var subsectors = m_subsectors[renderSector.Id];
         var invalidatedLookup = floor ? m_floorVertexLookupInvalidated : m_ceilingVertexLookupInvalidated;
-        RenderFlat(subsectors, renderPlane, geometryPlane, floor, renderFlood, invalidatedLookup, out vertices, out skyVertices, lightLevelSector, allowAlpha, alpha, style: style);
+        RenderFlat(subsectors, renderPlane, geometryPlane, floor, renderFlood, checkViewPos: false, invalidatedLookup, out vertices, out skyVertices, 
+            lightLevelSector, allowAlpha, alpha, style: style);
     }
 
     // Doom would render flats with no texture ("-") as black. If the flat isn't flagged to allow alpha then the black texture must be used.
     public int GetFlatTextureHandle(int textureHandle, bool allowAlpha) => 
         !allowAlpha && textureHandle == Constants.NoTextureIndex ? TextureManager.BlackTextureIndex : textureHandle;
 
-    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood,
+    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood, bool checkViewPos,
         BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
         Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1, RenderDataStyle style = RenderDataStyle.Normal)
     {
         var textureHandle = GetFlatTextureHandle(renderPlane.TextureHandle, allowAlpha);
         var isSky = TextureManager.IsSkyTexture(textureHandle);
+
+        var generateSector3D = WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null;
+
+        if (checkViewPos && !isSky && !generateSector3D && ViewPositionForFlatInvalid(renderPlane, floor))
+        {
+            vertices = null;
+            skyVertices = null;
+            return;
+        }
+
         var texture = m_glTextureManager.GetTexture(textureHandle);
         var brightmapTexture = m_glTextureManager.GetBrightmapTexture(textureHandle);
 
@@ -1628,8 +1713,6 @@ public partial class GeometryRenderer : IDisposable
         var renderSector = sector.GetRenderSector(m_transferHeightsView);
         lightLevelSector ??= renderSector;
         var textureVector = new Vec2F(texture.Dimension.Vector.X, texture.Dimension.Vector.Y);
-
-        var generateSector3D = WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null;
 
         var invalidated = flatInvalidatedVertexLookup[id];
         if (invalidated)
@@ -1716,7 +1799,7 @@ public partial class GeometryRenderer : IDisposable
             vertices = lookupData;
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
+                var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
                 renderData.Pipeline.Vbo.Add(lookupData);
                 // Don't need to clip floor on lower view and ceiling on upper view
                 if (sector.TransferHeights != null
@@ -1727,6 +1810,13 @@ public partial class GeometryRenderer : IDisposable
                 }
             }
         }
+    }
+
+    private bool ViewPositionForFlatInvalid(SectorPlane renderPlane, bool floor)
+    {
+        if (floor)
+            return m_viewPosition.Z < renderPlane.Z && m_prevViewPosition.Z < renderPlane.PrevZ;
+        return m_viewPosition.Z > renderPlane.Z && m_prevViewPosition.Z > renderPlane.PrevZ;
     }
 
     private static readonly DynamicVertex[][] EmptyLookup = new DynamicVertex[1][];

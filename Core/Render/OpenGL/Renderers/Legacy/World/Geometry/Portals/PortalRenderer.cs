@@ -55,18 +55,19 @@ public class PortalRenderer : IDisposable
 
     public FloodFillRenderer GetStaticFloodFillRenderer() => m_floodFillStatic;
 
-    public void SetTransferHeightView(TransferHeightView view)
+    public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view, bool clearVertices)
     {
         m_transferHeightView = view;
 
-        if (view == TransferHeightView.Middle)
+        if (renderMode == GeometryRenderMode.Dynamic)
         {
             m_floodFillRenderer = m_floodFillStatic;
             return;
         }
 
         m_floodFillRenderer = m_floodFillDynamic;
-        m_floodFillDynamic.ClearVertices();
+        if (clearVertices)
+            m_floodFillDynamic.ClearVertices();
     }
 
     public void UpdateTo(IWorld world)

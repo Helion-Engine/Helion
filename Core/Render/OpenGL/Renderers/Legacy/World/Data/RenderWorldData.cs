@@ -1,23 +1,35 @@
-using System;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderWorldData : IDisposable
 {
-    public readonly GLLegacyTexture Texture;
-    public readonly GLLegacyTexture? BrightmapTexture;
-    public readonly VertexPipeline<DynamicVertex> Pipeline;
+    public GLLegacyTexture Texture;
+    public GLLegacyTexture? BrightmapTexture;
+    public VertexPipeline<DynamicVertex> Pipeline;
     public int RenderCount;
+
+    public RenderWorldData(RenderProgram program)
+    {
+        Pipeline = new(program, new DynamicVertexBuffer<DynamicVertex>("DynamicVertex"), "DynamicVertex");
+        Texture = null!;
+    }
 
     public RenderWorldData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
     {
+        Pipeline = new(program, new DynamicVertexBuffer<DynamicVertex>("DynamicVertex"), "DynamicVertex");
+        Texture = null!;
+        Set(texture, brightmapTexture);
+    }
+
+    public void Set(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
+    {
         Texture = texture;
         BrightmapTexture = brightmapTexture;
-        Pipeline = new(program, new DynamicVertexBuffer<DynamicVertex>(texture.Name), texture.Name);
     }
 
     ~RenderWorldData()

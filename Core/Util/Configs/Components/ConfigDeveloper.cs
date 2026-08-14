@@ -36,4 +36,10 @@ public class ConfigDeveloper: ConfigElement<ConfigDeveloper>
 
     [ConfigInfo("Adds debug labels to GL objects.", save: true, restartRequired: true)]
     public readonly ConfigValue<bool> DebugLabel = new(false);
+
+    [ConfigInfo("Forces renderer to use BSP rendering.")]
+    public readonly ConfigValue<bool> ForceBsp = new(false);
+
+    [ConfigInfo("Locks rendering to current state.", save: false)]
+    public readonly ConfigValue<bool> LockRender = new(false);
 }
