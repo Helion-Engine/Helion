@@ -223,10 +223,4 @@ public class ConfigRender: ConfigElement<ConfigRender>
     // This option is a hacked test that writes everything directly to the default backbuffer. Relies on undefined behavior since certain rendering functions need the depth texture.
     [ConfigInfo("Disables post processing effects like spectre fuzz refraction and skips FBO. Can have rendering defects.", restartRequired: true)]
     public readonly ConfigValue<bool> PostProcessingEffects = new(true);
-
-    [ConfigInfo("Forces renderer to use BSP rendering.")]
-    public readonly ConfigValue<bool> ForceBsp = new(false);
-
-    [ConfigInfo("Locks rendering to current state.", save: false)]
-    public readonly ConfigValue<bool> Lock = new(false);
 }

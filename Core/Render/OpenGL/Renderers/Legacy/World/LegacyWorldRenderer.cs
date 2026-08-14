@@ -295,13 +295,13 @@ public partial class LegacyWorldRenderer : WorldRenderer
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
-        m_renderStatic = !m_config.Render.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle;
+        m_renderStatic = !m_config.Developer.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
 
-        var renderTickChange = !m_config.Render.Lock.Value && NeedsRenderTickChange(world, renderInfo.TransferHeightView);
+        var renderTickChange = !m_config.Developer.LockRender.Value && NeedsRenderTickChange(world, renderInfo.TransferHeightView);
         m_lastTransferHeightsView = renderInfo.TransferHeightView;
 
-        if (!m_config.Render.Lock.Value)
+        if (!m_config.Developer.LockRender.Value)
             Clear(world, renderInfo);
 
         m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView, renderTickChange);
@@ -316,7 +316,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_downscaleVanillaBuffer = m_config.Render.DownScaleVanillaRenderSampleBuffer.Value > 1;
         SetupClipBuffers(framebuffer, dimension, prevDownscale != m_downscaleVanillaBuffer);
 
-        if (!m_config.Render.Lock.Value && m_lastTicker != world.GameTicker)
+        if (!m_config.Developer.LockRender.Value && renderTickChange)
             m_entityRenderer.Start(renderInfo);
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
