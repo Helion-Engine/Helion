@@ -46,7 +46,6 @@ public sealed class Line
     public string? MusicChangeBack;
     public LineBlockFlags InitialLineBlockFlags;
     public float InitialAlpha;
-    public int DebugCount = -1;
 
     public MapUserProperties UserProperties;
 
