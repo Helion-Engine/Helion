@@ -215,7 +215,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private void RenderSectors(IWorld world, int blockIndex)
     {
-        var sectorList = m_renderStatic ? world.RenderBlockmap.DynamicSectors[blockIndex] : world.RenderBlockmap.Sectors[blockIndex];
+        var sectorList = world.RenderBlockmap.DynamicSectors[blockIndex];
         if (sectorList == null)
             return;
 
@@ -235,8 +235,8 @@ public partial class LegacyWorldRenderer : WorldRenderer
             if (sector.CheckCount == m_renderData.CheckCount)
                 continue;
 
-            var dx1 = Math.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
-            var dy1 = Math.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
+            var dx1 = MathHelper.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, MathHelper.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
+            var dy1 = MathHelper.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, MathHelper.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
             if (dx1 * dx1 + dy1 * dy1 <= m_renderData.MaxDistanceSquared)
             {
                 m_geometryRenderer.RenderSector(sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);

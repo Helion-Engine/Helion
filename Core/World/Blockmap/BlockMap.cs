@@ -53,7 +53,6 @@ public class BlockMap
     public BlockLineIndices[] Lines = [];
 
     public Entity?[] HeadRenderEntities = [];
-    public LinkableList<DynamicIsland>[] Sectors = [];
     public LinkableList<DynamicIsland>[] DynamicSectors = [];
     public DynamicArray<Side>[] DynamicSides = [];
 
@@ -95,7 +94,6 @@ public class BlockMap
         TotalBlocks = Width * Height;
 
         HeadRenderEntities = new Entity[TotalBlocks];
-        Sectors = new LinkableList<DynamicIsland>[TotalBlocks];
         DynamicSectors = new LinkableList<DynamicIsland>[TotalBlocks];
         DynamicSides = new DynamicArray<Side>[TotalBlocks];
     }
@@ -301,30 +299,6 @@ public class BlockMap
                     DynamicSectors[index] ??= new();
                     var node = DynamicSectors[index].Add(new(sector, sectorIsland));
                     sector.BlockmapNodes.Add(node);
-                }
-            }
-        }
-    }
-
-    public void Link(IWorld world, Sector sector)
-    {
-        if (sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
-            return;
-
-        var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
-        foreach (var sectorIsland in islands)
-        {
-            if (sectorIsland.IsVooDooCloset || sectorIsland.IsMonsterCloset)
-                continue;
-            var it = CreateBoxIteration(sectorIsland.Box);
-            for (int by = it.BlockStartY; by <= it.BlockEndY; by++)
-            {
-                for (int bx = it.BlockStartX; bx <= it.BlockEndX; bx++)
-                {
-                    var index = by * it.Width + bx;
-
-                    Sectors[index] ??= new();
-                    Sectors[index].Add(new(sector, sectorIsland));
                 }
             }
         }

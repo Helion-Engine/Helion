@@ -232,7 +232,7 @@ public partial class GeometryRenderer : IDisposable
         {
             Portals.UpdateTo(world);
             m_staticCacheGeometryRenderer.UpdateTo(world);
-            m_worldDataManager.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
+            m_worldDataManager?.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
         }
     }
 
@@ -1696,7 +1696,7 @@ public partial class GeometryRenderer : IDisposable
 
         var generateSector3D = WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null;
 
-        if (checkViewPos && !isSky && !generateSector3D && ViewPositionForFlatInvalid(renderPlane, floor))
+        if (renderPlane.NoRender || (checkViewPos && !isSky && !generateSector3D && ViewPositionForFlatInvalid(renderPlane, floor)))
         {
             vertices = null;
             skyVertices = null;
