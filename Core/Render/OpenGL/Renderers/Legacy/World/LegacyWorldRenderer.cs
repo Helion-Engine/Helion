@@ -17,7 +17,6 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Entities;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -26,8 +25,9 @@ using System.Diagnostics;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-public class LegacyWorldRenderer : WorldRenderer
+public partial class LegacyWorldRenderer : WorldRenderer
 {
+    const int EntityRenderIndexMax = 100;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
@@ -48,7 +48,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly StaticWallClipAlphaShader m_staticWallClipAlphaProgram = new();
     private readonly StaticTransparentShader m_staticTransparentProgram = new();
     private readonly StaticCompositeShader m_staticCompositeProgram = new();
-    private readonly RenderWorldDataManager m_worldDataManager = new();
+    private readonly RenderWorldDataManager m_worldDataManager;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly Stopwatch m_stopwatch = new();
@@ -66,6 +66,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
+    private TransferHeightView m_lastTransferHeightsView;
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
@@ -74,7 +75,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_config = config;
         m_entityRenderer = new(config, textureManager, archiveCollection);
         m_primitiveRenderer = new();
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager);
+        m_worldDataManager = new(m_interpolationProgram);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;
@@ -107,8 +109,7 @@ public class LegacyWorldRenderer : WorldRenderer
         else
             m_wallClipFrameBuffer?.Dispose();
 
-        if (m_previousWorld != null)
-            m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
+        m_previousWorld?.OnResetInterpolation -= World_OnResetInterpolation;
 
         var spriteDefinitions = m_archiveCollection.TextureManager.SpriteDefinitions;
         for (int i = 0; i < spriteDefinitions.Length; i++)
@@ -126,6 +127,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_previousWorld = world;
         m_lastTicker = -1;
         m_pixelGapCorrection = m_config.Render.PixelGapCorrection.Value;
+        m_lastTransferHeightsView = TransferHeightView.Middle;
 
         m_stopwatch.Stop();
         Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
@@ -137,29 +139,10 @@ public class LegacyWorldRenderer : WorldRenderer
         ResetInterpolation((IWorld)sender!);
     }
 
-    private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
+    private bool NeedsRenderTickChange(IWorld world, TransferHeightView view) => m_lastTicker != world.GameTicker || m_renderStatic != m_lastRenderStatic || m_lastTransferHeightsView != view;
+
+    private void IterateBlockmap(IWorld world)
     {
-        bool shouldRender = m_lastTicker != world.GameTicker || m_renderStatic != m_lastRenderStatic;
-        if (!shouldRender)
-            return;
-
-        m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView);
-
-        m_renderData.ViewerEntity = renderInfo.ViewerEntity;
-        m_renderData.ViewPosInterpolated = renderInfo.Camera.PositionInterpolated.XY.Double;
-        m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
-        m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
-        m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.SubsectorToIslandId[renderInfo.ViewerEntity.SubsectorId]];
-
-        m_viewerEntity = renderInfo.ViewerEntity;
-        m_geometryRenderer.Clear(renderInfo.TickFraction, true);
-        m_renderData.CheckCount = ++WorldStatic.CheckCounter;
-
-        m_renderData.MaxDistance = renderInfo.Uniforms.MaxDistance;
-
-        m_renderData.MaxDistanceSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
-        m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(m_renderData.ViewPosInterpolated.X, m_renderData.ViewPosInterpolated.Y, m_renderData.MaxDistance);
 
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
@@ -181,32 +164,58 @@ public class LegacyWorldRenderer : WorldRenderer
                 if (m_renderStatic)
                     RenderSides(world, index);
 
-                int renderIndex = 0;
+                var renderIndex = 0;
                 for (var entity = world.RenderBlockmap.HeadRenderEntities[index]; entity != null; entity = entity.RenderBlockNext)
+                {
+                    renderIndex = renderIndex % EntityRenderIndexMax;
                     RenderEntity(world, entity, renderIndex++);
+                }
             }
         }
 
         m_lastTicker = world.GameTicker;
     }
 
+    private void SetupRenderData(IWorld world, RenderInfo renderInfo)
+    {
+        m_renderData.ViewerEntity = renderInfo.ViewerEntity;
+        m_renderData.ViewPosInterpolated = renderInfo.Camera.PositionInterpolated.XY.Double;
+        m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
+        m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
+        m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
+        m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.SubsectorToIslandId[renderInfo.ViewerEntity.SubsectorId]];
+
+        m_viewerEntity = renderInfo.ViewerEntity;
+        m_renderData.CheckCount = ++WorldStatic.CheckCounter;
+
+        m_renderData.MaxDistance = renderInfo.Uniforms.MaxDistance;
+
+        m_renderData.MaxDistanceSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
+        m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
+    }
+
     private static bool BlockInView(int x, int y, int dimension, in Vec2D origin, in Vec2D viewPos, in Vec2D viewDirection)
     {
-        double minX = x * dimension + origin.X;
-        double minY = y * dimension + origin.Y;
-        double maxX = minX + dimension;
-        double maxY = minY + dimension;
+        var minX = x * dimension + origin.X;
+        var minY = y * dimension + origin.Y;
+        var maxX = minX + dimension;
+        var maxY = minY + dimension;
 
-        Vec2D p1 = new(minX - viewPos.X, minY - viewPos.Y);
-        Vec2D p2 = new(maxX - viewPos.X, maxY - viewPos.Y);
-        Vec2D p3 = new(minX - viewPos.X, maxY - viewPos.Y);
-        Vec2D p4 = new(maxX - viewPos.X, minY - viewPos.Y);
-        return p1.Dot(viewDirection) >= 0 || p2.Dot(viewDirection) >= 0 || p3.Dot(viewDirection) >= 0 || p4.Dot(viewDirection) >= 0;
+        var vx = viewDirection.X;
+        var vy = viewDirection.Y;
+
+        var dxMin = minX - viewPos.X;
+        var dxMax = maxX - viewPos.X;
+        var dyMin = minY - viewPos.Y;
+        var dyMax = maxY - viewPos.Y;
+
+        // Avoid branch misprediction by forcing computation with bitwise or
+        return (dxMin * vx + dyMin * vy) >= 0 | (dxMax * vx + dyMax * vy) >= 0 | (dxMin * vx + dyMax * vy) >= 0 | (dxMax * vx + dyMin * vy) >= 0;
     }
 
     private void RenderSectors(IWorld world, int blockIndex)
     {
-        var sectorList = m_renderStatic ? world.RenderBlockmap.DynamicSectors[blockIndex] : world.RenderBlockmap.Sectors[blockIndex];
+        var sectorList = world.RenderBlockmap.DynamicSectors[blockIndex];
         if (sectorList == null)
             return;
 
@@ -226,8 +235,8 @@ public class LegacyWorldRenderer : WorldRenderer
             if (sector.CheckCount == m_renderData.CheckCount)
                 continue;
 
-            var dx1 = Math.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
-            var dy1 = Math.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
+            var dx1 = MathHelper.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, MathHelper.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
+            var dy1 = MathHelper.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, MathHelper.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
             if (dx1 * dx1 + dy1 * dy1 <= m_renderData.MaxDistanceSquared)
             {
                 m_geometryRenderer.RenderSector(sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
@@ -263,16 +272,17 @@ public class LegacyWorldRenderer : WorldRenderer
         if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible() || entity.Flags.NoSector() || entity == m_viewerEntity || entity.Properties.RenderStyle == RenderStyle.None)
             return;
 
-        // Not in front 180 FOV
         if (m_renderData.OccludePos.HasValue)
         {
-            Vec2D entityToTarget = new(entity.Position.X - m_renderData.OccludePos.Value.X, entity.Position.Y - m_renderData.OccludePos.Value.Y);
-            if (entityToTarget.Dot(m_renderData.ViewDirection) < 0)
+            var entityDx = entity.Position.X - m_renderData.OccludePos.Value.X;
+            var entityDy = entity.Position.Y - m_renderData.OccludePos.Value.Y;
+            var dot = entityDx * m_renderData.ViewDirection.X + entityDy * m_renderData.ViewDirection.Y;
+            if (dot < 0)
                 return;
         }
 
-        double dx = Math.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
-        double dy = Math.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
+        var dx = MathHelper.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, MathHelper.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
+        var dy = MathHelper.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, MathHelper.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
         entity.RenderDistanceSquared = dx * dx + dy * dy;
         if (entity.RenderDistanceSquared > m_renderData.MaxDistanceSquared)
             return;
@@ -286,9 +296,16 @@ public class LegacyWorldRenderer : WorldRenderer
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
-        m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
+        m_renderStatic = !m_config.Developer.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
-        Clear(world, renderInfo);
+
+        var renderTickChange = !m_config.Developer.LockRender.Value && NeedsRenderTickChange(world, renderInfo.TransferHeightView);
+        m_lastTransferHeightsView = renderInfo.TransferHeightView;
+
+        if (!m_config.Developer.LockRender.Value)
+            Clear(world, renderInfo);
+
+        m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView, renderTickChange);
 
         if (framebuffer.DepthTexture == null)
             throw new Exception("Framebuffer must have a depth texture.");
@@ -300,12 +317,22 @@ public class LegacyWorldRenderer : WorldRenderer
         m_downscaleVanillaBuffer = m_config.Render.DownScaleVanillaRenderSampleBuffer.Value > 1;
         SetupClipBuffers(framebuffer, dimension, prevDownscale != m_downscaleVanillaBuffer);
 
-        if (m_lastTicker != world.GameTicker)
+        if (!m_config.Developer.LockRender.Value && renderTickChange)
             m_entityRenderer.Start(renderInfo);
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
-        IterateBlockmap(world, renderInfo);
+
+        if (renderTickChange)
+        {
+            SetupRenderData(world, renderInfo);
+
+            if (m_renderStatic)
+                IterateBlockmap(world);
+            else
+                TraverseBsp(world, renderInfo);
+        }
+
         PopulatePrimitives(world);
 
         m_geometryRenderer.RenderSkies(renderInfo);
@@ -549,7 +576,7 @@ public class LegacyWorldRenderer : WorldRenderer
         var hasEntityFuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderDataStyle.Fuzzy); 
         var hasEntityAlphaData = m_entityRenderer.HasAlphaToRender();
         var hasDynamicAlphaGeometry = m_worldDataManager.HasAlphaToRender();
-        var hasStaticAlphaGeometry = m_geometryRenderer.StaticRenderer.HasAlphaToRender();
+        var hasStaticAlphaGeometry = m_renderStatic && m_geometryRenderer.StaticRenderer.HasAlphaToRender();
         if (!hasEntityFuzzData && !hasEntityAlphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
 

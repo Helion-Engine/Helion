@@ -10,8 +10,14 @@
 - Fix scrolling floors/ceilings not rendering movement after loading a game in non-UDMF maps.
 - Fix sounds without attenuation playing at full volume when sound volume is zero.
 - Fix sounds randomly having old gain values when sound volume is changed.
+- Fix repeat switch behavior when it starts with the on texture (fixes E3M1 repeat door close switch).
+- Fix case where skies were excluded from dynamic rendering when sector moves.
+- Fix incorrect dehacked state lookup for arachnotron RUN7 and RUN8 states. Fixes KDIKDIZD suicide bomber scream.
+- Fix flats in dynamic render path that were flagged not to render.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
 - Use FramebufferSize in MacOS to fix windowed mode not rendering to the entire window for MacOS.
-- Add compat option for MbfPlayerMovement
+- Add compat option for MbfPlayerMovement.
+- Improved rendering performance for upper/lower transfer heights views.
+- Minor improvements to CPU side sprite rendering.

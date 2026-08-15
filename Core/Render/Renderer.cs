@@ -115,6 +115,9 @@ public partial class Renderer : IDisposable
 
         PrintGLInfo();
         SetGLStates();
+
+        if (m_config.Developer.ForceBsp)
+            Log.Error("Developer.ForceBsp enabled!");
     }
 
     private mat4 CalculateVirtualMvp(GLFramebuffer buffer, Dimension bufferDimension)

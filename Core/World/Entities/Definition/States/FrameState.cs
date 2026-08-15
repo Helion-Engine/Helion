@@ -81,7 +81,6 @@ public struct FrameState
         if (index < 0 || index >= WorldStatic.Frames.Count)
             return;
 
-        SetFrameIndexMember(entity,index);
         SetFrameIndexInternal(entity, index);
     }
 

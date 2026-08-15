@@ -17,9 +17,6 @@ public class StaticDataApplier
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
-        for (int i = 0; i < world.Sectors.Count; i++)
-            world.RenderBlockmap.Link(world, world.Sectors[i]);
-
         IsLoading = false;
     }
 

@@ -9,24 +9,45 @@ using Helion.World.Geometry.Walls;
 
 namespace Helion.World.Special.Switches;
 
+public enum SwitchTextureType
+{
+    Current,
+    Flip,
+    Off
+}
+
+public readonly record struct SwitchTexture(int TextureHandle, WallLocation Location);
+
 public static class SwitchManager
 {
     public static bool IsLineSwitch(ArchiveCollection archiveCollection, Line line) => 
-        GetLineLineSwitchTexture(archiveCollection, line, false).Item1 != Constants.NoTextureIndex;
+        GetLineLineSwitchTexture(archiveCollection, line, SwitchTextureType.Current).TextureHandle != Constants.NoTextureIndex;
 
-    public static void SetLineSwitch(IWorld world, Line line, bool off)
+    public static void SetLineSwitch(IWorld world, Line line, SwitchTextureType type)
     {
-        (int, WallLocation) switchSet = GetLineLineSwitchTexture(world.ArchiveCollection, line, off);
-        if (switchSet.Item1 != Constants.NoTextureIndex)
+        var switchSet = GetLineLineSwitchTexture(world.ArchiveCollection, line, type);
+        if (switchSet.TextureHandle != Constants.NoTextureIndex)
         {
             if (line.Back != null)
-                world.SetSideTexture(line.Front, switchSet.Item2, switchSet.Item1);
+                world.SetSideTexture(line.Front, switchSet.Location, switchSet.TextureHandle);
             else
-                world.SetSideTexture(line.Front, WallLocation.Middle, switchSet.Item1);
+                world.SetSideTexture(line.Front, WallLocation.Middle, switchSet.TextureHandle);
         }
     }
 
-    public static (int, WallLocation) GetLineLineSwitchTexture(ArchiveCollection archiveCollection, Line line, bool off)
+    public static void SetLineSwitch(IWorld world, Line line, int textureHandle)
+    {
+        var switchSet = GetLineLineSwitchTexture(world.ArchiveCollection, line, SwitchTextureType.Current);
+        if (switchSet.TextureHandle != Constants.NoTextureIndex)
+        {
+            if (line.Back != null)
+                world.SetSideTexture(line.Front, switchSet.Location, textureHandle);
+            else
+                world.SetSideTexture(line.Front, WallLocation.Middle, textureHandle);
+        }
+    }
+
+    public static SwitchTexture GetLineLineSwitchTexture(ArchiveCollection archiveCollection, Line line, SwitchTextureType type)
     {
         if (line.Back != null)
         {
@@ -38,33 +59,35 @@ public static class SwitchManager
                     continue;
 
                 if (side.Upper.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Upper.TextureHandle))
-                    return GetSwitchTexture(animSwitch, side.Upper.TextureHandle, WallLocation.Upper, off);
+                    return GetSwitchTexture(animSwitch, side.Upper.TextureHandle, WallLocation.Upper, type);
 
                 if (side.Middle.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Middle.TextureHandle))
-                    return GetSwitchTexture(animSwitch, side.Middle.TextureHandle, WallLocation.Middle, off);
+                    return GetSwitchTexture(animSwitch, side.Middle.TextureHandle, WallLocation.Middle, type);
 
                 if (side.Lower.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Lower.TextureHandle))
-                    return GetSwitchTexture(animSwitch, side.Lower.TextureHandle, WallLocation.Lower, off);
+                    return GetSwitchTexture(animSwitch, side.Lower.TextureHandle, WallLocation.Lower, type);
             }
         }
         else
         {
             var switchList = archiveCollection.Definitions.Animdefs.AnimatedSwitches;
-            AnimatedSwitch? animSwitch = switchList.FirstOrDefault(sw => 
+            var animSwitch = switchList.FirstOrDefault(sw => 
                 (sw.IWad == IWadBaseType.None || sw.IWad == archiveCollection.IWadType) &&
                 sw.IsMatch(line.Front.Middle.TextureHandle));
             if (animSwitch != null)
-                return GetSwitchTexture(animSwitch, line.Front.Middle.TextureHandle, WallLocation.Middle, off);
+                return GetSwitchTexture(animSwitch, line.Front.Middle.TextureHandle, WallLocation.Middle, type);
         }
 
-        return (Constants.NoTextureIndex, WallLocation.None);
+        return new(Constants.NoTextureIndex, WallLocation.None);
     }
 
-    private static (int, WallLocation) GetSwitchTexture(AnimatedSwitch animSwitch, int textureHandle, WallLocation location, bool off)
+    private static SwitchTexture GetSwitchTexture(AnimatedSwitch animSwitch, int textureHandle, WallLocation location, SwitchTextureType type)
     {
-        if (off)
-            return (animSwitch.GetOffTexture(), location);
-
-        return (animSwitch.GetOpposingTexture(textureHandle), location);
+        return type switch
+        {
+            SwitchTextureType.Current => new(textureHandle, location),
+            SwitchTextureType.Off => new(animSwitch.GetOffTexture(), location),
+            _ => new(animSwitch.GetOpposingTexture(textureHandle), location),
+        };
     }
 }
