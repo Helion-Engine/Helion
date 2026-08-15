@@ -101,10 +101,11 @@ public partial class GeometryRenderer : IDisposable
     public StaticCacheGeometryRenderer StaticRenderer => m_staticCacheGeometryRenderer;
     public Side FogSide => m_fogSide;
     private readonly ViewClipper m_viewClipper;
+    private readonly ViewClipper m_viewClipperPrev;
     private BitArray m_hitLines = new(0);
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, ViewClipper viewClipper, bool unitTest = false)
+        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, ViewClipper viewClipper, ViewClipper viewClipperPrev, bool unitTest = false)
     {
         m_config = config;
         m_program = program;
@@ -153,6 +154,7 @@ public partial class GeometryRenderer : IDisposable
 
         m_world = null!;
         m_viewClipper = viewClipper;
+        m_viewClipperPrev = viewClipperPrev;
     }
 
     ~GeometryRenderer()
@@ -426,9 +428,15 @@ public partial class GeometryRenderer : IDisposable
     private void AddLineClip(in SubsectorSegment edge, Line line)
     {
         if (line.Back == null)
+        {
             m_viewClipper.AddLine(edge.Start, edge.End);
+            m_viewClipperPrev.AddLine(edge.Start, edge.End);
+        }
         else if (RenderBlock.IsBlocked(line))
+        {
             m_viewClipper.AddLine(edge.Start, edge.End);
+            m_viewClipperPrev.AddLine(edge.Start, edge.End);
+        }
     }
 
     public void RenderSubsector(Subsector subsector, in Vec2D pos2D, in Vec2D prevPos2D, bool renderSectorFlats)

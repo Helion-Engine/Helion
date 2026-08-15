@@ -76,7 +76,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer = new(config, textureManager, archiveCollection);
         m_primitiveRenderer = new();
         m_worldDataManager = new(m_interpolationProgram);
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;

@@ -10,6 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public partial class LegacyWorldRenderer
 {
+    private readonly ViewClipper m_viewClipperPrev = new();
     private readonly ViewClipper m_viewClipper = new();
     private FrustumPlanes m_frustumPlanes;
 
@@ -20,8 +21,10 @@ public partial class LegacyWorldRenderer
         m_geometryRenderer.ClearBsp();
         m_geometryRenderer.SetViewPosition(m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
 
+        m_viewClipperPrev.Clear();
         m_viewClipper.Clear();
-        m_viewClipper.Center = m_renderData.ViewPosInterpolated;
+        m_viewClipperPrev.Center = m_renderData.ViewPosInterpolated;
+        m_viewClipper.Center = m_renderData.ViewPos3D.XY;
 
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, m_renderData.ViewPos3D, m_renderData.ViewPos3D.XY, m_renderData.ViewPosInterpolated, world);
         m_lastTicker = world.GameTicker;
@@ -32,7 +35,7 @@ public partial class LegacyWorldRenderer
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
             ref var node = ref world.BspTree.Nodes[nodeIndex];
-            if (Occluded(node.BoundingBox, prevPos2D))
+            if (!ShouldRenderBox(node.BoundingBox, pos2D, prevPos2D))
                 return;
 
             var onRight = (node.SplitDelta.X * (position.Y - node.SplitStart.Y)) - (node.SplitDelta.Y * (position.X - node.SplitStart.X)) < 0;
@@ -44,7 +47,7 @@ public partial class LegacyWorldRenderer
         }
 
         var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        if (Occluded(subsector.BoundingBox, prevPos2D))
+        if (!ShouldRenderBox(subsector.BoundingBox, pos2D, prevPos2D))
             return;
 
         // Flats are rendered by sector, walls are rendered by subsector
@@ -68,15 +71,20 @@ public partial class LegacyWorldRenderer
         }
     }
 
-    private bool Occluded(in Box2D box, in Vec2D position)
+    private bool ShouldRenderBox(in Box2D box, in Vec2D pos2D, in Vec2D prevPos2D)
     {
-        if (box.Contains(position))
-            return false;
-
-        if (m_occlude && !m_frustumPlanes.BoxInFront(box))
+        if (box.Contains(pos2D))
             return true;
 
-        box.GetSpanningEdge(position, out var first, out var second);
-        return m_viewClipper.InsideAnyRange(first, second);
+        if (m_occlude && !m_frustumPlanes.BoxInFront(box))
+            return false;
+
+        // If not occluded in the first view clipper then don't check the second
+        box.GetSpanningEdge(pos2D, out var first, out var second);
+        if (!m_viewClipper.InsideAnyRange(first, second))
+            return true;
+
+        box.GetSpanningEdge(prevPos2D, out first, out second);
+        return !m_viewClipperPrev.InsideAnyRange(first, second);
     }
 }
