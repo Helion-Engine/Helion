@@ -11,7 +11,6 @@ using Helion.World.Cheats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TextCopyLite;
 
 namespace Helion.Layer.Consoles;
 
@@ -318,7 +317,7 @@ public partial class ConsoleLayer
     private void AddClipboardToConsole()
     {
         bool resetInputTracking = false;
-        var text = Clipboard.GetText();
+        var text = m_clipboard.GetText();
         if (text == null)
             return;
 

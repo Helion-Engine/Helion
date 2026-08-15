@@ -82,6 +82,7 @@ public class GameLayerManager : IGameLayerManager
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
     private readonly IScreenshotGenerator m_screenshotGenerator;
+    private readonly IClipboard m_clipboard;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private IHudRenderContext m_hudRenderCtx;
@@ -95,7 +96,7 @@ public class GameLayerManager : IGameLayerManager
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
         ArchiveCollection archiveCollection, PathsManager pathsManager, SoundManager soundManager, SaveGameManager saveGameManager,
-        Profiler profiler, IScreenshotGenerator screenshotGenerator)
+        Profiler profiler, IScreenshotGenerator screenshotGenerator, IClipboard clipboard)
     {
         m_config = config;
         m_window = window;
@@ -112,9 +113,10 @@ public class GameLayerManager : IGameLayerManager
         m_renderer = null!;
         m_ctx = null!;
         m_hudRenderCtx = null!;
+        m_clipboard = clipboard;
 
         m_optionsLayer = new OptionsLayer(this, m_config, pathsManager, m_soundManager, m_window, m_archiveCollection);
-        m_consoleLayer = new ConsoleLayer(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
+        m_consoleLayer = new ConsoleLayer(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands, m_clipboard);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
         m_optionsLayer.OnRestartApplication += OptionsLayer_OnRestartApplication;
