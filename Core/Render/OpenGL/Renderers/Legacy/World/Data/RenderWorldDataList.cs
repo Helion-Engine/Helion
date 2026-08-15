@@ -25,6 +25,7 @@ public class RenderWorldDataList(RenderWorldDataPool pool)
             m_allRenderData[i] = null;
         }
 
+        m_dataToRender.Clear();
         RenderData.Clear();
     }
 
