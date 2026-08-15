@@ -12,6 +12,7 @@
 - Fix sounds randomly having old gain values when sound volume is changed.
 - Fix repeat switch behavior when it starts with the on texture (fixes E3M1 repeat door close switch).
 - Fix case where skies were excluded from dynamic rendering when sector moves.
+- Fix incorrect dehacked state lookup for arachnotron RUN7 and RUN8 states. Fixes KDIKDIZD suicide bomber scream.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
