@@ -14,6 +14,7 @@
 - Fix case where skies were excluded from dynamic rendering when sector moves.
 - Fix incorrect dehacked state lookup for arachnotron RUN7 and RUN8 states. Fixes KDIKDIZD suicide bomber scream.
 - Fix flats in dynamic render path that were flagged not to render.
+- Fix crash when trying to copy text to the clipboard in linux.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
