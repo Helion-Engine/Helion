@@ -99,7 +99,8 @@ public class GameLayerInput
         HelionConsole console = new(new DataCache(), World.Config);
         PathsManager = new();
         SaveGameManager saveGameManager = new(World.Config, PathsManager, World.ArchiveCollection, null);
-        GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, PathsManager, World.SoundManager, saveGameManager, new(), new MockScreenshotGenerator());
+        GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, PathsManager, World.SoundManager, saveGameManager, new(), 
+            new MockScreenshotGenerator(), new MockClipboard());
 
         WorldLayer = new(GameLayerManager, World.Config, console, new(), World, World.MapInfo, new());
         GameLayerManager.Add(WorldLayer);
