@@ -60,6 +60,9 @@ public partial class LegacyWorldRenderer
         var renderIndex = 0;
         for (var node = subsector.Sector.Entities.Head; node != null; node = node.Next)
         {
+            if (node.Value.BlockmapCount == m_renderData.CheckCount)
+                continue;
+            node.Value.BlockmapCount = m_renderData.CheckCount;
             renderIndex = renderIndex % EntityRenderIndexMax;
             RenderEntity(world, node.Value, renderIndex++);
         }
