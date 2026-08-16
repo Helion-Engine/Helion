@@ -16,6 +16,7 @@ using Helion.World.Geometry.Subsectors;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -179,41 +180,50 @@ public class AutomapMarker
         var lineArray = world.StructLines.Data;
         uint smallerAngle;
         uint largerAngle;
-        fixed (SubsectorSegment* startEdge = &world.BspTree.Segments.Data[subsector.SegIndex])
+
+        for (int i = 0; i < subsector.SegCount; i++)
         {
-            SubsectorSegment* edge = startEdge;
-            for (int i = 0; i < subsector.SegCount; i++, edge++)
+            ref var edge = ref world.BspTree.Segments.Data[subsector.SegIndex + i];
+            if (edge.LineId == -1)
+                continue;
+
+            if (edge.LineId == 132)
             {
-                if (edge->LineId == -1)
-                    continue;
-
-                ref var line = ref lineArray[edge->LineId];
-                if (m_hitLines.Get(edge->LineId))
-                    continue;
-
-                m_hitLines.Set(line.Id, true);
-
-                if (line.BackSector == null && line.Segment.PerpDot(position) > 0)
-                    continue;
-
-                (smallerAngle, largerAngle) = m_viewClipper.GetAngles(line.Segment.Start, line.Segment.End);
-                if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
-                    continue;
-
-                if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, edge, ref line))
-                    m_viewClipper.AddLine(smallerAngle, largerAngle);
-
-                if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
-                    continue;
-
-                if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
-                    !m_frustumPlanes.PointInFrustum(line.Segment.End.X, line.Segment.End.Y))
-                    continue;
-
-                line.Flags |= StructLineFlags.SeenForAutomap;
-                line.Line.DataChanges |= LineDataTypes.Automap;
+                int lol = 1;
             }
-        }
+
+            ref var line = ref lineArray[edge.LineId];
+            var front = line.Segment.PerpDot(position) <= 0;
+            if (line.BackSector == null && !front)
+                continue;
+
+            (smallerAngle, largerAngle) = m_viewClipper.GetAngles(edge.Start, edge.End);
+            if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
+                continue;
+
+            if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, ref edge, ref line, front))
+            {
+                if (line.BackCeilingPlane != null)
+                {
+                    int lol = 1;
+                }
+                m_viewClipper.AddLine(smallerAngle, largerAngle);
+            }
+
+            if (m_hitLines.Get(edge.LineId))
+                continue;
+
+            if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
+                continue;
+
+            if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
+                !m_frustumPlanes.PointInFrustum(line.Segment.End.X, line.Segment.End.Y))
+                continue;
+
+            m_hitLines.Set(line.Id, true);
+            line.Flags |= StructLineFlags.SeenForAutomap;
+            line.Line.DataChanges |= LineDataTypes.Automap;
+        }        
     }
 
     private bool Occluded(in Box2D box, in Vec2D position)
@@ -221,7 +231,9 @@ public class AutomapMarker
         if (!m_frustumPlanes.BoxInFront(box))
             return true;
 
-        box.GetSpanningEdge(position, out var first, out var second);
-        return m_viewClipper.InsideAnyRange(first, second);
+        return false;
+
+        //box.GetSpanningEdge(position, out var first, out var second);
+        //return m_viewClipper.InsideAnyRange(first, second);
     }
 }

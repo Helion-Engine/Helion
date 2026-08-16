@@ -1,8 +1,9 @@
-﻿using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Subsectors;
-using Helion.World;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.World;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 
 namespace Helion.Render;
 
@@ -87,18 +88,18 @@ public static class RenderBlock
         return false;
     }
 
-    public static unsafe bool IsBlocked(IWorld world, SubsectorSegment* edge, ref StructLine line)
+    public static unsafe bool IsBlocked(IWorld world, ref SubsectorSegment edge, ref StructLine line)
     {
-        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || edge->SideId == -1)
+        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || edge.SideId == -1)
             return true;
 
         if (line.BackCeilingPlane.Z <= line.BackFloorPlane.Z)
         {
             if (line.BackCeilingPlane.Z < line.FrontFloorPlane.Z)
-                return world.Sides[edge->SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
+                return world.Sides[edge.SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
 
             if (line.BackCeilingPlane.Z > line.FrontFloorPlane.Z)
-                return world.Sides[edge->SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
+                return world.Sides[edge.SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
 
             return true;
         }
@@ -106,12 +107,53 @@ public static class RenderBlock
         if (line.BackCeilingPlane != null && line.Line.Back != null && line.FrontCeilingPlane.Z <= line.FrontFloorPlane.Z)
         {
             if (line.FrontCeilingPlane.Z < line.BackFloorPlane.Z)
-                return world.Sides[edge->SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
+                return world.Sides[edge.SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
 
             if (line.FrontCeilingPlane.Z > line.BackFloorPlane.Z)
-                return world.Sides[edge->SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
+                return world.Sides[edge.SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
 
             return true;
+        }
+
+        return false;
+    }
+
+    public static bool IsBlocked(IWorld world, ref SubsectorSegment edge, ref StructLine line, bool onFrontSide)
+    {
+        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || edge.SideId == -1)
+            return true;
+
+        SectorPlane frontFloorPlane;
+        SectorPlane backFloorPlane;
+        SectorPlane frontCeilingPlane;
+        SectorPlane backCeilingPlane;
+        if (onFrontSide)
+        {
+            frontFloorPlane = line.FrontFloorPlane;
+            backFloorPlane = line.BackFloorPlane;
+            frontCeilingPlane = line.FrontCeilingPlane;
+            backCeilingPlane = line.BackCeilingPlane;
+        }
+        else
+        {
+            frontFloorPlane = line.BackFloorPlane;
+            backFloorPlane = line.FrontFloorPlane;
+            frontCeilingPlane = line.BackCeilingPlane;
+            backCeilingPlane = line.FrontCeilingPlane;
+        }
+
+        if (backCeilingPlane.Z <= frontFloorPlane.Z)
+            return world.Sides[edge.SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
+
+        if (frontCeilingPlane.Z <= backFloorPlane.Z)
+            return world.Sides[edge.SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
+
+        if (backCeilingPlane.Z <= frontFloorPlane.Z)
+        {
+            if (backCeilingPlane.Z < frontCeilingPlane.Z)
+                return world.Sides[edge.SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
+            if (backFloorPlane.Z < frontFloorPlane.Z)
+                return world.Sides[edge.SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
         }
 
         return false;

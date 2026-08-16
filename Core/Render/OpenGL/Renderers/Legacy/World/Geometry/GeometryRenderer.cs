@@ -420,6 +420,8 @@ public partial class GeometryRenderer : IDisposable
             m_hitLines.Set(edge.LineId, true);
 
             var line = m_world.Lines[edge.LineId];
+            // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines anyway.
+            // Most subsectors are rejecting by the bounding box check before this is reached anyway.
             AddLineClip(edge, line);
             RenderSectorLine(line, sector, pos2D, prevPos2D);
         }

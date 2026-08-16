@@ -47,9 +47,6 @@ public partial class LegacyWorldRenderer
         }
 
         var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        if (!ShouldRenderBox(subsector.BoundingBox, pos2D, prevPos2D))
-            return;
-
         // Flats are rendered by sector, walls are rendered by subsector
         var hasRenderedSector = subsector.Sector.CheckCount == m_renderData.CheckCount;
         m_geometryRenderer.RenderSubsector(subsector, pos2D, prevPos2D, !hasRenderedSector);
