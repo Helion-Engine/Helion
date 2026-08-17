@@ -70,7 +70,7 @@ public partial class LegacyWorldRenderer
 
     private bool ShouldRenderBox(in Box2D box, in Vec2D pos2D, in Vec2D prevPos2D)
     {
-        if (box.Contains(pos2D))
+        if (box.Contains(pos2D) || box.Contains(prevPos2D))
             return true;
 
         if (m_occlude && !m_frustumPlanes.BoxInFront(box))
