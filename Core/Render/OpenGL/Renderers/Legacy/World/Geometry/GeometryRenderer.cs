@@ -415,7 +415,7 @@ public partial class GeometryRenderer : IDisposable
                 continue;
 
             var line = m_world.Lines[edge.LineId];
-            var front = line.Segment.PerpDot(pos2D) <= 0;
+            var front = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) < 0;
             if (line.Back == null && !front)
                 continue;
 

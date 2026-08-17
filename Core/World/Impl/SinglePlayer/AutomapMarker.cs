@@ -187,7 +187,7 @@ public class AutomapMarker
                 continue;
 
             ref var line = ref lineArray[edge.LineId];
-            var front = line.Segment.PerpDot(position) <= 0;
+            var front = (line.Segment.Delta.X * (position.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (position.X - line.Segment.Start.X)) < 0;
             if (line.BackSector == null && !front)
                 continue;
 
