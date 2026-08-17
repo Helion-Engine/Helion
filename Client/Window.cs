@@ -73,6 +73,7 @@ public class Window : GameWindow, IWindow
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor, flags))
     {
         Log.Debug("Creating client window");
+        OpenTK.Graphics.OpenGL.GL.LoadBindings(new GLFWBindingsContext());
         onCreate();
         m_config = config;
         m_renderWindowState = config.Window.State;
@@ -191,6 +192,7 @@ public class Window : GameWindow, IWindow
             Title = title,
             WindowBorder = config.Window.Border,
             WindowState = GetWindowState(config.Window.State.Value),
+            AutoLoadBindings = false
         };
 
         SetDisplay(config.Window.Display.Value, settings);

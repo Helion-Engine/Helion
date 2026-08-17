@@ -10,6 +10,7 @@
 
     <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-x64'">LINUX</DefineConstants>
     <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x64'">WINDOWS</DefineConstants>
+    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">MACOS</DefineConstants>
   </PropertyGroup>
 
   <!-- Configure code analysis (debug builds only) -->

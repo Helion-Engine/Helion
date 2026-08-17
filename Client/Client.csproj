@@ -32,9 +32,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Helion.SDLControllerWrapper" Version="3.0.0" />
-    <PackageReference Include="Helion.GLFW" Version="3.4.0" />
-    <PackageReference Include="Helion.OpenALSoft" Version="1.25.2" />
+    <PackageReference Include="Helion.SDLControllerWrapper" Version="3.0.0.1" />
+    <PackageReference Include="Helion.GLFW" Version="3.4.0.1" />
+    <PackageReference Include="Helion.OpenALSoft" Version="1.25.2.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(AOT)' == 'true'">

@@ -206,6 +206,16 @@ public class PathsManager
             }
         }
 
+        else if (OperatingSystem.IsMacOS())
+        {
+            var configHome = Environment.GetEnvironmentVariable("HOME");
+            if (!string.IsNullOrWhiteSpace(configHome))
+            {
+                folder = Path.Combine(configHome, "Library/Application Support/Helion");
+            }
+            
+        }
+
         // ensure the folder exists
         if (folder != null)
         {
