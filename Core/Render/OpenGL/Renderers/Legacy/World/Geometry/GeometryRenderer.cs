@@ -414,30 +414,24 @@ public partial class GeometryRenderer : IDisposable
             if (edge.LineId == -1)
                 continue;
 
+            var line = m_world.Lines[edge.LineId];
+            var front = line.Segment.PerpDot(pos2D) <= 0;
+            if (line.Back == null && !front)
+                continue;
+
+            // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines anyway.
+            // Most subsectors are rejecting by the bounding box check before this is reached anyway.
+            if (line.Back == null || RenderBlock.IsBlocked(m_world, ref edge, ref m_world.StructLines.Data[line.Id], front))
+            {
+                m_viewClipper.AddLine(edge.Start, edge.End);
+                m_viewClipperPrev.AddLine(edge.Start, edge.End);
+            }
+
             if (m_hitLines.Get(edge.LineId))
                 continue;
 
             m_hitLines.Set(edge.LineId, true);
-
-            var line = m_world.Lines[edge.LineId];
-            // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines anyway.
-            // Most subsectors are rejecting by the bounding box check before this is reached anyway.
-            AddLineClip(edge, line);
             RenderSectorLine(line, sector, pos2D, prevPos2D);
-        }
-    }
-
-    private void AddLineClip(in SubsectorSegment edge, Line line)
-    {
-        if (line.Back == null)
-        {
-            m_viewClipper.AddLine(edge.Start, edge.End);
-            m_viewClipperPrev.AddLine(edge.Start, edge.End);
-        }
-        else if (RenderBlock.IsBlocked(line))
-        {
-            m_viewClipper.AddLine(edge.Start, edge.End);
-            m_viewClipperPrev.AddLine(edge.Start, edge.End);
         }
     }
 

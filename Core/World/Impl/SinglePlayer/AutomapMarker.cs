@@ -157,20 +157,19 @@ public class AutomapMarker
     {
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
-            fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
+            ref var node = ref world.BspTree.Nodes[nodeIndex];
+
+            bool onRight = (node.SplitDelta.X * (position.Y - node.SplitStart.Y)) - (node.SplitDelta.Y * (position.X - node.SplitStart.X)) < 0;
+            int front = *(byte*)&onRight;
+
+            MarkBspLineClips(node.Children[front], position, world, token);
+
+            nodeIndex = node.Children[front ^ 1];
+            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
             {
-                bool onRight = (node->SplitDelta.X * (position.Y - node->SplitStart.Y)) - (node->SplitDelta.Y * (position.X - node->SplitStart.X)) < 0;
-                int front = *(byte*)&onRight;
-
-                MarkBspLineClips(node->Children[front], position, world, token);
-
-                nodeIndex = node->Children[front ^ 1];
-                if ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
-                {
-                    if (Occluded(world.BspTree.Nodes[nodeIndex].BoundingBox, position))
-                        return;
-                }
-            }
+                if (Occluded(world.BspTree.Nodes[nodeIndex].BoundingBox, position))
+                    return;
+            }            
 
             if (token.IsCancellationRequested)
                 return;
@@ -187,11 +186,6 @@ public class AutomapMarker
             if (edge.LineId == -1)
                 continue;
 
-            if (edge.LineId == 132)
-            {
-                int lol = 1;
-            }
-
             ref var line = ref lineArray[edge.LineId];
             var front = line.Segment.PerpDot(position) <= 0;
             if (line.BackSector == null && !front)
@@ -202,13 +196,7 @@ public class AutomapMarker
                 continue;
 
             if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, ref edge, ref line, front))
-            {
-                if (line.BackCeilingPlane != null)
-                {
-                    int lol = 1;
-                }
                 m_viewClipper.AddLine(smallerAngle, largerAngle);
-            }
 
             if (m_hitLines.Get(edge.LineId))
                 continue;
@@ -228,12 +216,13 @@ public class AutomapMarker
 
     private bool Occluded(in Box2D box, in Vec2D position)
     {
+        if (box.Contains(position))
+            return false;
+
         if (!m_frustumPlanes.BoxInFront(box))
             return true;
 
-        return false;
-
-        //box.GetSpanningEdge(position, out var first, out var second);
-        //return m_viewClipper.InsideAnyRange(first, second);
+        box.GetSpanningEdge(position, out var first, out var second);
+        return m_viewClipper.InsideAnyRange(first, second);
     }
 }
