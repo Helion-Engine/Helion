@@ -416,7 +416,8 @@ public partial class GeometryRenderer : IDisposable
 
             ref var line = ref m_world.StructLines.Data[edge.LineId];
             var front = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) < 0;
-            if (line.BackCeilingPlane == null && !front)
+            var frontPrev = (line.Segment.Delta.X * (prevPos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (prevPos2D.X - line.Segment.Start.X)) < 0;
+            if (line.BackCeilingPlane == null && !front && !frontPrev)
                 continue;
 
             // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines anyway.
