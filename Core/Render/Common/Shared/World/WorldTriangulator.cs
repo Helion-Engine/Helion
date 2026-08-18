@@ -139,7 +139,7 @@ public static class WorldTriangulator
         bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
         SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling, bool vertexGap = true, MidTexSpan? restrictSpan = null)
     {
-        if (RenderBlock.IsBlocked(facingSide.Line))
+        if (RenderBlock.IsBlocked(facingSide.Line, isFrontSide))
         {
             nothingVisible = true;
             return;

@@ -414,14 +414,14 @@ public partial class GeometryRenderer : IDisposable
             if (edge.LineId == -1)
                 continue;
 
-            var line = m_world.Lines[edge.LineId];
+            ref var line = ref m_world.StructLines.Data[edge.LineId];
             var front = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) < 0;
-            if (line.Back == null && !front)
+            if (line.BackCeilingPlane == null && !front)
                 continue;
 
             // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines anyway.
             // Most subsectors are rejecting by the bounding box check before this is reached anyway.
-            if (line.Back == null || RenderBlock.IsBlocked(m_world, ref edge, ref m_world.StructLines.Data[line.Id], front))
+            if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(m_world, edge.SideId, ref line, front))
             {
                 m_viewClipper.AddLine(edge.Start, edge.End);
                 m_viewClipperPrev.AddLine(edge.Start, edge.End);
@@ -431,7 +431,7 @@ public partial class GeometryRenderer : IDisposable
                 continue;
 
             m_hitLines.Set(edge.LineId, true);
-            RenderSectorLine(line, sector, pos2D, prevPos2D);
+            RenderSectorLine(m_world.Lines[edge.LineId], sector, pos2D, prevPos2D);
         }
     }
 

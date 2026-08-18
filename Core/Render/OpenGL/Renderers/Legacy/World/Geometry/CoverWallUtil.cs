@@ -73,7 +73,7 @@ public class CoverWallUtil
             return new Heights(0, 0);
 
         // Treat two-sided lines that block rendering as one-sided cover to prevent sprites from bleeding through.
-        if (side.PartnerSide == null || RenderBlock.IsBlocked(side.Line))
+        if (side.PartnerSide == null || RenderBlock.IsBlocked(side.Line, side == side.Line.Front))
             return new Heights(ProjectHeight, ProjectHeight);
 
         // Do not add to upper portion of lower textures, or upper portion of lower textures

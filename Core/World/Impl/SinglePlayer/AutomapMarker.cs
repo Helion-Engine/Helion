@@ -195,7 +195,7 @@ public class AutomapMarker
             if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
                 continue;
 
-            if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, ref edge, ref line, front))
+            if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, edge.SideId, ref line, front))
                 m_viewClipper.AddLine(smallerAngle, largerAngle);
 
             if (m_hitLines.Get(edge.LineId))
