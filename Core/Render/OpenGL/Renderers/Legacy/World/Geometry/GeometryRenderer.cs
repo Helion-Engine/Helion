@@ -1258,7 +1258,8 @@ public partial class GeometryRenderer : IDisposable
 
         if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Upper) == 0 || isSky))
         {
-            if (!isSky || (isSky && !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle)))
+            // TODO why was this check here
+            //if (!isSky || (isSky && !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle)))
                 RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
         }
 
