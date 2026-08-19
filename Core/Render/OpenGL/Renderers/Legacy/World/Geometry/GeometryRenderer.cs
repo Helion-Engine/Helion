@@ -410,19 +410,21 @@ public partial class GeometryRenderer : IDisposable
         var sector = subsector.Sector;
         for (int i = 0; i < subsector.SegCount; i++)
         {
-            ref var edge = ref m_world.BspTree.Segments.Data[subsector.SegIndex + i];
+            ref var edge = ref m_world.BspTree.Segments[subsector.SegIndex + i];
             if (edge.LineId == -1)
                 continue;
 
-            ref var line = ref m_world.StructLines.Data[edge.LineId];
-            var front = (line.Segment.Delta.X * (pos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (pos2D.X - line.Segment.Start.X)) < 0;
-            var frontPrev = (line.Segment.Delta.X * (prevPos2D.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (prevPos2D.X - line.Segment.Start.X)) < 0;
-            if (line.BackCeilingPlane == null && !front && !frontPrev)
+            var dx = edge.End.X - edge.Start.X;
+            var dy = edge.End.Y - edge.Start.Y;
+            var front = (dx * (pos2D.Y - edge.Start.Y)) - (dy * (pos2D.X - edge.Start.X)) < 0;
+            var frontPrev = (dx * (prevPos2D.Y - edge.Start.Y)) - (dy * (prevPos2D.X - edge.Start.X)) < 0;
+            if (edge.BackSectorId == -1 && !front && !frontPrev)
                 continue;
 
-            // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines anyway.
-            // Most subsectors are rejecting by the bounding box check before this is reached anyway.
-            if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(m_world, edge.SideId, ref line, front))
+            // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines
+            // Most subsectors are rejecting by the bounding box check before this is reached.
+            var side = m_world.Sides[edge.SideId];
+            if (edge.BackSectorId == -1 || RenderBlock.IsBlocked(side, m_world.Sectors[edge.FrontSectorId], m_world.Sectors[edge.BackSectorId]))
             {
                 m_viewClipper.AddLine(edge.Start, edge.End);
                 m_viewClipperPrev.AddLine(edge.Start, edge.End);

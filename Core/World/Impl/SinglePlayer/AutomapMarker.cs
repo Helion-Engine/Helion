@@ -12,11 +12,9 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -158,18 +156,15 @@ public class AutomapMarker
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
             ref var node = ref world.BspTree.Nodes[nodeIndex];
+            if (Occluded(node.BoundingBox, position))
+                return;
 
             bool onRight = (node.SplitDelta.X * (position.Y - node.SplitStart.Y)) - (node.SplitDelta.Y * (position.X - node.SplitStart.X)) < 0;
             int front = *(byte*)&onRight;
 
             MarkBspLineClips(node.Children[front], position, world, token);
 
-            nodeIndex = node.Children[front ^ 1];
-            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
-            {
-                if (Occluded(world.BspTree.Nodes[nodeIndex].BoundingBox, position))
-                    return;
-            }            
+            nodeIndex = node.Children[front ^ 1];         
 
             if (token.IsCancellationRequested)
                 return;
@@ -182,25 +177,28 @@ public class AutomapMarker
 
         for (int i = 0; i < subsector.SegCount; i++)
         {
-            ref var edge = ref world.BspTree.Segments.Data[subsector.SegIndex + i];
+            ref var edge = ref world.BspTree.Segments[subsector.SegIndex + i];
             if (edge.LineId == -1)
                 continue;
 
-            ref var line = ref lineArray[edge.LineId];
-            var front = (line.Segment.Delta.X * (position.Y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (position.X - line.Segment.Start.X)) < 0;
-            if (line.BackSector == null && !front)
+            var dx = edge.End.X - edge.Start.X;
+            var dy = edge.End.Y - edge.Start.Y;
+            var front = (dx * (position.Y - edge.Start.Y)) - (dy * (position.X - edge.Start.X)) < 0;
+            if (edge.BackSectorId == -1 && !front)
                 continue;
 
             (smallerAngle, largerAngle) = m_viewClipper.GetAngles(edge.Start, edge.End);
             if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
                 continue;
 
-            if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, edge.SideId, ref line, front))
+            var side = m_world.Sides[edge.SideId];
+            if (edge.BackSectorId == -1  || RenderBlock.IsBlocked(side, m_world.Sectors[edge.FrontSectorId], m_world.Sectors[edge.BackSectorId]))
                 m_viewClipper.AddLine(smallerAngle, largerAngle);
 
             if (m_hitLines.Get(edge.LineId))
                 continue;
 
+            ref var line = ref lineArray[edge.LineId];
             if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
                 continue;
 

@@ -256,7 +256,7 @@ public static class WorldTriangulator
     {
         Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
-        var edges = bspTree.Segments.Data;
+        var edges = bspTree.Segments;
         int index = subsector.SegIndex;
         int length = index + subsector.SegCount;
         verticesToPopulate.EnsureCapacity(subsector.SegCount);

@@ -1,9 +1,9 @@
 ﻿using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Render;
 
@@ -36,13 +36,10 @@ public static class RenderBlock
             IsBlocked(line.Back, line.Back.Sector.Floor, line.Front.Sector.Floor, line.Back.Sector.Ceiling, line.Front.Sector.Ceiling);
     }
 
-    public static bool IsBlocked(IWorld world, int sideId, ref StructLine line, bool onFrontSide)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsBlocked(Side side, Sector frontSector, Sector backSector)
     {
-        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || sideId == -1)
-            return true;
-
-        return onFrontSide ? IsBlocked(world.Sides[sideId], line.FrontFloorPlane, line.BackFloorPlane, line.FrontCeilingPlane, line.BackCeilingPlane) :
-            IsBlocked(world.Sides[sideId], line.BackFloorPlane, line.FrontFloorPlane, line.BackCeilingPlane, line.FrontCeilingPlane);
+        return IsBlocked(side, frontSector.Floor, backSector.Floor, frontSector.Ceiling, backSector.Ceiling);
     }
 
     public static bool IsBlocked(Side side, SectorPlane frontFloorPlane, SectorPlane backFloorPlane, SectorPlane frontCeilingPlane, SectorPlane backCeilingPlane)
