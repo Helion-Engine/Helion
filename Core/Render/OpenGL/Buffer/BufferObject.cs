@@ -61,7 +61,16 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         Uploaded = false;
     }
 
-    public void Add(params T[] elements)
+    public void AddMemoryCopy(Span<T> elements)
+    {
+        if (elements.Length <= 0)
+            return;
+
+        Data.AddMemoryCopy(elements);
+        Uploaded = false;
+    }
+
+    public void Add(T[] elements)
     {
         if (elements.Length <= 0)
             return;

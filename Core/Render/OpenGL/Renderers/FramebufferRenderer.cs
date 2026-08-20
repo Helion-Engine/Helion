@@ -93,8 +93,12 @@ public class FramebufferRenderer : IDisposable
         FramebufferVertex bottomRight = new((1, -1), (1, 0));
 
         m_pipeline.Vbo.Bind();
-        m_pipeline.Vbo.Add(topLeft, bottomLeft, topRight);
-        m_pipeline.Vbo.Add(topRight, bottomLeft, bottomRight);
+        m_pipeline.Vbo.Add(topLeft);
+        m_pipeline.Vbo.Add(bottomLeft);
+        m_pipeline.Vbo.Add(topRight);
+        m_pipeline.Vbo.Add(topRight);
+        m_pipeline.Vbo.Add(bottomLeft);
+        m_pipeline.Vbo.Add(bottomRight);
         m_pipeline.Vbo.Upload();
         m_pipeline.Vbo.Unbind();
     }

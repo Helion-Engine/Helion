@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
@@ -115,7 +116,25 @@ public class DynamicArray<T> : IList<T>
         Data[Length++] = element;
     }
 
-    public void Add(params T[] elements)
+    public unsafe void AddMemoryCopy(Span<T> elements)
+    {
+        Debug.Assert(Unsafe.SizeOf<T>() == sizeof(T), "T must be an unmanaged type.");
+        EnsureCapacity(Length + elements.Length);
+
+        ref var srcRef = ref elements[0];
+        ref var dstRef = ref Data[Length];
+
+        var pSrc = Unsafe.AsPointer(ref srcRef);
+        var pDst = Unsafe.AsPointer(ref dstRef);
+
+        var byteCount = (ulong)(elements.Length * Unsafe.SizeOf<T>());
+
+        Buffer.MemoryCopy(pSrc, pDst, byteCount, byteCount);
+
+        Length += elements.Length;
+    }
+
+    public void Add(T[] elements)
     {
         EnsureCapacity(Length + elements.Length);
 
