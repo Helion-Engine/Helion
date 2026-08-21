@@ -227,7 +227,7 @@ public class SinglePlayerWorld : WorldBase
         if (Config.Render.AutomapBspThread)
         {
             var camera = Player.GetCamera(0);
-            m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians);
+            m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians, GameTicker);
         }
 
         if (GetCrosshairTarget(out Entity? entity))

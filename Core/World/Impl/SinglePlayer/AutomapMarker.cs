@@ -23,14 +23,6 @@ namespace Helion.World.Impl.SinglePlayer;
 
 public class AutomapMarker
 {
-    private readonly struct PlayerPosition(Vec3D position, Vec3D viewDirection, double angleRadians, double pitchRadians)
-    {
-        public readonly Vec3D Position = position;
-        public readonly Vec3D ViewDirection = viewDirection;
-        public readonly double AngleRadians = angleRadians;
-        public readonly double PitchRadians = pitchRadians;
-    }
-
     private BitArray m_hitLines = new(0);
     private readonly Stopwatch m_stopwatch = new();
     private readonly ViewClipper m_viewClipper = new();
@@ -44,6 +36,9 @@ public class AutomapMarker
 
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
 
+    public int LastProcessedId;
+    public event EventHandler<PlayerPosition>? PositionProcessed;
+
     public void Start(IWorld world)
     {
         if (m_task != null)
@@ -51,6 +46,7 @@ public class AutomapMarker
 
         ClearData();
 
+        LastProcessedId = -1;
         world.OnDestroying += World_OnDestroying;
         m_world = world;
         m_hitLines = new(world.Lines.Count);
@@ -92,9 +88,9 @@ public class AutomapMarker
         m_viewClipper.Clear();
     }
 
-    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians)
+    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id)
     {
-        m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians));
+        m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id));
     }
 
     private void AutomapTask(CancellationToken token)
@@ -109,7 +105,7 @@ public class AutomapMarker
             var viewport = GetViewport();
             m_stopwatch.Restart();
 
-            while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
+            while (m_world != null && m_positions.TryDequeue(out var pos))
             {
                 // Don't let the queue fill up indefinitely when processing too slowly
                 if (m_positions.Count > ClearCount)
@@ -124,6 +120,8 @@ public class AutomapMarker
 
                 SetFrustum(viewport, pos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
+                LastProcessedId = pos.Id;
+                PositionProcessed?.Invoke(this, pos);
             }
 
             m_stopwatch.Stop();
@@ -220,7 +218,7 @@ public class AutomapMarker
         if (!m_frustumPlanes.BoxInFront(box))
             return true;
 
-        box.GetSpanningEdge(position, out var first, out var second);
-        return m_viewClipper.InsideAnyRange(first, second);
+        box.GetSpanningEdge(position, out var x1, out var y1, out var x2, out var y2);
+        return m_viewClipper.InsideAnyRange(x1, y1, x2, y2);
     }
 }

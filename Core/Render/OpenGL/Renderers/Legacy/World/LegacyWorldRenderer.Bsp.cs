@@ -79,11 +79,11 @@ public partial class LegacyWorldRenderer
             return false;
 
         // If not occluded in the first view clipper then don't check the second
-        box.GetSpanningEdge(pos2D, out var first, out var second);
-        if (!m_viewClipper.InsideAnyRange(first, second))
+        box.GetSpanningEdge(pos2D, out var x1, out var y1, out var x2, out var y2);
+        if (!m_viewClipper.InsideAnyRange(x1, y1, x2, y2))
             return true;
 
-        box.GetSpanningEdge(prevPos2D, out first, out second);
-        return !m_viewClipperPrev.InsideAnyRange(first, second);
+        box.GetSpanningEdge(prevPos2D, out x1, out y1, out x2, out y2);
+        return !m_viewClipperPrev.InsideAnyRange(x1, y1, x2, y2);
     }
 }

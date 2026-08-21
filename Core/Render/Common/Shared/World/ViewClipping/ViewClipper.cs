@@ -34,7 +34,7 @@ public class ViewClipper
     /// <summary>
     /// The center point from which we will clip from.
     /// </summary>
-    public Vec2D Center { private get; set; } = Vec2D.Zero;
+    public Vec2D Center = Vec2D.Zero;
 
     public IEnumerable<ClipSpan> Elements => m_spans.Data.Take(m_spans.Length);
 
@@ -55,7 +55,7 @@ public class ViewClipper
     /// <returns>The diamond angle for the vertex. This will be zero if the
     /// start and end vertices are the same.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint ToDiamondAngle(in Vec2D start, in Vec2D end)
+    public static uint ToDiamondAngle(double startX, double startY, double endX, double endY)
     {
         // The code below takes some position and finds the vector from the
         // center to the position.
@@ -76,8 +76,8 @@ public class ViewClipper
         // out of the values, because this allows us to see what angles are
         // blocked or not by mapping every position onto a unit circle with
         // 2^32 precision.
-        var posX = end.X - start.X;
-        var posY = end.Y - start.Y;
+        var posX = endX - startX;
+        var posY = endY - startY;
         if (posX == 0 && posY == 0)
             return 0;
 
@@ -104,16 +104,6 @@ public class ViewClipper
     }
 
     /// <summary>
-    /// Takes a position and gets the diamond angle value relative to the
-    /// last set center spot. The diamond angle is an ordered angle that
-    /// is similar to degrees or radians, and has absolute ordering.
-    /// </summary>
-    /// <param name="vertex">The vertex to convert to a diamond angle.</param>
-    /// <returns>The diamond angle for the vertex. This will be zero if it
-    /// is equal to the <see cref="Center"/>.</returns>
-    public uint GetDiamondAngle(in Vec2D vertex) => ToDiamondAngle(Center, vertex);
-
-    /// <summary>
     /// Clears all the clip ranges.
     /// </summary>
     /// <remarks>
@@ -133,8 +123,8 @@ public class ViewClipper
     /// <param name="second">The second vertex of a line segment.</param>
     public void AddLine(in Vec2D first, in Vec2D second)
     {
-        var smallerAngle = ToDiamondAngle(Center, first);
-        var largerAngle = ToDiamondAngle(Center, second);
+        var smallerAngle = ToDiamondAngle(Center.X, Center.Y, first.X, first.Y);
+        var largerAngle = ToDiamondAngle(Center.X, Center.Y, second.X, second.Y);
 
         if (largerAngle < smallerAngle)
             (smallerAngle, largerAngle) = (largerAngle, smallerAngle);
@@ -159,19 +149,21 @@ public class ViewClipper
             AddRange(smallerAngle, largerAngle);
     }
 
+    public bool InsideAnyRange(Vec2D start, Vec2D end) => InsideAnyRange(start.X, start.Y, end.X, end.Y);
+
     /// <summary>
     /// Checks if the two points provided are encased in any ranges.
     /// </summary>
     /// <param name="first">The first vertex of a line segment.</param>
     /// <param name="second">The second vertex of a line segment.</param>
     /// <returns>True if they are in a range, false if not.</returns>
-    public bool InsideAnyRange(in Vec2D first, in Vec2D second)
+    public bool InsideAnyRange(double x1, double y1, double x2, double y2)
     {
         if (m_spans.Length == 0)
             return false;
 
-        var smallerAngle = ToDiamondAngle(Center, first);
-        var largerAngle = ToDiamondAngle(Center, second);
+        var smallerAngle = ToDiamondAngle(Center.X, Center.Y, x1, y1);
+        var largerAngle = ToDiamondAngle(Center.X, Center.Y, x2, y2);
 
         if (largerAngle < smallerAngle)
             (smallerAngle, largerAngle) = (largerAngle, smallerAngle);
@@ -190,8 +182,8 @@ public class ViewClipper
 
     public (uint, uint) GetAngles(in Vec2D first, in Vec2D second)
     {
-        var smallerAngle = ToDiamondAngle(Center, first);
-        var largerAngle = ToDiamondAngle(Center, second);
+        var smallerAngle = ToDiamondAngle(Center.X, Center.Y, first.X, first.Y);
+        var largerAngle = ToDiamondAngle(Center.X, Center.Y, second.X, second.Y);
 
         if (largerAngle < smallerAngle)
             (smallerAngle, largerAngle) = (largerAngle, smallerAngle);

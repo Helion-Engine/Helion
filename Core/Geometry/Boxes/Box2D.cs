@@ -2,13 +2,13 @@
 // CHANGES WILL NOT BE PROPAGATED.
 // ----------------------------------------------------------------------------
 
+using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
+using Helion.Util.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Helion.Geometry.Segments;
-using Helion.Geometry.Vectors;
-using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
@@ -141,7 +141,7 @@ namespace Helion.Geometry.Boxes
         public bool Intersects(Seg2D seg) => seg.Intersects(Min.X, Min.Y, Max.X, Max.Y);
         public bool Intersects(Segment2D seg) => seg.Intersects(this);
         public bool Intersects<T>(SegmentT2D<T> seg) where T : Vector2D => seg.Intersects(this);
-        public void GetSpanningEdge(Vec2D position, out Vec2D first, out Vec2D second)
+        public void GetSpanningEdge(Vec2D position, out double x1, out double y1, out double x2, out double y2)
         {
             // This is best understood by asking ourselves how we'd classify
             // where we are along a 1D line. Suppose we want to find out which
@@ -177,54 +177,64 @@ namespace Helion.Geometry.Boxes
             //
             // Note this is my optimization to the Cohen-Sutherland algorithm
             // bitcode detector.
-            uint horizontalBits = Convert.ToUInt32(position.X > Left) + Convert.ToUInt32(position.X > Right);
-            uint verticalBits = Convert.ToUInt32(position.Y > Bottom) + Convert.ToUInt32(position.Y > Top);
+            uint horizontalBits = (position.X > Min.X ? 1u : 0u) + (position.X > Max.X ? 1u : 0u);
+            uint verticalBits = (position.Y > Min.Y ? 1u : 0u) + (position.Y > Max.Y ? 1u : 0u);
 
             switch (horizontalBits | (verticalBits << 2))
             {
                 case 0x0: // Bottom left
-                    first = TopLeft;
-                    second = BottomRight;
+                    x1 = Min.X; y1 = Max.Y;   // TopLeft
+                    x2 = Max.X; y2 = Min.Y;   // BottomRight
                     return;
+
                 case 0x1: // Bottom middle
-                    first = BottomLeft;
-                    second = BottomRight;
+                    x1 = Min.X; y1 = Min.Y;   // BottomLeft
+                    x2 = Max.X; y2 = Min.Y;   // BottomRight
                     return;
+
                 case 0x2: // Bottom right
-                    first = BottomLeft;
-                    second = TopRight;
+                    x1 = Min.X; y1 = Min.Y;   // BottomLeft
+                    x2 = Max.X; y2 = Max.Y;   // TopRight
                     return;
+
                 case 0x4: // Middle left
-                    first = TopLeft;
-                    second = BottomLeft;
+                    x1 = Min.X; y1 = Max.Y;   // TopLeft
+                    x2 = Min.X; y2 = Min.Y;   // BottomLeft
                     return;
-                case 0x5: // Center (this shouldn't be a case via precondition).
-                    first = TopLeft;
-                    second = BottomRight;
+
+                case 0x5: // Center (should not occur)
+                    x1 = Min.X; y1 = Max.Y;   // TopLeft
+                    x2 = Max.X; y2 = Min.Y;   // BottomRight
                     return;
+
                 case 0x6: // Middle right
-                    first = BottomRight;
-                    second = TopRight;
+                    x1 = Max.X; y1 = Min.Y;   // BottomRight
+                    x2 = Max.X; y2 = Max.Y;   // TopRight
                     return;
+
                 case 0x8: // Top left
-                    first = TopRight;
-                    second = BottomLeft;
+                    x1 = Max.X; y1 = Max.Y;   // TopRight
+                    x2 = Min.X; y2 = Min.Y;   // BottomLeft
                     return;
+
                 case 0x9: // Top middle
-                    first = TopRight;
-                    second = TopLeft;
+                    x1 = Max.X; y1 = Max.Y;   // TopRight
+                    x2 = Min.X; y2 = Max.Y;   // TopLeft
                     return;
+
                 case 0xA: // Top right
-                    first = BottomRight;
-                    second = TopLeft;
+                    x1 = Max.X; y1 = Min.Y;   // BottomRight
+                    x2 = Min.X; y2 = Max.Y;   // TopLeft
                     return;
+
                 default:
                     Fail("Unexpected spanning edge bit code");
-                    first = TopLeft;
-                    second = TopLeft;
+                    x1 = Min.X; y1 = Max.Y;
+                    x2 = Min.X; y2 = Max.Y;
                     return;
             }
         }
+
 
         public Box2D Combine(params Box2D[] boxes)
         {
