@@ -28,7 +28,7 @@ Note that we have provided copies of various binaries we depend upon.  If you ex
 
 ## Mac
 
-Macintosh is not supported at this time.
+M-series ARM64 Macintosh is supported.  Install Homebrew, install .NET SDK 10.0, and then do a normal build as you would on the other supported platforms.  AOT builds are not supported yet.  Intel-based Macintosh machines are not supported, nor do we intend to do so in the future.
 
 ## Command Line Build
 
