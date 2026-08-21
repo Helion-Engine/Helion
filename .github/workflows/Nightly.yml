@@ -23,28 +23,23 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
-    - name: Dotnet Publish Linux
-      run: dotnet publish -c Release -r linux-x64 Client/Client.csproj
-    - name: Dotnet Publish Windows
-      run: dotnet publish -c Release -r win-x64 Client/Client.csproj
     - name: Dotnet Publish Linux Self-Contained
       run: dotnet publish -c Release -r linux-x64 -p:SelfContainedRelease=true Client/Client.csproj
     - name: Dotnet Publish Windows Self-Contained
       run: dotnet publish -c Release -r win-x64 -p:SelfContainedRelease=true Client/Client.csproj
+    - name: Dotnet Publish MacOS Self-Contained
+      run: dotnet publish -c Release -r osx-arm64 -p:SelfContainedRelease=true Client/Client.csproj
     - name: Install zip
       uses: montudor/action-zip@v1
-    - name: Zip Linux
-      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64.zip *
-      working-directory: Publish/linux-x64
     - name: Zip Linux Self-Contained
       run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_SelfContained.zip *
       working-directory: Publish/linux-x64_SelfContained
-    - name: Zip Windows
-      run: zip -r ../../Helion-${{ github.ref_name }}-win-x64.zip *
-      working-directory: Publish/win-x64
     - name: Zip Windows Self-Contained
       run: zip -r ../../Helion-${{ github.ref_name }}-win-x64_SelfContained.zip *
       working-directory: Publish/win-x64_SelfContained
+    - name: Zip MacOS Self-Contained
+      run: zip -r ../../Helion-${{ github.ref_name }}-osx-arm64_SelfContained.zip *
+      working-directory: Publish/osx-arm64_SelfContained
     - name: Update nightly release
       uses: pyTooling/Actions/releaser@r0
       with:

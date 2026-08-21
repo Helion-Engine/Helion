@@ -28,6 +28,7 @@ using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
 using NLog;
+using OpenTK.Audio.OpenAL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -720,6 +721,8 @@ public partial class Client : IDisposable, IInputManagement
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(pathsManager, config, []), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
+            InitOpenAL();
+
             using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ?
                 new MockMusicPlayer() :
                 new MusicPlayer(pathsManager, config.Audio, archiveCollection);
@@ -774,5 +777,21 @@ public partial class Client : IDisposable, IInputManagement
         if (map != null)
             return map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
         return null;
+    }
+
+    private static void InitOpenAL()
+    {
+        // Force OpenTK to load OpenAL-Soft instead of the Apple implementation of OpenAL on MacOS
+        if (OperatingSystem.IsMacOS())
+        {
+            // In "published" builds or other contexts where a Runtime ID (RID) was specified, the .dylib will be
+            // in the same directory as the executable.  In "any platform" builds, it'll be in runtimes/osx-arm64/native.
+            string runtimePath = Path.Combine(AppContext.BaseDirectory, "runtimes/osx-arm64/native/libopenal.dylib");
+            string noRuntimePath = Path.Combine(AppContext.BaseDirectory, "libopenal.dylib");
+
+            OpenALLibraryNameContainer.OverridePath = Path.Exists(runtimePath)
+                ? runtimePath
+                : noRuntimePath;
+        }
     }
 }
