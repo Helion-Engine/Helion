@@ -44,7 +44,7 @@ public class SkySphereComponent : ISkyComponent
 
     public void Add(SkyGeometryVertex[] vertices, int length)
     {
-        m_pipeline.Vbo.Add(vertices, length);
+        m_pipeline.Vbo.AddMemoryCopy(vertices.AsSpan(0, length));
     }
 
     public void RenderWorldGeometry(RenderInfo renderInfo)
