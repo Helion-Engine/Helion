@@ -172,7 +172,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     public void RenderEntity(Entity entity, in Vec2D position, int renderIndex)
     {        
         Vec3D centerBottom = entity.Position;
-        Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
         Vec2D nudgeAmount = default;
 
         SpriteDefinition? spriteDef;
@@ -196,7 +195,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         uint rotation = 0;
         if (spriteDef != null && spriteDef.HasRotations)
         {
-            uint viewAngle = ViewClipper.ToDiamondAngle(position, entityPos);
+            uint viewAngle = ViewClipper.ToDiamondAngle(position.X, position.Y, centerBottom.X, centerBottom.Y);
             uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
             rotation = CalculateRotation(viewAngle, entityAngle);
         }

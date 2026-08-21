@@ -81,7 +81,7 @@ public partial class WorldBase
         var containsSubsector = true;
         for (int i = subsector.SegIndex; i < subsector.SegIndex + subsector.SegCount; i++)
         {
-            ref var seg = ref BspTree.Segments.Data[i];
+            ref var seg = ref BspTree.Segments[i];
             if (seg.Start.X >= minX && seg.Start.Y >= minY && seg.End.X <= maxX && seg.End.Y <= maxY)
                 continue;
 

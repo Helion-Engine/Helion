@@ -561,10 +561,10 @@ public class ViewClipperTest
     [Fact(DisplayName = "ToDiamondAngle")]
     public void ToDiamondAngle()
     {
-        ViewClipper.ToDiamondAngle(Vec2D.Zero, Vec2D.One).Should().Be(536870911);
-        ViewClipper.ToDiamondAngle(Vec2D.Zero, (1, 2)).Should().Be(715827882);
-        ViewClipper.ToDiamondAngle(Vec2D.Zero, (4, 2)).Should().Be(357913941);
-        ViewClipper.ToDiamondAngle(Vec2D.Zero, (-1, -2)).Should().Be(2863311528);
-        ViewClipper.ToDiamondAngle(Vec2D.Zero, (-4, -3)).Should().Be(2607658713);
+        ViewClipperExtensions.ToDiamondAngle(Vec2D.Zero, Vec2D.One).Should().Be(536870911);
+        ViewClipperExtensions.ToDiamondAngle(Vec2D.Zero, (1, 2)).Should().Be(715827882);
+        ViewClipperExtensions.ToDiamondAngle(Vec2D.Zero, (4, 2)).Should().Be(357913941);
+        ViewClipperExtensions.ToDiamondAngle(Vec2D.Zero, (-1, -2)).Should().Be(2863311528);
+        ViewClipperExtensions.ToDiamondAngle(Vec2D.Zero, (-4, -3)).Should().Be(2607658713);
     }
 }

@@ -223,17 +223,7 @@ public class LegacyHudRenderer : HudRenderer
         m_pipeline.Clear();
         m_pipeline.Vbo.Bind();
 
-        var vertices = data.Vertices;
-        m_pipeline.Vbo.Data.EnsureCapacity(vertices.Length);
-
-        fixed (HudVertex* pSrc = &vertices.Data[0])
-        fixed (HudVertex* pDst = &m_pipeline.Vbo.Data.Data[0])
-        {
-            var bufferSize = vertices.Length * sizeof(HudVertex);
-            System.Buffer.MemoryCopy(pSrc, pDst, bufferSize, bufferSize);
-        }
-
-        m_pipeline.Vbo.Data.Length = vertices.Length;
+        m_pipeline.Vbo.AddMemoryCopy(data.Vertices.Data.AsSpan(0, data.Vertices.Length));
 
         m_pipeline.Vbo.Upload();
         m_pipeline.Vbo.Unbind();

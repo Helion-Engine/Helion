@@ -6,7 +6,6 @@ using Helion.Maps.Bsp;
 using Helion.Maps.Bsp.Node;
 using Helion.Maps.Components;
 using Helion.Util;
-using Helion.Util.Container;
 using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -28,7 +27,7 @@ public class CompactBspTree
     /// <summary>
     /// All the segments, which are the edges of the subsector.
     /// </summary>
-    public DynamicArray<SubsectorSegment> Segments = new();
+    public SubsectorSegment[] Segments = [];
 
     /// <summary>
     /// All the subsectors, the convex leaves at the bottom of the BSP
@@ -62,6 +61,8 @@ public class CompactBspTree
     /// traversal fills in the array from post-order traversal.
     /// </remarks>
     public BspNodeCompact Root => Nodes[^1];
+
+    private int m_segCount;
 
     private CompactBspTree(BspNode root, GeometryBuilder builder, int nodeCount, int subsectorCount, int segmentCount)
     {
@@ -170,7 +171,7 @@ public class CompactBspTree
 
     private void CreateComponents(BspNode root, GeometryBuilder builder, int nodeCount, int subsectorCount, int segmentsCount)
     {
-        Segments = new(segmentsCount);
+        Segments = new SubsectorSegment[segmentsCount];
         Subsectors = new Subsector[subsectorCount];
         Nodes = new BspNodeCompact[nodeCount];
 
@@ -187,7 +188,7 @@ public class CompactBspTree
 
     private BspCreateResultCompact CreateSubsector(BspNode node, GeometryBuilder builder)
     {
-        int index = Segments.Length;
+        int index = m_segCount;
         CreateClockwiseSegments(node, builder);
 
         var minX = double.MaxValue;
@@ -229,7 +230,7 @@ public class CompactBspTree
 
     private void CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
     {
-        int sideId, lineId;
+        int sideId, lineId, frontSectorId, backSectorId;
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {
             var side = GetSideFromEdge(edge, builder);
@@ -237,15 +238,19 @@ public class CompactBspTree
             {
                 sideId = -1;
                 lineId = -1;
+                frontSectorId = -1;
+                backSectorId = -1;
             }
             else
             {
                 sideId = side.Id;
                 lineId = builder.Sides[sideId].Line.Id;
+                frontSectorId = side.Sector.Id;
+                backSectorId = side.PartnerSide == null ? -1 : side.PartnerSide.Sector.Id;
             }
 
-            var subsectorEdge = new SubsectorSegment(sideId, lineId, edge.Start, edge.End);
-            Segments.Add(subsectorEdge);
+            var subsectorEdge = new SubsectorSegment(sideId, lineId, edge.Start, edge.End, frontSectorId, backSectorId);
+            Segments[m_segCount++] = subsectorEdge;
         }
     }
 

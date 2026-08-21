@@ -605,34 +605,30 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         SkyGeometryManager.AddSide(sky, side, wallLocation, vertices);
     }
 
-    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, Span<DynamicVertex> vertices)
+    private static void AddVertices(DynamicArray<StaticVertex> staticVertices, Span<DynamicVertex> vertices)
     {
         int staticStartIndex = staticVertices.Length;
-        fixed (DynamicVertex* startVertex = &vertices[0])
+ 
+        staticVertices.EnsureCapacity(staticVertices.Length + vertices.Length);
+        for (int i = 0; i < vertices.Length; i++)
         {
-            staticVertices.EnsureCapacity(staticVertices.Length + vertices.Length);
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                DynamicVertex* v = startVertex + i;
-                staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->SurfaceOptions, v->LightLevelAdd, v->RenderOptions);
-            }
-
-            staticVertices.SetLength(staticVertices.Length + vertices.Length);
+            ref var v = ref vertices[i];
+            staticVertices.Data[staticStartIndex + i] = new StaticVertex(v.X, v.Y, v.Z, v.U, v.V,
+                v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions);
         }
+
+        staticVertices.SetLength(staticVertices.Length + vertices.Length);
+        
     }
 
-    private static unsafe void CopyVertices(StaticVertex[] staticVertices, Span<DynamicVertex> vertices, int index)
+    private static void CopyVertices(StaticVertex[] staticVertices, Span<DynamicVertex> vertices, int index)
     {
-        fixed (DynamicVertex* startVertex = &vertices[0])
+        for (int i = 0; i < vertices.Length; i++)
         {
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                DynamicVertex* v = startVertex + i;
-                staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->SurfaceOptions, v->LightLevelAdd, v->RenderOptions);
-            }
-        }
+            ref var v = ref vertices[i];
+            staticVertices[index + i] = new StaticVertex(v.X, v.Y, v.Z, v.U, v.V,
+                v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions);
+        }        
     }
 
     private void SetSideVertices(Side side, Wall wall, bool update, Span<DynamicVertex> sideVertices, bool visible, bool repeatY, Sector3D? sector3D)

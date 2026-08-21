@@ -40,10 +40,9 @@ public partial class LegacyWorldRenderer
 
             var onRight = (node.SplitDelta.X * (position.Y - node.SplitStart.Y)) - (node.SplitDelta.Y * (position.X - node.SplitStart.X)) < 0;
             int front = *(byte*)&onRight;
-            int back = front ^ 1;
 
             RecursivelyRenderBsp(node.Children[front], position, pos2D, prevPos2D, world);
-            nodeIndex = node.Children[back];
+            nodeIndex = node.Children[front ^ 1];
         }
 
         var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
@@ -73,18 +72,18 @@ public partial class LegacyWorldRenderer
 
     private bool ShouldRenderBox(in Box2D box, in Vec2D pos2D, in Vec2D prevPos2D)
     {
-        if (box.Contains(pos2D))
+        if (box.Contains(pos2D) || box.Contains(prevPos2D))
             return true;
 
         if (m_occlude && !m_frustumPlanes.BoxInFront(box))
             return false;
 
         // If not occluded in the first view clipper then don't check the second
-        box.GetSpanningEdge(pos2D, out var first, out var second);
-        if (!m_viewClipper.InsideAnyRange(first, second))
+        box.GetSpanningEdge(pos2D, out var x1, out var y1, out var x2, out var y2);
+        if (!m_viewClipper.InsideAnyRange(x1, y1, x2, y2))
             return true;
 
-        box.GetSpanningEdge(prevPos2D, out first, out second);
-        return !m_viewClipperPrev.InsideAnyRange(first, second);
+        box.GetSpanningEdge(prevPos2D, out x1, out y1, out x2, out y2);
+        return !m_viewClipperPrev.InsideAnyRange(x1, y1, x2, y2);
     }
 }

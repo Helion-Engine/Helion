@@ -139,7 +139,7 @@ public static class WorldTriangulator
         bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
         SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling, bool vertexGap = true, MidTexSpan? restrictSpan = null)
     {
-        if (RenderBlock.IsBlocked(facingSide.Line))
+        if (RenderBlock.IsBlocked(facingSide.Line, isFrontSide))
         {
             nothingVisible = true;
             return;
@@ -256,7 +256,7 @@ public static class WorldTriangulator
     {
         Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
-        var edges = bspTree.Segments.Data;
+        var edges = bspTree.Segments;
         int index = subsector.SegIndex;
         int length = index + subsector.SegCount;
         verticesToPopulate.EnsureCapacity(subsector.SegCount);

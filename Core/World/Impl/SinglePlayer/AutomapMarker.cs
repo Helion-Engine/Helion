@@ -12,7 +12,6 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -24,14 +23,6 @@ namespace Helion.World.Impl.SinglePlayer;
 
 public class AutomapMarker
 {
-    private readonly struct PlayerPosition(Vec3D position, Vec3D viewDirection, double angleRadians, double pitchRadians)
-    {
-        public readonly Vec3D Position = position;
-        public readonly Vec3D ViewDirection = viewDirection;
-        public readonly double AngleRadians = angleRadians;
-        public readonly double PitchRadians = pitchRadians;
-    }
-
     private BitArray m_hitLines = new(0);
     private readonly Stopwatch m_stopwatch = new();
     private readonly ViewClipper m_viewClipper = new();
@@ -45,6 +36,9 @@ public class AutomapMarker
 
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
 
+    public int LastProcessedId;
+    public event EventHandler<PlayerPosition>? PositionProcessed;
+
     public void Start(IWorld world)
     {
         if (m_task != null)
@@ -52,6 +46,7 @@ public class AutomapMarker
 
         ClearData();
 
+        LastProcessedId = -1;
         world.OnDestroying += World_OnDestroying;
         m_world = world;
         m_hitLines = new(world.Lines.Count);
@@ -93,9 +88,9 @@ public class AutomapMarker
         m_viewClipper.Clear();
     }
 
-    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians)
+    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id)
     {
-        m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians));
+        m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id));
     }
 
     private void AutomapTask(CancellationToken token)
@@ -110,7 +105,7 @@ public class AutomapMarker
             var viewport = GetViewport();
             m_stopwatch.Restart();
 
-            while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
+            while (m_world != null && m_positions.TryDequeue(out var pos))
             {
                 // Don't let the queue fill up indefinitely when processing too slowly
                 if (m_positions.Count > ClearCount)
@@ -125,6 +120,8 @@ public class AutomapMarker
 
                 SetFrustum(viewport, pos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
+                LastProcessedId = pos.Id;
+                PositionProcessed?.Invoke(this, pos);
             }
 
             m_stopwatch.Stop();
@@ -156,20 +153,16 @@ public class AutomapMarker
     {
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
-            fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
-            {
-                bool onRight = (node->SplitDelta.X * (position.Y - node->SplitStart.Y)) - (node->SplitDelta.Y * (position.X - node->SplitStart.X)) < 0;
-                int front = *(byte*)&onRight;
+            ref var node = ref world.BspTree.Nodes[nodeIndex];
+            if (Occluded(node.BoundingBox, position))
+                return;
 
-                MarkBspLineClips(node->Children[front], position, world, token);
+            bool onRight = (node.SplitDelta.X * (position.Y - node.SplitStart.Y)) - (node.SplitDelta.Y * (position.X - node.SplitStart.X)) < 0;
+            int front = *(byte*)&onRight;
 
-                nodeIndex = node->Children[front ^ 1];
-                if ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
-                {
-                    if (Occluded(world.BspTree.Nodes[nodeIndex].BoundingBox, position))
-                        return;
-                }
-            }
+            MarkBspLineClips(node.Children[front], position, world, token);
+
+            nodeIndex = node.Children[front ^ 1];         
 
             if (token.IsCancellationRequested)
                 return;
@@ -179,49 +172,53 @@ public class AutomapMarker
         var lineArray = world.StructLines.Data;
         uint smallerAngle;
         uint largerAngle;
-        fixed (SubsectorSegment* startEdge = &world.BspTree.Segments.Data[subsector.SegIndex])
+
+        for (int i = 0; i < subsector.SegCount; i++)
         {
-            SubsectorSegment* edge = startEdge;
-            for (int i = 0; i < subsector.SegCount; i++, edge++)
-            {
-                if (edge->LineId == -1)
-                    continue;
+            ref var edge = ref world.BspTree.Segments[subsector.SegIndex + i];
+            if (edge.LineId == -1)
+                continue;
 
-                ref var line = ref lineArray[edge->LineId];
-                if (m_hitLines.Get(edge->LineId))
-                    continue;
+            var dx = edge.End.X - edge.Start.X;
+            var dy = edge.End.Y - edge.Start.Y;
+            var front = (dx * (position.Y - edge.Start.Y)) - (dy * (position.X - edge.Start.X)) < 0;
+            if (edge.BackSectorId == -1 && !front)
+                continue;
 
-                m_hitLines.Set(line.Id, true);
+            (smallerAngle, largerAngle) = m_viewClipper.GetAngles(edge.Start, edge.End);
+            if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
+                continue;
 
-                if (line.BackSector == null && line.Segment.PerpDot(position) > 0)
-                    continue;
+            var side = m_world.Sides[edge.SideId];
+            if (edge.BackSectorId == -1  || RenderBlock.IsBlocked(side, m_world.Sectors[edge.FrontSectorId], m_world.Sectors[edge.BackSectorId]))
+                m_viewClipper.AddLine(smallerAngle, largerAngle);
 
-                (smallerAngle, largerAngle) = m_viewClipper.GetAngles(line.Segment.Start, line.Segment.End);
-                if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
-                    continue;
+            if (m_hitLines.Get(edge.LineId))
+                continue;
 
-                if (line.BackCeilingPlane == null || RenderBlock.IsBlocked(world, edge, ref line))
-                    m_viewClipper.AddLine(smallerAngle, largerAngle);
+            ref var line = ref lineArray[edge.LineId];
+            if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
+                continue;
 
-                if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
-                    continue;
+            if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
+                !m_frustumPlanes.PointInFrustum(line.Segment.End.X, line.Segment.End.Y))
+                continue;
 
-                if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
-                    !m_frustumPlanes.PointInFrustum(line.Segment.End.X, line.Segment.End.Y))
-                    continue;
-
-                line.Flags |= StructLineFlags.SeenForAutomap;
-                line.Line.DataChanges |= LineDataTypes.Automap;
-            }
-        }
+            m_hitLines.Set(line.Id, true);
+            line.Flags |= StructLineFlags.SeenForAutomap;
+            line.Line.DataChanges |= LineDataTypes.Automap;
+        }        
     }
 
     private bool Occluded(in Box2D box, in Vec2D position)
     {
+        if (box.Contains(position))
+            return false;
+
         if (!m_frustumPlanes.BoxInFront(box))
             return true;
 
-        box.GetSpanningEdge(position, out var first, out var second);
-        return m_viewClipper.InsideAnyRange(first, second);
+        box.GetSpanningEdge(position, out var x1, out var y1, out var x2, out var y2);
+        return m_viewClipper.InsideAnyRange(x1, y1, x2, y2);
     }
 }

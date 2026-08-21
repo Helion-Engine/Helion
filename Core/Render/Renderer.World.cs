@@ -346,7 +346,7 @@ public partial class Renderer
         buffer[index + 1] = floorZ;
 
         // CoverWallUtil.GetProjectHeights forces top and bottom projection to cover. Ensure it's set to blocked for the shader.
-        if (RenderBlock.IsBlocked(line))
+        if (IsBlocked(line))
         {
             buffer[index + 2] = (int)BlockSide.Both;
             return;
@@ -367,6 +367,15 @@ public partial class Renderer
         }
 
         buffer[index + 2] = blockSide;
+    }
+
+    private static bool IsBlocked(in StructLine line)
+    {
+        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || line.Line.Back == null)
+            return true;
+
+        return RenderBlock.IsBlocked(line.Line.Front, line.FrontFloorPlane, line.BackFloorPlane, line.FrontCeilingPlane, line.BackCeilingPlane) ||
+            RenderBlock.IsBlocked(line.Line.Back, line.BackFloorPlane, line.FrontFloorPlane, line.BackCeilingPlane, line.FrontCeilingPlane);
     }
 
     private void World_SectorLightChanged(object? sender, Sector sector)

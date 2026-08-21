@@ -1,8 +1,9 @@
-﻿using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Subsectors;
-using Helion.World;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Render;
 
@@ -26,94 +27,36 @@ public static class RenderBlock
         return false;
     }
 
-    public static bool IsBlocked(Line line)
+    public static bool IsBlocked(Line line, bool onFrontSide)
     {
         if (line.Back == null)
             return true;
 
-        // TODO This can be smarter. This is just to allow rendering tricks for invisible platforms.
-        if (line.Front.Sector.TransferHeights != null || line.Back.Sector.TransferHeights != null)
-            return false;
-
-        if (line.Back.Sector.Ceiling.Z <= line.Back.Sector.Floor.Z)
-        {
-            if (line.Back.Sector.Ceiling.Z < line.Front.Sector.Floor.Z)
-                return line.Front.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            if (line.Back.Sector.Ceiling.Z > line.Front.Sector.Floor.Z)
-                return line.Front.Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            return true;
-        }
-
-        if (line.Front.Sector.Ceiling.Z <= line.Front.Sector.Floor.Z)
-        {
-            if (line.Back.Sector.Ceiling.Z < line.Back.Sector.Floor.Z)
-                return line.Back.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            if (line.Front.Sector.Ceiling.Z > line.Back.Sector.Floor.Z)
-                return line.Back.Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            return true;
-        }
-
-        return false;
+        return onFrontSide ? IsBlocked(line.Front, line.Front.Sector.Floor, line.Back.Sector.Floor, line.Front.Sector.Ceiling, line.Back.Sector.Ceiling) :
+            IsBlocked(line.Back, line.Back.Sector.Floor, line.Front.Sector.Floor, line.Back.Sector.Ceiling, line.Front.Sector.Ceiling);
     }
 
-    public static bool IsBlocked(in StructLine line)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsBlocked(Side side, Sector frontSector, Sector backSector)
     {
-        if (line.BackCeilingPlane != null && line.BackFloorPlane != null && line.BackCeilingPlane.Z <= line.BackFloorPlane.Z)
-        {
-            if (line.BackCeilingPlane.Z < line.FrontFloorPlane.Z)
-                return line.Line.Front.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            if (line.BackCeilingPlane.Z > line.FrontFloorPlane.Z)
-                return line.Line.Front.Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            return true;
-        }
-
-        if (line.BackFloorPlane != null && line.Line.Back != null && line.FrontCeilingPlane.Z <= line.FrontFloorPlane.Z)
-        {
-            if (line.FrontCeilingPlane.Z < line.BackFloorPlane.Z)
-                return line.Line.Back.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            if (line.FrontCeilingPlane.Z > line.BackFloorPlane.Z)
-                return line.Line.Back.Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            return true;
-        }
-
-        return false;
+        return IsBlocked(side, frontSector.Floor, backSector.Floor, frontSector.Ceiling, backSector.Ceiling);
     }
 
-    public static unsafe bool IsBlocked(IWorld world, SubsectorSegment* edge, ref StructLine line)
+    public static bool IsBlocked(Side side, SectorPlane frontFloorPlane, SectorPlane backFloorPlane, SectorPlane frontCeilingPlane, SectorPlane backCeilingPlane)
     {
-        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || edge->SideId == -1)
-            return true;
+        if (backCeilingPlane.Z <= frontFloorPlane.Z)
+            return side.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
 
-        if (line.BackCeilingPlane.Z <= line.BackFloorPlane.Z)
+        if (frontCeilingPlane.Z <= backFloorPlane.Z)
+            return side.Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
+
+        if (backCeilingPlane.Z <= backFloorPlane.Z)
         {
-            if (line.BackCeilingPlane.Z < line.FrontFloorPlane.Z)
-                return world.Sides[edge->SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            if (line.BackCeilingPlane.Z > line.FrontFloorPlane.Z)
-                return world.Sides[edge->SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            return true;
+            if (backCeilingPlane.Z < frontCeilingPlane.Z)
+                return side.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
+            if (backFloorPlane.Z < frontFloorPlane.Z)
+                return side.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
         }
-
-        if (line.BackCeilingPlane != null && line.Line.Back != null && line.FrontCeilingPlane.Z <= line.FrontFloorPlane.Z)
-        {
-            if (line.FrontCeilingPlane.Z < line.BackFloorPlane.Z)
-                return world.Sides[edge->SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            if (line.FrontCeilingPlane.Z > line.BackFloorPlane.Z)
-                return world.Sides[edge->SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
-
-            return true;
-        }
-
         return false;
     }
 }

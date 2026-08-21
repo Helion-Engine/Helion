@@ -57,9 +57,23 @@ public class RenderBlocking
         AssertLine(58, true);
     }
 
+
+    [Fact(DisplayName = "Rendering blocked with floor higher than ceiling front side (lift)")]
+    public void RenderBlockLiftFront()
+    {
+        AssertLine(84, true);
+    }
+
+    [Fact(DisplayName = "Rendering blocked with floor higher than ceiling back side (lift)")]
+    public void RenderBlockLiftBack()
+    {
+        AssertLine(91, true);
+    }
+
     private void AssertLine(int lineId, bool blocked)
     {
         var line = GameActions.GetLine(World, lineId);
-        RenderBlock.IsBlocked(line).Should().Be(blocked);
+        var isBlocked = RenderBlock.IsBlocked(line, true) || RenderBlock.IsBlocked(line, false);
+        isBlocked.Should().Be(blocked);
     }
 }

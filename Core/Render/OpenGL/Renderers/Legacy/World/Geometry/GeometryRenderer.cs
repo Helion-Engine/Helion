@@ -410,32 +410,31 @@ public partial class GeometryRenderer : IDisposable
         var sector = subsector.Sector;
         for (int i = 0; i < subsector.SegCount; i++)
         {
-            ref var edge = ref m_world.BspTree.Segments.Data[subsector.SegIndex + i];
+            ref var edge = ref m_world.BspTree.Segments[subsector.SegIndex + i];
             if (edge.LineId == -1)
                 continue;
+
+            var dx = edge.End.X - edge.Start.X;
+            var dy = edge.End.Y - edge.Start.Y;
+            var front = (dx * (pos2D.Y - edge.Start.Y)) - (dy * (pos2D.X - edge.Start.X)) < 0;
+            var frontPrev = (dx * (prevPos2D.Y - edge.Start.Y)) - (dy * (prevPos2D.X - edge.Start.X)) < 0;
+            if (edge.BackSectorId == -1 && !front && !frontPrev)
+                continue;
+
+            // Add segment to the clipper. Bsp segs aren't checked against the clipper because it's more expensive than just rendering the lines
+            // Most subsectors are rejecting by the bounding box check before this is reached.
+            var side = m_world.Sides[edge.SideId];
+            if (edge.BackSectorId == -1 || RenderBlock.IsBlocked(side, m_world.Sectors[edge.FrontSectorId], m_world.Sectors[edge.BackSectorId]))
+            {
+                m_viewClipper.AddLine(edge.Start, edge.End);
+                m_viewClipperPrev.AddLine(edge.Start, edge.End);
+            }
 
             if (m_hitLines.Get(edge.LineId))
                 continue;
 
             m_hitLines.Set(edge.LineId, true);
-
-            var line = m_world.Lines[edge.LineId];
-            AddLineClip(edge, line);
-            RenderSectorLine(line, sector, pos2D, prevPos2D);
-        }
-    }
-
-    private void AddLineClip(in SubsectorSegment edge, Line line)
-    {
-        if (line.Back == null)
-        {
-            m_viewClipper.AddLine(edge.Start, edge.End);
-            m_viewClipperPrev.AddLine(edge.Start, edge.End);
-        }
-        else if (RenderBlock.IsBlocked(line))
-        {
-            m_viewClipper.AddLine(edge.Start, edge.End);
-            m_viewClipperPrev.AddLine(edge.Start, edge.End);
+            RenderSectorLine(m_world.Lines[edge.LineId], sector, pos2D, prevPos2D);
         }
     }
 
@@ -864,7 +863,7 @@ public partial class GeometryRenderer : IDisposable
         {
             var geometryType = GetGeometryType(style, baseType);
             var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
-            renderData.Pipeline.Vbo.Add(data);
+            renderData.Pipeline.Vbo.AddMemoryCopy(data);
             if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
         }
@@ -1226,7 +1225,7 @@ public partial class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
-                renderData.Pipeline.Vbo.Add(data);
+                renderData.Pipeline.Vbo.AddMemoryCopy(data);
             }
             vertices = data;
             skyVertices = null;
@@ -1261,7 +1260,8 @@ public partial class GeometryRenderer : IDisposable
 
         if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Upper) == 0 || isSky))
         {
-            if (!isSky || (isSky && !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle)))
+            // TODO why was this check here
+            //if (!isSky || (isSky && !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle)))
                 RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
         }
 
@@ -1344,7 +1344,7 @@ public partial class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
-                renderData.Pipeline.Vbo.Add(data);
+                renderData.Pipeline.Vbo.AddMemoryCopy(data);
             }
             vertices = data;
             skyVertices = null;
@@ -1531,7 +1531,7 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
-            renderData.Pipeline.Vbo.Add(data);
+            renderData.Pipeline.Vbo.AddMemoryCopy(data);
         }
         vertices = data;
     }
@@ -1808,7 +1808,7 @@ public partial class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
-                renderData.Pipeline.Vbo.Add(lookupData);
+                renderData.Pipeline.Vbo.AddMemoryCopy(lookupData);
                 // Don't need to clip floor on lower view and ceiling on upper view
                 if (sector.TransferHeights != null
                     && !(m_transferHeightsView == TransferHeightView.Bottom && floor) 
