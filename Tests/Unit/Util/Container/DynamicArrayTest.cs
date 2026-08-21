@@ -23,7 +23,7 @@ public class DynamicArrayTest
     {
         DynamicArray<int> array = new(2);
 
-        array.Add(5, 7);
+        array.Add([5, 7]);
         array.Length.Should().Be(2);
         CompareArrays(array, 5, 7);
         array.Capacity.Should().BeGreaterThanOrEqualTo(2);
@@ -39,7 +39,7 @@ public class DynamicArrayTest
     {
         DynamicArray<int> array = new();
 
-        array.Add(1, -5, 4);
+        array.Add([1, -5, 4]);
 
         array.Data[0].Should().Be(1);
         array.Data[1].Should().Be(-5);
@@ -51,7 +51,7 @@ public class DynamicArrayTest
     {
         DynamicArray<int> array = new(2);
 
-        array.Add(1, -5, 4);
+        array.Add([1, -5, 4]);
         CompareArrays(array, 1, -5, 4);
 
         int capacity = array.Capacity;
@@ -67,7 +67,7 @@ public class DynamicArrayTest
     {
         DynamicArray<int> array = new(2);
 
-        array.Add(1, -5, 4);
+        array.Add([1, -5, 4]);
         CompareArrays(array, 1, -5, 4);
         int capacity = array.Capacity;
 
