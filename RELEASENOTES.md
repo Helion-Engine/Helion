@@ -17,6 +17,8 @@
 - Fix flats in dynamic render path that were flagged not to render.
 - Fix crash when trying to copy text to the clipboard in linux.
 - Fix cases where automap would mark lines that couldn't be seen.
+- Fix map load crash when trying to load a map with a zero length behavior.
+- Fix crash when using nextmap command and the next map has a ACS behavior module to load.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
@@ -24,3 +26,4 @@
 - Add compat option for MbfPlayerMovement.
 - Improved rendering performance for upper/lower transfer heights views.
 - Minor improvements to CPU side sprite rendering.
+- Make RNG method persist in config.
