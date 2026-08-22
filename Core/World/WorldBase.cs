@@ -25,6 +25,7 @@ using Helion.Resources.Definitions.MusInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
@@ -167,7 +168,7 @@ public abstract partial class WorldBase : IWorld
     public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
     public MapType MapType { get; private set; }
 
-    public ACS.WorldExecutor AcsExecutor { get; private set; }
+    public WorldExecutor AcsExecutor { get; private set; }
     public byte[]? Behavior => m_map.Behavior;
 
     public bool HasDehacked;
@@ -1054,6 +1055,7 @@ public abstract partial class WorldBase : IWorld
         }
         else if (WorldState == WorldState.Normal)
         {
+            Precondition(GlobalData.GetCurrentAcsExecutor() == AcsExecutor, "Trying to tick world with disposed WorldExecutor");
             TickPlayers();
             TickEntities();
             AcsExecutor.Exec();

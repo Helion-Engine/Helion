@@ -839,6 +839,8 @@ public partial class Client
 
     private void NewGame(MapInfoDef mapInfo)
     {
+        // Must stop world. GlobalData disposes the global AcsExecutor.
+        m_layerManager.WorldLayer?.Stop();
         m_globalData?.Dispose();
         m_globalData = new();
         QueueLoadMap(mapInfo, null, null, LevelChangeEvent.Default);
