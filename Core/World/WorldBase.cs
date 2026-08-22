@@ -328,7 +328,22 @@ public abstract partial class WorldBase : IWorld
 
     private void LoadAcsHubMap(IMap map, uint hubId)
     {
-        AcsExecutor.LoadHubMap(hubId, (uint)MapInfo.LevelNumber, map.HasBehavior ? [$"BEHAVIOR:{MapInfo.MapName}"] : []);
+        string[] moduleNames = map.HasBehavior ? [$"BEHAVIOR:{MapInfo.MapName}"] : [];
+        try
+        {
+            AcsExecutor.LoadHubMap(hubId, (uint)MapInfo.LevelNumber, moduleNames);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to load ACS for {GetModuleNames(moduleNames)}", ex);
+        }
+    }
+
+    private static string GetModuleNames(string[] moduleNames)
+    {
+        if (moduleNames.Length == 0)
+            return "[Empty]";
+        return string.Join(", ", moduleNames);
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)
