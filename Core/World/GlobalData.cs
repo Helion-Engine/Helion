@@ -11,6 +11,8 @@ public class GlobalData : IDisposable
     public int TotalTime { get; set; }
     private ACS.WorldExecutor? AcsExecutor;
 
+    public ACS.WorldExecutor? GetCurrentAcsExecutor() => AcsExecutor;
+
     public ACS.WorldExecutor GetOrCreateAcsExecutor(IWorld world, bool reallocate)
     {
         if (AcsExecutor == null || reallocate)
@@ -54,6 +56,7 @@ public class GlobalData : IDisposable
     public void Dispose()
     {
         AcsExecutor?.Dispose();
+        AcsExecutor = null;
         GC.SuppressFinalize(this);
     }
 }
