@@ -543,49 +543,59 @@ public partial class GeometryRenderer : IDisposable
 
         if (m_renderMode == GeometryRenderMode.All || !geometrySector.IsFloorStatic)
         {
-            geometrySector.Floor.LastRenderGametick = m_world.Gametick;
-            set.Floor.LastRenderGametick = m_world.Gametick;
+            var success = false;
             if (sector3D != null)
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Ceiling) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    success |= RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTop, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
                     if (sector3D.FakeTopFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        success |= RenderFlat(subsectors, sector3D.ControlTop, sector3D.FakeTopFlipped, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightTop, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Floor, subsectors[0].Sector.Floor, floor: true,  renderFlood: false, checkViewPos: true, m_floorVertexLookupInvalidated, out _, out _);
+                success = RenderFlat(subsectors, renderSector.Floor, subsectors[0].Sector.Floor, floor: true, renderFlood: false, checkViewPos: true, m_floorVertexLookupInvalidated, out _, out _);
+            }
+
+            if (success)
+            {
+                geometrySector.Floor.LastRenderGametick = m_world.Gametick;
+                set.Floor.LastRenderGametick = m_world.Gametick;
             }
         }
 
         if (m_renderMode == GeometryRenderMode.All || !geometrySector.IsCeilingStatic)
         {
-            geometrySector.Ceiling.LastRenderGametick = m_world.Gametick;
-            set.Ceiling.LastRenderGametick = m_world.Gametick;
+            var success = false;
             if (sector3D != null)
             {
                 if ((sector3D.RenderPlanes & SectorPlanes.Floor) != 0)
                 {
-                    RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    success |= RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottom, floor: false, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                         lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
 
                     if (sector3D.FakeBottomFlipped != null)
                     {
-                        RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        success |= RenderFlat(subsectors, sector3D.ControlBottom, sector3D.FakeBottomFlipped, floor: true, renderFlood: false, checkViewPos: false, m_ceilingVertexLookupInvalidated, out _, out _,
                             lightLevelSector: sector3D.LightBottom, allowAlpha: true, alpha: sector3D.Alpha, style: sector3D.RenderDataStyle);
                     }
                 }
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Ceiling, subsectors[0].Sector.Ceiling, floor: false, renderFlood: false, checkViewPos: true, m_ceilingVertexLookupInvalidated, out _, out _);
+                success = RenderFlat(subsectors, renderSector.Ceiling, subsectors[0].Sector.Ceiling, floor: false, renderFlood: false, checkViewPos: true, m_ceilingVertexLookupInvalidated, out _, out _);
+            }
+
+            if (success)
+            {
+                geometrySector.Ceiling.LastRenderGametick = m_world.Gametick;
+                set.Ceiling.LastRenderGametick = m_world.Gametick;
             }
         }
 
@@ -1695,7 +1705,7 @@ public partial class GeometryRenderer : IDisposable
     public int GetFlatTextureHandle(int textureHandle, bool allowAlpha) => 
         !allowAlpha && textureHandle == Constants.NoTextureIndex ? TextureManager.BlackTextureIndex : textureHandle;
 
-    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood, bool checkViewPos,
+    private bool RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane renderPlane, SectorPlane geometryPlane, bool floor, bool renderFlood, bool checkViewPos,
         BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
         Sector? lightLevelSector = null, bool allowAlpha = false, float alpha = 1, RenderDataStyle style = RenderDataStyle.Normal)
     {
@@ -1708,7 +1718,7 @@ public partial class GeometryRenderer : IDisposable
         {
             vertices = null;
             skyVertices = null;
-            return;
+            return false;
         }
 
         var texture = m_glTextureManager.GetTexture(textureHandle);
@@ -1818,6 +1828,8 @@ public partial class GeometryRenderer : IDisposable
                 }
             }
         }
+
+        return true;
     }
 
     private bool ViewPositionForFlatInvalid(SectorPlane renderPlane, bool floor)
