@@ -19,6 +19,7 @@
 - Fix cases where automap would mark lines that couldn't be seen.
 - Fix map load crash when trying to load a map with a zero length behavior.
 - Fix crash when using nextmap command and the next map has a ACS behavior module to load.
+- Fix A_JumpIfFlagsSet for MBF21 flags that modify entity properites. Fixes Abyssal Apocrypha MAP08 Totem of Resurrection.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
