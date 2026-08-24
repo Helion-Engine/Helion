@@ -3368,7 +3368,7 @@ public static class EntityActionFunctions
             entity.FrameState.SetState(entity, newFrame);
     }
 
-    private static void A_JumpIfFlagsSet(Entity entity)
+    public static void A_JumpIfFlagsSet(Entity entity)
     {
         int state = entity.FrameState.Frame.DehackedArgs1;
         uint flags = (uint)entity.FrameState.Frame.DehackedArgs2;

@@ -1456,13 +1456,13 @@ public class DehackedApplier
     public static bool CheckEntityFlagsMbf21(Entity entity, uint flags)
     {
         Mbf21ThingFlags thingProperties = (Mbf21ThingFlags)flags;
-        if ((thingProperties & Mbf21ThingFlags.LOGRAV) != 0 && entity.Properties.Gravity != 1 / 8.0)
+        if ((thingProperties & Mbf21ThingFlags.LOGRAV) != 0 && entity.Gravity != 1 / 8.0)
             return false;
-        if ((thingProperties & Mbf21ThingFlags.LOGRAV) != 0 && entity.Properties.MaxTargetRange != 896)
+        if ((thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0 && entity.MaxTargetRange != ShortMissileRange)
             return false;
-        if ((thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0 && entity.Properties.MaxTargetRange != 160)
+        if ((thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0 && entity.MinMissileChance != HigherMissileProb)
             return false;
-        if ((thingProperties & Mbf21ThingFlags.LONGMELEE) != 0 && entity.Properties.MaxTargetRange != 196)
+        if ((thingProperties & Mbf21ThingFlags.LONGMELEE) != 0 && entity.MeleeThreshold != LongMeleeRange)
             return false;
         if ((thingProperties & Mbf21ThingFlags.DMGIGNORED) != 0 && !entity.Flags.NoTarget())
             return false;
