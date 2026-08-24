@@ -15,6 +15,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -69,6 +70,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private TransferHeightView m_lastTransferHeightsView;
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
+    private IBspHeuristics? m_bspHeuristics;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -128,6 +130,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_lastTicker = -1;
         m_pixelGapCorrection = m_config.Render.PixelGapCorrection.Value;
         m_lastTransferHeightsView = TransferHeightView.Middle;
+        m_bspHeuristics = world.GetBspHeuristics();
 
         m_stopwatch.Stop();
         Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
@@ -291,13 +294,32 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated, renderIndex);     
     }
 
+    private bool m_lastUseBsp;
+
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
-        m_renderStatic = !m_config.Developer.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle;
+        m_renderStatic = !m_config.Developer.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle && !m_lastUseBsp;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
+
+        if (world.GameTicker != m_lastTicker && renderInfo.TransferHeightView == TransferHeightView.Middle)
+        {
+            m_lastUseBsp = UseBspBasedOnHeuristic(world);
+            WorldStatic.Bsp = m_lastUseBsp;
+            if (m_bspHeuristics != null)
+            {
+                WorldStatic.BspSegCount = m_bspHeuristics.SegCount;
+                WorldStatic.BspLineCount = m_bspHeuristics.LineCount;
+            }
+
+            if (m_lastUseBsp && m_lastRenderStatic)
+                HelionLog.Info("Swapped to BSP based on heuristic");
+            else if (!m_lastUseBsp && !m_lastRenderStatic)
+                HelionLog.Info("Swapped to static based on heuristic");
+            m_renderStatic = !m_lastUseBsp;
+        }
 
         var renderTickChange = !m_config.Developer.LockRender.Value && NeedsRenderTickChange(world, renderInfo.TransferHeightView);
         m_lastTransferHeightsView = renderInfo.TransferHeightView;
@@ -414,6 +436,28 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
+    }
+
+    private bool UseBspBasedOnHeuristic(IWorld world)
+    {
+        if (m_config.Developer.ForceBsp.Value)
+            return true;
+
+        if (m_bspHeuristics == null)
+            return false;
+
+        m_stopwatch.Restart();
+
+        while (m_bspHeuristics.LastProcessedId != world.GameTicker - 1 && m_stopwatch.ElapsedMilliseconds < 3) ;
+
+        if (m_bspHeuristics.LastProcessedId != world.GameTicker - 1)
+        {
+            HelionLog.Info("Fell behind");
+            return false;
+        }
+
+        var use = m_bspHeuristics.LineCount < 2000;
+        return use;
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)

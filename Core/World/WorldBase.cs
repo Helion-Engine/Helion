@@ -14,6 +14,7 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -4817,6 +4818,7 @@ public abstract partial class WorldBase : IWorld
 
     public bool UseAverageScrollCarry() => m_averageScrollCarry;
     public bool SectorReturnStop() => m_sectorReturnStop;
+    public virtual IBspHeuristics? GetBspHeuristics() => null;
 
     public IEnumerable<string> GetPreCacheTextureNames() =>
         MapInfo.PrecacheTextures.Union(GetFilteredAcsStrings(), StringComparer.OrdinalIgnoreCase);

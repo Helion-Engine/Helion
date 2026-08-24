@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
@@ -613,4 +614,6 @@ public class SinglePlayerWorld : WorldBase
             input.Manager.AnalogAdapter.ZeroGyroAbsolute();
         }
     }
+
+    public override IBspHeuristics? GetBspHeuristics() => m_automapMarker;
 }

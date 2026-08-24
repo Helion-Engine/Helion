@@ -77,11 +77,13 @@ public partial class WorldLayer
     private readonly SpanString m_fpsMaxString = new();
     private readonly SpanString m_timeString = new();
     private readonly SpanString m_renderMessageSpan = new(128);
+    private readonly SpanString m_bspString = new();
 
     private readonly RenderableString m_renderFpsString;
     private readonly RenderableString m_renderFpsMinString;
     private readonly RenderableString m_renderFpsMaxString;
     private readonly RenderableString m_renderTimeString;
+    private readonly RenderableString m_renderBspString;
 
     private readonly RenderStat[] m_renderStats;
 
@@ -258,6 +260,7 @@ public partial class WorldLayer
         if (!m_config.Hud.ShowStats && (!automapVisible || !m_config.Hud.AutoMap.ShowStats))
             return;
 
+        int labelX = 0;
         start.X = -m_padding - m_hudPaddingX;
         Vec2I labelPos = start;
         
@@ -287,8 +290,8 @@ public partial class WorldLayer
                 maxLabelWidth = Math.Max(renderStat.RenderLabel.DrawArea.Width, maxLabelWidth);
                 maxValueWidth = Math.Max(renderStat.RenderValue.DrawArea.Width, maxValueWidth);
             }
-
-            labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
+            labelX = -(maxValueWidth + m_padding + m_hudPaddingX);
+            labelPos.X = labelX;
             for (int i = 0; i < m_renderStats.Length; i++)
             {
                 var renderStat = m_renderStats[i];
@@ -328,6 +331,17 @@ public partial class WorldLayer
 
             hud.Text(m_renderTimeString, labelPos, both: Align.TopRight, alpha: m_hudAlpha);
             labelPos.Y += m_renderTimeString.DrawArea.Height;
+
+            m_bspString.Clear();
+            m_bspString.Append(WorldStatic.Bsp ? "BSP (" : "Static (");
+            m_bspString.Append(WorldStatic.BspSegCount);
+            m_bspString.Append("-");
+            m_bspString.Append(WorldStatic.BspLineCount);
+            m_bspString.Append(')');
+            labelPos.X = labelX;
+            SetRenderableString(m_bspString.AsSpan(), m_renderBspString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
+            hud.Text(m_renderBspString, labelPos, Align.TopRight, alpha: m_hudAlpha);
+            labelPos.Y += m_renderBspString.DrawArea.Height;
         }
 
         topRightY = labelPos.Y;
