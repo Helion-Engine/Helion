@@ -387,6 +387,8 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
     public void SetTransferHeights(Sector controlSector, Colormap? upper, Colormap? middle, Colormap? lower)
     {
         TransferHeights = new TransferHeights(this, controlSector, upper, middle, lower);
+        Floor.TransferHeights = TransferHeights;
+        Ceiling.TransferHeights = TransferHeights;
         DataChanges |= SectorDataTypes.TransferHeights;
     }
 
@@ -625,7 +627,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapUpper, out var upper);
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapMiddle, out var middle);
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapLower, out var lower);
-            TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value], upper, middle, lower);
+            SetTransferHeights(sectors[sectorModel.TransferHeights.Value], upper, middle, lower);
         }
     }
 
