@@ -127,6 +127,8 @@ public partial class WorldLayer
                 suppressStats: (sbarCoverage & StatusBarCoverage.Stats) != 0,
                 suppressTime: (sbarCoverage & StatusBarCoverage.Time) != 0);
 
+            DrawBspStats(hud);
+
             DrawBottomHud(hud, automapVisible, activeSbarLayout);
             
             DrawHudEffects(hud);
@@ -260,7 +262,6 @@ public partial class WorldLayer
         if (!m_config.Hud.ShowStats && (!automapVisible || !m_config.Hud.AutoMap.ShowStats))
             return;
 
-        int labelX = 0;
         start.X = -m_padding - m_hudPaddingX;
         Vec2I labelPos = start;
         
@@ -290,8 +291,7 @@ public partial class WorldLayer
                 maxLabelWidth = Math.Max(renderStat.RenderLabel.DrawArea.Width, maxLabelWidth);
                 maxValueWidth = Math.Max(renderStat.RenderValue.DrawArea.Width, maxValueWidth);
             }
-            labelX = -(maxValueWidth + m_padding + m_hudPaddingX);
-            labelPos.X = labelX;
+            labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
             for (int i = 0; i < m_renderStats.Length; i++)
             {
                 var renderStat = m_renderStats[i];
@@ -331,20 +331,28 @@ public partial class WorldLayer
 
             hud.Text(m_renderTimeString, labelPos, both: Align.TopRight, alpha: m_hudAlpha);
             labelPos.Y += m_renderTimeString.DrawArea.Height;
-
-            m_bspString.Clear();
-            m_bspString.Append(WorldStatic.Bsp ? "BSP (" : "Static (");
-            m_bspString.Append(WorldStatic.BspSegCount);
-            m_bspString.Append("-");
-            m_bspString.Append(WorldStatic.BspLineCount);
-            m_bspString.Append(')');
-            labelPos.X = labelX;
-            SetRenderableString(m_bspString.AsSpan(), m_renderBspString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
-            hud.Text(m_renderBspString, labelPos, Align.TopRight, alpha: m_hudAlpha);
-            labelPos.Y += m_renderBspString.DrawArea.Height;
         }
 
         topRightY = labelPos.Y;
+    }
+
+    private void DrawBspStats(IHudRenderContext hud)
+    {
+        if (!m_config.Developer.DebugAdaptiveRenderMode.Value)
+            return;
+
+        m_bspString.Clear();
+        var x = hud.MeasureText("        ", FixedNumberFont, m_infoFontSize).Width;
+
+        m_bspString.Append(WorldStatic.Bsp ? "BSP (" : "Static (");
+        m_bspString.Append(WorldStatic.BspSegCount);
+        m_bspString.Append('/');
+        m_bspString.Append(WorldStatic.BspLineCount);
+        m_bspString.Append(" ");
+        m_bspString.Append(WorldStatic.BspMicroseconds);
+        m_bspString.Append(')');
+        SetRenderableString(m_bspString.AsSpan(), m_renderBspString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
+        hud.Text(m_renderBspString, (-x, m_padding / 2), Align.TopMiddle, alpha: m_hudAlpha);
     }
 
     private static SpanString AppendStatString(SpanString str, int current, int max)

@@ -35,7 +35,7 @@ public class SinglePlayerWorld : WorldBase
     private static bool SoundsCached;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly CheatType[] ChaseCameraCheats = [CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings];
-    private readonly AutomapMarker m_automapMarker = new();
+    private readonly AutomapMarker m_automapMarker;
     private readonly HashSet<int> m_renderDistanceOverrideTags = [];
     private bool m_chaseCamMode;
     private WorldType m_worldType = WorldType.SinglePlayer;
@@ -60,6 +60,7 @@ public class SinglePlayerWorld : WorldBase
         IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null, bool reuse = true, int playerSpawnArg0 = 0)
         : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random, sameAsPreviousMap, reuse)
     {
+        m_automapMarker = new(config);
         m_worldType = config.Game.SoloNet ? WorldType.Cooperative : WorldType.SinglePlayer;
 
         if (worldModel == null)

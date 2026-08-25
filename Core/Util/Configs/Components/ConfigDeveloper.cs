@@ -42,4 +42,7 @@ public class ConfigDeveloper: ConfigElement<ConfigDeveloper>
 
     [ConfigInfo("Locks rendering to current state.", save: false)]
     public readonly ConfigValue<bool> LockRender = new(false);
+
+    [ConfigInfo("Shows values for adaptive render mode.", save: false)]
+    public readonly ConfigValue<bool> DebugAdaptiveRenderMode = new(false);
 }

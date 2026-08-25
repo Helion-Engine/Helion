@@ -52,6 +52,7 @@ namespace Helion.Util.Configs
             { typeof(ConfigRenderMode), Enum.GetValues<ConfigRenderMode>() },
             { typeof(CompatSetting), Enum.GetValues<CompatSetting>() },
             { typeof(Id24TrackInfoType), Enum.GetValues<Id24TrackInfoType>() },
+            { typeof(AdaptiveRenderMode), Enum.GetValues<AdaptiveRenderMode>() },
         };
 
         public static Dictionary<Type, Dictionary<Enum, string>> KnownEnumLabels { get; } = new Dictionary<Type, Dictionary<Enum, string>>()
@@ -81,6 +82,7 @@ namespace Helion.Util.Configs
             { typeof(ConfigRenderMode), GetDescriptions<ConfigRenderMode>()},
             { typeof(CompatSetting), GetDescriptions<CompatSetting>() },
             { typeof(Id24TrackInfoType), GetDescriptions<Id24TrackInfoType>() },
+            { typeof(AdaptiveRenderMode), GetDescriptions<AdaptiveRenderMode>() },
         };
 
         private static Dictionary<Enum, string> GetDescriptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>() where T : struct, Enum

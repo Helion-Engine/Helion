@@ -64,6 +64,7 @@ public static class WorldStatic
     public static bool Bsp;
     public static int BspLineCount;
     public static int BspSegCount;
+    public static int BspMicroseconds;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool HasCustomBlood() => BloodColor || AutoColoredBlood || FuzzBlood;

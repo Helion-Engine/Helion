@@ -7,6 +7,8 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Util;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World.Bsp;
 using Helion.World.Entities;
@@ -19,11 +21,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Helion.World.Impl.SinglePlayer;
 
-public class AutomapMarker : IBspHeuristics
+public class AutomapMarker(IConfig config) : IBspHeuristics
 {
     private BitArray m_hitLines = new(0);
     private readonly Stopwatch m_stopwatch = new();
@@ -32,7 +33,7 @@ public class AutomapMarker : IBspHeuristics
     private readonly OldCamera m_camera = new(default, default, 0, 0);
     private readonly Entity m_dummyEntity = new();
     private readonly HashSet<int> m_visibleTextures = new(256);
-    private Task? m_task;
+    private Thread? m_thread;
     private CancellationTokenSource m_cancelTasks = new();
     private IWorld m_world = null!;
     private FrustumPlanes m_frustumPlanes;
@@ -42,9 +43,11 @@ public class AutomapMarker : IBspHeuristics
     private int m_lastSubsectorCount;
     private int m_lastSegCount;
     private int m_lastLineCount;
+    private int m_lastMicroseconds;
     private float m_subsectorVisibility;
     private float m_segVisibility;
 
+    private readonly IConfig m_config = config;
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
     
     public int LastProcessedId { get; private set; }
@@ -55,10 +58,11 @@ public class AutomapMarker : IBspHeuristics
     public int SubsectorCount => m_lastSubsectorCount;
     public int SegCount => m_lastSegCount;
     public int LineCount => m_lastLineCount;
+    public int Microseconds => m_lastMicroseconds;
 
     public void Start(IWorld world)
     {
-        if (m_task != null)
+        if (m_thread != null)
             return;
 
         ClearData();
@@ -70,8 +74,12 @@ public class AutomapMarker : IBspHeuristics
 
         m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world, default);
 
-        m_task = Task.Factory.StartNew(() => AutomapTask(m_cancelTasks.Token), m_cancelTasks.Token,
-            TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        m_thread = new Thread(() => AutomapTask(m_cancelTasks.Token))
+        {
+            IsBackground = true,
+            Priority = ThreadPriority.AboveNormal
+        };
+        m_thread.Start();
     }
 
     private void World_OnDestroying(object? sender, EventArgs e)
@@ -86,17 +94,17 @@ public class AutomapMarker : IBspHeuristics
 
     public void Stop()
     {
-        if (m_task == null)
+        if (m_thread == null)
             return;
 
         m_cancelTasks.Cancel();
         m_cancelTasks.Dispose();
-        m_task.Wait();
+        m_thread.Join();
 
         ClearData();
 
         m_cancelTasks = new CancellationTokenSource();
-        m_task = null;
+        m_thread = null;
     }
 
     private void ClearData()
@@ -107,7 +115,8 @@ public class AutomapMarker : IBspHeuristics
 
     public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id)
     {
-        m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id));
+        if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive || m_positions.Count == 0)
+            m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id));
     }
 
     private void AutomapTask(CancellationToken token)
@@ -154,7 +163,8 @@ public class AutomapMarker : IBspHeuristics
             if (m_stopwatch.ElapsedMilliseconds >= ticks)
                 continue;
 
-            //Thread.Sleep(Math.Max(ticks - (int)m_stopwatch.ElapsedMilliseconds, 0));
+            if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive)
+                Thread.Sleep(Math.Max(ticks - (int)m_stopwatch.ElapsedMilliseconds, 0));
         }
     }
 
@@ -168,6 +178,7 @@ public class AutomapMarker : IBspHeuristics
 
     private void SetHeuristics()
     {
+        m_lastMicroseconds = (int)m_stopwatch.Elapsed.TotalMicroseconds;
         m_lastSubsectorCount = m_subsectorCount;
         m_lastSegCount = m_segCount;
         m_lastLineCount = m_lineCount;

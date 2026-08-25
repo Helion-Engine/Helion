@@ -15,6 +15,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Entities;
@@ -63,6 +64,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private bool m_pixelGapCorrection;
     private bool m_downscaleVanillaBuffer;
     private bool m_postProcessingEffects;
+    private bool m_lastUseBsp;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
@@ -294,8 +296,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated, renderIndex);     
     }
 
-    private bool m_lastUseBsp;
-
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
@@ -312,12 +312,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
             {
                 WorldStatic.BspSegCount = m_bspHeuristics.SegCount;
                 WorldStatic.BspLineCount = m_bspHeuristics.LineCount;
+                WorldStatic.BspMicroseconds = m_bspHeuristics.Microseconds;
             }
 
-            if (m_lastUseBsp && m_lastRenderStatic)
-                HelionLog.Info("Swapped to BSP based on heuristic");
-            else if (!m_lastUseBsp && !m_lastRenderStatic)
-                HelionLog.Info("Swapped to static based on heuristic");
             m_renderStatic = !m_lastUseBsp;
         }
 
@@ -440,15 +437,18 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private bool UseBspBasedOnHeuristic(IWorld world)
     {
-        if (m_config.Developer.ForceBsp.Value)
+        if (m_config.Render.Mode.Value == AdaptiveRenderMode.Bsp)
             return true;
+
+        if (m_config.Render.Mode.Value == AdaptiveRenderMode.Static)
+            return false;
 
         if (m_bspHeuristics == null)
             return false;
 
         m_stopwatch.Restart();
 
-        while (m_bspHeuristics.LastProcessedId != world.GameTicker - 1 && m_stopwatch.ElapsedMilliseconds < 3) ;
+        while (m_bspHeuristics.LastProcessedId != world.GameTicker - 1 && m_stopwatch.ElapsedMilliseconds < 4) ;
 
         if (m_bspHeuristics.LastProcessedId != world.GameTicker - 1)
         {
@@ -456,8 +456,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
             return false;
         }
 
-        var use = m_bspHeuristics.LineCount < 2000;
-        return use;
+        return m_bspHeuristics.LineCount < m_config.Render.AdaptiveBspThreshold;
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)

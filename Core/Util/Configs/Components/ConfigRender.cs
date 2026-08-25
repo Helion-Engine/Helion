@@ -49,6 +49,13 @@ public enum RenderContrastMode
     Smooth
 }
 
+public enum AdaptiveRenderMode
+{
+    Static,
+    Bsp,
+    Adaptive
+}
+
 public class ConfigRenderFilter : ConfigElement<ConfigRenderFilter>
 {
     [ConfigInfo("Filter applied to fonts.")]
@@ -223,4 +230,10 @@ public class ConfigRender: ConfigElement<ConfigRender>
     // This option is a hacked test that writes everything directly to the default backbuffer. Relies on undefined behavior since certain rendering functions need the depth texture.
     [ConfigInfo("Disables post processing effects like spectre fuzz refraction and skips FBO. Can have rendering defects.", restartRequired: true)]
     public readonly ConfigValue<bool> PostProcessingEffects = new(true);
+
+    [ConfigInfo("Changes the render mode.")]
+    public readonly ConfigValue<AdaptiveRenderMode> Mode = new(AdaptiveRenderMode.Static);
+
+    [ConfigInfo("The number of visible lines until the mode is switched to static when using adapative.")]
+    public readonly ConfigValue<int> AdaptiveBspThreshold = new(2000);
 }

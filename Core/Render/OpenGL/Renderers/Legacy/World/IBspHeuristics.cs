@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Helion.Render.OpenGL.Renderers.Legacy.World;
+﻿namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public interface IBspHeuristics
 {
@@ -10,4 +8,5 @@ public interface IBspHeuristics
     public int SegCount { get; }
     public int LineCount { get; }
     public int LastProcessedId { get; }
+    public int Microseconds { get; }
 }
