@@ -72,13 +72,40 @@
   </ItemGroup>
 
   <ItemGroup Condition="('$(PublishAot)' == 'true') AND ('$(RuntimeIdentifier)'=='osx-arm64')">
-    <!-- OS-level dependencies -->
+    <!-- OS-level dependencies attributable to OpenAL-Soft -->
     <LinkerArg Include="-framework AudioToolbox" />
     <LinkerArg Include="-framework AudioUnit" />
     <LinkerArg Include="-framework ApplicationServices" />
     <LinkerArg Include="-framework CoreAudio" />
     <LinkerArg Include="-framework CoreFoundation" />
     <LinkerArg Include="-lstdc++" />
+
+    <!-- OS-level dependencies attributable to SDL2 -->
+    <!-- <LinkerArg Include="-framework AudioToolbox" /> -->
+    <!-- <LinkerArg Include="-framework CoreAudio" /> -->
+    <LinkerArg Include="-framework AVFoundation" />
+    <LinkerArg Include="-framework AppKit" />
+    <LinkerArg Include="-framework Carbon" />
+    <LinkerArg Include="-framework Cocoa" />
+    <LinkerArg Include="-framework CoreHaptics" />
+    <LinkerArg Include="-framework CoreServices" />
+    <LinkerArg Include="-framework CoreVideo" />
+    <LinkerArg Include="-framework ForceFeedback" />
+    <LinkerArg Include="-framework GameController" />
+    <LinkerArg Include="-framework IOKit" />
+    <LinkerArg Include="-framework Metal" />
+    <LinkerArg Include="-framework QuartzCore" />
+    <LinkerArg Include="-lobjc" />
+
+    <!-- OS-level dependencies attributable to GLFW -->
+    <!-- <LinkerArg Include="-framework AudioToolbox" /> -->
+    <!-- <LinkerArg Include="-framework CoreFoundation" /> -->
+    <!-- <LinkerArg Include="-framework CoreServices" /> -->
+    <!-- <LinkerArg Include="-framework Cocoa" /> -->
+    <!-- <LinkerArg Include="-framework IOKit" /> -->
+    <!-- <LinkerArg Include="-lobjc" -->
+    <LinkerArg Include="-framework AppKit" />
+    <LinkerArg Include="-framework CoreGraphics" />
 
     <!-- Transitive dependencies of ZMusic; assumes Homebrew installed, libsndfile and mpg123 installed via Homebrew -->
     <LinkerArg Include="/opt/homebrew/opt/flac/lib/libFLAC.a" />
