@@ -61,10 +61,6 @@ public static class WorldStatic
     public static float DamageApplyMultiplier = 1;
     public static float DamageReceiveMultiplier = 1;
     public static int MaxSoulsphere = 200;
-    public static bool Bsp;
-    public static int BspLineCount;
-    public static int BspSegCount;
-    public static int BspMicroseconds;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool HasCustomBlood() => BloodColor || AutoColoredBlood || FuzzBlood;

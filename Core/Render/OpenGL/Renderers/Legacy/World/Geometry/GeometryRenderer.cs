@@ -1662,7 +1662,7 @@ public partial class GeometryRenderer : IDisposable
             m_ceilingVertexLookupInvalidated.SetAll(true);
         }
 
-        var clearFloodVertices = !m_config.Developer.LockRender;
+        var clearFloodVertices = !m_config.Developer.Render.Lock.Value;
         if (clearFloodVertices && !newTick)
             clearFloodVertices = false;
 

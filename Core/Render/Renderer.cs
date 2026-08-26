@@ -17,7 +17,6 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
-using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
@@ -32,7 +31,6 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -115,9 +113,6 @@ public partial class Renderer : IDisposable
 
         PrintGLInfo();
         SetGLStates();
-
-        if (m_config.Developer.ForceBsp)
-            Log.Error("Developer.ForceBsp enabled!");
     }
 
     private mat4 CalculateVirtualMvp(GLFramebuffer buffer, Dimension bufferDimension)

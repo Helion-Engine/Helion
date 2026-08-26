@@ -104,7 +104,5 @@ public sealed class SectorPlane : SectorSoundSource
         LastRenderChangeGametick = gametick;
     }
 
-   
-
     public override string ToString() => $"Id={Id} Z={Z} Face={Facing} Texture={TextureHandle}";
 }

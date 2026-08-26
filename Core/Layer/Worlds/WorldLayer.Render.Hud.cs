@@ -338,18 +338,22 @@ public partial class WorldLayer
 
     private void DrawBspStats(IHudRenderContext hud)
     {
-        if (!m_config.Developer.DebugAdaptiveRenderMode.Value)
+        if (!m_config.Developer.Render.DebugAdaptiveMode.Value)
+            return;
+
+        var bspHeuristics = World.GetBspHeuristics();
+        if (bspHeuristics == null)
             return;
 
         m_bspString.Clear();
         var x = hud.MeasureText("        ", FixedNumberFont, m_infoFontSize).Width;
 
-        m_bspString.Append(WorldStatic.Bsp ? "BSP (" : "Static (");
-        m_bspString.Append(WorldStatic.BspSegCount);
+        m_bspString.Append(bspHeuristics.LastBspSetting ? "BSP (" : "Static (");
+        m_bspString.Append(bspHeuristics.LineCount);
         m_bspString.Append('/');
-        m_bspString.Append(WorldStatic.BspLineCount);
-        m_bspString.Append(" ");
-        m_bspString.Append(WorldStatic.BspMicroseconds);
+        m_bspString.Append(bspHeuristics.SegCount);
+        m_bspString.Append('/');
+        m_bspString.Append(bspHeuristics.Microseconds);
         m_bspString.Append(')');
         SetRenderableString(m_bspString.AsSpan(), m_renderBspString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
         hud.Text(m_renderBspString, (-x, m_padding / 2), Align.TopMiddle, alpha: m_hudAlpha);

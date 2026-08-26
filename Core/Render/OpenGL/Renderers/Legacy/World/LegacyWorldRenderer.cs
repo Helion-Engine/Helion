@@ -301,27 +301,19 @@ public partial class LegacyWorldRenderer : WorldRenderer
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
-        m_renderStatic = !m_config.Developer.ForceBsp.Value && renderInfo.TransferHeightView == TransferHeightView.Middle && !m_lastUseBsp;
+        m_renderStatic = m_config.Render.Mode.Value != AdaptiveRenderMode.Bsp && renderInfo.TransferHeightView == TransferHeightView.Middle && !m_lastUseBsp;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
 
         if (world.GameTicker != m_lastTicker && renderInfo.TransferHeightView == TransferHeightView.Middle)
         {
             m_lastUseBsp = UseBspBasedOnHeuristic(world);
-            WorldStatic.Bsp = m_lastUseBsp;
-            if (m_bspHeuristics != null)
-            {
-                WorldStatic.BspSegCount = m_bspHeuristics.SegCount;
-                WorldStatic.BspLineCount = m_bspHeuristics.LineCount;
-                WorldStatic.BspMicroseconds = m_bspHeuristics.Microseconds;
-            }
-
             m_renderStatic = !m_lastUseBsp;
         }
 
-        var renderTickChange = !m_config.Developer.LockRender.Value && NeedsRenderTickChange(world, renderInfo.TransferHeightView);
+        var renderTickChange = !m_config.Developer.Render.Lock.Value && NeedsRenderTickChange(world, renderInfo.TransferHeightView);
         m_lastTransferHeightsView = renderInfo.TransferHeightView;
 
-        if (!m_config.Developer.LockRender.Value)
+        if (!m_config.Developer.Render.Lock.Value)
             Clear(world, renderInfo);
 
         m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView, renderTickChange);
@@ -336,7 +328,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_downscaleVanillaBuffer = m_config.Render.DownScaleVanillaRenderSampleBuffer.Value > 1;
         SetupClipBuffers(framebuffer, dimension, prevDownscale != m_downscaleVanillaBuffer);
 
-        if (!m_config.Developer.LockRender.Value && renderTickChange)
+        if (!m_config.Developer.Render.Lock.Value && renderTickChange)
             m_entityRenderer.Start(renderInfo);
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
@@ -446,17 +438,34 @@ public partial class LegacyWorldRenderer : WorldRenderer
         if (m_bspHeuristics == null)
             return false;
 
-        m_stopwatch.Restart();
+        var now = Stopwatch.GetTimestamp();
+        var ageTicks = now - m_bspHeuristics.LastProcessedTimeStamp;
+        double ageMicroseconds = ageTicks * (1_000_000.0 / Stopwatch.Frequency);
 
-        while (m_bspHeuristics.LastProcessedId != world.GameTicker - 1 && m_stopwatch.ElapsedMilliseconds < 4) ;
+        const double ProcessWindowUs = 500.0;
+        if (ageMicroseconds <= ProcessWindowUs)
+            return m_bspHeuristics.LastBspSetting;
 
-        if (m_bspHeuristics.LastProcessedId != world.GameTicker - 1)
+        var threshold = m_config.Render.AdaptiveBspThreshold.Value;
+        var highRange = threshold * 1.15f;
+        var lowRange = threshold * 0.85f;
+
+        var shouldUseBsp = m_bspHeuristics.Microseconds < threshold;
+
+        if (shouldUseBsp != m_lastUseBsp)
         {
-            HelionLog.Info("Fell behind");
-            return false;
+            if (!shouldUseBsp && m_bspHeuristics.Microseconds < highRange)
+                shouldUseBsp = true;
+            else if (shouldUseBsp && m_bspHeuristics.Microseconds > lowRange)
+                shouldUseBsp = false;
         }
 
-        return m_bspHeuristics.LineCount < m_config.Render.AdaptiveBspThreshold;
+        // Maybe add to config. Don't let fast CPUs switch to BSP when it's likely not beneficial. Maybe should be seg count?
+        if (m_bspHeuristics.LineCount > 2000)
+            shouldUseBsp = false;
+
+        m_bspHeuristics.LastBspSetting = shouldUseBsp;
+        return m_bspHeuristics.LastBspSetting;
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)

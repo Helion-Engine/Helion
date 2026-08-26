@@ -140,7 +140,6 @@ public class SinglePlayerWorld : WorldBase
 
         config.Player.Name.OnChanged += PlayerName_OnChanged;
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
-        config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
         config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
 
         ChaseCamPlayer = CreateChaseCamPlayer();
@@ -208,16 +207,6 @@ public class SinglePlayerWorld : WorldBase
         MarkSpecials.Clear(this, Player);
     }
 
-    private void AutomapBspThread_OnChanged(object? sender, bool set)
-    {
-        m_automapMarker.Stop();
-
-        if (!set)
-            return;
-
-        m_automapMarker.Start(this);
-    }
-
     public override ListenerParams GetListener()
     {
         var player = GetCameraPlayer();
@@ -226,11 +215,8 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Tick()
     {
-        if (Config.Render.AutomapBspThread)
-        {
-            var camera = Player.GetCamera(0);
-            m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians, GameTicker);
-        }
+        var camera = Player.GetCamera(0);
+        m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians, GameTicker);
 
         if (GetCrosshairTarget(out Entity? entity))
             Player.SetCrosshairTarget(entity);
@@ -344,8 +330,7 @@ public class SinglePlayerWorld : WorldBase
         if (!PlayLevelMusic(musicName))
             AudioSystem.Music.Stop();
 
-        if (Config.Render.AutomapBspThread.Value)
-            m_automapMarker.Start(this);
+        m_automapMarker.Start(this);
     }
 
     public override bool PlayLevelMusic(string name, MusicFlags flags = MusicFlags.Loop, Entity? activator = null)
@@ -545,7 +530,6 @@ public class SinglePlayerWorld : WorldBase
 
         Config.Player.Name.OnChanged -= PlayerName_OnChanged;
         Config.Player.Gender.OnChanged -= PlayerGender_OnChanged;
-        Config.Render.AutomapBspThread.OnChanged -= AutomapBspThread_OnChanged;
         Config.Game.MarkSpecials.OnChanged -= MarkSpecials_OnChanged;
 
         base.PerformDispose();

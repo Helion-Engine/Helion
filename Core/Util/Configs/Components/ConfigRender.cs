@@ -224,9 +224,6 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [ConfigInfo("Enable texture transparency.")]
     public readonly ConfigValue<bool> TextureTransparency = new(true);
 
-    [ConfigInfo("Traverse the BSP tree in a separate thread to mark lines seen for automap. If disabled, automap always shows all lines.")]
-    public readonly ConfigValue<bool> AutomapBspThread = new(true);
-
     // This option is a hacked test that writes everything directly to the default backbuffer. Relies on undefined behavior since certain rendering functions need the depth texture.
     [ConfigInfo("Disables post processing effects like spectre fuzz refraction and skips FBO. Can have rendering defects.", restartRequired: true)]
     public readonly ConfigValue<bool> PostProcessingEffects = new(true);
@@ -234,6 +231,6 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [ConfigInfo("Changes the render mode.")]
     public readonly ConfigValue<AdaptiveRenderMode> Mode = new(AdaptiveRenderMode.Static);
 
-    [ConfigInfo("The number of visible lines until the mode is switched to static when using adapative.")]
-    public readonly ConfigValue<int> AdaptiveBspThreshold = new(2000);
+    [ConfigInfo("The number microseconds until the mode is switched to static when using adapative.")]
+    public readonly ConfigValue<int> AdaptiveBspThreshold = new(1500);
 }

@@ -44,8 +44,6 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     private int m_lastSegCount;
     private int m_lastLineCount;
     private int m_lastMicroseconds;
-    private float m_subsectorVisibility;
-    private float m_segVisibility;
 
     private readonly IConfig m_config = config;
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
@@ -53,12 +51,12 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     public int LastProcessedId { get; private set; }
     public event EventHandler<PlayerPosition>? PositionProcessed;
 
-    public float SubsectorVisibility => m_subsectorVisibility;
-    public float SegVisibility => m_segVisibility;
     public int SubsectorCount => m_lastSubsectorCount;
     public int SegCount => m_lastSegCount;
     public int LineCount => m_lastLineCount;
     public int Microseconds => m_lastMicroseconds;
+    public bool LastBspSetting { get; set; }
+    public long LastProcessedTimeStamp { get; private set; }
 
     public void Start(IWorld world)
     {
@@ -115,7 +113,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
 
     public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id)
     {
-        if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive || m_positions.Count == 0)
+        if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive || m_positions.IsEmpty)
             m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id));
     }
 
@@ -170,20 +168,17 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
 
     private void MaxHeuristics()
     {
-        m_subsectorVisibility = 1;
-        m_segVisibility = 1;
         m_lastSegCount = int.MaxValue;
         m_lastLineCount = int.MaxValue;
     }
 
     private void SetHeuristics()
     {
+        LastProcessedTimeStamp = Stopwatch.GetTimestamp();
         m_lastMicroseconds = (int)m_stopwatch.Elapsed.TotalMicroseconds;
         m_lastSubsectorCount = m_subsectorCount;
         m_lastSegCount = m_segCount;
         m_lastLineCount = m_lineCount;
-        m_segVisibility = m_segCount / (float)m_world.BspTree.Segments.Length;
-        m_subsectorVisibility = m_subsectorCount / (float)m_world.BspTree.Subsectors.Length;
     }
 
     private void SetFrustum(Rectangle viewport, PlayerPosition pos)
@@ -254,15 +249,13 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
                 continue;
 
             m_hitLines.Set(edge.LineId, true);
-            m_lineCount++;
-            ref var line = ref lineArray[edge.LineId];
-            //if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
-            //    continue;
 
+            ref var line = ref lineArray[edge.LineId];
             if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
                 !m_frustumPlanes.PointInFrustum(line.Segment.End.X, line.Segment.End.Y))
                 continue;
 
+            m_lineCount++;
             if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
                 continue;
 
