@@ -784,6 +784,7 @@ public partial class Client : IDisposable, IInputManagement
         // Force OpenTK to load OpenAL-Soft instead of the Apple implementation of OpenAL on MacOS
         if (OperatingSystem.IsMacOS())
         {
+            #if !AOT
             // In "published" builds or other contexts where a Runtime ID (RID) was specified, the .dylib will be
             // in the same directory as the executable.  In "any platform" builds, it'll be in runtimes/osx-arm64/native.
             string runtimePath = Path.Combine(AppContext.BaseDirectory, "runtimes/osx-arm64/native/libopenal.dylib");
@@ -792,6 +793,7 @@ public partial class Client : IDisposable, IInputManagement
             OpenALLibraryNameContainer.OverridePath = Path.Exists(runtimePath)
                 ? runtimePath
                 : noRuntimePath;
+            #endif
         }
     }
 }
