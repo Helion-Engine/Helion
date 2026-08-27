@@ -14,6 +14,11 @@ Install dependencies first:
 sudo apt install dotnet-sdk-10.0 libopenal-dev
 ```
 
+If you want to do AOT builds (see section below), you will also want:
+```
+sudo apt install libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev
+```
+
 Then go to the "Command Line Build" section below.
 
 ### Fedora
@@ -22,53 +27,45 @@ Then go to the "Command Line Build" section below.
 sudo dnf install dotnet-sdk-10.0 openal-soft-devel
 ```
 
+Similar to Debian/Ubuntu, you will also want dev packages for AOT:
+```
+sudo dnf install libsndfile-devel mpg123-devel glib2-devel alsa-lib-devel
+```
+
 After installing dependencies, if you have an IDE that supports C# (like Rider), you can open Helion and build/run directly.  You can also build from the command line, as described in the section below.
 
 Note that we have provided copies of various binaries we depend upon.  If you experience difficulties using the provided .so files, you may need to build your own. Symptoms may include nonfunctional music, or issues with controller input.  Please see link:Assets/Documentation/Building-Linux-Native-Dependencies.md[this document] for help with native dependencies.
 
 ## Mac
 
-M-series ARM64 Macintosh is supported. Intel-based Macintosh machines are not supported, nor do we intend to do so in the future.  Status of ARM64 other than M-series (e.g. Macbook Neo with A18 Pro SoC) unknown.
+M-series ARM64 Macintosh is supported. Intel-based Macintosh machines are not supported, nor do we intend to do so in the future.  Status of ARM64 other than M-series (e.g. Macbook Neo with A18 Pro SoC) unknown and untested.
 
 If you wish to build Helion on an ARM Mac, you will need to install link:https://brew.sh/[Homebrew].  Then `brew install --cask dotnet-sdk`.
 
-If you wish to do AOT builds (see explanation below) on Macintosh Arm64, you will need to `brew install libsndfile` and `brew install mpg123` to get the necessary `.a` files for linking.  Clang must also be installed on your system (it seems to be present by default on OS 26.x).  Note that these steps are ONLY necessary for AOT builds.
+If you wish to do AOT builds (see explanation below) on Macintosh Arm64, you will need to run `brew install libsndfile mpg123 glib` to get the necessary `.a` files for linking.  Clang must also be installed on your system (it seems to be present by default on OS 26.x).  Note that these steps are ONLY necessary for AOT builds.
 
 ## Command Line Build
 
-Once any platform-specific prerequisites are installed, you can build or publish using the `dotnet` commands available with the .NET SDK.  By default, `dotnet build` will build an "any" binary that uses the installed version of the .NET runtime.  However, you can also build versions with a prepackaged runtime for easy installation onto machines that do not have the .NET 9 runtime installed.
+Once any platform-specific prerequisites are installed, you can build or publish using the `dotnet` commands available with the .NET SDK.  By default, `dotnet build` will build an "any" binary that uses the installed version of the .NET runtime.  This is mainly intended for local debugging.  
 
-Note that it only makes sense to run the following from the `Client` subdirectory, as this is the only one that actually builds an executable (and can therefore be published).
+.Publishing
+The `dotnet publish` command provides various options to package Helion for use on other machines, including ones that do not have the runtime installed.  We recommend this if you just want to play the game, especially if you want to use it on a machine other than the one you are building it on.
 
-.Common Build Parameters
-* `-r <runtimeID>`:  Build an executable for a specific runtime.  Tested choices include `win-x64`, `osx-arm64`, and `linux-x64`.
-* `--self-contained=true`:  Includes support files for the specified runtime, so that you do not need to install the .NET runtime onto the machine where you're going to run this (helps to make installs more portable)
-* `-p:PublishSingleFile=true`:  Bundles all of the .NET dependencies into a single file, resulting in fewer files in the output directory.  Can be combined with `--self-contained=true`.
-* `-p:EnableCompressionInSingleFile=true`:  When combined with single-file publish, this will also compress the resulting executable file.  This can result in a much smaller file size, but may result in the app taking longer to start.
-* `-p:SelfContainedRelease=true`:  This will turn on _all_ of the recommended single-file publish optimizations mentioned above.
-* `-p:AOT=true`:  Builds a fully "native" binary.  Note that this requires the full VS 2022 environment on Windows, or Clang on Linux.  Cross-OS targets are not supported for this.  See https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot
+First `cd` to the `Client` subdirectory (this is the only one that builds an executable, and thus the only one eligible for publishing).  If you want to do a "normal" build (see section below), run `dotnet publish -c Release -r <runtimeID> -p:SelfContainedRelease=true`.  If you would like an "AOT" build, run `dotnet publish -c Release -r <runtimeID> -p:AOT=true`.  Note that AOT builds require a native linker (provided by Clang or GCC on Linux, Clang on MacOS, or a full install of Visual Studio on Windows), and must be run ON the target platform (you cannot do a Linux AOT build from Windows or Mac, for example).
 
-Example (making a compressed, self-contained release build for Windows x64):
-```
-cd Client
-dotnet publish -c Release -r win-x64 -p:SelfContainedRelease=true
-```
-In this example, the "published" output would end up in `(repo root)\Publish\win-x64_SelfContained`.
+We support the following runtime IDs:
+* osx-arm64
+* linux-x64
+* win-x64
 
-Example (building AOT on Linux):
-```
-cd Client
-dotnet publish -c Release -r linux-x64 -p:AOT=true
-```
-Similarly, the output would be published to `(repo root)\Publish\linux-x64_AOT`.
-
+Your build will be published to a subdirectory `(repo root)/Publish` with a name depending on the parameters you specified (e.g. `linux-x64_AOT`)
 
 ## AOT and "Normal" builds
 
-The .NET SDK normally builds assemblies (libraries or programs) that require Just-In-Time compilation when run.  The JIT compiler in modern .NET will first do a "fast" pass just to get the program running, and will later do an "optimized" pass to generate faster code, swapping the relevant code segments out at runtime.
+The .NET SDK normally builds assemblies (libraries or programs) that require Just-In-Time (JIT) compilation when run.  This is largely transparent to the user, but can result in long startup times.  However, it provides some "self tuning" capability as the application recompiles on the fly and optimizes for "hot" code paths.  Additionally, JIT compilation can use the _exact_ instruction set and extensions supported by the user's system. See link:https://github.com/dotnet/runtime/blob/main/docs/design/features/tiered-compilation.md[Tiered Compilation in the .NET documentation] for more information.
 
-We also maintain compatibility with .NET Native AOT, which produces full native code **Ahead-Of-Time.**.  We do have to pick a lowest-common-denominator instruction set for these, which means that the generated binaries _may_ be slightly slower than the native tuning possible in a JIT environment, but the performance and memory behaviors are more stable and consistent, and the startup is instantaneous because there is no JIT and many of the dependencies are statically linked and thus do not need to be resolved at runtime.
+.NET Native Ahead-Of-Time compilation, or "AOT", is a more traditional approach that compiles a native executable that does not require JIT.  This often results in a smaller executable, faster startup, and performance characteristics that remain consistent.  It also provides (and Helion uses) Direct P/Invoke, which allows linking to dependent libraries.  This can be especially desirable for portability and packaging on *NIX environments since it honors normal loader semantics such as RPATH, LD_LIBRARY_PATH, etc.  The downside is that the "self tuning" capability of JIT is gone, and a "lowest common denominator" target architecture must be chosen at compile time.  Unless overridden with `-p:IlcInstructionSet=<some specific revision>`, this means that x86-64 applications will not use newer instruction set extensions, such as newer versions of Intel SSE.  See link:https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md[Native AOT optimization in the .NET documentation] for further details.
 
-Another advantage of Native AOT, and one that is _very_ relevant for Linux users, is that we can remove code that dynamically loads dependent libraries (.NET P/Invoke) and instead _link_ to those libraries.  This means that our Native AOT builds will fully honor normal Linux loader semantics-editing RPATH with tools, changing LD_LIBRARY_PATH, etc.-making it more feasible to package Helion in an AppImage, run it in a "jail", run it in a container, etc.
+Cross-platform compilation is possible on normal builds, but not for AOT, as the .NET SDK does not provide a mechanism to use a cross-platform toolchain (such as mingw on Linux).
 
-Note that cross-compilation (building for Windows on Linux or vice-versa) is possible for normal builds (including "self contained publish") but not for AOT builds, as these require the native linkers for their respective platforms (typically some flavor of `ld` on Linux and MacOS).
+We recommend trying both normal and AOT builds and then sticking with whichever provides the performance characteristics you prefer.  Non-AOT builds may offer a performance advantage on highly CPU-constrained systems, at the cost of a slower startup, higher memory usage, and initially lower performance which will improve as JIT compilation performs optimizations on-the-fly.  AOT builds start instantly, but lack the self-tuning capabilities of JIT.
