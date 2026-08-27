@@ -232,5 +232,8 @@ public class ConfigRender: ConfigElement<ConfigRender>
     public readonly ConfigValue<AdaptiveRenderMode> Mode = new(AdaptiveRenderMode.Static);
 
     [ConfigInfo("The number microseconds until the mode is switched to static when using adapative.")]
-    public readonly ConfigValue<int> AdaptiveBspThreshold = new(1500);
+    public readonly ConfigValue<int> AdaptiveBspTimeThreshold = new(2200);
+
+    [ConfigInfo("The number segs until the mode is switched to static when using adapative.")]
+    public readonly ConfigValue<int> AdaptiveBspSegThreshold = new(8000);
 }

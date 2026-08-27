@@ -40,10 +40,6 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     private int m_subsectorCount;
     private int m_segCount;
     private int m_lineCount;
-    private int m_lastSubsectorCount;
-    private int m_lastSegCount;
-    private int m_lastLineCount;
-    private int m_lastMicroseconds;
 
     private readonly IConfig m_config = config;
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
@@ -51,12 +47,12 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     public int LastProcessedId { get; private set; }
     public event EventHandler<PlayerPosition>? PositionProcessed;
 
-    public int SubsectorCount => m_lastSubsectorCount;
-    public int SegCount => m_lastSegCount;
-    public int LineCount => m_lastLineCount;
-    public int Microseconds => m_lastMicroseconds;
-    public bool LastBspSetting { get; set; }
+    public int SubsectorCount {  get; private set; }
+    public int SegCount { get; private set; }
+    public int LineCount { get; private set; }
+    public int Microseconds { get; private set; }
     public long LastProcessedTimeStamp { get; private set; }
+    public bool UseBsp { get; set; }
 
     public void Start(IWorld world)
     {
@@ -75,7 +71,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
         m_thread = new Thread(() => AutomapTask(m_cancelTasks.Token))
         {
             IsBackground = true,
-            Priority = ThreadPriority.AboveNormal
+            Priority = ThreadPriority.Normal
         };
         m_thread.Start();
     }
@@ -163,22 +159,26 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
 
             if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive)
                 Thread.Sleep(Math.Max(ticks - (int)m_stopwatch.ElapsedMilliseconds, 0));
+            else
+                Thread.Yield();
         }
     }
 
     private void MaxHeuristics()
     {
-        m_lastSegCount = int.MaxValue;
-        m_lastLineCount = int.MaxValue;
+        Microseconds = int.MaxValue;
+        SubsectorCount = int.MaxValue;
+        SegCount = int.MaxValue;
+        LineCount = int.MaxValue;
     }
 
     private void SetHeuristics()
     {
         LastProcessedTimeStamp = Stopwatch.GetTimestamp();
-        m_lastMicroseconds = (int)m_stopwatch.Elapsed.TotalMicroseconds;
-        m_lastSubsectorCount = m_subsectorCount;
-        m_lastSegCount = m_segCount;
-        m_lastLineCount = m_lineCount;
+        Microseconds = (int)m_stopwatch.Elapsed.TotalMicroseconds;
+        SubsectorCount = m_subsectorCount;
+        SegCount = m_segCount;
+        LineCount = m_lineCount;
     }
 
     private void SetFrustum(Rectangle viewport, PlayerPosition pos)

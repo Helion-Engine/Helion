@@ -8,6 +8,5 @@ public interface IBspHeuristics
     public int LastProcessedId { get; }
     public int Microseconds { get; }
     public long LastProcessedTimeStamp { get; }
-
-    public bool LastBspSetting { get; set; }
+    public bool UseBsp { get; set; }
 }

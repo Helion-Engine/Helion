@@ -38,6 +38,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using static Helion.Util.Assertion.Assert;
 
@@ -92,6 +93,9 @@ public partial class Client : IDisposable, IInputManagement
     private Client(CommandLineArgs commandLineArgs, PathsManager pathsManager, IConfig config, HelionConsole console, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection)
     {
+        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
+        Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
+
         m_commandLineArgs = commandLineArgs;
         m_pathsManager = pathsManager;
         m_config = config;

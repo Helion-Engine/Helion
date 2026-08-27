@@ -306,7 +306,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (world.GameTicker != m_lastTicker && renderInfo.TransferHeightView == TransferHeightView.Middle)
         {
-            m_lastUseBsp = UseBspBasedOnHeuristic(world);
+            m_lastUseBsp = UseBspBasedOnHeuristic();
             m_renderStatic = !m_lastUseBsp;
         }
 
@@ -427,7 +427,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         RenderTransparent(renderInfo, framebuffer);
     }
 
-    private bool UseBspBasedOnHeuristic(IWorld world)
+    private bool UseBspBasedOnHeuristic()
     {
         if (m_config.Render.Mode.Value == AdaptiveRenderMode.Bsp)
             return true;
@@ -440,32 +440,29 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         var now = Stopwatch.GetTimestamp();
         var ageTicks = now - m_bspHeuristics.LastProcessedTimeStamp;
-        double ageMicroseconds = ageTicks * (1_000_000.0 / Stopwatch.Frequency);
+        var ageMicroseconds = ageTicks * (1_000_000.0 / Stopwatch.Frequency);
 
         const double ProcessWindowUs = 500.0;
         if (ageMicroseconds <= ProcessWindowUs)
-            return m_bspHeuristics.LastBspSetting;
+            return m_bspHeuristics.UseBsp;
 
-        var threshold = m_config.Render.AdaptiveBspThreshold.Value;
+        var threshold = m_config.Render.AdaptiveBspTimeThreshold.Value;
         var highRange = threshold * 1.15f;
         var lowRange = threshold * 0.85f;
 
         var shouldUseBsp = m_bspHeuristics.Microseconds < threshold;
 
-        if (shouldUseBsp != m_lastUseBsp)
-        {
-            if (!shouldUseBsp && m_bspHeuristics.Microseconds < highRange)
-                shouldUseBsp = true;
-            else if (shouldUseBsp && m_bspHeuristics.Microseconds > lowRange)
-                shouldUseBsp = false;
-        }
-
-        // Maybe add to config. Don't let fast CPUs switch to BSP when it's likely not beneficial. Maybe should be seg count?
-        if (m_bspHeuristics.LineCount > 2000)
+        if (!shouldUseBsp && m_bspHeuristics.Microseconds < highRange)
+            shouldUseBsp = true;
+        else if (shouldUseBsp && m_bspHeuristics.Microseconds > lowRange)
             shouldUseBsp = false;
 
-        m_bspHeuristics.LastBspSetting = shouldUseBsp;
-        return m_bspHeuristics.LastBspSetting;
+        // Don't let fast CPUs switch to BSP when it's likely not beneficial.
+        if (m_bspHeuristics.SegCount > m_config.Render.AdaptiveBspSegThreshold.Value)
+            shouldUseBsp = false;
+
+        m_bspHeuristics.UseBsp = shouldUseBsp;
+        return m_bspHeuristics.UseBsp;
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)
