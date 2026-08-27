@@ -21,11 +21,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Install Linux prereqs
       run: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf fuse file
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
     - name: Restore dependencies
@@ -62,9 +62,9 @@ jobs:
     needs: buildReleaseLinux
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
     - name: Restore dependencies
@@ -83,6 +83,44 @@ jobs:
       run: Compress-Archive -Path .\Publish\win-x64_AOT\* -DestinationPath .\Helion-${{ github.ref_name }}-win-x64_AOT.zip
 
     - name: Add binaries to release (Windows)
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: '*.zip'
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
+
+  buildReleaseMac:
+    runs-on: macos-latest
+    needs: buildReleaseLinux
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
+    - name: Install MacOS prereqs
+      run: brew install libsndfile mpg123
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Dotnet Publish MacOS
+      run: dotnet publish -c Release -r osx-arm64 Client/Client.csproj -p:SelfContainedRelease=true
+    - name: Dotnet Publish MacOS AOT
+      run: dotnet publish -c Release -r osx-arm64 Client/Client.csproj -p:AOT=true
+      
+    - name: Zip MacOS Self-Contained
+      run: zip -r ../../Helion-${{ github.ref_name }}-osx-arm64_SelfContained.zip *
+      working-directory: Publish/osx-arm64_SelfContained
+    - name: Zip MacOS AOT
+      run: zip -r ../../Helion-${{ github.ref_name }}-osx-arm64_AOT.zip *
+      working-directory: Publish/osx-arm64_AOT
+
+    - name: Add binaries to release (MacOS)
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
