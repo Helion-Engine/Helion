@@ -1,6 +1,8 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Util.Assertion;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,10 +20,10 @@ public class IslandClassifier
     int[] ProcessedSubsectors = [];
     int[] VisitedLines = [];
 
-    public List<Island>[] ClassifySectors(List<BspSubsector> subsectors, List<Sector> sectors, int lineCount)
+    public List<Island>[] ClassifySectors(CompactBspTree bspTree, List<Sector> sectors, int lineCount)
     {
         List<Island>[] islands = new List<Island>[sectors.Count];
-        var subsectorLookup = subsectors.Where(x => x.SectorId.HasValue).GroupBy(x => x.SectorId!.Value).ToDictionary(x => x.Key, x => x.ToList());
+        var subsectorLookup = bspTree.Subsectors.GroupBy(x => x.Sector.Id).ToDictionary(x => x.Key, x => x.ToArray());
 
         for (int sectorId = 0; sectorId < islands.Length; sectorId++)
         {
@@ -31,26 +33,26 @@ public class IslandClassifier
                 continue;
             }
 
-            islands[sectorId] = Classify(sectorSubsectors, sectors, lineCount, sectorId);
+            islands[sectorId] = Classify(bspTree, sectorSubsectors, sectors, lineCount, sectorId);
         }
 
         return islands;
     }
 
-    public List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, int lineCount, int sectorId = -1)
+    public List<Island> Classify(CompactBspTree bspTree, Subsector[] subsectors, List<Sector> sectors, int lineCount, int sectorId = -1)
     {
         IslandId = 0;
         SectorIslandId = 0;
         List<Island> islands = [];
         SubsectorCounter++;
 
-        if (ProcessedSubsectors.Length < subsectors.Count)
-            ProcessedSubsectors = new int[subsectors.Count];
+        if (ProcessedSubsectors.Length < subsectors.Length)
+            ProcessedSubsectors = new int[subsectors.Length];
 
         if (VisitedLines.Length < lineCount)
             VisitedLines = new int[lineCount];
 
-        foreach (BspSubsector subsector in subsectors)
+        foreach (var subsector in subsectors)
         {
             if (ProcessedSubsectors[subsector.Id] == SubsectorCounter) 
                 continue;
@@ -59,7 +61,7 @@ public class IslandClassifier
             islands.Add(island);
             if (sectorId != -1)
                 island.SectorId = sectorId;
-            TraverseSubsectors(subsector, island, sectors, sectorId);
+            TraverseSubsectors(bspTree, subsector, island, sectors, sectorId);
         }
 
         foreach (var island in islands)
@@ -68,14 +70,14 @@ public class IslandClassifier
             Vec2D max = new(double.MinValue, double.MinValue);
             foreach (var subsector in island.Subsectors)
             {
-                if (subsector.Box.Min.X < min.X)
-                    min.X = subsector.Box.Min.X;
-                if (subsector.Box.Min.Y < min.Y)
-                    min.Y = subsector.Box.Min.Y;
-                if (subsector.Box.Max.X > max.X)
-                    max.X = subsector.Box.Max.X;
-                if (subsector.Box.Max.Y > max.Y)
-                    max.Y = subsector.Box.Max.Y;
+                if (subsector.BoundingBox.Min.X < min.X)
+                    min.X = subsector.BoundingBox.Min.X;
+                if (subsector.BoundingBox.Min.Y < min.Y)
+                    min.Y = subsector.BoundingBox.Min.Y;
+                if (subsector.BoundingBox.Max.X > max.X)
+                    max.X = subsector.BoundingBox.Max.X;
+                if (subsector.BoundingBox.Max.Y > max.Y)
+                    max.Y = subsector.BoundingBox.Max.Y;
             }
             island.Box = new(min, max);
         }
@@ -83,25 +85,25 @@ public class IslandClassifier
         return islands;
     }
 
-    private void TraverseSubsectors(BspSubsector initialSubsector, Island island, 
+    private void TraverseSubsectors(CompactBspTree bspTree, Subsector initialSubsector, Island island, 
         List<Sector> sectors, int sectorId)
     {
         LineCounter++;
-        Stack<BspSubsector> subsectorsToVisit = new();
+        Stack<Subsector> subsectorsToVisit = new();
         subsectorsToVisit.Push(initialSubsector);
 
         while (subsectorsToVisit.Count > 0)
         {
-            BspSubsector subsector = subsectorsToVisit.Pop();
+            var subsector = subsectorsToVisit.Pop();
 
             if (ProcessedSubsectors[subsector.Id] == SubsectorCounter)
                 continue;
 
             ProcessedSubsectors[subsector.Id] = SubsectorCounter;
             island.Subsectors.Add(subsector);
-            if (sectorId == -1 && subsector.SectorId.HasValue)
+            if (sectorId == -1)
             {
-                var sector = sectors[subsector.SectorId.Value];
+                var sector = sectors[subsector.Sector.Id];
                 sector.Island = island;
             }
 
@@ -110,18 +112,26 @@ public class IslandClassifier
             else
                 subsector.SectorIslandId = island.Id;
 
-            foreach (BspSubsectorSeg seg in subsector.Segments)
+            for (int i = 0; i < subsector.SegCount; i++)
             {
-                if (seg.LineId != null && VisitedLines[seg.LineId.Value] != LineCounter)
+                ref var seg = ref bspTree.Segments[subsector.SegIndex + i];
+                if (seg.LineId != -1 && VisitedLines[seg.LineId] != LineCounter)
                 {
-                    island.LineIds.Add(seg.LineId.Value);
-                    VisitedLines[seg.LineId.Value] = LineCounter;
+                    island.LineIds.Add(seg.LineId);
+                    VisitedLines[seg.LineId] = LineCounter;
                 }
 
-                if (seg.Partner != null && ProcessedSubsectors[seg.Partner.Subsector.Id] != SubsectorCounter)
+                var subsectorId = bspTree.PartnerSegmentSubsectors[subsector.SegIndex + i];
+                if (subsectorId == -1)
+                    continue;
+
+                if (ProcessedSubsectors[subsectorId] != SubsectorCounter)
                 {
-                    if (sectorId == -1 || sectorId == seg.Partner.Subsector.SectorId)
-                        subsectorsToVisit.Push(seg.Partner.Subsector);
+                    // The root is the last subsector so the array is in reverse id order.
+                    var partnerSubsector = bspTree.Subsectors[bspTree.Subsectors.Length - subsectorId - 1];
+                    Assert.Precondition(partnerSubsector.Id == subsectorId, "Incorrect subsector");
+                    if (sectorId == -1 || sectorId == partnerSubsector.Sector.Id)
+                        subsectorsToVisit.Push(partnerSubsector);
                 }
             }
         }

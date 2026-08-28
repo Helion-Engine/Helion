@@ -9,7 +9,6 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Util.Loggers;
-using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -22,7 +21,7 @@ namespace Helion.World.Geometry.Builder;
 public static class DoomGeometryBuilder
 {
     public static MapGeometry? Create(DoomMap map, GeometryBuilder builder, TextureManager textureManager, 
-        Func<(CompactBspTree, BspTreeNew)?> createBspTree)
+        Func<CreateBspTreeResult?> createBspTree)
     {
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);
@@ -31,7 +30,7 @@ public static class DoomGeometryBuilder
         if (!bspTree.HasValue)
             return null;
 
-        return new(builder, bspTree.Value.Item1, bspTree.Value.Item2);
+        return new(builder, bspTree.Value.BspTree);
     }
 
     private static SectorPlane CreateSectorPlane(DoomSector doomSector, SectorPlaneFace face,

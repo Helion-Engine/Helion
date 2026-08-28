@@ -21,7 +21,7 @@ namespace Helion.World.Geometry.Builder;
 public class UdmfGeometryBuilder
 {
     public static MapGeometry? Create(UdmfMap map, GeometryBuilder builder, TextureManager textureManager, 
-        Func<(CompactBspTree, BspTreeNew)?> createBspTree)
+        Func<CreateBspTreeResult?> createBspTree)
     {
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);
@@ -30,7 +30,7 @@ public class UdmfGeometryBuilder
         if (!bspTree.HasValue)
             return null;
 
-        return new(builder, bspTree.Value.Item1, bspTree.Value.Item2);
+        return new(builder, bspTree.Value.BspTree);
     }
 
     private static void PopulateSectorData(UdmfMap map, GeometryBuilder builder, TextureManager textureManager)

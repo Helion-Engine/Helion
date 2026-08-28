@@ -12,6 +12,8 @@ public class Subsector
     public readonly int SegIndex;
     public readonly int SegCount;
     public bool Flood;
+    public int IslandId;
+    public int SectorIslandId;
 
     public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count)
     {
@@ -23,5 +25,7 @@ public class Subsector
         SegIndex = index;
         SegCount = count;
     }
+
+    public override string ToString() => $"Id={Id} SectorId={Sector.Id} Box={BoundingBox} Segs={SegCount}";
 }
  

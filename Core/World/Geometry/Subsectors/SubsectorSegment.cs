@@ -27,4 +27,6 @@ public readonly struct SubsectorSegment
         FrontSectorId = frontSectorId;
         BackSectorId = backSectorId;
     }
+
+    public override string ToString() => $"SideId={SideId} LineId={LineId} Start={Start} End={End}";
 }

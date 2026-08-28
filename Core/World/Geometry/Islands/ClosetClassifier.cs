@@ -3,6 +3,7 @@ using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using System.Collections.Generic;
 
 namespace Helion.World.Geometry.Islands;
@@ -26,7 +27,7 @@ public static class ClosetClassifier
         }
     }
 
-    public static void Classify(WorldBase world, BspTreeNew bspTree)
+    public static void Classify(WorldBase world, CompactBspTree bspTree)
     {
         PopulateLookups(world, bspTree, out var islandToEntities, out var entityToSubsector);
 
@@ -62,8 +63,8 @@ public static class ClosetClassifier
         }
     }
 
-    private static void PopulateLookups(WorldBase world, BspTreeNew bspTree, out Dictionary<int, List<Entity>> islandToEntity,
-        out Dictionary<int, BspSubsector> entityToSubsector)
+    private static void PopulateLookups(WorldBase world, CompactBspTree bspTree, out Dictionary<int, List<Entity>> islandToEntity,
+        out Dictionary<int, Subsector> entityToSubsector)
     {
         islandToEntity = [];
         entityToSubsector = [];
@@ -79,7 +80,7 @@ public static class ClosetClassifier
     }
 
     private static void SetCloset(Island island, WorldBase world, List<Entity> entities,
-        Dictionary<int, BspSubsector> entityToSubsector)
+        Dictionary<int, Subsector> entityToSubsector)
     {
         bool monsterCloset = true;
         bool voodooCloset = true;

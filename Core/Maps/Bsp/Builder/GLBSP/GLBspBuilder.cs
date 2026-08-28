@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Bsp.Geometry;
@@ -8,7 +6,10 @@ using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Util.Assertion;
 using Helion.Util.Extensions;
+using Helion.World.Bsp;
 using NLog;
+using System;
+using System.Collections.Generic;
 using GLBspNode = Helion.Maps.Components.GL.GLNode;
 
 namespace Helion.Maps.Bsp.Builder.GLBSP;
@@ -86,6 +87,14 @@ public class GLBspBuilder(IMap map) : IBspBuilder
             SubsectorEdge edge = new(start, end, line, glSegment.IsRightSide);
             m_segments.Add(edge);
         }
+
+        for (int i = 0; i < segments.Count; i++)
+        {
+            var seg = segments[i];
+            var segment = m_segments[i];
+            if (seg.PartnerSegment.HasValue)
+                segment.Partner = m_segments[(int)seg.PartnerSegment.Value];
+        }
     }
 
     private void CreateSubsectors(List<GLSubsector> subsectors)
@@ -98,7 +107,11 @@ public class GLBspBuilder(IMap map) : IBspBuilder
             int start = glSubsector.FirstSegmentIndex;
             int end = start + glSubsector.Count;
             for (int i = start; i < end; i++)
-                edges.Add(m_segments[i]);
+            {
+                var seg = m_segments[i];
+                seg.SubsectorId = m_nodeId;
+                edges.Add(seg);
+            }
 
             if (edges.Count < 3)
                 FixMalformedSubsectorEdges(edges);

@@ -48,7 +48,7 @@ public partial class Client
             if (type == ClosetType.VooDoo && !island.IsVooDooCloset)
                 continue;
 
-            IEnumerable<Sector> sectors = island.Subsectors.Where(x => x.SectorId != null).Select(x => world.Sectors[x.SectorId!.Value]).Distinct()!;
+            IEnumerable<Sector> sectors = island.Subsectors.Select(x => world.Sectors[x.Sector.Id]).Distinct()!;
             infoList.Add(new(count, CountEntities(world, island), island.Box,
                 string.Join(", ", sectors.Select(x => x.Id))));
             count++;

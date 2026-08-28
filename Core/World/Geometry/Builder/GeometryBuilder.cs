@@ -8,16 +8,15 @@ using Helion.Maps.Hexen;
 using Helion.Maps.Udmf;
 using Helion.Resources;
 using Helion.Util.Configs;
-using Helion.Util.Extensions;
-using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Walls;
 using NLog;
 
 namespace Helion.World.Geometry.Builder;
+
+public readonly record struct CreateBspTreeResult(CompactBspTree BspTree);
 
 public class GeometryBuilder
 {
@@ -54,7 +53,7 @@ public class GeometryBuilder
                 return null;
         }
 
-        (CompactBspTree, BspTreeNew)? CreateBspTree()
+        CreateBspTreeResult? CreateBspTree()
         {
             CompactBspTree? bspTree;
             try
@@ -69,7 +68,7 @@ public class GeometryBuilder
                 return null;
             }
 
-            return (bspTree, new BspTreeNew(map, geometryBuilder.Lines, geometryBuilder.Sectors));
+            return new(bspTree);
         }
     }
 
