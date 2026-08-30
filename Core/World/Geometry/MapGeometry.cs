@@ -68,7 +68,7 @@ public class MapGeometry
     public void ClassifyIslands()
     {
         var islandClassifier = new IslandClassifier(CompactBspTree);
-        IslandGeometry.Islands = islandClassifier.Classify(CompactBspTree.Subsectors, Sectors, Lines.Count);
+        IslandGeometry.Islands = islandClassifier.Classify(Sectors, Lines.Count);
         IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(Sectors, Lines.Count);
 
         SubsectorToIslandId = new int[CompactBspTree.Subsectors.Length];
@@ -118,7 +118,6 @@ public class MapGeometry
                 for (int i = 0; i < subsector.SegCount; i++)
                 {
                     ref var seg = ref bspTree.Segments[subsector.SegIndex + i];
-                    IslandGeometry.FloodSectors.Add(seg.FrontSectorId);
                     if (seg.BackSectorId != -1)
                         IslandGeometry.FloodSectors.Add(seg.BackSectorId);
                 }

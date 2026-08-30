@@ -34,6 +34,11 @@ public class IslandClassifier
         }
     }
 
+    public List<Island> Classify(List<Sector> sectors, int lineCount)
+    {
+        return Classify(m_bspTree.Subsectors, sectors, lineCount);
+    }
+
     public List<Island>[] ClassifySectors(List<Sector> sectors, int lineCount)
     {
         List<Island>[] islands = new List<Island>[sectors.Count];
@@ -53,7 +58,7 @@ public class IslandClassifier
         return islands;
     }
 
-    public List<Island> Classify(Subsector[] subsectors, List<Sector> sectors, int lineCount, int sectorId = -1)
+    private List<Island> Classify(Subsector[] subsectors, List<Sector> sectors, int lineCount, int sectorId = -1)
     {
         IslandId = 0;
         SectorIslandId = 0;
@@ -141,7 +146,6 @@ public class IslandClassifier
 
                 if (ProcessedSubsectors[subsectorId] != SubsectorCounter)
                 {
-                    // The root is the last subsector so the array is in reverse id order.
                     var partnerSubsector = m_subsectorById[subsectorId];
                     Assert.Precondition(partnerSubsector.Id == subsectorId, "Incorrect subsector");
                     if (sectorId == -1 || sectorId == partnerSubsector.Sector.Id)
