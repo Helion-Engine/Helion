@@ -116,10 +116,11 @@ public class MapGeometry
             if (noArea)
             {
                 for (int i = 0; i < subsector.SegCount; i++)
-                //foreach (var seg in subsector.Segments)
                 {
                     ref var seg = ref bspTree.Segments[subsector.SegIndex + i];
                     IslandGeometry.FloodSectors.Add(seg.FrontSectorId);
+                    if (seg.BackSectorId != -1)
+                        IslandGeometry.FloodSectors.Add(seg.BackSectorId);
                 }
             }
 
