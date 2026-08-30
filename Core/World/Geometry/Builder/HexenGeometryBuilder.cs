@@ -23,7 +23,7 @@ public static class HexenGeometryBuilder
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public static MapGeometry? Create(HexenMap map, GeometryBuilder builder, TextureManager textureManager,
-        Func<CreateBspTreeResult?> createBspTree)
+        CreateBspTreeFunc createBspTree)
     {
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);

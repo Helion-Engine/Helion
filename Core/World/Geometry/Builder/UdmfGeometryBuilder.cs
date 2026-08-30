@@ -20,8 +20,8 @@ namespace Helion.World.Geometry.Builder;
 
 public class UdmfGeometryBuilder
 {
-    public static MapGeometry? Create(UdmfMap map, GeometryBuilder builder, TextureManager textureManager, 
-        Func<CreateBspTreeResult?> createBspTree)
+    public static MapGeometry? Create(UdmfMap map, GeometryBuilder builder, TextureManager textureManager,
+        CreateBspTreeFunc createBspTree)
     {
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);

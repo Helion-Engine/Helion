@@ -16,6 +16,7 @@ using NLog;
 
 namespace Helion.World.Geometry.Builder;
 
+public delegate CreateBspTreeResult? CreateBspTreeFunc();
 public readonly record struct CreateBspTreeResult(CompactBspTree BspTree);
 
 public class GeometryBuilder
