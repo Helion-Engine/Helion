@@ -49,6 +49,11 @@ public class BspNode
     public bool IsDegenerate => !IsParent && !IsSubsector;
 
     /// <summary>
+    /// True if this subsector originally had less than 3 segments. All subsectors are fixed to have 3 for rendering.
+    /// </summary>
+    public bool Malformed;
+
+    /// <summary>
     /// Creates a degenerate (or rather, empty) BSP node.
     /// </summary>
     public BspNode()
@@ -74,13 +79,14 @@ public class BspNode
     /// clockwise edges.
     /// </summary>
     /// <param name="edges">The clockwise edges for this subsector.</param>
-    public BspNode(int id, List<SubsectorEdge> edges)
+    public BspNode(int id, List<SubsectorEdge> edges, bool malformed)
     {
         Id = id;
         Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
         Precondition(EdgesAreHeadToTail(edges), "BSP node subsector edges are not closed");
 
         ClockwiseEdges = edges;
+        Malformed = malformed;
     }
 
     /// <summary>

@@ -12,7 +12,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using NLog;
-using System;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Bsp;
@@ -218,7 +217,7 @@ public class CompactBspTree
 
         Box2D box = new(new Vec2D(minX, minY), new Vec2D(maxX, maxY));
         Sector sector = GetSectorFrom(node, builder);
-        Subsector subsector = new(node.Id, sector, box, index, node.ClockwiseEdges.Count);
+        Subsector subsector = new(node.Id, sector, box, index, node.ClockwiseEdges.Count, node.Malformed);
         Subsectors[subsector.Id] = subsector;
 
         return BspCreateResultCompact.Subsector((uint)subsector.Id);

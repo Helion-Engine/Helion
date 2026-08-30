@@ -83,7 +83,7 @@ public class MapGeometry
                 foreach (var subsector in island.Subsectors)
                 {
                     island.ParentIsland = IslandGeometry.Islands[subsector.IslandId];
-                    if (subsector.SegCount >= 3)
+                    if (!subsector.Malformed)
                         continue;
 
                     IslandGeometry.BadSubsectors.Add(subsector.Id);

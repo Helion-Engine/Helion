@@ -113,10 +113,11 @@ public class GLBspBuilder(IMap map) : IBspBuilder
                 edges.Add(seg);
             }
 
-            if (edges.Count < 3)
+            var malformed = edges.Count < 3;
+            if (malformed)
                 FixMalformedSubsectorEdges(edges);
 
-            BspNode subsector = new(m_nodeId++, edges);
+            BspNode subsector = new(m_nodeId++, edges, malformed);
             m_subsectors.Add(subsector);
 
             m_segmentCount += edges.Count;

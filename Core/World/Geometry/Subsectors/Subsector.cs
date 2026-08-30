@@ -12,10 +12,11 @@ public class Subsector
     public readonly int SegIndex;
     public readonly int SegCount;
     public bool Flood;
+    public bool Malformed;
     public int IslandId;
     public int SectorIslandId;
 
-    public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count)
+    public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count, bool malformed)
     {
         Precondition(ReferenceEquals(sector, Sector.Default) || count >= 3, "Degenerate sector, must be at least a triangle");
 
@@ -24,6 +25,7 @@ public class Subsector
         BoundingBox = boundingBox;
         SegIndex = index;
         SegCount = count;
+        Malformed = malformed;
     }
 
     public override string ToString() => $"Id={Id} SectorId={Sector.Id} Box={BoundingBox} Segs={SegCount}";
