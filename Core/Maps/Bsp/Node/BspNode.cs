@@ -79,6 +79,7 @@ public class BspNode
     /// clockwise edges.
     /// </summary>
     /// <param name="edges">The clockwise edges for this subsector.</param>
+    /// <param name="malformed">If this subsector is malformed from originally having less than three segments.</param>
     public BspNode(int id, List<SubsectorEdge> edges, bool malformed)
     {
         Id = id;

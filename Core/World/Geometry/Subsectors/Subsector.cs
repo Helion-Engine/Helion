@@ -6,11 +6,11 @@ namespace Helion.World.Geometry.Subsectors;
 
 public class Subsector
 {
-    public readonly int Id;
+    public int Id;
     public Sector Sector;
-    public readonly Box2D BoundingBox;    
-    public readonly int SegIndex;
-    public readonly int SegCount;
+    public Box2D BoundingBox;    
+    public int SegIndex;
+    public int SegCount;
     public int IslandId;
     public int SectorIslandId;
     public bool Flood;
