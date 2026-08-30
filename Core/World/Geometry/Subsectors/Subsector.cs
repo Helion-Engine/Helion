@@ -11,10 +11,11 @@ public class Subsector
     public readonly Box2D BoundingBox;    
     public readonly int SegIndex;
     public readonly int SegCount;
-    public bool Flood;
-    public bool Malformed;
     public int IslandId;
     public int SectorIslandId;
+    public bool Flood;
+    // True if this subsector originally had less than 3 segments. All subsectors are fixed to have 3 for rendering.
+    public bool Malformed;
 
     public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count, bool malformed)
     {
