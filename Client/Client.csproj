@@ -19,12 +19,15 @@
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(AOT)' == 'true'">
+  <PropertyGroup Condition="'$(AOT)' == 'true' OR '$(PublishAot)' == 'true'">
     <PublishAot>true</PublishAot>
     <OptimizationPreference>Speed</OptimizationPreference>
     <!-- See https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md for instruction set info -->
     <!-- x86-x64-v3: Haswell and newer (~2013) with FMA and AVX2.  x86-64-v4: AVX-512 required. -->
     <!--<IlcInstructionSet>x86-x64-v3</IlcInstructionSet>-->
+
+    <!-- Define a constant we can use in source code #if statements -->
+    <DefineConstants>AOT</DefineConstants>
 
     <!-- Avoid copying symbols for release AOT builds, as these are miserable to debug even with symbols (and the files are huge) -->
     <CopyOutputSymbolsToPublishDirectory Condition="'$(Configuration)'=='Release'">false</CopyOutputSymbolsToPublishDirectory>
@@ -37,7 +40,7 @@
     <PackageReference Include="Helion.OpenALSoft" Version="1.25.2.2" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(AOT)' == 'true'">
+  <ItemGroup Condition="'$(PublishAot)' == 'true'">
     <DirectPInvoke Include="zmusic.dll" />
     <DirectPInvoke Include="glfw3.dll" />
     <DirectPInvoke Include="SDL2.dll" />
@@ -45,7 +48,7 @@
     <DirectPInvoke Include="HelionACS-native" />
   </ItemGroup>
 
-  <ItemGroup Condition="('$(AOT)' == 'true') AND ('$(RuntimeIdentifier)'=='win-x64')">
+  <ItemGroup Condition="('$(PublishAot)' == 'true') AND ('$(RuntimeIdentifier)'=='win-x64')">
     <!-- These are all .libs that would normally get included if we were building DLLs from one or more of our native deps using CMake;
     All of these come from the Windows SDK, e.g. C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64 -->
     <LinkerArg Include="Gdi32.lib" />
@@ -60,7 +63,7 @@
     <LinkerArg Include="Setupapi.lib" />
   </ItemGroup>
 
-  <ItemGroup Condition="('$(AOT)' == 'true') AND ('$(RuntimeIdentifier)'=='linux-x64')">
+  <ItemGroup Condition="('$(PublishAot)' == 'true') AND ('$(RuntimeIdentifier)'=='linux-x64')">
     <LinkerArg Include="-lstdc++" />
     <LinkerArg Include="-lsndfile" />
     <LinkerArg Include="-lmpg123" />
@@ -68,10 +71,62 @@
     <LinkerArg Include="-lglib-2.0" />
   </ItemGroup>
 
+  <ItemGroup Condition="('$(PublishAot)' == 'true') AND ('$(RuntimeIdentifier)'=='osx-arm64')">
+    <!-- OS-level dependencies attributable to OpenAL-Soft -->
+    <LinkerArg Include="-framework AudioToolbox" />
+    <LinkerArg Include="-framework AudioUnit" />
+    <LinkerArg Include="-framework ApplicationServices" />
+    <LinkerArg Include="-framework CoreAudio" />
+    <LinkerArg Include="-framework CoreFoundation" />
+    <LinkerArg Include="-lstdc++" />
+
+    <!-- OS-level dependencies attributable to SDL2 -->
+    <!-- <LinkerArg Include="-framework AudioToolbox" /> -->
+    <!-- <LinkerArg Include="-framework CoreAudio" /> -->
+    <LinkerArg Include="-framework AVFoundation" />
+    <LinkerArg Include="-framework AppKit" />
+    <LinkerArg Include="-framework Carbon" />
+    <LinkerArg Include="-framework Cocoa" />
+    <LinkerArg Include="-framework CoreHaptics" />
+    <LinkerArg Include="-framework CoreServices" />
+    <LinkerArg Include="-framework CoreVideo" />
+    <LinkerArg Include="-framework ForceFeedback" />
+    <LinkerArg Include="-framework GameController" />
+    <LinkerArg Include="-framework IOKit" />
+    <LinkerArg Include="-framework Metal" />
+    <LinkerArg Include="-framework QuartzCore" />
+    <LinkerArg Include="-lobjc" />
+
+    <!-- OS-level dependencies attributable to GLFW -->
+    <!-- <LinkerArg Include="-framework AudioToolbox" /> -->
+    <!-- <LinkerArg Include="-framework CoreFoundation" /> -->
+    <!-- <LinkerArg Include="-framework CoreServices" /> -->
+    <!-- <LinkerArg Include="-framework Cocoa" /> -->
+    <!-- <LinkerArg Include="-framework IOKit" /> -->
+    <!-- <LinkerArg Include="-lobjc" -->
+    <LinkerArg Include="-framework AppKit" />
+    <LinkerArg Include="-framework CoreGraphics" />
+
+    <!-- Transitive dependencies of ZMusic; assumes Homebrew installed, libsndfile and mpg123 installed via Homebrew -->
+    <LinkerArg Include="/opt/homebrew/opt/flac/lib/libFLAC.a" />
+    <LinkerArg Include="/opt/homebrew/opt/glib/lib/libglib-2.0.a" />
+    <LinkerArg Include="/opt/homebrew/opt/gettext/lib/libintl.a" />
+    <LinkerArg Include="/opt/homebrew/opt/lame/lib/libmp3lame.a" />
+    <LinkerArg Include="/opt/homebrew/opt/mpg123/lib/libmpg123.a" />
+    <LinkerArg Include="/opt/homebrew/opt/libogg/lib/libogg.a" />
+    <LinkerArg Include="/opt/homebrew/opt/opus/lib/libopus.a" />
+    <LinkerArg Include="/opt/homebrew/opt/pcre2/lib/libpcre2-8.a" />
+    <LinkerArg Include="/opt/homebrew/opt/libsndfile/lib/libsndfile.a" />
+    <LinkerArg Include="/opt/homebrew/opt/libvorbis/lib/libvorbis.a" />
+    <LinkerArg Include="/opt/homebrew/opt/libvorbis/lib/libvorbisenc.a" />
+    <LinkerArg Include="-liconv" />
+  </ItemGroup>
+
   <Target Name="HandleNativeLibraries" BeforeTargets="ResolveLockFileCopyLocalFiles">
-    <ItemGroup Condition="('$(AOT)' == 'true')">
+    <ItemGroup Condition="('$(PublishAot)' == 'true')">
       <NativeLibrary Include="@(NativeCopyLocalItems)" Condition="('%(Extension)'=='.lib') AND ('$(RuntimeIdentifier)'=='win-x64')" />
       <NativeLibrary Include="@(NativeCopyLocalItems)" Condition="('%(Extension)'=='.a') AND ('$(RuntimeIdentifier)'=='linux-x64')" />
+      <NativeLibrary Include="@(NativeCopyLocalItems)" Condition="('%(Extension)'=='.a') AND ('$(RuntimeIdentifier)'=='osx-arm64')" />
 
       <!-- Don't copy shared libs if we're doing an AOT build, we are doing static linking here -->
       <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" />
@@ -110,8 +165,8 @@
   <Target Name="SetPublishDir" BeforeTargets="Build">
     <PropertyGroup>
       <PublishDir Condition="'$(SelfContainedRelease)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_SelfContained\</PublishDir>
-      <PublishDir Condition="'$(AOT)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_AOT\</PublishDir>
-      <PublishDir Condition="'$(SelfContainedRelease)' != 'true' AND '$(AOT)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
+      <PublishDir Condition="'$(PublishAot)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_AOT\</PublishDir>
+      <PublishDir Condition="'$(SelfContainedRelease)' != 'true' AND '$(PublishAot)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
     </PropertyGroup>
   </Target>
 

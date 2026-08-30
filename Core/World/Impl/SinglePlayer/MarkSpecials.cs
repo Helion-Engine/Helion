@@ -223,11 +223,11 @@ public class MarkSpecials
         for (int i = 0; i < island.Subsectors.Count; i++)
         {
             var subsector = island.Subsectors[i];
-            if (!subsector.SectorId.HasValue || m_searchedSectors.Contains(subsector.SectorId.Value))
+            if (m_searchedSectors.Contains(subsector.Sector.Id))
                 continue;
-            m_searchedSectors.Add(subsector.SectorId.Value);
+            m_searchedSectors.Add(subsector.Sector.Id);
 
-            var sector = sectors[subsector.SectorId.Value];
+            var sector = sectors[subsector.Sector.Id];
             if (sector.Tag == 0 || !m_tagToLines.TryGetValue(sector.Tag, out var lines))
                 continue;
 

@@ -70,6 +70,16 @@ public class RenderBlocking
         AssertLine(91, true);
     }
 
+    [Fact(DisplayName = "Rendering not blocked when transfer heights is set")]
+    public void RenderBlockTransferHeightsIgnored()
+    {
+        AssertLine(310, false);
+        AssertLine(312, false);
+
+        AssertLine(321, false);
+        AssertLine(323, false);
+    }
+
     private void AssertLine(int lineId, bool blocked)
     {
         var line = GameActions.GetLine(World, lineId);

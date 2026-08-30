@@ -28,6 +28,7 @@ public class CompactBspTree
     /// All the segments, which are the edges of the subsector.
     /// </summary>
     public SubsectorSegment[] Segments = [];
+    public int[] PartnerSegmentSubsectors = [];
 
     /// <summary>
     /// All the subsectors, the convex leaves at the bottom of the BSP
@@ -40,12 +41,6 @@ public class CompactBspTree
     /// recursive BSP traversal.
     /// </summary>
     public BspNodeCompact[] Nodes = [];
-
-    /// <summary>
-    /// The next available subsector index. This is used only for building
-    /// the <see cref="Subsectors"/> list.
-    /// </summary>
-    private uint m_nextSubsectorIndex;
 
     /// <summary>
     /// The next available node index. This is used only for building the
@@ -72,7 +67,6 @@ public class CompactBspTree
         if (Subsectors.Length == 1)
             HandleSingleSubsectorTree();
     }
-
     /// <summary>
     /// Creates a BSP from the map provided. This can fail if the geometry
     /// for the map is corrupt and we cannot make a BSP tree.
@@ -172,6 +166,7 @@ public class CompactBspTree
     private void CreateComponents(BspNode root, GeometryBuilder builder, int nodeCount, int subsectorCount, int segmentsCount)
     {
         Segments = new SubsectorSegment[segmentsCount];
+        PartnerSegmentSubsectors = new int[segmentsCount];
         Subsectors = new Subsector[subsectorCount];
         Nodes = new BspNodeCompact[nodeCount];
 
@@ -222,10 +217,10 @@ public class CompactBspTree
 
         Box2D box = new(new Vec2D(minX, minY), new Vec2D(maxX, maxY));
         Sector sector = GetSectorFrom(node, builder);
-        Subsector subsector = new(node.Id, sector, box, index, node.ClockwiseEdges.Count);
-        Subsectors[m_nextSubsectorIndex] = subsector;
+        Subsector subsector = new(node.Id, sector, box, index, node.ClockwiseEdges.Count, node.Malformed);
+        Subsectors[subsector.Id] = subsector;
 
-        return BspCreateResultCompact.Subsector(m_nextSubsectorIndex++);
+        return BspCreateResultCompact.Subsector((uint)subsector.Id);
     }
 
     private void CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
@@ -250,7 +245,10 @@ public class CompactBspTree
             }
 
             var subsectorEdge = new SubsectorSegment(sideId, lineId, edge.Start, edge.End, frontSectorId, backSectorId);
-            Segments[m_segCount++] = subsectorEdge;
+            Segments[m_segCount] = subsectorEdge;
+            PartnerSegmentSubsectors[m_segCount] = edge.Partner?.SubsectorId ?? -1;
+
+            m_segCount++;
         }
     }
 

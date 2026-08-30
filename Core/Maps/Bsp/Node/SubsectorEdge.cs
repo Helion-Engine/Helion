@@ -40,6 +40,10 @@ public class SubsectorEdge
     /// </summary>
     public bool IsMiniseg => Line == null;
 
+    public int SubsectorId;
+
+    public SubsectorEdge? Partner;
+
     /// <summary>
     /// Creates a subsector edge from some geometric data and for some
     /// side.

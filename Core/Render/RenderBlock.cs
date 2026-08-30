@@ -44,6 +44,9 @@ public static class RenderBlock
 
     public static bool IsBlocked(Side side, SectorPlane frontFloorPlane, SectorPlane backFloorPlane, SectorPlane frontCeilingPlane, SectorPlane backCeilingPlane)
     {
+        if (frontFloorPlane.TransferHeights != null || backFloorPlane.TransferHeights != null)
+            return false;
+
         if (backCeilingPlane.Z <= frontFloorPlane.Z)
             return side.Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
 

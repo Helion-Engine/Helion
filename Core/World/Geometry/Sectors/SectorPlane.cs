@@ -30,6 +30,7 @@ public sealed class SectorPlane : SectorSoundSource
     public bool LightLevelAbsolute;
     public StaticSkyGeometryData? SkyGeometry;
     public FlatTransformMethod FlatTransformMethod;
+    public TransferHeights? TransferHeights;
     public override Sector SoundSector => Sector;
 
     private readonly double m_initialZ;
