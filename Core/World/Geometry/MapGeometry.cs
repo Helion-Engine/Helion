@@ -67,9 +67,9 @@ public class MapGeometry
 
     public void ClassifyIslands()
     {
-        var islandClassifier = new IslandClassifier();
-        IslandGeometry.Islands = islandClassifier.Classify(CompactBspTree, CompactBspTree.Subsectors, Sectors, Lines.Count);
-        IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(CompactBspTree, Sectors, Lines.Count);
+        var islandClassifier = new IslandClassifier(CompactBspTree);
+        IslandGeometry.Islands = islandClassifier.Classify(CompactBspTree.Subsectors, Sectors, Lines.Count);
+        IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(Sectors, Lines.Count);
 
         SubsectorToIslandId = new int[CompactBspTree.Subsectors.Length];
         foreach (var subsector in CompactBspTree.Subsectors)
