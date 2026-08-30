@@ -12,6 +12,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using NLog;
+using System;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Bsp;
@@ -41,12 +42,6 @@ public class CompactBspTree
     /// recursive BSP traversal.
     /// </summary>
     public BspNodeCompact[] Nodes = [];
-
-    /// <summary>
-    /// The next available subsector index. This is used only for building
-    /// the <see cref="Subsectors"/> list.
-    /// </summary>
-    private uint m_nextSubsectorIndex;
 
     /// <summary>
     /// The next available node index. This is used only for building the
@@ -224,9 +219,9 @@ public class CompactBspTree
         Box2D box = new(new Vec2D(minX, minY), new Vec2D(maxX, maxY));
         Sector sector = GetSectorFrom(node, builder);
         Subsector subsector = new(node.Id, sector, box, index, node.ClockwiseEdges.Count);
-        Subsectors[m_nextSubsectorIndex] = subsector;
+        Subsectors[subsector.Id] = subsector;
 
-        return BspCreateResultCompact.Subsector(m_nextSubsectorIndex++);
+        return BspCreateResultCompact.Subsector((uint)subsector.Id);
     }
 
     private void CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
