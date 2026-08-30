@@ -4,9 +4,9 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Subsectors;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Helion.World.Geometry;
@@ -39,32 +39,16 @@ public class MapGeometry
 
     private readonly Dictionary<int, IList<Sector>> m_tagToSector = [];
     private readonly Dictionary<int, IList<Line>> m_idToLine = [];
-    private BspTreeNew? m_bspTree;
     private int m_nextLineId;
     private int m_nextSideId;
     private int m_nextSectorId;
 
-    public BspTreeNew? GetBspTree() => m_bspTree;
-    public void ClearBspTree()
-    {
-        if (m_bspTree == null)
-            return;
-
-        m_bspTree.Nodes = null!;
-        m_bspTree.Segments = null!;
-        foreach (var subsector in m_bspTree.Subsectors)
-            subsector.Segments = null!;
-        m_bspTree.Subsectors = null!;
-        m_bspTree = null;
-    }
-
-    internal MapGeometry(GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
+    internal MapGeometry(GeometryBuilder builder, CompactBspTree bspTree)
     {
         Lines = builder.Lines;
         Sides = builder.Sides;
         Sectors = builder.Sectors;
         CompactBspTree = bspTree;
-        m_bspTree = bspTreeNew;
 
         TrackSectorsByTag();
         TrackLinesByLineId();
@@ -83,15 +67,12 @@ public class MapGeometry
 
     public void ClassifyIslands()
     {
-        if (m_bspTree == null)
-            return;
+        var islandClassifier = new IslandClassifier(CompactBspTree);
+        IslandGeometry.Islands = islandClassifier.Classify(Sectors, Lines.Count);
+        IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(Sectors, Lines.Count);
 
-        var islandClassifier = new IslandClassifier();
-        IslandGeometry.Islands = islandClassifier.Classify(m_bspTree.Subsectors, Sectors, Lines.Count);
-        IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(m_bspTree.Subsectors, Sectors, Lines.Count);
-
-        SubsectorToIslandId = new int[m_bspTree.Subsectors.Count];
-        foreach (var subsector in m_bspTree.Subsectors)
+        SubsectorToIslandId = new int[CompactBspTree.Subsectors.Length];
+        foreach (var subsector in CompactBspTree.Subsectors)
             SubsectorToIslandId[subsector.Id] = subsector.IslandId;
 
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
@@ -102,29 +83,28 @@ public class MapGeometry
                 foreach (var subsector in island.Subsectors)
                 {
                     island.ParentIsland = IslandGeometry.Islands[subsector.IslandId];
-                    if (subsector.Segments.Count >= 3)
+                    if (!subsector.Malformed)
                         continue;
 
                     IslandGeometry.BadSubsectors.Add(subsector.Id);
-                    if (subsector.SectorId.HasValue)
-                        IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
+                    IslandGeometry.FloodSectors.Add(subsector.Sector.Id);
 
                     if (islandFlooded)
                         continue;
                     
-                    SetContainingSectorsToFlood(subsector);
+                    SetContainingSectorsToFlood(CompactBspTree, subsector);
                     islandFlooded = true;
                 }
             }
         }
     }
 
-    private void SetContainingSectorsToFlood(BspSubsector subsector)
+    private void SetContainingSectorsToFlood(CompactBspTree bspTree, Subsector subsector)
     {
         // This could work by sector island instead of the entire sector but it's unlikely to matter and the renderer will need to be aware of this.
         var smallestFloodPerimeter = double.MaxValue;
         var smallestFloodSector = -1;
-        var noArea = subsector.Box.Min.X == subsector.Box.Max.X || subsector.Box.Min.Y == subsector.Box.Max.Y;
+        var noArea = subsector.BoundingBox.Min.X == subsector.BoundingBox.Max.X || subsector.BoundingBox.Min.Y == subsector.BoundingBox.Max.Y;
 
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {
@@ -135,10 +115,11 @@ public class MapGeometry
             // Set all adjacent sectors to flood. This deals with cases like BTSX MAP02 exit line 2560.
             if (noArea)
             {
-                foreach (var seg in subsector.Segments)
+                for (int i = 0; i < subsector.SegCount; i++)
                 {
-                    if (seg.Partner != null && seg.Partner.Subsector.SectorId.HasValue)
-                        IslandGeometry.FloodSectors.Add(seg.Partner.Subsector.SectorId.Value);
+                    ref var seg = ref bspTree.Segments[subsector.SegIndex + i];
+                    if (seg.BackSectorId != -1)
+                        IslandGeometry.FloodSectors.Add(seg.BackSectorId);
                 }
             }
 
@@ -147,10 +128,10 @@ public class MapGeometry
                 if (island.Flood)
                     continue;
 
-                if (!island.ContainsInclusive(subsector.Box))
+                if (!island.ContainsInclusive(subsector.BoundingBox))
                     continue;
 
-                if (sectorId == subsector.SectorId)
+                if (sectorId == subsector.Sector.Id)
                 {
                     SetIslandFlooded(island);
                     continue;
@@ -159,7 +140,7 @@ public class MapGeometry
                 if (noArea)
                 {
                     // If the subsector has no area then treat as a line with two vertices. Likely a single self referencing sector line.
-                    if (!island.LineInsideSector(subsector.Box.Min, subsector.Box.Max))
+                    if (!island.LineInsideSector(subsector.BoundingBox.Min, subsector.BoundingBox.Max))
                         continue;
 
                     var perimeter = (island.Box.Width + island.Box.Height) * 2;
@@ -172,7 +153,7 @@ public class MapGeometry
                 else
                 {
                     var perimeter = (island.Box.Width + island.Box.Height) * 2;
-                    if (perimeter >= smallestFloodPerimeter && !island.BoxInsideSector(subsector.Box))
+                    if (perimeter >= smallestFloodPerimeter && !island.BoxInsideSector(subsector.BoundingBox))
                         continue;
 
                     if (perimeter < smallestFloodPerimeter)

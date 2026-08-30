@@ -293,10 +293,6 @@ public partial class WorldLayer : IGameLayerParent
             var world = new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
                 mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random, reuse, playerSpawnArg0);
 
-            // Dump data that is no longer needed
-            if (!sameAsPreviousMap)
-                geometry.ClearBspTree();
-
             return world;
         }
         catch (HelionException e)

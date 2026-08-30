@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -15,7 +16,7 @@ public readonly record struct DynamicIsland(Sector Sector, Island Island);
 public class Island(int id)
 {
     public readonly int Id = id;
-    public readonly List<BspSubsector> Subsectors = [];
+    public readonly List<Subsector> Subsectors = [];
     public readonly List<int> LineIds = [];
     public bool IsMonsterCloset;
     public bool IsVooDooCloset;
@@ -48,13 +49,13 @@ public class Island(int id)
 
         foreach (var subsector in Subsectors)
         {
-            if (!hitBottomLeft && subsector.Box.ContainsInclusive(bottomLeft))
+            if (!hitBottomLeft && subsector.BoundingBox.ContainsInclusive(bottomLeft))
                 hitBottomLeft = true;
-            if (!hitBottomRight && subsector.Box.ContainsInclusive(bottomRight))
+            if (!hitBottomRight && subsector.BoundingBox.ContainsInclusive(bottomRight))
                 hitBottomRight = true;
-            if (!hitTopLeft && subsector.Box.ContainsInclusive(topLeft))
+            if (!hitTopLeft && subsector.BoundingBox.ContainsInclusive(topLeft))
                 hitTopLeft = true;
-            if (!hitTopRight && subsector.Box.ContainsInclusive(topRight))
+            if (!hitTopRight && subsector.BoundingBox.ContainsInclusive(topRight))
                 hitTopRight = true;
 
             if (hitBottomLeft && hitBottomRight && hitTopLeft && hitTopRight)
@@ -71,9 +72,9 @@ public class Island(int id)
 
         foreach (var subsector in Subsectors)
         {
-            if (!hitV1 && subsector.Box.ContainsInclusive(v1))
+            if (!hitV1 && subsector.BoundingBox.ContainsInclusive(v1))
                 hitV1 = true;
-            if (!hitV2 && subsector.Box.ContainsInclusive(v2))
+            if (!hitV2 && subsector.BoundingBox.ContainsInclusive(v2))
                 hitV2 = true;
 
             if (hitV1 && hitV2)

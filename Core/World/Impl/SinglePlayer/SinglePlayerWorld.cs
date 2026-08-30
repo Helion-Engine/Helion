@@ -127,12 +127,11 @@ public class SinglePlayerWorld : WorldBase
         // Allocating on the save can take a significant amount of time on the first save. Ensure it has most of the required size plus buffer.
         EnsureEntityModelSize(EntityManager.EntityCount + (int)(EntityManager.EntityCount * 0.25));
 
-        var bspTree = Geometry.GetBspTree();
         // Entities clear closet flags on dispose. If the same map islands have been flagged as closets so they can be reset without using the tree.
         if (sameAsPreviousMap)
             ClosetClassifier.ClassifySameMap(this);
-        else if (config.Game.MonsterCloset.Value && bspTree != null)
-            ClosetClassifier.Classify(this, bspTree);
+        else if (config.Game.MonsterCloset.Value)
+            ClosetClassifier.Classify(this, BspTree);
 
         CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
 

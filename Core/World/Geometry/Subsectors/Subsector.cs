@@ -6,14 +6,18 @@ namespace Helion.World.Geometry.Subsectors;
 
 public class Subsector
 {
-    public readonly int Id;
+    public int Id;
     public Sector Sector;
-    public readonly Box2D BoundingBox;    
-    public readonly int SegIndex;
-    public readonly int SegCount;
+    public Box2D BoundingBox;    
+    public int SegIndex;
+    public int SegCount;
+    public int IslandId;
+    public int SectorIslandId;
     public bool Flood;
+    // True if this subsector originally had less than 3 segments. All subsectors are fixed to have 3 for rendering.
+    public bool Malformed;
 
-    public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count)
+    public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count, bool malformed)
     {
         Precondition(ReferenceEquals(sector, Sector.Default) || count >= 3, "Degenerate sector, must be at least a triangle");
 
@@ -22,6 +26,9 @@ public class Subsector
         BoundingBox = boundingBox;
         SegIndex = index;
         SegCount = count;
+        Malformed = malformed;
     }
+
+    public override string ToString() => $"Id={Id} SectorId={Sector.Id} Box={BoundingBox} Segs={SegCount}";
 }
  
