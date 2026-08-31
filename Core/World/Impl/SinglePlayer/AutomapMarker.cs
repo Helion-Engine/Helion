@@ -39,6 +39,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     private int m_subsectorCount;
     private int m_segCount;
     private int m_lineCount;
+    private bool m_markLines;
 
     private readonly IConfig m_config = config;
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
@@ -107,10 +108,10 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
         m_viewClipper.Clear();
     }
 
-    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id)
+    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id, bool markLines = true)
     {
         if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive || m_positions.IsEmpty)
-            m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id));
+            m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id, markLines));
     }
 
     private void AutomapTask(CancellationToken token)
@@ -137,6 +138,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
                 if (token.IsCancellationRequested)
                     return;
 
+                m_markLines = pos.MarkLines;
                 m_subsectorCount = 0;
                 m_segCount = 0;
                 m_lineCount = 0;

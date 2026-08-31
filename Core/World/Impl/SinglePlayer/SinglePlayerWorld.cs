@@ -214,8 +214,9 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Tick()
     {
-        var camera = Player.GetCamera(0);
-        m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians, GameTicker);
+        var player = m_chaseCamMode ? ChaseCamPlayer : Player;
+        var camera = player.GetCamera(0);
+        m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, player.AngleRadians, player.PitchRadians, GameTicker, !m_chaseCamMode);
 
         if (GetCrosshairTarget(out Entity? entity))
             Player.SetCrosshairTarget(entity);
