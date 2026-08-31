@@ -348,7 +348,7 @@ public partial class WorldLayer
         m_bspString.Clear();
         var x = hud.MeasureText("        ", FixedNumberFont, m_infoFontSize).Width;
 
-        m_bspString.Append(bspHeuristics.UseBsp ? "BSP (" : "Static (");
+        m_bspString.Append(bspHeuristics.Info.UseBsp ? "BSP (" : "Static (");
         m_bspString.Append(bspHeuristics.LineCount);
         m_bspString.Append('/');
         m_bspString.Append(bspHeuristics.SegCount);

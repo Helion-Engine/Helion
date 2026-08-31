@@ -72,7 +72,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private TransferHeightView m_lastTransferHeightsView;
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
-    private IBspHeuristics? m_bspHeuristics;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -133,6 +132,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_pixelGapCorrection = m_config.Render.PixelGapCorrection.Value;
         m_lastTransferHeightsView = TransferHeightView.Middle;
         m_bspHeuristics = world.GetBspHeuristics();
+        m_smoothedBspTimeUs = -1;
 
         m_stopwatch.Stop();
         Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
@@ -304,7 +304,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_renderStatic = m_config.Render.Mode.Value != AdaptiveRenderMode.Bsp && renderInfo.TransferHeightView == TransferHeightView.Middle && !m_lastUseBsp;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
 
-        if (world.GameTicker != m_lastTicker && renderInfo.TransferHeightView == TransferHeightView.Middle)
+        if (renderInfo.TransferHeightView == TransferHeightView.Middle)
         {
             m_lastUseBsp = UseBspBasedOnHeuristic();
             m_renderStatic = !m_lastUseBsp;
@@ -425,44 +425,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
-    }
-
-    private bool UseBspBasedOnHeuristic()
-    {
-        if (m_config.Render.Mode.Value == AdaptiveRenderMode.Bsp)
-            return true;
-
-        if (m_config.Render.Mode.Value == AdaptiveRenderMode.Static)
-            return false;
-
-        if (m_bspHeuristics == null)
-            return false;
-
-        var now = Stopwatch.GetTimestamp();
-        var ageTicks = now - m_bspHeuristics.LastProcessedTimeStamp;
-        var ageMicroseconds = ageTicks * (1_000_000.0 / Stopwatch.Frequency);
-
-        const double ProcessWindowUs = 500.0;
-        if (ageMicroseconds <= ProcessWindowUs)
-            return m_bspHeuristics.UseBsp;
-
-        var threshold = m_config.Render.AdaptiveBspTimeThreshold.Value;
-        var highRange = threshold * 1.15f;
-        var lowRange = threshold * 0.85f;
-
-        var shouldUseBsp = m_bspHeuristics.Microseconds < threshold;
-
-        if (!shouldUseBsp && m_bspHeuristics.Microseconds < highRange)
-            shouldUseBsp = true;
-        else if (shouldUseBsp && m_bspHeuristics.Microseconds > lowRange)
-            shouldUseBsp = false;
-
-        // Don't let fast CPUs switch to BSP when it's likely not beneficial.
-        if (m_bspHeuristics.SegCount > m_config.Render.AdaptiveBspSegThreshold.Value)
-            shouldUseBsp = false;
-
-        m_bspHeuristics.UseBsp = shouldUseBsp;
-        return m_bspHeuristics.UseBsp;
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)

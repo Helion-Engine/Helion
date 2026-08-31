@@ -9,7 +9,6 @@ using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
-using Helion.Util.Container;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -47,12 +46,13 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     public int LastProcessedId { get; private set; }
     public event EventHandler<PlayerPosition>? PositionProcessed;
 
+    public bool Valid { get; private set; }
     public int SubsectorCount {  get; private set; }
     public int SegCount { get; private set; }
     public int LineCount { get; private set; }
     public int Microseconds { get; private set; }
     public long LastProcessedTimeStamp { get; private set; }
-    public bool UseBsp { get; set; }
+    public BspHeuristicInfo Info { get; } = new();
 
     public void Start(IWorld world)
     {
@@ -166,6 +166,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
 
     private void MaxHeuristics()
     {
+        Valid = false;
         Microseconds = int.MaxValue;
         SubsectorCount = int.MaxValue;
         SegCount = int.MaxValue;
@@ -174,6 +175,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
 
     private void SetHeuristics()
     {
+        Valid = true;
         LastProcessedTimeStamp = Stopwatch.GetTimestamp();
         Microseconds = (int)m_stopwatch.Elapsed.TotalMicroseconds;
         SubsectorCount = m_subsectorCount;
