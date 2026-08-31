@@ -303,7 +303,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_lastTransferHeightsView = renderInfo.TransferHeightView;
 
         if (!m_config.Developer.LockRender.Value)
-            Clear(world, renderInfo);
+            Clear(world, renderInfo, renderTickChange);
 
         m_geometryRenderer.SetRenderMode(m_renderStatic ? GeometryRenderMode.Dynamic : GeometryRenderMode.All, renderInfo.TransferHeightView, renderTickChange);
 
@@ -772,13 +772,12 @@ public partial class LegacyWorldRenderer : WorldRenderer
         occludeViewPos = position.XY + (unit * 32);
     }
 
-    private void Clear(IWorld world, RenderInfo renderInfo)
+    private void Clear(IWorld world, RenderInfo renderInfo, bool renderTickChange)
     {
-        bool newTick = world.GameTicker != m_lastTicker;
-        m_geometryRenderer.Clear(renderInfo.TickFraction, newTick);
+        m_geometryRenderer.Clear(renderInfo.TickFraction, renderTickChange);
         m_primitiveRenderer.Clear();
 
-        if (newTick)
+        if (renderTickChange)
         {
             m_entityRenderer.Clear(world);
             m_worldDataManager.Clear();
