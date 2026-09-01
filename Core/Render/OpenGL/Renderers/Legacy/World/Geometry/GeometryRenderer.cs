@@ -848,7 +848,9 @@ public partial class GeometryRenderer : IDisposable
             if (skyVertices == null && side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
             {
                 m_fakeFloor.Z = floor.Z - Constants.MaxTextureHeight;
+                m_fakeFloor.PrevZ = floor.PrevZ - Constants.MaxTextureHeight;
                 m_fakeCeiling.Z = ceiling.Z + Constants.MaxTextureHeight;
+                m_fakeCeiling.PrevZ = ceiling.PrevZ + Constants.MaxTextureHeight;
                 floor = m_fakeFloor;
                 ceiling = m_fakeCeiling;
                 texture = m_glTextureManager?.BlackTexture ?? TestTexture;
@@ -1540,7 +1542,6 @@ public partial class GeometryRenderer : IDisposable
             var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.AddMemoryCopy(data);
         }
-
         vertices = data;
     }
 
