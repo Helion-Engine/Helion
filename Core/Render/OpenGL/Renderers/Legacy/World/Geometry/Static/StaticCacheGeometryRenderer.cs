@@ -352,7 +352,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         {
             AddFloodFillPlane(side, sector, true);
             var wall = side.Middle;
-            UpdateVertices(ref wall.Static, wall.TextureHandle, sideVertices, null, side, wall, true, texture);
+            UpdateVertices(ref wall.Static, wall.TextureHandle, sideVertices, null, side, wall, true, texture, isOneSidedLine: true);
         }
     }
 
@@ -1311,13 +1311,13 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     }
 
     private void UpdateVertices(ref StaticGeometryData staticGeometry, int textureHandle, Span<DynamicVertex> vertices,
-        SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null, Sector3D? sector3D = null)
+        SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null, Sector3D? sector3D = null, bool isOneSidedLine = false)
     {
         var geometryType = side != null && wall != null ? m_geometryRenderer.GetWallType(side, wall, sector3D) : GeometryType.Flat;
         if (side != null && wall != null && geometryType.NeedsCoverWall())
             AddOrUpdateCoverWall(side, vertices, wall.Location, wall.Location == WallLocation.Middle);
 
-        if (textureHandle <= Constants.NullCompatibilityTextureIndex)
+        if (textureHandle <= Constants.NullCompatibilityTextureIndex && !isOneSidedLine)
             return;
 
         // If this surface generated more vertices than previously cached, release so a new one can be requested. (happens with 3D sectors)
