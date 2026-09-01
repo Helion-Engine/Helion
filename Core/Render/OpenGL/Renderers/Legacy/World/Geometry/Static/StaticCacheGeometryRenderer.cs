@@ -642,7 +642,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             return;
         }
 
-        var type = GetWallType(side, wall, sector3D);
+        var type = m_geometryRenderer.GetWallType(side, wall, sector3D);
         if (m_vanillaRender && type.NeedsCoverWall())
             AddOrUpdateCoverWall(side, sideVertices, wall.Location, wall.Location == WallLocation.Middle);
 
@@ -652,34 +652,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         var vertices = GetTextureVertices(type, wall.TextureHandle, repeatY);
         SetSideData(ref wall.Static, type, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
         AddVertices(vertices, sideVertices);
-    }
-
-    private GeometryType GetWallType(Side side, Wall wall, Sector3D? sector3D)
-    {
-        if (sector3D != null && (wall.Location == WallLocation.Middle3D || wall.Location == WallLocation.Middle))
-        {
-            if (sector3D.RenderDataStyle != RenderDataStyle.Normal)
-                return sector3D.RenderDataStyle.ToGeometryType();
-            if (sector3D.Alpha < 1)
-                return GeometryType.Translucent;
-        }
-
-        if (wall.Location == WallLocation.Middle && (side.Line.Alpha < 1 || side.RenderDataStyle != RenderDataStyle.Normal))
-        {
-            if (side.RenderDataStyle != RenderDataStyle.Normal)
-                return side.RenderDataStyle.ToGeometryType();
-            return GeometryType.Translucent;
-        }
-
-        if (wall.Location == WallLocation.Middle3D)
-        {
-            if (m_textureManager.GetTexture(wall.TextureHandle).TransparentPixelCount > 0)
-                return GeometryType.TwoSidedMiddleWall;
-
-            return GeometryType.Middle3D;
-        }
-
-        return wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
     }
 
     private void SetSideData(ref StaticGeometryData staticGeometry, GeometryType type, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
@@ -1253,7 +1225,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         ClearSideGeometryVertices(e.Side, e.Wall);
 
         if (e.Wall.Static.GeometryData != null)
-            m_freeManager.Add(e.Wall.Static, GetWallType(e.Side, e.Wall, null), GetRepeatY(e.Side, e.Wall));
+            m_freeManager.Add(e.Wall.Static, m_geometryRenderer.GetWallType(e.Side, e.Wall, null), GetRepeatY(e.Side, e.Wall));
         e.Wall.Static.GeometryData = null;
 
         if (e.Side.PartnerSide != null && (e.Wall.Location == WallLocation.Upper || e.Wall.Location == WallLocation.Lower) &&
@@ -1341,7 +1313,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private void UpdateVertices(ref StaticGeometryData staticGeometry, int textureHandle, Span<DynamicVertex> vertices,
         SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null, Sector3D? sector3D = null)
     {
-        var geometryType = side != null && wall != null ? GetWallType(side, wall, sector3D) : GeometryType.Flat;
+        var geometryType = side != null && wall != null ? m_geometryRenderer.GetWallType(side, wall, sector3D) : GeometryType.Flat;
         if (side != null && wall != null && geometryType.NeedsCoverWall())
             AddOrUpdateCoverWall(side, vertices, wall.Location, wall.Location == WallLocation.Middle);
 
@@ -1354,7 +1326,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             if (plane != null)
                 m_freeManager.Add(staticGeometry, GeometryType.Flat, repeatY: true);
             else if (side != null && wall != null)
-                m_freeManager.Add(staticGeometry, GetWallType(side, wall, sector3D), GetRepeatY(side, wall));
+                m_freeManager.Add(staticGeometry, m_geometryRenderer.GetWallType(side, wall, sector3D), GetRepeatY(side, wall));
             staticGeometry.GeometryData = null;
         }
          
@@ -1550,7 +1522,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     {
         if (side != null && wall != null)
         {
-            SetSideData(ref wall.Static, GetWallType(side, wall, sector3D), textureHandle, geometryData.Pipeline.Vbo.Count, vertices.Length, repeat, geometryData);
+            SetSideData(ref wall.Static, m_geometryRenderer.GetWallType(side, wall, sector3D), textureHandle, geometryData.Pipeline.Vbo.Count, vertices.Length, repeat, geometryData);
             return;
         }
 

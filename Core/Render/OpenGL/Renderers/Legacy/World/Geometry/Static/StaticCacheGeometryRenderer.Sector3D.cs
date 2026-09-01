@@ -43,7 +43,7 @@ public partial class StaticCacheGeometryRenderer
                 ClearSideGeometryVertices(sectorLine.Front, wall);
 
                 if (wall.Static.GeometryData != null)
-                    m_freeManager.Add(wall.Static, GetWallType(sectorLine.Front, wall, sector3D), GetRepeatY(sectorLine.Front, wall));
+                    m_freeManager.Add(wall.Static, m_geometryRenderer.GetWallType(sectorLine.Front, wall, sector3D), GetRepeatY(sectorLine.Front, wall));
 
                 wall.Static.GeometryData = null;
             }
