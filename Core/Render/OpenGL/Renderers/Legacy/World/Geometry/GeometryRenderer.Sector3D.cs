@@ -276,7 +276,7 @@ public partial class GeometryRenderer
                 if (anchorSector3D?.ParentSectorId == plane3D.Sector3D?.ParentSectorId)
                 {
                     anchorZ = planeZ;
-                    prevAnchorZ = nextPlane3D.GetPrevZ();
+                    prevAnchorZ = plane3D.GetPrevZ();
                 }
 
                 if (m_sliceSector.Ceiling.Z > m_sliceSector.Floor.Z)
