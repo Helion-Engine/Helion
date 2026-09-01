@@ -848,7 +848,9 @@ public partial class GeometryRenderer : IDisposable
             if (skyVertices == null && side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
             {
                 m_fakeFloor.Z = floor.Z - Constants.MaxTextureHeight;
+                m_fakeFloor.PrevZ = floor.PrevZ - Constants.MaxTextureHeight;
                 m_fakeCeiling.Z = ceiling.Z + Constants.MaxTextureHeight;
+                m_fakeCeiling.PrevZ = ceiling.PrevZ + Constants.MaxTextureHeight;
                 floor = m_fakeFloor;
                 ceiling = m_fakeCeiling;
                 texture = m_glTextureManager?.BlackTexture ?? TestTexture;
@@ -1493,9 +1495,6 @@ public partial class GeometryRenderer : IDisposable
         var line = facingSide.Line;
         var alpha = m_config.Render.TextureTransparency ? Math.Clamp(line.Alpha, 0, 1) : 1.0f;
         var data = GetCachedSide(m_vertexLookup, facingSide);
-        var geometryType = alpha < 1 ? GeometryType.Translucent : GeometryType.TwoSidedMiddleWall;
-        if (facingSide == m_fogSide)
-            geometryType = GeometryType.FogBarrier;
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
@@ -1537,9 +1536,9 @@ public partial class GeometryRenderer : IDisposable
             line.RenderSegEnd = saveEnd;
         }
 
-        // See RenderOneSided() for an ASCII image of why we do this.
         if (m_buffer)
         {
+            var geometryType = facingSide == m_fogSide ? GeometryType.FogBarrier : GetWallType(facingSide, facingSide.Middle, null);
             var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.AddMemoryCopy(data);
         }
@@ -1646,6 +1645,34 @@ public partial class GeometryRenderer : IDisposable
         prevOffset += GetTransferHeightHackOffset(textureManager, front, back, prevOpening.BottomZ, prevOpening.TopZ, true);
         WorldTriangulator.HandleTwoSidedMiddle(front, dimension, default, opening, prevOpening, true, ref wall, out _, offset: offset, prevOffset: prevOffset, vertexGap: false);
         return new(wall.BottomRight.Z, wall.TopLeft.Z, wall.PrevBottomZ, wall.PrevTopZ);
+    }
+
+    public GeometryType GetWallType(Side side, Wall wall, Sector3D? sector3D)
+    {
+        if (sector3D != null && (wall.Location == WallLocation.Middle3D || wall.Location == WallLocation.Middle))
+        {
+            if (sector3D.RenderDataStyle != RenderDataStyle.Normal)
+                return sector3D.RenderDataStyle.ToGeometryType();
+            if (sector3D.Alpha < 1)
+                return GeometryType.Translucent;
+        }
+
+        if (wall.Location == WallLocation.Middle && (side.Line.Alpha < 1 || side.RenderDataStyle != RenderDataStyle.Normal))
+        {
+            if (side.RenderDataStyle != RenderDataStyle.Normal)
+                return side.RenderDataStyle.ToGeometryType();
+            return GeometryType.Translucent;
+        }
+
+        if (wall.Location == WallLocation.Middle3D)
+        {
+            if (m_glTextureManager.GetTexture(wall.TextureHandle).TransparentPixelCount > 0)
+                return GeometryType.TwoSidedMiddleWall;
+
+            return GeometryType.Middle3D;
+        }
+
+        return wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
     }
 
     public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view, bool newTick = false)
