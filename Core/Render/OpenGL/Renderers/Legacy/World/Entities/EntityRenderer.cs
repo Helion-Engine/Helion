@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
@@ -139,11 +140,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
             return offsetAmount;
 
-        if (!m_spriteClip)
-            return 0;
-
-        if (texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
-            return 0;
+        if (!m_spriteClip || texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
+            return MathHelper.Max(offsetAmount, -texture.BlankRowsFromBottom);
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
@@ -331,7 +329,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         // Prevent small health values from rendering zero pixels
         float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
         // Normalized health percent (0-255)
-        int health = (int)(Math.Max(min, entity.Health / (float)entity.Properties.Health) * 255f);
+        int health = (int)(MathHelper.Max(min, entity.Health / (float)entity.Properties.Health) * 255f);
         vertex.SurfaceOptions = VertexOptions.EntityPackSurface(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth, health);
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
