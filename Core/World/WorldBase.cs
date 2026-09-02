@@ -1778,7 +1778,7 @@ public abstract partial class WorldBase : IWorld
         projectile.SetOwner(shooter);
         projectile.SetTarget(shooter);
 
-        if (projectile.Flags.Randomize())
+        if (projectile.Flags.RandomizeProjectile())
             projectile.SetRandomizeTicks();
 
         double speed = IsFastMonsters && projectile.Properties.FastSpeed > 0 ?
@@ -3338,7 +3338,7 @@ public abstract partial class WorldBase : IWorld
         if (bulletPuff)
         {
             create.Velocity.Z = 1;
-            if (create.Flags.Randomize())
+            if (create.Flags.RandomizeProjectile())
                 create.SetRandomizeTicks();
 
             // Doom would skip the initial sparking state of the bullet puff for punches

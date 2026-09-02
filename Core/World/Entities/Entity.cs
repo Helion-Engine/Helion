@@ -547,7 +547,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         if (Flags.BossSpawnShot() && ReactionTime > 0)
             ReactionTime--;
 
-        FrameState.Tick(this);
+        FrameState.TickEntity(this);
 
         if (IsDisposed)
             return;
@@ -696,8 +696,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     {
         if (Flags.Missile())
         {
-            // Doom will always apply randomization, force this functionality if a dehacked patch is applied
-            if (Flags.Randomize() || WorldStatic.Dehacked)
+            if (Flags.RandomizeProjectile())
                 SetRandomizeTicks();
             if (FrameState.CurrentTick < 1)
                 FrameState.SetTics(1);

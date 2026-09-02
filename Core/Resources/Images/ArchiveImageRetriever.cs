@@ -260,11 +260,6 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
         if (image == null)
             return null;
 
-        if (entry.Path.Name.StartsWith("MED"))
-        {
-            int lol = 1;
-        }
-
         if (entry.Namespace == ResourceNamespace.Sprites)
             SetSpriteOffset(image);
 

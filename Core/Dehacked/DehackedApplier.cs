@@ -957,6 +957,9 @@ public class DehackedApplier
         {
             DehackedName = thing.Name
         };
+
+        // This wasn't an option in the original game, needs to be applied to all potential projectile spawns.
+        definition.Flags.SetRandomizeProjectile();
         definition.Properties.Height = 0;
         composer.Add(definition);
         m_dehacked.DefinitionLookup[index] = definition;
