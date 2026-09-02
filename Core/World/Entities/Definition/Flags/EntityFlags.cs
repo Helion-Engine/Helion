@@ -171,10 +171,10 @@ public struct EntityFlags
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetQuickToRetaliate(bool value) { if (value) SetQuickToRetaliate(); else ClearQuickToRetaliate(); }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public void ClearQuickToRetaliate() => Flags1 &= FlagValue.InvFlag30;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly bool Randomize() => (Flags1 & FlagValue.Flag31) != 0;
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetRandomize() => Flags1 |= FlagValue.Flag31;
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetRandomize(bool value) { if (value) SetRandomize(); else ClearRandomize(); }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void ClearRandomize() => Flags1 &= FlagValue.InvFlag31;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly bool RandomizeProjectile() => (Flags1 & FlagValue.Flag31) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetRandomizeProjectile() => Flags1 |= FlagValue.Flag31;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetRandomizeProjectile(bool value) { if (value) SetRandomizeProjectile(); else ClearRandomizeProjectile(); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public void ClearRandomizeProjectile() => Flags1 &= FlagValue.InvFlag31;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly bool NoTarget() => (Flags1 & FlagValue.Flag32) != 0;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public void SetNoTarget() => Flags1 |= FlagValue.Flag32;

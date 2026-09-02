@@ -87,9 +87,9 @@ public class Weapon : InventoryItem, ITickable
         ReadyState = false;
         ReadyToFire = false;
 
-        FrameState.Tick(Owner);
+        FrameState.TickPlayerSprite(Owner);
         Owner.WeaponFlashState = true;
-        FlashState.Tick(Owner);
+        FlashState.TickPlayerSprite(Owner);
         Owner.WeaponFlashState = false;
 
         if (m_tryingToFire && ReadyToFire)
