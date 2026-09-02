@@ -143,66 +143,48 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     private static void SetSpriteOffset(Image image)
     {
-        int blankRowsFromBottom = GetBlankRowsFromBottom(image);
+        int blankRowsFromBottom = GetBlankRows(image, fromTop: false);
         if (blankRowsFromBottom <= image.Dimension.Height && blankRowsFromBottom >= 0)
             image.BlankRowsFromBottom = blankRowsFromBottom;
 
-        int blankRowsFromTop = GetBlankRowsFromTop(image);
+        int blankRowsFromTop = GetBlankRows(image, fromTop: true);
         if (blankRowsFromTop <= image.Dimension.Height && blankRowsFromTop >= 0)
             image.BlankRowsFromTop = blankRowsFromTop;
-
     }
-    private static int GetBlankRowsFromTop(Image image)
+
+    private static int GetBlankRows(Image image, bool fromTop)
     {
         if (image.ImageType != ImageType.Argb && image.ImageType != ImageType.PaletteWithArgb)
             return 0;
 
-        bool done = false;
-        int y = 0;
-        for (; y < image.Height; y++)
+        int width = image.Width;
+        int height = image.Height;
+
+        int y = fromTop ? 0 : height - 1;
+        int step = fromTop ? 1 : -1;
+        int opaqueThreshold = (int)(width * 0.05f);
+
+        while (y >= 0 && y < height)
         {
-            for (int x = 0; x < image.Width; x++)
+            int opaqueCount = 0;
+            for (int x = 0; x < width; x++)
             {
-                // Did we find a row that has a non-blank pixel?
                 if (image.GetPixel(x, y).A != 0)
                 {
-                    done = true;
-                    break;
+                    opaqueCount++;
+                    if (opaqueCount >= opaqueThreshold)
+                        goto Done;
                 }
             }
 
-            if (done)
-                break;
+            y += step;
         }
 
-        return Math.Max(0, y);
-    }
-
-    private static int GetBlankRowsFromBottom(Image image)
-    {
-        if (image.ImageType != ImageType.Argb && image.ImageType != ImageType.PaletteWithArgb)
-            return 0;
-
-        bool done = false;
-        int y = image.Height - 1;
-        for (; y >= 0; y--)
-        {
-            for (int x = 0; x < image.Width; x++)
-            {
-                // Did we find a row that has a non-blank pixel?
-                if (image.GetPixel(x, y).A != 0)
-                {
-                    done = true;
-                    break;
-                }
-            }
-
-            if (done)
-                break;
-        }
-
-        // Return either the bottom row, or 0 if the entire image is transparent.
-        return Math.Max(0, image.Height - y - 1);
+    Done:
+        if (fromTop)
+            return Math.Max(0, y);
+        else
+            return Math.Max(0, height - y - 1);
     }
 
     // Forces helion graphics like the options background, and brightmaps, to always be true color
@@ -277,6 +259,11 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
         if (image == null)
             return null;
+
+        if (entry.Path.Name.StartsWith("MED"))
+        {
+            int lol = 1;
+        }
 
         if (entry.Namespace == ResourceNamespace.Sprites)
             SetSpriteOffset(image);
