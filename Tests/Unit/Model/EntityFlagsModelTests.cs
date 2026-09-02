@@ -61,7 +61,7 @@ public class EntityFlagsModelTests
         entityFlags.SetOldRadiusDmg();
         entityFlags.SetPickup();
         entityFlags.SetQuickToRetaliate();
-        entityFlags.SetRandomize();
+        entityFlags.SetRandomizeProjectile();
         entityFlags.SetRipper();
         entityFlags.SetShadow();
         entityFlags.SetShootable();
@@ -131,7 +131,7 @@ public class EntityFlagsModelTests
         entityFlags.ClearOldRadiusDmg();
         entityFlags.SetPickup();
         entityFlags.ClearQuickToRetaliate();
-        entityFlags.SetRandomize();
+        entityFlags.SetRandomizeProjectile();
         entityFlags.ClearRipper();
         entityFlags.SetShadow();
         entityFlags.ClearShootable();

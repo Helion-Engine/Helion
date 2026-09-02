@@ -21,6 +21,9 @@
 - Fix crash when using nextmap command and the next map has a ACS behavior module to load.
 - Fix A_JumpIfFlagsSet for MBF21 flags that modify entity properties. Fixes Abyssal Apocrypha MAP08 Totem of Resurrection.
 - Fix incosistensies between static/dynamic rendering paths.
+- Add better checks for sprite clipping when not using software sprite emulation. (Fixes Eye Juice Arachnotrons/Medkits floating)
+- Match frame ticking behavior differences between player and non-player states.
+- Fix dehacked not setting randomize flag. Fixes Legacy of Rust Calamity Blade firing.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).

@@ -3,9 +3,9 @@ using Helion.Models;
 using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
-using System.Collections.Generic;
 using System;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace Helion.World.Entities.Definition.States;
 
@@ -22,6 +22,12 @@ public enum FrameStateOptions
 /// </summary>
 public struct FrameState
 {
+    private enum TickStatus
+    {
+        Continue,
+        Stop
+    }
+
     private const int InfiniteLoopLimit = 10000;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -254,7 +260,7 @@ public struct FrameState
         }
     }
 
-    private void LogStackError(EntityDefinition def)
+    private readonly void LogStackError(EntityDefinition def)
     {
         string method = string.Empty;
         if (Frame.ActionFunction != null)
@@ -263,23 +269,52 @@ public struct FrameState
         Log.Error($"Stack limit reached for '{def.Name}' {method}");
     }
 
-    public void Tick(Entity entity)
+    public void TickEntity(Entity entity)
     {
-        Precondition(FrameIndex >= 0 && FrameIndex < WorldStatic.Frames.Count, "Out of range frame index for entity");
+        FrameIndexCheck();
         if (CurrentTick == -1)
             return;
 
         CurrentTick--;
         if (CurrentTick == 0)
         {
-            if (Frame.BranchType == ActorStateBranch.Stop && (Options & FrameStateOptions.DestroyOnStop) != 0)
-            {
-                WorldStatic.EntityManager.Destroy(entity);
+            if (ExecuteTick(entity) == TickStatus.Stop)
                 return;
-            }
-
-            SetFrameIndexInternal(entity, Frame.NextFrameIndex);
         }
+    }
+
+    public void TickPlayerSprite(Entity entity)
+    {
+        FrameIndexCheck();
+        if (CurrentTick == 0)
+            return;
+
+        CurrentTick--;
+        if (CurrentTick <= 0)
+        {
+            if (ExecuteTick(entity) == TickStatus.Stop)
+                return;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private TickStatus ExecuteTick(Entity entity)
+    {
+        if (Frame.BranchType == ActorStateBranch.Stop && (Options & FrameStateOptions.DestroyOnStop) != 0)
+        {
+            WorldStatic.EntityManager.Destroy(entity);
+            return TickStatus.Stop;
+        }
+
+        SetFrameIndexInternal(entity, Frame.NextFrameIndex);
+        return TickStatus.Continue;
+    }
+
+
+    [Conditional("DEBUG")]
+    private readonly void FrameIndexCheck()
+    {
+        Precondition(FrameIndex >= 0 && FrameIndex < WorldStatic.Frames.Count, "Out of range frame index for entity");
     }
 
     public FrameStateModel ToFrameStateModel()

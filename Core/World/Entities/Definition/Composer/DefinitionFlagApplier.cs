@@ -123,7 +123,7 @@ public static class DefinitionFlagApplier
         if (flags.QuickToRetaliate != null)
             definition.Flags.SetQuickToRetaliate(flags.QuickToRetaliate.Value);
         if (flags.Randomize != null)
-            definition.Flags.SetRandomize(flags.Randomize.Value);
+            definition.Flags.SetRandomizeProjectile(flags.Randomize.Value);
         if (flags.Ripper != null)
             definition.Flags.SetRipper(flags.Ripper.Value);
         if (flags.Shootable != null)
