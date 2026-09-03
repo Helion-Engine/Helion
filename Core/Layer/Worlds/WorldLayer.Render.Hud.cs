@@ -349,11 +349,11 @@ public partial class WorldLayer
         var x = hud.MeasureText("        ", FixedNumberFont, m_infoFontSize).Width;
 
         m_bspString.Append(bspHeuristics.Info.UseBsp ? "BSP (" : "Static (");
-        m_bspString.Append(bspHeuristics.LineCount);
+        m_bspString.Append(bspHeuristics.Info.BelowThresholdCount);
         m_bspString.Append('/');
-        m_bspString.Append(bspHeuristics.SegCount);
+        m_bspString.Append(bspHeuristics.Info.AboveThresholdCount);
         m_bspString.Append('/');
-        m_bspString.Append(bspHeuristics.Microseconds);
+        m_bspString.Append(bspHeuristics.Info.SmoothTime);
         m_bspString.Append(')');
         SetRenderableString(m_bspString.AsSpan(), m_renderBspString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
         hud.Text(m_renderBspString, (-x, m_padding / 2), Align.TopMiddle, alpha: m_hudAlpha);

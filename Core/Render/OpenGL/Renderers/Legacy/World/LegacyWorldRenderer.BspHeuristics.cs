@@ -70,6 +70,8 @@ public partial class LegacyWorldRenderer
 
         m_bspHeuristics.Info.GameTick = WorldStatic.World.GameTicker;
         m_bspHeuristics.Info.SmoothTime = (int)m_smoothedBspTimeUs;
+        m_bspHeuristics.Info.AboveThresholdCount = m_aboveThresholdCount;
+        m_bspHeuristics.Info.BelowThresholdCount = m_belowThresholdCount;
         m_bspHeuristics.Info.UseBsp = shouldUseBsp;
         return m_bspHeuristics.Info.UseBsp;
     }

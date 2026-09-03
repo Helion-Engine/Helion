@@ -5,6 +5,8 @@ public class BspHeuristicInfo
     public bool UseBsp { get; set; }
     public int GameTick { get; set; }
     public int SmoothTime { get; set; }
+    public int AboveThresholdCount { get; set; }
+    public int BelowThresholdCount { get; set; }
 }
 
 public interface IBspHeuristics
