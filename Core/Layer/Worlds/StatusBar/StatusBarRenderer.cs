@@ -14,10 +14,10 @@ using Helion.Resources.Definitions.StatusBar;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.Strings;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
@@ -26,7 +26,6 @@ using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Helion.Layer.Worlds.StatusBar;
@@ -92,7 +91,9 @@ public class StatusBarRenderer
     private readonly List<RenderGlyph> m_glyphCache = new(256);
     private readonly Dictionary<string, StatusBarHudFontDef> m_hudFontLookup = [];
     private readonly SpanString m_lookupKeySpan = new(128);
-    private readonly LookupArray<EntityDefinition> m_id24PickupTypeLookup = new(Constants.Id24PickupLookup.Length);
+    private readonly LookupArray<EntityDefinition> m_id24PickupTypeLookup = new();
+    private readonly LookupArray<EntityDefinition> m_id24AmmoTypeLookup = new();
+    private readonly StatusBarConditionResolver m_resolver;
 
     private readonly Func<IHudRenderContext, StatusBarHudFontDef, char, string> m_getHudFontPatch;
     private readonly Func<IHudRenderContext, StatusBarNumberFontDef, char, string> m_getFontNumberPatch;
@@ -123,21 +124,63 @@ public class StatusBarRenderer
         foreach (StatusBarHudFontDef f in sbarDef.HudFonts)
             m_hudFontLookup[f.Name] = f;
 
-        var composer = m_archiveCollection.EntityDefinitionComposer;
-        var enumCount = (int)Enum.GetValues<Id24PickupType>().Max();
-        for (int i = 0; i < enumCount; i++)
-        {
-            Assert.Precondition(i < Constants.Id24PickupLookup.Length, "Id24PickupType index out of bounds of Id24PickupLookup");
-            if (i >= Constants.Id24PickupLookup.Length)
-                break;
-
-            var def = composer.GetByName(Constants.Id24PickupLookup[i]);
-            if (def != null)
-                m_id24PickupTypeLookup.Set(i, def);
-        }
+        BuildLookups(m_archiveCollection.EntityDefinitionComposer);
 
         m_getHudFontPatch = GetHudFontPatch;
         m_getFontNumberPatch = GetFontPatch;
+
+        m_resolver = new(m_id24PickupTypeLookup, m_id24AmmoTypeLookup);
+    }
+
+    private void BuildLookups(EntityDefinitionComposer composer)
+    {
+        foreach (var enumValue in Enum.GetValues<Id24PickupType>())
+        {
+            int value = (int)enumValue;
+            if (value < 0)
+                continue;
+
+            if (value > Constants.Id24PickupLookup.Length)
+            {
+                int index = value - 100;
+                if (index < 0 || index >= Constants.Id24PickupWeaponLookup.Length)
+                    continue;
+
+                var weaponDef = composer.GetByName(Constants.Id24PickupWeaponLookup[index]);
+                if (weaponDef != null)
+                    m_id24PickupTypeLookup.Set(value, weaponDef);
+                continue;
+            }
+
+            var def = composer.GetByName(Constants.Id24PickupLookup[value]);
+            if (def != null)
+                m_id24PickupTypeLookup.Set(value, def);
+        }
+
+        foreach (var enumValue in Enum.GetValues<Id24AmmoType>())
+        {
+            int value = (int)enumValue;
+            if (value < 0)
+                continue;
+
+            var ammoName = value switch
+            {
+                0 => "Clip",
+                1 => "Shell",
+                2 => "Cell",
+                3 => "RocketAmmo",
+                _ => null
+            };
+
+            if (ammoName == null)
+                continue;
+
+            var def = composer.GetByName(ammoName);
+            if (def == null)
+                continue;
+
+            m_id24AmmoTypeLookup.Set(value, def);
+        }
     }
 
     public static StatusBarCoverage GetCoverage(StatusBarLayoutDef layout)
@@ -221,7 +264,7 @@ public class StatusBarRenderer
     public void Draw(IHudRenderContext hud, StatusBarLayoutDef layout, StatusBarContext context, int hudNativePaddingX)
     {
         m_ctx = context;
-        StatusBarConditionResolver.ShouldEvaluate = context.HasTicks;
+        m_resolver.ShouldEvaluate = context.HasTicks;
 
         float currentUserScale = (float)m_config.Scale.Value;
         
@@ -446,7 +489,7 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, def))
+        if (!m_resolver.Evaluate(m_ctx, def))
             return;
 
         Vec2I currentPos = ResolvePosition(def, parentPos, widescreenOffset);
@@ -489,7 +532,7 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, def) || def.Children == null)
+        if (!m_resolver.Evaluate(m_ctx, def) || def.Children == null)
             return;
 
         int totalWidth = 0;
@@ -565,7 +608,7 @@ public class StatusBarRenderer
         int containerHeight,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, def))
+        if (!m_resolver.Evaluate(m_ctx, def))
             return;
 
         Vec2I vPos = ResolvePosition(def, parentPos, widescreenOffset);
@@ -628,7 +671,7 @@ public class StatusBarRenderer
         int containerHeight,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, graphic))
+        if (!m_resolver.Evaluate(m_ctx, graphic))
             return;
 
         Vec2I currentPos = ResolvePosition(graphic, parentPos, widescreenOffset);
@@ -660,7 +703,7 @@ public class StatusBarRenderer
         int containerHeight,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, face))
+        if (!m_resolver.Evaluate(m_ctx, face))
             return;
 
         Vec2I currentPos = ResolvePosition(face, parentPos, widescreenOffset);
@@ -683,7 +726,7 @@ public class StatusBarRenderer
         int containerHeight,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, faceBg))
+        if (!m_resolver.Evaluate(m_ctx, faceBg))
             return;
 
         Vec2I currentPos = ResolvePosition(faceBg, parentPos, widescreenOffset);
@@ -705,7 +748,7 @@ public class StatusBarRenderer
         int containerHeight,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, anim))
+        if (!m_resolver.Evaluate(m_ctx, anim))
             return;
 
         Vec2I currentPos = ResolvePosition(anim, parentPos, widescreenOffset);
@@ -755,7 +798,7 @@ public class StatusBarRenderer
         int containerHeight,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, def))
+        if (!m_resolver.Evaluate(m_ctx, def))
             return;
 
         Vec2I pos = ResolvePosition(def, parentPos, widescreenOffset);
@@ -778,7 +821,7 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, comp))
+        if (!m_resolver.Evaluate(m_ctx, comp))
             return;
 
         Vec2I pos = ResolvePosition(comp, parentPos, widescreenOffset);
@@ -1076,7 +1119,7 @@ public class StatusBarRenderer
         float widescreenOffset,
         Vec2I rootPos)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, carousel))
+        if (!m_resolver.Evaluate(m_ctx, carousel))
             return;
 
         Vec2I pos = ResolvePosition(carousel, parentPos, widescreenOffset);
@@ -1155,7 +1198,7 @@ public class StatusBarRenderer
         bool isPercent,
         float widescreenOffset)
     {
-        if (!StatusBarConditionResolver.Evaluate(m_ctx, number))
+        if (!m_resolver.Evaluate(m_ctx, number))
             return;
 
         int value = ResolveNumberValue(m_ctx.Player, number.Type, number.Param);
@@ -1749,16 +1792,16 @@ public class StatusBarRenderer
     {
         return wrapper switch
         {
-            { Canvas: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Canvas),
-            { Graphic: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Graphic),
-            { Number: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Number),
-            { Percent: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Percent),
-            { Face: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Face),
-            { Animation: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Animation),
-            { Component: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Component),
-            { Carousel: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.Carousel),
-            { List: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.List),
-            { String: not null } => StatusBarConditionResolver.Evaluate(m_ctx, wrapper.String),
+            { Canvas: not null } => m_resolver.Evaluate(m_ctx, wrapper.Canvas),
+            { Graphic: not null } => m_resolver.Evaluate(m_ctx, wrapper.Graphic),
+            { Number: not null } => m_resolver.Evaluate(m_ctx, wrapper.Number),
+            { Percent: not null } => m_resolver.Evaluate(m_ctx, wrapper.Percent),
+            { Face: not null } => m_resolver.Evaluate(m_ctx, wrapper.Face),
+            { Animation: not null } => m_resolver.Evaluate(m_ctx, wrapper.Animation),
+            { Component: not null } => m_resolver.Evaluate(m_ctx, wrapper.Component),
+            { Carousel: not null } => m_resolver.Evaluate(m_ctx, wrapper.Carousel),
+            { List: not null } => m_resolver.Evaluate(m_ctx, wrapper.List),
+            { String: not null } => m_resolver.Evaluate(m_ctx, wrapper.String),
             _ => true
         };
     }
@@ -1833,7 +1876,6 @@ public class StatusBarRenderer
 
     private int ResolveNumberValue(Player player, StatusBarNumberType type, int param)
     {
-        var composer = m_archiveCollection.EntityDefinitionComposer;
         var stats = m_ctx.World.LevelStats;
 
         switch (type)
@@ -1845,7 +1887,7 @@ public class StatusBarRenderer
             case StatusBarNumberType.Frags:
                 return 0;
             case StatusBarNumberType.Ammo:
-                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var ammoDef)
+                return m_id24AmmoTypeLookup.TryGetValue(param, out var ammoDef)
                     ? GetAmount(player, ammoDef)
                     : 0;
 
@@ -1853,7 +1895,7 @@ public class StatusBarRenderer
                 return GetAmount(player, player.Weapon?.AmmoDefinition);
 
             case StatusBarNumberType.MaxAmmo:
-                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var maxAmmoDef)
+                return m_id24AmmoTypeLookup.TryGetValue(param, out var maxAmmoDef)
                     ? GetMaxAmmoAmount(maxAmmoDef)
                     : 0;
 

@@ -24,5 +24,20 @@ public enum Id24PickupType
     Berserk,
     PartialInvisibility,
     RadiationSuit,
-    Invulnerability
+    Invulnerability,
+    Chainsaw = 100,
+    Shotgun,
+    SuperShotgun,
+    Chaingun,
+    RocketLauncher,
+    PlasmaRifle,
+    BFG9000,
+}
+
+public enum Id24AmmoType
+{
+    Clip,
+    Shell,
+    Cell,
+    RocketAmmo,
 }

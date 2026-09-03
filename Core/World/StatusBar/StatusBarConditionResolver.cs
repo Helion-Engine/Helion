@@ -2,26 +2,24 @@ using Helion.Resources;
 using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.StatusBar;
 using Helion.Resources.Definitions.StatusBar.Enums;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.World.StatusBar;
 
-public static class StatusBarConditionResolver
+public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24PickupTypeLookup, LookupArray<EntityDefinition> id24AmmoTypeLookup)
 {
-    private static readonly Dictionary<int, EntityDefinition?> Id24AmmoTypeLookup = [];
-    private static readonly Dictionary<int, EntityDefinition?> Id24PickupLookup = [];
+    readonly LookupArray<EntityDefinition> Id24PickupTypeLookup = id24PickupTypeLookup;
+    readonly LookupArray<EntityDefinition> Id24AmmoTypeLookup = id24AmmoTypeLookup;
 
-    public static bool ShouldEvaluate = true;
+    public bool ShouldEvaluate = true;
 
-    public static bool Evaluate(StatusBarContext context, StatusBarBaseDef statusBarDef)
+    public bool Evaluate(StatusBarContext context, StatusBarBaseDef statusBarDef)
     {
         if (!ShouldEvaluate)
             return statusBarDef.LastEvaluatedConditionValue;
@@ -32,7 +30,7 @@ public static class StatusBarConditionResolver
             return true;
         }
 
-        for (int i = 0; i <  statusBarDef.Conditions.Length; i++)
+        for (int i = 0; i < statusBarDef.Conditions.Length; i++)
         {
             ref var condition = ref statusBarDef.Conditions[i];
             if (!CheckSingle(context, ref condition))
@@ -46,30 +44,29 @@ public static class StatusBarConditionResolver
         return true;
     }
 
-    private static bool CheckSingle(StatusBarContext context, ref StatusBarConditionDef c)
+    private bool CheckSingle(StatusBarContext context, ref StatusBarConditionDef c)
     {
         var world = context.World;
         var player = context.Player;
-        var composer = context.World.EntityManager.DefinitionComposer;
         var gameConf = context.World.ArchiveCollection.Definitions.GameConfDefinition;
 
         return c.Condition switch
         {
-            StatusBarConditionType.WeaponOwned => CheckWeaponOwned(player, c.Param, composer),
-            StatusBarConditionType.WeaponSelected => CheckWeaponSelected(player, c.Param, composer),
-            StatusBarConditionType.WeaponNotSelected => !CheckWeaponSelected(player, c.Param, composer),
+            StatusBarConditionType.WeaponOwned => CheckWeaponOwned(player, c.Param),
+            StatusBarConditionType.WeaponSelected => CheckWeaponSelected(player, c.Param),
+            StatusBarConditionType.WeaponNotSelected => !CheckWeaponSelected(player, c.Param),
             
-            StatusBarConditionType.WeaponHasAmmo => CheckWeaponHasAmmo(player, c.Param, composer),
+            StatusBarConditionType.WeaponHasAmmo => CheckWeaponHasAmmo(player, c.Param),
             StatusBarConditionType.SelectedWeaponHasAmmo => CheckSelectedWeaponHasAmmo(player),
-            StatusBarConditionType.AmmoMatch => CheckAmmoMatch(player, c.Param, composer),
+            StatusBarConditionType.AmmoMatch => CheckAmmoMatch(player, c.Param),
             
             StatusBarConditionType.SlotOwned => CheckSlotOwned(player, c.Param),
             StatusBarConditionType.SlotNotOwned => !CheckSlotOwned(player, c.Param),
             StatusBarConditionType.SlotSelected => CheckSlotSelected(player, c.Param),
             StatusBarConditionType.SlotNotSelected => !CheckSlotSelected(player, c.Param),
             
-            StatusBarConditionType.ItemOwned => CheckItemOwned(player, c.Param, composer),
-            StatusBarConditionType.ItemNotOwned => !CheckItemOwned(player, c.Param, composer),
+            StatusBarConditionType.ItemOwned => CheckItemOwned(player, c.Param),
+            StatusBarConditionType.ItemNotOwned => !CheckItemOwned(player, c.Param),
             
             StatusBarConditionType.GameVersionGe => CheckGameVersion(gameConf, c.Param, greaterEqual: true),
             StatusBarConditionType.GameVersionLt => CheckGameVersion(gameConf, c.Param, greaterEqual: false),
@@ -86,7 +83,7 @@ public static class StatusBarConditionResolver
             StatusBarConditionType.AutomapModeEq => CheckAutomap(context, c.Param),
             StatusBarConditionType.WidgetEnabled => CheckWidgetEnabled(world, player, c.Param, c.ParamString),
             StatusBarConditionType.WidgetDisabled => !CheckWidgetEnabled(world, player, c.Param, c.ParamString),
-            StatusBarConditionType.WeaponNotOwned => !CheckWeaponOwned(player, c.Param, composer),
+            StatusBarConditionType.WeaponNotOwned => !CheckWeaponOwned(player, c.Param),
             
             StatusBarConditionType.HealthGe => player.Health >= c.Param,
             StatusBarConditionType.HealthLt => player.Health < c.Param,
@@ -103,10 +100,10 @@ public static class StatusBarConditionResolver
             StatusBarConditionType.SelectedAmmoPercentGe => CheckSelectedAmmoPercent(world, player, context.HasBackPack, c.Param, greaterEqual: true),
             StatusBarConditionType.SelectedAmmoPercentLt => CheckSelectedAmmoPercent(world, player, context.HasBackPack, c.Param, greaterEqual: false),
 
-            StatusBarConditionType.AmmoGe => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: true, composer),
-            StatusBarConditionType.AmmoLt => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: false, composer),
-            StatusBarConditionType.AmmoPercentGe => CheckAmmoPercent(player, context.HasBackPack, c.Param2, c.Param, greaterEqual: true, composer),
-            StatusBarConditionType.AmmoPercentLt => CheckAmmoPercent(player, context.HasBackPack, c.Param2, c.Param, greaterEqual: false, composer),
+            StatusBarConditionType.AmmoGe => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: true),
+            StatusBarConditionType.AmmoLt => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: false),
+            StatusBarConditionType.AmmoPercentGe => CheckAmmoPercent(player, context.HasBackPack, c.Param2, c.Param, greaterEqual: true),
+            StatusBarConditionType.AmmoPercentLt => CheckAmmoPercent(player, context.HasBackPack, c.Param2, c.Param, greaterEqual: false),
 
             StatusBarConditionType.WidescreenModeEq => CheckWidescreen(context, c.Param),
             
@@ -137,115 +134,24 @@ public static class StatusBarConditionResolver
             _ => false
         };
     }
-
-    // --- Helper Methods ---
-
-    private static bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
-    {
-        if (Id24PickupLookup.TryGetValue(pickupItemType, out definition))
-            return definition != null;
-
-        string? entityName = pickupItemType switch
-        {
-            1 => "BlueCard",
-            2 => "YellowCard",
-            3 => "RedCard",
-            4 => "BlueSkull",
-            5 => "YellowSkull",
-            6 => "RedSkull",
-            7 => "Backpack",
-            8 => "HealthBonus",
-            9 => "Stimpack",
-            10 => "Medikit",
-            11 => "Soulsphere",
-            12 => "Mega sphere",
-            13 => "ArmorBonus",
-            14 => "GreenArmor",
-            15 => "BlueArmor", 
-            16 => "ComputerAreaMap",
-            17 => "LightAmp",
-            18 => "Berserk",
-            19 => "BlurSphere", 
-            20 => "RadSuit",
-            21 => "InvulnerabilitySphere",
-            100 => "Chainsaw",
-            101 => "Shotgun",
-            102 => "SuperShotgun",
-            103 => "Chaingun",
-            104 => "RocketLauncher",
-            105 => "PlasmaRifle",
-            106 => "BFG9000",
-            _ => null
-        };
-
-        if (entityName != null)
-        {
-            definition = composer.GetByName(entityName);
-            
-            if (definition == null)
-            {
-                if (entityName == "ComputerAreaMap")
-                    definition = composer.GetByName("AllMap");
-                else if (entityName == "InvulnerabilitySphere")
-                    definition = composer.GetByName("Invulnerability");
-                else if (entityName == "LightAmp")
-                    definition = composer.GetByName("LiteAmp");
-                else if (entityName == "RadSuit")
-                    definition = composer.GetByName("IronFeet");
-            }
-
-            Id24PickupLookup[pickupItemType] = definition;
-            return definition != null;
-        }
-
-        definition = null;
-        Id24PickupLookup[pickupItemType] = null;
-        return false;
-    }
-
-    public static bool TryGetId24AmmoType(EntityDefinitionComposer composer, int ammoTypeIndex, [NotNullWhen(true)] out EntityDefinition? def)
-    {
-        if (Id24AmmoTypeLookup.TryGetValue(ammoTypeIndex, out def))
-            return def != null;
-
-        string? ammoName = ammoTypeIndex switch
-        {
-            0 => "Clip",
-            1 => "Shell",
-            2 => "Cell",
-            3 => "RocketAmmo",
-            _ => null
-        };
-
-        if (ammoName != null)
-        {
-            def = composer.GetByName(ammoName);
-            Id24AmmoTypeLookup[ammoTypeIndex] = def;
-            return def != null;
-        }
-
-        def = null;
-        Id24AmmoTypeLookup[ammoTypeIndex] = null;
-        return false;
-    }
     
-    private static bool CheckWeaponOwned(Player player, int param, EntityDefinitionComposer composer)
+    private bool CheckWeaponOwned(Player player, int param)
     {
-        if (!TryGetId24PickupType(composer, param, out var def))
+        if (!Id24PickupTypeLookup.TryGetValue(param, out var def))
             return false;
         return player.Inventory.Weapons.OwnsWeapon(def);
     }
 
-    private static bool CheckWeaponSelected(Player player, int param, EntityDefinitionComposer composer)
+    private bool CheckWeaponSelected(Player player, int param)
     {
-        if (player.Weapon == null || !TryGetId24PickupType(composer, param, out var def))
+        if (player.Weapon == null || !Id24PickupTypeLookup.TryGetValue(param, out var def))
             return false;
         return player.Weapon.Definition == def;
     }
 
-    private static bool CheckWeaponHasAmmo(Player player, int param, EntityDefinitionComposer composer)
+    private bool CheckWeaponHasAmmo(Player player, int param)
     {
-        if (!TryGetId24PickupType(composer, param, out var def))
+        if (!Id24PickupTypeLookup.TryGetValue(param, out var def))
             return false;
         string ammoType = def.Properties.Weapons.AmmoType;
         if (string.IsNullOrEmpty(ammoType)) return true;
@@ -254,14 +160,18 @@ public static class StatusBarConditionResolver
 
     private static bool CheckSelectedWeaponHasAmmo(Player player)
     {
-        return player.CheckAmmo();
+        var ammoDef = player.Weapon?.Definition.Properties.Weapons.AmmoTypeDef;
+        if (ammoDef == null)
+            return false;
+
+        return player.Inventory.Amount(ammoDef) > 0;
     }
 
-    private static bool CheckAmmoMatch(Player player, int param, EntityDefinitionComposer composer)
+    private bool CheckAmmoMatch(Player player, int param)
     {
         if (player.Weapon == null)
             return false;
-        if (!TryGetId24AmmoType(composer, param, out var ammoDefFromParam))
+        if (!Id24AmmoTypeLookup.TryGetValue(param, out var ammoDefFromParam))
             return false;
         var weaponAmmoName = player.Weapon.Definition.Properties.Weapons.AmmoType;
         if (string.IsNullOrEmpty(weaponAmmoName))
@@ -282,7 +192,7 @@ public static class StatusBarConditionResolver
         return player.Inventory.Weapons.GetWeaponSlot(player.Weapon.Definition).Slot == slot;
     }
 
-    private static bool CheckItemOwned(Player player, int param, EntityDefinitionComposer composer)
+    private bool CheckItemOwned(Player player, int param)
     {
         PowerupType? pType = param switch
         {
@@ -298,7 +208,7 @@ public static class StatusBarConditionResolver
         if (pType.HasValue)
             return player.Inventory.IsPowerupActive(pType.Value);
 
-        if (!TryGetId24PickupType(composer, param, out var def))
+        if (!Id24PickupTypeLookup.TryGetValue(param, out var def))
             return false;
 
         if (player.Inventory.HasItem(def))
@@ -410,18 +320,18 @@ public static class StatusBarConditionResolver
         return greaterEqual ? percent >= param : percent < param;
     }
 
-    private static bool CheckAmmoAmount(Player player, int ammoTypeIndex, int val, bool greaterEqual, EntityDefinitionComposer composer)
+    private bool CheckAmmoAmount(Player player, int ammoTypeIndex, int val, bool greaterEqual)
     {
-        if (!TryGetId24AmmoType(composer, ammoTypeIndex, out var def))
+        if (!Id24AmmoTypeLookup.TryGetValue(ammoTypeIndex, out var def))
             return false;
         
         int amount = player.Inventory.Amount(def.Name);
         return greaterEqual ? amount >= val : amount < val;
     }
     
-    private static bool CheckAmmoPercent(Player player, bool hasBackPack, int ammoTypeIndex, int val, bool greaterEqual, EntityDefinitionComposer composer)
+    private bool CheckAmmoPercent(Player player, bool hasBackPack, int ammoTypeIndex, int val, bool greaterEqual)
     {
-        if (!TryGetId24AmmoType(composer, ammoTypeIndex, out var def))
+        if (!Id24AmmoTypeLookup.TryGetValue(ammoTypeIndex, out var def))
             return false;
 
         int amount = player.Inventory.Amount(def);
