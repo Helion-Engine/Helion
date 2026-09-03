@@ -14,6 +14,7 @@ using Helion.Resources.Definitions.StatusBar;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.Strings;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World.Entities.Definition;
@@ -25,6 +26,7 @@ using Helion.World.StatusBar;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Helion.Layer.Worlds.StatusBar;
@@ -122,8 +124,10 @@ public class StatusBarRenderer
             m_hudFontLookup[f.Name] = f;
 
         var composer = m_archiveCollection.EntityDefinitionComposer;
-        for (int i = 0; i < (int)Id24PickupType.Count; i++)
+        var enumCount = (int)Enum.GetValues<Id24PickupType>().Max();
+        for (int i = 0; i < enumCount; i++)
         {
+            Assert.Precondition(i < Constants.Id24PickupLookup.Length, "Id24PickupType index out of bounds of Id24PickupLookup");
             if (i >= Constants.Id24PickupLookup.Length)
                 break;
 
