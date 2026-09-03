@@ -236,4 +236,10 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("The number segs until the mode is switched to static when using adapative.")]
     public readonly ConfigValue<int> AdaptiveBspSegThreshold = new(8000);
+
+    [ConfigInfo("The number of window samples to use smoothing time calculations.")]
+    public readonly ConfigValue<int> AdaptiveBspTimeWindow = new(10, Clamp(4, 32));
+
+    [ConfigInfo("The number of times to hit above/below threshold before switching modes.")]
+    public readonly ConfigValue<int> AdaptiveBspSwitchCount = new(5, Clamp(1, 10));
 }

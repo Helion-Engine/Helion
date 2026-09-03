@@ -1,7 +1,6 @@
 ﻿using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.World;
-using System;
 using System.Diagnostics;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -10,23 +9,11 @@ public partial class LegacyWorldRenderer
 {
     private IBspHeuristics? m_bspHeuristics;
     private double m_smoothedBspTimeUs;
-    private readonly double[] m_bspWindowSamples = new double[3];
-    private int m_windowIndex;
-    private bool m_windowInit;
+    private readonly TimeWindow m_bspTimeWindow = new(32);
 
-    private double AddBspTimeSample(double time)
-    {
-        m_bspWindowSamples[m_windowIndex] = time;
-        m_windowIndex = (m_windowIndex + 1) % 3;
-
-        if (!m_windowInit && m_windowIndex < 2)
-            return time;
-
-        m_windowInit = true;
-        double a = m_bspWindowSamples[0], b = m_bspWindowSamples[1], c = m_bspWindowSamples[2];
-        double med = MathHelper.Max(MathHelper.Min(a, b), MathHelper.Min(MathHelper.Max(a, b), c));
-        return med;
-    }
+    private int m_aboveThresholdCount;
+    private int m_belowThresholdCount;
+    private int m_lastProcessedId;
 
     private bool UseBspBasedOnHeuristic()
     {
@@ -51,20 +38,30 @@ public partial class LegacyWorldRenderer
 
         // It needs sometime to process
         const double ProcessWindowUs = 500.0;
-        if (ageMicroseconds <= ProcessWindowUs)
+        if (ageMicroseconds <= ProcessWindowUs || m_lastProcessedId == m_bspHeuristics.LastProcessedId)
             return m_bspHeuristics.Info.UseBsp;
 
-        var threshold = m_config.Render.AdaptiveBspTimeThreshold.Value;
-        var highRange = threshold * 1.15f;
-        var lowRange = threshold * 0.85f;
-
+        m_lastProcessedId = m_bspHeuristics.LastProcessedId;
         m_smoothedBspTimeUs = AddBspTimeSample(m_bspHeuristics.Microseconds);
 
-        var shouldUseBsp = m_smoothedBspTimeUs < threshold;
+        var threshold = m_config.Render.AdaptiveBspTimeThreshold.Value;
+        if (m_smoothedBspTimeUs < threshold)
+        {
+            m_belowThresholdCount++;
+            m_aboveThresholdCount = 0;
+        }
+        else
+        {
+            m_aboveThresholdCount++;
+            m_belowThresholdCount = 0;
+        }
 
-        if (!shouldUseBsp && m_smoothedBspTimeUs < highRange)
+        int thresholdCount = m_config.Render.AdaptiveBspSwitchCount.Value;
+        var shouldUseBsp = m_smoothedBspTimeUs < threshold;
+        if (!shouldUseBsp && m_belowThresholdCount >= thresholdCount)
             shouldUseBsp = true;
-        else if (shouldUseBsp && m_smoothedBspTimeUs > lowRange)
+
+        if (shouldUseBsp && m_aboveThresholdCount >= thresholdCount)
             shouldUseBsp = false;
 
         // Don't let fast CPUs switch to BSP when it's likely not beneficial.
@@ -75,5 +72,11 @@ public partial class LegacyWorldRenderer
         m_bspHeuristics.Info.SmoothTime = (int)m_smoothedBspTimeUs;
         m_bspHeuristics.Info.UseBsp = shouldUseBsp;
         return m_bspHeuristics.Info.UseBsp;
+    }
+
+    private double AddBspTimeSample(double time)
+    {
+        m_bspTimeWindow.SetWindowSize(m_config.Render.AdaptiveBspTimeWindow.Value);
+        return m_bspTimeWindow.AdddTimeSample(time);
     }
 }

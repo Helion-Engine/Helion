@@ -133,6 +133,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_lastTransferHeightsView = TransferHeightView.Middle;
         m_bspHeuristics = world.GetBspHeuristics();
         m_smoothedBspTimeUs = -1;
+        m_bspTimeWindow.Clear();
+        m_aboveThresholdCount = 0;
+        m_belowThresholdCount = 0;
 
         m_stopwatch.Stop();
         Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
