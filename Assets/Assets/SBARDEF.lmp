@@ -124,11 +124,6 @@
                   "condition": 4,
                   "param": 0,
                   "param2": 0
-                },
-                {
-                  "condition": 9,
-                  "param": 1,
-                  "param2": 0
                 }
               ],
               "children": [],
@@ -937,11 +932,6 @@
                       {
                         "condition": 4,
                         "param": 0,
-                        "param2": 0
-                      },
-                      {
-                        "condition": 9,
-                        "param": 1,
                         "param2": 0
                       }
                     ],
@@ -2140,11 +2130,6 @@
                         "condition": 4,
                         "param": 0,
                         "param2": 0
-                      },
-                      {
-                        "condition": 9,
-                        "param": 1,
-                        "param2": 0
                       }
                     ],
                     "children": [],
@@ -2970,11 +2955,6 @@
                                         {
                                           "condition": 4,
                                           "param": 0,
-                                          "param2": 0
-                                        },
-                                        {
-                                          "condition": 9,
-                                          "param": 1,
                                           "param2": 0
                                         }
                                       ],

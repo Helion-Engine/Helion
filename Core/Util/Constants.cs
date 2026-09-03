@@ -117,6 +117,17 @@ public static class Constants
         "InvulnerabilitySphere",
     ];
 
+    public static readonly string[] Id24PickupWeaponLookup =
+     [
+        "Chainsaw",
+        "Shotgun",
+        "SuperShotgun",
+        "Chaingun",
+        "RocketLauncher",
+        "PlasmaRifle",
+        "BFG9000",
+    ];
+
     public static class MenuSounds
     {
         public const string Activate = "menu/activate";
