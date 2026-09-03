@@ -276,7 +276,10 @@ public static class StatusBarConditionResolver
 
     private static bool CheckSlotSelected(Player player, int slot)
     {
-        return player.WeaponSlot == slot;
+        if (player.Weapon == null)
+            return false;
+
+        return player.Inventory.Weapons.GetWeaponSlot(player.Weapon.Definition).Slot == slot;
     }
 
     private static bool CheckItemOwned(Player player, int param, EntityDefinitionComposer composer)
@@ -547,12 +550,8 @@ public static class StatusBarConditionResolver
             def = baseDef;
 
         int max = def.Properties.Inventory.MaxAmount;
-        if (hasBackPack
-            && def.IsType(Inventory.AmmoClassName) 
-            && def.Properties.Ammo.BackpackMaxAmount > max)
-        {
+        if (hasBackPack && def.IsAmmo && def.Properties.Ammo.BackpackMaxAmount > max)
             max = def.Properties.Ammo.BackpackMaxAmount;
-        }
         return max;
     }
     

@@ -1686,7 +1686,6 @@ public class Player : Entity
         if (Weapon == null)
             return;
         var weapon = Weapon.Definition.Properties.Weapons;
-        weapon.AmmoTypeDef ??= WorldStatic.World.EntityManager.DefinitionComposer.GetByName(weapon.AmmoType);
         if (weapon.AmmoTypeDef != null)
             Inventory.Add(weapon.AmmoTypeDef, amount);
     }

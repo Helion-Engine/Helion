@@ -24,5 +24,5 @@ public enum Id24PickupType
     Berserk,
     PartialInvisibility,
     RadiationSuit,
-    Invulnerability,
+    Invulnerability
 }

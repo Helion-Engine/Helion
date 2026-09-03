@@ -245,9 +245,9 @@ public class DehackedApplier
                 weaponDef.Properties.Weapons.AllowSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.AllowSwitchWithOwnedWeapon.Value);
             if (weapon.NoSwitchWithOwnedWeapon.HasValue)
                 weaponDef.Properties.Weapons.NoSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.NoSwitchWithOwnedWeapon.Value);
-            if (weapon.AllowSwitchWithOwnedItem.HasValue && dehacked.TryGetId24PickupType(composer, weapon.AllowSwitchWithOwnedItem.Value, out var allowSwitchItemDef))
+            if (weapon.AllowSwitchWithOwnedItem.HasValue && TryGetId24PickupType(composer, weapon.AllowSwitchWithOwnedItem.Value, out var allowSwitchItemDef))
                 weaponDef.Properties.Weapons.AllowSwitchWithOwnedItem = allowSwitchItemDef;
-            if (weapon.NoSwitchWithOwnedItem.HasValue && dehacked.TryGetId24PickupType(composer, weapon.NoSwitchWithOwnedItem.Value, out var noSwitchItemDef))
+            if (weapon.NoSwitchWithOwnedItem.HasValue && TryGetId24PickupType(composer, weapon.NoSwitchWithOwnedItem.Value, out var noSwitchItemDef))
                 weaponDef.Properties.Weapons.NoSwitchWithOwnedItem = noSwitchItemDef;
         }
 
@@ -843,7 +843,7 @@ public class DehackedApplier
             return;
         }
 
-        if (!dehacked.TryGetId24PickupType(composer, pickupItemType, out var itemDef))
+        if (!TryGetId24PickupType(composer, pickupItemType, out var itemDef))
         {
             Log.Warn("Invalid item pickup type {type} for {number} {name}", pickupItemType, thing.Number, thing.Name);
             return;
