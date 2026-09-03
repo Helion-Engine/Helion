@@ -1,3 +1,4 @@
+using Helion.Dehacked;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -14,8 +15,8 @@ using Helion.Resources.Definitions.StatusBar.Enums;
 using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs.Components;
+using Helion.Util.Container;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
@@ -89,6 +90,7 @@ public class StatusBarRenderer
     private readonly List<RenderGlyph> m_glyphCache = new(256);
     private readonly Dictionary<string, StatusBarHudFontDef> m_hudFontLookup = [];
     private readonly SpanString m_lookupKeySpan = new(128);
+    private readonly LookupArray<EntityDefinition> m_id24PickupTypeLookup = new(Constants.Id24PickupLookup.Length);
 
     private readonly Func<IHudRenderContext, StatusBarHudFontDef, char, string> m_getHudFontPatch;
     private readonly Func<IHudRenderContext, StatusBarNumberFontDef, char, string> m_getFontNumberPatch;
@@ -118,6 +120,17 @@ public class StatusBarRenderer
 
         foreach (StatusBarHudFontDef f in sbarDef.HudFonts)
             m_hudFontLookup[f.Name] = f;
+
+        var composer = m_archiveCollection.EntityDefinitionComposer;
+        for (int i = 0; i < (int)Id24PickupType.Count; i++)
+        {
+            if (i >= Constants.Id24PickupLookup.Length)
+                break;
+
+            var def = composer.GetByName(Constants.Id24PickupLookup[i]);
+            if (def != null)
+                m_id24PickupTypeLookup.Set(i, def);
+        }
 
         m_getHudFontPatch = GetHudFontPatch;
         m_getFontNumberPatch = GetFontPatch;
@@ -1141,7 +1154,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(m_ctx, number))
             return;
 
-        int value = ResolveNumberValue(m_ctx.Player, number.Type, number.Param);
+        int value = ResolveNumberValue(m_ctx.Player, number.Type, number.Param, out var shouldRender);
 
         if (number.MaxLength > 0)
         {
@@ -1484,7 +1497,7 @@ public class StatusBarRenderer
         float sY)
     {
         m_fmtSpan.Clear();
-        m_fmtSpan.Append(ResolveNumberValue(m_ctx.Player, def.Type, def.Param));
+        m_fmtSpan.Append(ResolveNumberValue(m_ctx.Player, def.Type, def.Param, out var shouldRender));
         if (isPercent) m_fmtSpan.Append('%');
 
         Vec2F oldScale = m_scale;
@@ -1814,10 +1827,11 @@ public class StatusBarRenderer
         return result;
     }
 
-    private int ResolveNumberValue(Player player, StatusBarNumberType type, int param)
+    private int ResolveNumberValue(Player player, StatusBarNumberType type, int param, out bool shouldRender)
     {
-        EntityDefinitionComposer composer = m_archiveCollection.EntityDefinitionComposer;
-        LevelStats stats = m_ctx.World.LevelStats;
+        shouldRender = true;
+        var composer = m_archiveCollection.EntityDefinitionComposer;
+        var stats = m_ctx.World.LevelStats;
 
         switch (type)
         {
@@ -1828,30 +1842,26 @@ public class StatusBarRenderer
             case StatusBarNumberType.Frags:
                 return 0;
             case StatusBarNumberType.Ammo:
-                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out EntityDefinition? ammoDef)
-                    ? player.Inventory.Amount(ammoDef.Name)
+                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var ammoDef)
+                    ? GetAmount(player, ammoDef)
                     : 0;
 
             case StatusBarNumberType.AmmoSelected:
-                return player.AnimationWeapon?.Definition.Properties.Weapons.AmmoType is { } a && !string.IsNullOrEmpty(a)
-                    ? player.Inventory.Amount(a)
-                    : 0;
+                return GetAmount(player, player.Weapon?.AmmoDefinition);
 
             case StatusBarNumberType.MaxAmmo:
-                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out EntityDefinition? maxAmmoDef)
-                    ? GetMaxAmount(player, maxAmmoDef.Name)
+                return StatusBarConditionResolver.TryGetId24AmmoType(composer, param, out var maxAmmoDef)
+                    ? GetMaxAmmoAmount(maxAmmoDef)
                     : 0;
 
             case StatusBarNumberType.AmmoWeapon:
-                return m_archiveCollection.Definitions.DehackedDefinition is { } deh &&
-                       deh.TryGetId24PickupType(composer, param, out EntityDefinition? wDef)
-                    ? player.Inventory.Amount(wDef.Properties.Weapons.AmmoType)
+                return m_id24PickupTypeLookup.TryGetValue(param, out var wDef)
+                    ? GetAmount(player, wDef.Properties.Weapons.AmmoTypeDef)
                     : 0;
 
             case StatusBarNumberType.MaxAmmoWeapon:
-                return m_archiveCollection.Definitions.DehackedDefinition is { } dehM &&
-                       dehM.TryGetId24PickupType(composer, param, out EntityDefinition? mwDef)
-                    ? GetMaxAmount(player, mwDef.Properties.Weapons.AmmoType)
+                return m_id24PickupTypeLookup.TryGetValue(param, out var mwDef)
+                    ? GetMaxAmmoAmount(mwDef.Properties.Weapons.AmmoTypeDef)
                     : 0;
 
             case StatusBarNumberType.Kills:
@@ -1905,13 +1915,22 @@ public class StatusBarRenderer
         return string.Empty;
     }
 
-    private int GetMaxAmount(Player player, string name)
+    private static int GetAmount(Player player, EntityDefinition? def)
     {
-        EntityDefinition? def = m_archiveCollection.EntityDefinitionComposer.GetByName(name);
-        if (def == null) return 0;
-        EntityDefinition baseDef = Inventory.GetBaseInventoryDefinition(def) ?? def;
-        int max = baseDef.Properties.Inventory.MaxAmount;
-        if (player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName) && baseDef.IsType(Inventory.AmmoClassName))
+        if (def == null)
+            return 0;
+
+        return player.Inventory.Amount(def);
+    }
+
+    private int GetMaxAmmoAmount(EntityDefinition? ammoDef)
+    {
+        if (ammoDef == null)
+            return 0;
+
+        var baseDef = Inventory.GetBaseInventoryDefinition(ammoDef) ?? ammoDef;
+        var max = baseDef.Properties.Inventory.MaxAmount;
+        if (m_ctx.HasBackPack && baseDef.IsAmmo)
             max = Math.Max(max, baseDef.Properties.Ammo.BackpackMaxAmount);
         return max;
     }

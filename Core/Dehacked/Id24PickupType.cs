@@ -25,4 +25,5 @@ public enum Id24PickupType
     PartialInvisibility,
     RadiationSuit,
     Invulnerability,
+    Count
 }
