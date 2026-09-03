@@ -1154,7 +1154,7 @@ public class StatusBarRenderer
         if (!StatusBarConditionResolver.Evaluate(m_ctx, number))
             return;
 
-        int value = ResolveNumberValue(m_ctx.Player, number.Type, number.Param, out var shouldRender);
+        int value = ResolveNumberValue(m_ctx.Player, number.Type, number.Param);
 
         if (number.MaxLength > 0)
         {
@@ -1497,7 +1497,7 @@ public class StatusBarRenderer
         float sY)
     {
         m_fmtSpan.Clear();
-        m_fmtSpan.Append(ResolveNumberValue(m_ctx.Player, def.Type, def.Param, out var shouldRender));
+        m_fmtSpan.Append(ResolveNumberValue(m_ctx.Player, def.Type, def.Param));
         if (isPercent) m_fmtSpan.Append('%');
 
         Vec2F oldScale = m_scale;
@@ -1827,9 +1827,8 @@ public class StatusBarRenderer
         return result;
     }
 
-    private int ResolveNumberValue(Player player, StatusBarNumberType type, int param, out bool shouldRender)
+    private int ResolveNumberValue(Player player, StatusBarNumberType type, int param)
     {
-        shouldRender = true;
         var composer = m_archiveCollection.EntityDefinitionComposer;
         var stats = m_ctx.World.LevelStats;
 
