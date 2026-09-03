@@ -24,6 +24,8 @@
 - Add better checks for sprite clipping when not using software sprite emulation. (Fixes Eye Juice Arachnotrons/Medkits floating)
 - Match frame ticking behavior differences between player and non-player states.
 - Fix dehacked not setting randomize flag. Fixes Legacy of Rust Calamity Blade firing.
+- Fix status bars showing zero for chainsaw/fist.
+- Fix status bar weapon slot condition to correctly check against switched weapon instead of the weapon that's actively being switched to.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
