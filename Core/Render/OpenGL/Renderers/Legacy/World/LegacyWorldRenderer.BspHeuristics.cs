@@ -10,8 +10,8 @@ public partial class LegacyWorldRenderer
 {
     private IBspHeuristics? m_bspHeuristics;
     private double m_smoothedBspTimeUs;
-    private readonly TimeWindow m_bspTimeWindow = new(32);
-    private readonly TimeWindow m_fpsWindow = new(10);
+    private readonly SampleWindow m_bspTimeWindow = new(32);
+    private readonly SampleWindow m_fpsWindow = new(10);
 
     private int m_aboveThresholdCount;
     private int m_belowThresholdCount;
@@ -49,7 +49,7 @@ public partial class LegacyWorldRenderer
         m_lastProcessedId = m_bspHeuristics.LastProcessedId;
         m_smoothedBspTimeUs = AddBspTimeSample(m_bspHeuristics.Microseconds);
 
-        var threshold = m_config.Render.AdaptiveBspTimeThreshold.Value;
+        var threshold = m_config.Render.Adaptive.TimeThreshold.Value;
         if (m_smoothedBspTimeUs < threshold)
         {
             m_belowThresholdCount++;
@@ -61,7 +61,7 @@ public partial class LegacyWorldRenderer
             m_belowThresholdCount = 0;
         }
 
-        int thresholdCount = m_config.Render.AdaptiveBspSwitchCount.Value;
+        int thresholdCount = m_config.Render.Adaptive.SwitchCount.Value;
         var shouldUseBsp = m_smoothedBspTimeUs < threshold;
         if (!shouldUseBsp && m_belowThresholdCount >= thresholdCount)
             shouldUseBsp = true;
@@ -79,7 +79,7 @@ public partial class LegacyWorldRenderer
         }
 
         // Don't let fast CPUs switch to BSP when it's likely not beneficial.
-        if (m_bspHeuristics.SegCount > m_config.Render.AdaptiveBspSegThreshold.Value)
+        if (m_bspHeuristics.SegCount > m_config.Render.Adaptive.SegThreshold.Value)
             shouldUseBsp = false;
 
         m_bspHeuristics.Info.GameTick = WorldStatic.World.GameTicker;
@@ -101,14 +101,14 @@ public partial class LegacyWorldRenderer
         
         m_lastProcessedId = m_bspHeuristics.LastProcessedId;
 
-        var fpsValue = m_fpsWindow.AdddTimeSample(m_fpsTracker.AverageFramesPerSecond);
+        var fpsValue = m_fpsWindow.AddSampleAndCalcMedian(m_fpsTracker.AverageFramesPerSecond);
         if (!m_fpsWindow.IsInitialized)
             return;
 
         if (fpsValue > 60 || (m_config.Render.MaxFPS.Value != 0 && fpsValue > m_config.Render.MaxFPS.Value))
             return;
 
-        if (m_bspHeuristics.Microseconds >= m_config.Render.AdaptiveBspTimeThreshold.Value * 0.6)
+        if (m_bspHeuristics.Microseconds >= m_config.Render.Adaptive.TimeThreshold.Value * 0.6)
             return;
         
         m_adaptiveSuggestionsHitCount++;
@@ -121,7 +121,7 @@ public partial class LegacyWorldRenderer
 
     private double AddBspTimeSample(double time)
     {
-        m_bspTimeWindow.SetWindowSize(m_config.Render.AdaptiveBspTimeWindow.Value);
-        return m_bspTimeWindow.AdddTimeSample(time);
+        m_bspTimeWindow.SetWindowSize(m_config.Render.Adaptive.TimeWindow.Value);
+        return m_bspTimeWindow.AddSampleAndCalcMedian(time);
     }
 }

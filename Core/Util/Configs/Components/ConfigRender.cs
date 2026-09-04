@@ -83,7 +83,7 @@ public class ConfigRenderHealthBar : ConfigElement<ConfigRenderHealthBar>
     public readonly ConfigValue<int> HealthLimit = new(0, GreaterOrEqual(0));
 }
 
-public class ConfigRender: ConfigElement<ConfigRender>
+public class ConfigRender : ConfigElement<ConfigRender>
 {
     // VSync and rate limiting
 
@@ -120,7 +120,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
     // Viewport
 
     [ConfigInfo("Field of view.")]
-    [OptionMenu(OptionSectionType.Render, "Field Of View", spacer:true, sliderMin: 60.0, sliderMax: 120.0, sliderStep: .5)]
+    [OptionMenu(OptionSectionType.Render, "Field Of View", spacer: true, sliderMin: 60.0, sliderMax: 120.0, sliderStep: .5)]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 400));
 
     [ConfigInfo("Max render distance.")]
@@ -166,7 +166,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [ConfigInfo("Enable sprite transparency.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Transparency")]
     public readonly ConfigValue<bool> SpriteTransparency = new(true);
-     
+
     [ConfigInfo("Render sprites emulating software sprite clipping. May slow down rendering.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
@@ -178,7 +178,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [ConfigInfo("Emulates custom invulnerability palettes in true color mode. May not work well with all WADs. Application restart required.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Invulnerability Colormap")]
     public readonly ConfigValue<bool> EmulateInvulnerabilityColorMap = new(false);
-    
+
     [ConfigInfo("Uses a custom color overlay for Invulnerability instead of the vanilla inverse/white strobe.")]
     [OptionMenu(OptionSectionType.Render, "Alternative Invulnerability Overlay")]
     public readonly ConfigValue<bool> AlternativeInvulnerabilityOverlay = new(false);
@@ -230,16 +230,20 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Changes the render mode.")]
     public readonly ConfigValue<AdaptiveRenderMode> Mode = new(AdaptiveRenderMode.Static);
+    public readonly ConfigRenderAdaptive Adaptive = new();
+}
 
+public class ConfigRenderAdaptive : ConfigElement<ConfigRenderAdaptive>
+{
     [ConfigInfo("The number microseconds until the mode is switched to static when using adapative.")]
-    public readonly ConfigValue<int> AdaptiveBspTimeThreshold = new(2200);
+    public readonly ConfigValue<int> TimeThreshold = new(2200, GreaterOrEqual(1));
 
     [ConfigInfo("The number segs until the mode is switched to static when using adapative.")]
-    public readonly ConfigValue<int> AdaptiveBspSegThreshold = new(8000);
+    public readonly ConfigValue<int> SegThreshold = new(8000, GreaterOrEqual(1));
 
     [ConfigInfo("The number of window samples to use smoothing time calculations.")]
-    public readonly ConfigValue<int> AdaptiveBspTimeWindow = new(10, Clamp(4, 32));
+    public readonly ConfigValue<int> TimeWindow = new(10, Clamp(4, 32));
 
     [ConfigInfo("The number of times to hit above/below threshold before switching modes.")]
-    public readonly ConfigValue<int> AdaptiveBspSwitchCount = new(3, Clamp(1, 10));
+    public readonly ConfigValue<int> SwitchCount = new(3, Clamp(1, 10));
 }
