@@ -60,9 +60,18 @@ public partial class LegacyWorldRenderer
         var shouldUseBsp = m_smoothedBspTimeUs < threshold;
         if (!shouldUseBsp && m_belowThresholdCount >= thresholdCount)
             shouldUseBsp = true;
-
         if (shouldUseBsp && m_aboveThresholdCount >= thresholdCount)
             shouldUseBsp = false;
+
+        // Don't let the BSP heuristics flip-flop too quickly. If the smoothed time is within 10% of the threshold, don't switch.
+        if (shouldUseBsp != m_bspHeuristics.Info.UseBsp)
+        {
+            const double PercentRange = 0.1;
+            var highRange = threshold * (1 + PercentRange);
+            var lowRange = threshold * (1 - PercentRange);
+            if (m_smoothedBspTimeUs >= lowRange && m_smoothedBspTimeUs <= highRange)
+                shouldUseBsp = m_bspHeuristics.Info.UseBsp;
+        }
 
         // Don't let fast CPUs switch to BSP when it's likely not beneficial.
         if (m_bspHeuristics.SegCount > m_config.Render.AdaptiveBspSegThreshold.Value)
@@ -72,6 +81,7 @@ public partial class LegacyWorldRenderer
         m_bspHeuristics.Info.SmoothTime = (int)m_smoothedBspTimeUs;
         m_bspHeuristics.Info.AboveThresholdCount = m_aboveThresholdCount;
         m_bspHeuristics.Info.BelowThresholdCount = m_belowThresholdCount;
+        m_bspHeuristics.Info.SegCount = m_bspHeuristics.SegCount;
         m_bspHeuristics.Info.UseBsp = shouldUseBsp;
         return m_bspHeuristics.Info.UseBsp;
     }

@@ -7,6 +7,7 @@ public class BspHeuristicInfo
     public int SmoothTime { get; set; }
     public int AboveThresholdCount { get; set; }
     public int BelowThresholdCount { get; set; }
+    public int SegCount { get; set; }
 }
 
 public interface IBspHeuristics
