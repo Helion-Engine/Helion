@@ -445,7 +445,9 @@ public partial class Client
             return;
         }
 
-        if (verifyFiles && ModelVerification.VerifyModelFiles(worldModel.Files, m_archiveCollection, Log) != SaveVerificationResult.Success)
+        // Always log the verification result
+        var result = ModelVerification.VerifyModelFiles(worldModel.Files, m_archiveCollection, Log);
+        if (verifyFiles && result != SaveVerificationResult.Success)
         {
             ShowConsole();
             return;

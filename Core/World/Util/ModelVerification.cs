@@ -38,7 +38,11 @@ public static class ModelVerification
         }
 
         if (filesModel.Files.Any(x => !VerifyFileModel(archiveCollection, x, log)))
+        {
+            if (log != null)
+                LogExtraLoadedArchives(filesModel, log, fileArchives);
             return SaveVerificationResult.DifferentFiles;
+        }
 
         if (!VerifyFileOrder(archiveCollection, filesModel, log))
             return SaveVerificationResult.IncorrectOrder;
@@ -56,7 +60,7 @@ public static class ModelVerification
 
             if (!archive.MD5.Equals(file.MD5, StringComparison.Ordinal))
             {
-                log?.Error($"File '{file.FileName}' at incorrect order for save. Order must be: {string.Join(", ", filesModel.Files.Select(x => x.FileName))}");
+                log?.Error($"File '{file.FileName}' [{archive.MD5}] at incorrect order for save. Order must be: {string.Join(", ", filesModel.Files.Select(x => x.FileName))}");
                 return false;
             }
         }
@@ -70,7 +74,7 @@ public static class ModelVerification
         {
             if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5, StringComparison.Ordinal)))
                 continue;
-            log.Error($"Loaded '{Path.GetFileName(archive.FullPath)}' that is not part of this save.");
+            log.Error($"Loaded '{Path.GetFileName(archive.FullPath)}' [{archive.MD5}] that is not part of this save.");
         }
     }
 
@@ -80,7 +84,7 @@ public static class ModelVerification
         {
             if (fileArchives.Any(x => x.MD5.Equals(file.MD5, StringComparison.Ordinal)))
                 continue;
-            log.Error($"Required archive '{file.FileName}' for this save is not loaded.");
+            log.Error($"Required archive '{file.FileName}' [{file.MD5}] for this save is not loaded.");
         }
     }
 
@@ -95,7 +99,7 @@ public static class ModelVerification
         var archive = archiveCollection.GetArchiveByFileName(fileModel.FileName);
         if (archive == null)
         {
-            log?.Error($"Required archive '{fileModel.FileName}' for this save is not loaded.");
+            log?.Error($"Required archive '{fileModel.FileName}' [{fileModel.MD5}] for this save is not loaded.");
             return false;
         }
 

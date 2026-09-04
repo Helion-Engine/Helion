@@ -36,3 +36,4 @@
 - Minor improvements to CPU side sprite rendering.
 - Make RNG method persist in config.
 - Update ZMusic library
+- Add MD5 to loaded files in console, always log save file differences when loading incompatible saves.
