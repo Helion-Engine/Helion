@@ -52,11 +52,19 @@ public class EntityDefinitionComposer
         var normalDefinitions = actorDefinitions.Where(x => string.IsNullOrEmpty(x.Replaces));
         var replaceDefinitions = actorDefinitions.Where(x => !string.IsNullOrEmpty(x.Replaces));
 
-        foreach (ActorDefinition definition in normalDefinitions)
+        var weaponDefinitions = new List<EntityDefinition>();
+        foreach (var definition in normalDefinitions)
+        {
+            var def = GetByName(definition.Name);
+            if (def != null && !string.IsNullOrEmpty(definition.Properties.Weapons.AmmoType))
+                weaponDefinitions.Add(def);
+        }
+
+        foreach (var definition in replaceDefinitions)
             GetByName(definition.Name);
 
-        foreach (ActorDefinition definition in replaceDefinitions)
-            GetByName(definition.Name);
+        foreach (var definition in weaponDefinitions)
+            definition.Properties.Weapons.AmmoTypeDef = GetByName(definition.Properties.Weapons.AmmoType);
 
         BulletPuffDefinition = GetByName("BulletPuff");
     }
@@ -90,9 +98,6 @@ public class EntityDefinitionComposer
 
         if (definition.EditorId != null)
             m_editorNumToDefinition[definition.EditorId.Value] = definition;
-
-        if (definition.Properties.Weapons.AmmoTypeDef == null && !string.IsNullOrEmpty(definition.Properties.Weapons.AmmoType))
-            definition.Properties.Weapons.AmmoTypeDef = GetByNameOrDefault(definition.Properties.Weapons.AmmoType);
 
         return definition;
     }
