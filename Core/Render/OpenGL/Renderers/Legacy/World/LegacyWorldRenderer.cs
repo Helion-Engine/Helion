@@ -16,7 +16,7 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
-using Helion.Util.Loggers;
+using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -56,6 +56,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private readonly Stopwatch m_stopwatch = new();
     private readonly OitFrameBuffer m_oitFrameBuffer = new();
     private readonly RenderInfo m_downSizedRenderInfo = new();
+    private readonly FpsTracker m_fpsTracker;
     private readonly bool m_vanillaRender;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -73,9 +74,10 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
-    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
+    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, FpsTracker fpsTracker)
     {
         m_config = config;
+        m_fpsTracker = fpsTracker;
         m_entityRenderer = new(config, textureManager, archiveCollection);
         m_primitiveRenderer = new();
         m_worldDataManager = new(m_interpolationProgram);
@@ -309,7 +311,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (renderInfo.TransferHeightView == TransferHeightView.Middle)
         {
-            m_lastUseBsp = UseBspBasedOnHeuristic();
+            m_lastUseBsp = UseBspBasedOnHeuristic(world);
             m_renderStatic = !m_lastUseBsp;
         }
 

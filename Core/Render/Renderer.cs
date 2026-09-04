@@ -93,7 +93,7 @@ public partial class Renderer : IDisposable
         SetShaderVars();
 
         Textures = new LegacyGLTextureManager(config, archiveCollection);
-        m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
+        m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, fpsTracker);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
         m_transitionRenderer = new TransitionRenderer(window);

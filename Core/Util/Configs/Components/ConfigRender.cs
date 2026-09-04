@@ -241,5 +241,5 @@ public class ConfigRender: ConfigElement<ConfigRender>
     public readonly ConfigValue<int> AdaptiveBspTimeWindow = new(10, Clamp(4, 32));
 
     [ConfigInfo("The number of times to hit above/below threshold before switching modes.")]
-    public readonly ConfigValue<int> AdaptiveBspSwitchCount = new(5, Clamp(1, 10));
+    public readonly ConfigValue<int> AdaptiveBspSwitchCount = new(3, Clamp(1, 10));
 }

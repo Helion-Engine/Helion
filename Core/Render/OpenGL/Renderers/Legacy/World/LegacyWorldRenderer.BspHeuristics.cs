@@ -1,5 +1,6 @@
 ﻿using Helion.Util;
 using Helion.Util.Configs.Components;
+using Helion.Util.Loggers;
 using Helion.World;
 using System.Diagnostics;
 
@@ -10,12 +11,15 @@ public partial class LegacyWorldRenderer
     private IBspHeuristics? m_bspHeuristics;
     private double m_smoothedBspTimeUs;
     private readonly TimeWindow m_bspTimeWindow = new(32);
+    private readonly TimeWindow m_fpsWindow = new(10);
 
     private int m_aboveThresholdCount;
     private int m_belowThresholdCount;
     private int m_lastProcessedId;
+    private int m_adaptiveSuggestionsHitCount;
+    private bool m_loggedAdaptiveSuggestion;
 
-    private bool UseBspBasedOnHeuristic()
+    private bool UseBspBasedOnHeuristic(IWorld world)
     {
         if (m_config.Render.Mode.Value == AdaptiveRenderMode.Bsp)
         {
@@ -25,6 +29,7 @@ public partial class LegacyWorldRenderer
 
         if (m_config.Render.Mode.Value == AdaptiveRenderMode.Static || m_bspHeuristics?.Valid == false)
         {
+            CheckAdaptiveSuggest(world);
             m_bspHeuristics?.Info.UseBsp = false;
             return false;
         }
@@ -84,6 +89,34 @@ public partial class LegacyWorldRenderer
         m_bspHeuristics.Info.SegCount = m_bspHeuristics.SegCount;
         m_bspHeuristics.Info.UseBsp = shouldUseBsp;
         return m_bspHeuristics.Info.UseBsp;
+    }
+
+    private void CheckAdaptiveSuggest(IWorld world)
+    {
+        if (m_bspHeuristics == null || m_loggedAdaptiveSuggestion || world.GameTicker < 70 ||
+            m_lastProcessedId == m_bspHeuristics.LastProcessedId || !m_bspHeuristics.Valid)
+        {
+            return;
+        }
+        
+        m_lastProcessedId = m_bspHeuristics.LastProcessedId;
+
+        var fpsValue = m_fpsWindow.AdddTimeSample(m_fpsTracker.AverageFramesPerSecond);
+        if (!m_fpsWindow.IsInitialized)
+            return;
+
+        if (fpsValue > 60 || (m_config.Render.MaxFPS.Value != 0 && fpsValue > m_config.Render.MaxFPS.Value))
+            return;
+
+        if (m_bspHeuristics.Microseconds >= m_config.Render.AdaptiveBspTimeThreshold.Value * 0.6)
+            return;
+        
+        m_adaptiveSuggestionsHitCount++;
+        if (m_adaptiveSuggestionsHitCount >= 3)
+        {
+            m_loggedAdaptiveSuggestion = true;
+            HelionLog.Info("Low FPS detected. Considering switching to adaptive rendering mode. (render.mode 2)");
+        }        
     }
 
     private double AddBspTimeSample(double time)

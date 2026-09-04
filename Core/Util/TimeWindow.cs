@@ -15,6 +15,8 @@ public class TimeWindow
         SetWindowSize(windowSize);
     }
 
+    public bool IsInitialized => m_init;
+
     public void Clear() => Array.Clear(m_samples, 0, m_windowSize);
 
     public ReadOnlySpan<double> GetTimeWindow() => m_samples.AsSpan(0, m_windowSize);
