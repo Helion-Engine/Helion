@@ -35,3 +35,4 @@
 - Improved rendering performance for upper/lower transfer heights views.
 - Minor improvements to CPU side sprite rendering.
 - Make RNG method persist in config.
+- Update ZMusic library
