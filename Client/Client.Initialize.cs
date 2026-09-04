@@ -166,7 +166,7 @@ public partial class Client
 
     private void ArchiveCollection_ArchiveLoaded(object? sender, Archive archive)
     {
-        Log.Info($"Loaded {archive.FullPath}");
+        Log.Info($"Loaded {archive.FullPath} [{archive.MD5}]");
     }
 
     private bool CheckLoadMap()
