@@ -91,6 +91,43 @@ public static class Constants
     public const string DefaultBackgroundImage = "helion-background";
     public const string Endoom = "ENDOOM";
 
+    public static readonly string[] Id24PickupLookup =
+    [
+        "",
+        "BlueCard",
+        "YellowCard",
+        "RedCard",
+        "BlueSkull",
+        "YellowSkull",
+        "RedSkull",
+        "Backpack",
+        "HealthBonus",
+        "Stimpack",
+        "Medikit",
+        "Soulsphere",
+        "Megasphere",
+        "ArmorBonus",
+        "GreenArmor",
+        "BlueArmor",
+        "Allmap",
+        "Infrared",
+        "Berserk",
+        "BlurSphere",
+        "RadSuit",
+        "InvulnerabilitySphere",
+    ];
+
+    public static readonly string[] Id24PickupWeaponLookup =
+     [
+        "Chainsaw",
+        "Shotgun",
+        "SuperShotgun",
+        "Chaingun",
+        "RocketLauncher",
+        "PlasmaRifle",
+        "BFG9000",
+    ];
+
     public static class MenuSounds
     {
         public const string Activate = "menu/activate";

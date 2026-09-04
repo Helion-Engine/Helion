@@ -1,4 +1,3 @@
-using Helion.World.Entities.Inventories;
 using System;
 using System.Collections.Generic;
 using static Helion.World.Entities.Definition.States.EntityActionFunctions;
@@ -243,32 +242,6 @@ public partial class DehackedDefinition
         { "SHOT", "Shotgun" },
         { "SGN2", "SuperShotgun" },
     };
-
-    public readonly string[] Id24PickupLookup =
-    [
-        "",
-        "BlueCard",
-        "YellowCard",
-        "RedCard",
-        "BlueSkull",
-        "YellowSkull",
-        "RedSkull",
-        "Backpack",
-        "HealthBonus",
-        "Stimpack",
-        "Medikit",
-        "Soulsphere",
-        "Megasphere",
-        "ArmorBonus",
-        "GreenArmor",
-        "BlueArmor",
-        "Allmap",
-        "Infrared",
-        "Berserk",
-        "BlurSphere",
-        "RadSuit",
-        "InvulnerabilitySphere",
-    ];
 
     public readonly HashSet<string> SpriteNames = new(StringComparer.OrdinalIgnoreCase)
     {

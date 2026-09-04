@@ -170,13 +170,13 @@ public partial class DehackedDefinition
     public bool GetEntityDefinition(int thingNumber, [NotNullWhen(true)] out EntityDefinition? def) =>
         DefinitionLookup.TryGetValue(thingNumber - 1, out def);
 
-    public bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
+    public static bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
     {
         definition = null;
-        if (pickupItemType < 0 || pickupItemType >= Id24PickupLookup.Length) 
+        if (pickupItemType < 0 || pickupItemType >= Constants.Id24PickupLookup.Length) 
             return false;
 
-        definition = composer.GetByName(Id24PickupLookup[pickupItemType]);
+        definition = composer.GetByName(Constants.Id24PickupLookup[pickupItemType]);
         if (definition == null)
             return false;
 

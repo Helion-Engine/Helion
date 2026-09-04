@@ -69,7 +69,7 @@ public class EntityDefinitionComposer
         if (m_definitionsBySpan.TryGetValue(name, out EntityDefinition? definition))
             return definition;
 
-        ActorDefinition? actorDefinition = m_archiveCollection.Definitions.Decorate[name];
+        var actorDefinition = m_archiveCollection.Definitions.Decorate[name];
         if (actorDefinition == null)
             return null;
 
@@ -90,6 +90,9 @@ public class EntityDefinitionComposer
 
         if (definition.EditorId != null)
             m_editorNumToDefinition[definition.EditorId.Value] = definition;
+
+        if (definition.Properties.Weapons.AmmoTypeDef == null && !string.IsNullOrEmpty(definition.Properties.Weapons.AmmoType))
+            definition.Properties.Weapons.AmmoTypeDef = GetByNameOrDefault(definition.Properties.Weapons.AmmoType);
 
         return definition;
     }

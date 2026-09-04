@@ -4,6 +4,7 @@ using Helion.Util;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
+using Helion.World.Entities.Inventories;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities.Definition;
@@ -30,6 +31,7 @@ public class EntityDefinition
     public readonly EntityStates States;
     public readonly IList<string> ParentClassNames;
     public bool IsInventory;
+    public bool IsAmmo;
     public EntityType Type;
     public int? SpawnState;
     public int? MissileState;
@@ -67,6 +69,7 @@ public class EntityDefinition
         foreach (var parentClass in ParentClassNames)
             ParentClassLookup.Add(parentClass);
         IsInventory = IsType(EntityDefinitionType.Inventory);
+        IsAmmo = IsType(Inventory.AmmoClassName);
         if (ClassToType.TryGetValue(Name, out var type))
             Type = type;
     }

@@ -24,6 +24,9 @@
 - Add better checks for sprite clipping when not using software sprite emulation. (Fixes Eye Juice Arachnotrons/Medkits floating)
 - Match frame ticking behavior differences between player and non-player states.
 - Fix dehacked not setting randomize flag. Fixes Legacy of Rust Calamity Blade firing.
+- Fix status bars showing zero for chainsaw/fist.
+- Fix status bar weapon slot condition to correctly check against switched weapon instead of the weapon that's actively being switched to.
+- Fix status bar uses ammo condition.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
@@ -32,3 +35,5 @@
 - Improved rendering performance for upper/lower transfer heights views.
 - Minor improvements to CPU side sprite rendering.
 - Make RNG method persist in config.
+- Update ZMusic library
+- Add MD5 to loaded files in console, always log save file differences when loading incompatible saves.
