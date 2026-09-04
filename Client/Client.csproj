@@ -120,6 +120,7 @@
     <LinkerArg Include="/opt/homebrew/opt/libvorbis/lib/libvorbis.a" />
     <LinkerArg Include="/opt/homebrew/opt/libvorbis/lib/libvorbisenc.a" />
     <LinkerArg Include="-liconv" />
+    <LinkerArg Include="-framework CoreMIDI" />
   </ItemGroup>
 
   <Target Name="HandleNativeLibraries" BeforeTargets="ResolveLockFileCopyLocalFiles">
