@@ -12,9 +12,11 @@ using System;
 
 namespace Helion.World.StatusBar;
 
-public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24PickupTypeLookup, LookupArray<EntityDefinition> id24AmmoTypeLookup)
+public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24PickupTypeLookup, 
+    LookupArray<EntityDefinition> id24WeaponPickupTypeLookup, LookupArray<EntityDefinition> id24AmmoTypeLookup)
 {
     readonly LookupArray<EntityDefinition> Id24PickupTypeLookup = id24PickupTypeLookup;
+    readonly LookupArray<EntityDefinition> Id24WeaponPickupTypeLookup = id24WeaponPickupTypeLookup;
     readonly LookupArray<EntityDefinition> Id24AmmoTypeLookup = id24AmmoTypeLookup;
 
     public bool ShouldEvaluate = true;
@@ -56,8 +58,8 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
             StatusBarConditionType.WeaponSelected => CheckWeaponSelected(player, c.Param),
             StatusBarConditionType.WeaponNotSelected => !CheckWeaponSelected(player, c.Param),
             
-            StatusBarConditionType.WeaponHasAmmo => CheckWeaponHasAmmo(player, c.Param),
-            StatusBarConditionType.SelectedWeaponHasAmmo => CheckSelectedWeaponHasAmmo(player),
+            StatusBarConditionType.WeaponUsesAmmo => CheckWeaponUsesAmmo(c.Param),
+            StatusBarConditionType.SelectedWeaponUsesAmmo => CheckSelectedWeaponUsesAmmo(player),
             StatusBarConditionType.AmmoMatch => CheckAmmoMatch(player, c.Param),
             
             StatusBarConditionType.SlotOwned => CheckSlotOwned(player, c.Param),
@@ -97,8 +99,8 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
 
             StatusBarConditionType.SelectedAmmoGe => CheckSelectedAmmo(player, c.Param, greaterEqual: true),
             StatusBarConditionType.SelectedAmmoLt => CheckSelectedAmmo(player, c.Param, greaterEqual: false),
-            StatusBarConditionType.SelectedAmmoPercentGe => CheckSelectedAmmoPercent(world, player, context.HasBackPack, c.Param, greaterEqual: true),
-            StatusBarConditionType.SelectedAmmoPercentLt => CheckSelectedAmmoPercent(world, player, context.HasBackPack, c.Param, greaterEqual: false),
+            StatusBarConditionType.SelectedAmmoPercentGe => CheckSelectedAmmoPercent(player, context.HasBackPack, c.Param, greaterEqual: true),
+            StatusBarConditionType.SelectedAmmoPercentLt => CheckSelectedAmmoPercent(player, context.HasBackPack, c.Param, greaterEqual: false),
 
             StatusBarConditionType.AmmoGe => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: true),
             StatusBarConditionType.AmmoLt => CheckAmmoAmount(player, c.Param2, c.Param, greaterEqual: false),
@@ -137,34 +139,37 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
     
     private bool CheckWeaponOwned(Player player, int param)
     {
-        if (!Id24PickupTypeLookup.TryGetValue(param, out var def))
+        if (!Id24WeaponPickupTypeLookup.TryGetValue(param, out var def))
             return false;
         return player.Inventory.Weapons.OwnsWeapon(def);
     }
 
     private bool CheckWeaponSelected(Player player, int param)
     {
-        if (player.Weapon == null || !Id24PickupTypeLookup.TryGetValue(param, out var def))
+        if (player.Weapon == null || !Id24WeaponPickupTypeLookup.TryGetValue(param, out var def))
             return false;
         return player.Weapon.Definition == def;
     }
 
-    private bool CheckWeaponHasAmmo(Player player, int param)
+    private bool CheckWeaponUsesAmmo(int param)
     {
-        if (!Id24PickupTypeLookup.TryGetValue(param, out var def))
+        if (!Id24WeaponPickupTypeLookup.TryGetValue(param, out var def))
             return false;
-        string ammoType = def.Properties.Weapons.AmmoType;
-        if (string.IsNullOrEmpty(ammoType)) return true;
-        return player.Inventory.Amount(ammoType) >= def.Properties.Weapons.AmmoUse;
+
+        return WeaponUsesAmmo(def);
     }
 
-    private static bool CheckSelectedWeaponHasAmmo(Player player)
+    private static bool CheckSelectedWeaponUsesAmmo(Player player)
     {
-        var ammoDef = player.Weapon?.Definition.Properties.Weapons.AmmoTypeDef;
-        if (ammoDef == null)
+        if (player.Weapon == null)
             return false;
 
-        return player.Inventory.Amount(ammoDef) > 0;
+        return WeaponUsesAmmo(player.Weapon.Definition);
+    }
+
+    private static bool WeaponUsesAmmo(EntityDefinition def)
+    {
+        return def.Properties.Weapons.AmmoType.Length > 0 && def.Properties.Weapons.AmmoUse > 0;
     }
 
     private bool CheckAmmoMatch(Player player, int param)
@@ -173,10 +178,10 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
             return false;
         if (!Id24AmmoTypeLookup.TryGetValue(param, out var ammoDefFromParam))
             return false;
-        var weaponAmmoName = player.Weapon.Definition.Properties.Weapons.AmmoType;
-        if (string.IsNullOrEmpty(weaponAmmoName))
+        var weaponAmmoDef = player.Weapon.Definition.Properties.Weapons.AmmoTypeDef;
+        if (weaponAmmoDef == null)
             return false; 
-        return ammoDefFromParam.Name.EqualsIgnoreCase(weaponAmmoName);
+        return ammoDefFromParam == weaponAmmoDef;
     }
 
     private static bool CheckSlotOwned(Player player, int slot)
@@ -291,28 +296,26 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
     {
         if (player.Weapon == null)
             return false;
-        var ammoType = player.Weapon.Definition.Properties.Weapons.AmmoType;
-        if (string.IsNullOrEmpty(ammoType))
+
+        ref var weapons = ref player.Weapon.Definition.Properties.Weapons;
+        if (weapons.AmmoType.Length == 0 || weapons.AmmoTypeDef == null)
             return false;
         
-        int amount = player.Inventory.Amount(ammoType);
+        int amount = player.Inventory.Amount(weapons.AmmoTypeDef);
         return greaterEqual ? amount >= param : amount < param;
     }
 
-    private static bool CheckSelectedAmmoPercent(IWorld world, Player player, bool hasBackPack, int param, bool greaterEqual)
+    private static bool CheckSelectedAmmoPercent(Player player, bool hasBackPack, int param, bool greaterEqual)
     {
         if (player.Weapon == null)
             return false;
-        var ammoType = player.Weapon.Definition.Properties.Weapons.AmmoType;
-        if (string.IsNullOrEmpty(ammoType))
-            return false;
 
-        var def = world.EntityManager.DefinitionComposer.GetByName(ammoType);
-        if (def == null)
+        ref var weapons = ref player.Weapon.Definition.Properties.Weapons;
+        if (weapons.AmmoType.Length == 0 || weapons.AmmoTypeDef == null)
             return false;
         
-        int amount = player.Inventory.Amount(def);
-        int max = GetMaxAmount(def, hasBackPack);
+        int amount = player.Inventory.Amount(weapons.AmmoTypeDef);
+        int max = GetMaxAmount(weapons.AmmoTypeDef, hasBackPack);
         if (max == 0)
             return false;
 
@@ -325,7 +328,7 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
         if (!Id24AmmoTypeLookup.TryGetValue(ammoTypeIndex, out var def))
             return false;
         
-        int amount = player.Inventory.Amount(def.Name);
+        int amount = player.Inventory.Amount(def);
         return greaterEqual ? amount >= val : amount < val;
     }
     
@@ -336,7 +339,8 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
 
         int amount = player.Inventory.Amount(def);
         int max = GetMaxAmount(def, hasBackPack);
-        if (max == 0) return false;
+        if (max == 0)
+            return false;
 
         int percent = (int)((amount / (float)max) * 100);
         return greaterEqual ? percent >= val : percent < val;
@@ -370,14 +374,14 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
         if (!string.IsNullOrEmpty(paramString))
         {
             var config = world.Config.Hud;
-            return paramString.ToLowerInvariant() switch
-            {
-                "stat_totals" => config.ShowStats.Value,
-                "time" => config.ShowStats.Value,
-                "coordinates" => player.Cheats.IsCheatActive(Cheats.CheatType.ShowPosition),
-                "fps_counter" => config.ShowFPS.Value,
-                _ => true 
-            };
+            if (paramString.EqualsIgnoreCase("stat_totals") || paramString.EqualsIgnoreCase("time"))
+                return config.ShowStats.Value;
+            else if (paramString.EqualsIgnoreCase("coordinates"))
+                return player.Cheats.IsCheatActive(Cheats.CheatType.ShowPosition);
+            else if (paramString.EqualsIgnoreCase("fps_counter"))
+                return config.ShowFPS.Value;
+
+            return true;
         }
 
         var cfg = world.Config.Hud;

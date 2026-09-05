@@ -92,6 +92,7 @@ public class StatusBarRenderer
     private readonly Dictionary<string, StatusBarHudFontDef> m_hudFontLookup = [];
     private readonly SpanString m_lookupKeySpan = new(128);
     private readonly LookupArray<EntityDefinition> m_id24PickupTypeLookup = new();
+    private readonly LookupArray<EntityDefinition> m_id24WeaponPickupTypeLookup = new();
     private readonly LookupArray<EntityDefinition> m_id24AmmoTypeLookup = new();
     private readonly StatusBarConditionResolver m_resolver;
 
@@ -129,7 +130,7 @@ public class StatusBarRenderer
         m_getHudFontPatch = GetHudFontPatch;
         m_getFontNumberPatch = GetFontPatch;
 
-        m_resolver = new(m_id24PickupTypeLookup, m_id24AmmoTypeLookup);
+        m_resolver = new(m_id24PickupTypeLookup, m_id24WeaponPickupTypeLookup, m_id24AmmoTypeLookup);
     }
 
     private void BuildLookups(EntityDefinitionComposer composer)
@@ -140,21 +141,20 @@ public class StatusBarRenderer
             if (value < 0)
                 continue;
 
-            if (value > Constants.Id24PickupLookup.Length)
-            {
-                int index = value - 100;
-                if (index < 0 || index >= Constants.Id24PickupWeaponLookup.Length)
-                    continue;
-
-                var weaponDef = composer.GetByName(Constants.Id24PickupWeaponLookup[index]);
-                if (weaponDef != null)
-                    m_id24PickupTypeLookup.Set(value, weaponDef);
-                continue;
-            }
-
             var def = composer.GetByName(Constants.Id24PickupLookup[value]);
             if (def != null)
                 m_id24PickupTypeLookup.Set(value, def);
+        }
+
+        foreach (var enumValue in Enum.GetValues<Id24WeaponPickupType>())
+        {
+            int value = (int)enumValue;
+            if (value < 0)
+                continue;
+
+            var def = composer.GetByName(Constants.Id24WeaponsById[value]);
+            if (def != null)
+                m_id24WeaponPickupTypeLookup.Set(value, def);
         }
 
         foreach (var enumValue in Enum.GetValues<Id24AmmoType>())
