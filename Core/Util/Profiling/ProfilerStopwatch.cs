@@ -12,6 +12,9 @@ public class ProfilerStopwatch: ProfileComponent<ProfilerStopwatch>
 
     public double FrameMilliseconds => m_stopwatch.ElapsedTicks * TicksToMs;
     public double TotalMilliseconds => m_totalTicks * TicksToMs;
+
+    public double LastFrameMilliseconds { get; private set; }
+
     public override List<ProfilerPath> Profilers { get; } = [];
 
     public void Start()
@@ -22,6 +25,7 @@ public class ProfilerStopwatch: ProfileComponent<ProfilerStopwatch>
     public void Stop()
     {
         m_stopwatch.Stop();
+        LastFrameMilliseconds = FrameMilliseconds;
         m_totalTicks += m_stopwatch.ElapsedTicks;
     }
 
@@ -30,5 +34,5 @@ public class ProfilerStopwatch: ProfileComponent<ProfilerStopwatch>
         m_stopwatch.Reset();
     }
 
-    public override string ToString() => $"Frame = {FrameMilliseconds:0.######} ms, Total = {TotalMilliseconds:0.####} ms";
+    public override string ToString() => $"Frame = {FrameMilliseconds:0.######} ms, LastFrame = {LastFrameMilliseconds:0.######} Total = {TotalMilliseconds:0.####} ms";
 }

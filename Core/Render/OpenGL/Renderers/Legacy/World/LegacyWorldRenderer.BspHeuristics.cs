@@ -1,6 +1,5 @@
 ﻿using Helion.Util;
 using Helion.Util.Configs.Components;
-using Helion.Util.Loggers;
 using Helion.World;
 using System.Diagnostics;
 
@@ -11,7 +10,7 @@ public partial class LegacyWorldRenderer
     private IBspHeuristics? m_bspHeuristics;
     private double m_smoothedBspTimeUs;
     private readonly SampleWindow m_bspTimeWindow = new(32);
-    private readonly SampleWindow m_fpsWindow = new(10);
+    private readonly SampleWindow m_worldGeometryWindow = new(10);
 
     private int m_aboveThresholdCount;
     private int m_belowThresholdCount;
@@ -101,21 +100,25 @@ public partial class LegacyWorldRenderer
         
         m_lastProcessedId = m_bspHeuristics.LastProcessedId;
 
-        var fpsValue = m_fpsWindow.AddSampleAndCalcMedian(m_fpsTracker.AverageFramesPerSecond);
-        if (!m_fpsWindow.IsInitialized)
+        // Swap buffers should take most of the time if the GPU is stressed. Include WorldGeometry generation time.
+        // Don't rely on the tracked FPS average because this includes things like entity AI and automap rendering that can throw this off.
+        var renderTimeMs = m_renderProfiler.SwapBuffers.LastFrameMilliseconds + m_renderProfiler.WorldGeometry.LastFrameMilliseconds;
+        var milliseconds = m_worldGeometryWindow.AddSampleAndCalcMedian(renderTimeMs);
+        if (!m_worldGeometryWindow.IsInitialized)
             return;
 
-        if (fpsValue > 60 || (m_config.Render.MaxFPS.Value != 0 && fpsValue > m_config.Render.MaxFPS.Value))
+        if (milliseconds < 1000 / 60.0 || (m_config.Render.MaxFPS.Value != 0 && milliseconds < m_config.Render.MaxFPS.Value / 1000.0))
             return;
 
-        if (m_bspHeuristics.Microseconds >= m_config.Render.Adaptive.TimeThreshold.Value * 0.6)
+        if (m_bspHeuristics.Microseconds >= m_config.Render.Adaptive.TimeThreshold.Value * 0.7)
             return;
         
         m_adaptiveSuggestionsHitCount++;
         if (m_adaptiveSuggestionsHitCount >= 3)
         {
+            var args = new DisplayMessageArgs("Low FPS detected. Considering switching to adaptive rendering mode. (render.mode 2)", null, null, ForAllPlayers: true);
+            world.DisplayMessage(args);
             m_loggedAdaptiveSuggestion = true;
-            HelionLog.Info("Low FPS detected. Considering switching to adaptive rendering mode. (render.mode 2)");
         }        
     }
 

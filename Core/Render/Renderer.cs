@@ -23,6 +23,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
+using Helion.Util.Profiling.Timers;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World;
@@ -82,7 +83,7 @@ public partial class Renderer : IDisposable
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
     private bool UseVirtualResolution => (m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea);
 
-    public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
+    public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker, RenderProfiler renderProfiler)
     {
         Window = window;
         m_config = config;
@@ -93,7 +94,7 @@ public partial class Renderer : IDisposable
         SetShaderVars();
 
         Textures = new LegacyGLTextureManager(config, archiveCollection);
-        m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, fpsTracker);
+        m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, renderProfiler);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
         m_transitionRenderer = new TransitionRenderer(window);

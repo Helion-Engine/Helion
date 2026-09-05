@@ -16,6 +16,7 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
+using Helion.Util.Profiling.Timers;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
@@ -56,7 +57,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private readonly Stopwatch m_stopwatch = new();
     private readonly OitFrameBuffer m_oitFrameBuffer = new();
     private readonly RenderInfo m_downSizedRenderInfo = new();
-    private readonly FpsTracker m_fpsTracker;
+    private readonly RenderProfiler m_renderProfiler;
     private readonly bool m_vanillaRender;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -74,10 +75,10 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
-    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, FpsTracker fpsTracker)
+    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, RenderProfiler renderProfiler)
     {
         m_config = config;
-        m_fpsTracker = fpsTracker;
+        m_renderProfiler = renderProfiler;
         m_entityRenderer = new(config, textureManager, archiveCollection);
         m_primitiveRenderer = new();
         m_worldDataManager = new(m_interpolationProgram);
@@ -341,16 +342,19 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (renderTickChange)
         {
+            m_renderProfiler.WorldTraversal.Start();
             SetupRenderData(world, renderInfo);
 
             if (m_renderStatic)
                 IterateBlockmap(world);
             else
                 TraverseBsp(world, renderInfo);
+            m_renderProfiler.WorldTraversal.Stop();
         }
 
         PopulatePrimitives(world);
 
+        m_renderProfiler.WorldGeometry.Start();
         m_geometryRenderer.RenderSkies(renderInfo);
         RenderFloodFill(renderInfo);
 
@@ -382,6 +386,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
             m_entityRenderer.RenderOpaque(renderInfo);
             m_primitiveRenderer.RenderAll(renderInfo);
             RenderTransparent(renderInfo, framebuffer);
+            m_renderProfiler.WorldGeometry.Stop();
             return;
         }
 
@@ -430,6 +435,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
+        m_renderProfiler.WorldGeometry.Stop();
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)
@@ -437,10 +443,12 @@ public partial class LegacyWorldRenderer : WorldRenderer
         // Doom would draw middle textures over flood fill.
         // Setting the factor using PolygonOffset will push them further away in depth so middle textures are closer and render over.
         // Very tiny for reversed z. Flood fill is pushed in world coordinates in the shader.
+        m_renderProfiler.WorldFloodFill.Start();
         GL.Enable(EnableCap.PolygonOffsetFill);
         SetPolygonOffsetFloodFill();
         m_geometryRenderer.RenderPortals(renderInfo);
         GL.Disable(EnableCap.PolygonOffsetFill);
+        m_renderProfiler.WorldFloodFill.Stop();
     }
 
     private static void SetPolygonOffsetFloodFill()
@@ -596,6 +604,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         if (!hasEntityFuzzData && !hasEntityAlphaData && !hasDynamicAlphaGeometry && !hasStaticAlphaGeometry)
             return;
 
+        m_renderProfiler.WorldTransparent.Start();
         SetPolygonOffsetFloodFill();
         m_oitFrameBuffer.StartRender();
         GL.DepthMask(false);
@@ -694,6 +703,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
 
         GL.DepthMask(true);
+        m_renderProfiler.WorldTransparent.Stop();
     }
 
     private void RenderCompositeStyles(IStyleRenderer styleRenderer)
