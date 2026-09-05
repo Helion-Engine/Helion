@@ -58,7 +58,7 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
             StatusBarConditionType.WeaponSelected => CheckWeaponSelected(player, c.Param),
             StatusBarConditionType.WeaponNotSelected => !CheckWeaponSelected(player, c.Param),
             
-            StatusBarConditionType.WeaponUsesAmmo => CheckWeaponUsesAmmo(player, c.Param),
+            StatusBarConditionType.WeaponUsesAmmo => CheckWeaponUsesAmmo(c.Param),
             StatusBarConditionType.SelectedWeaponUsesAmmo => CheckSelectedWeaponUsesAmmo(player),
             StatusBarConditionType.AmmoMatch => CheckAmmoMatch(player, c.Param),
             
@@ -151,15 +151,12 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
         return player.Weapon.Definition == def;
     }
 
-    private bool CheckWeaponUsesAmmo(Player player, int param)
+    private bool CheckWeaponUsesAmmo(int param)
     {
         if (!Id24WeaponPickupTypeLookup.TryGetValue(param, out var def))
             return false;
 
-        if (def.Properties.Weapons.AmmoType.Length == 0 || def.Properties.Weapons.AmmoTypeDef == null)
-            return true;
-
-        return player.Inventory.Amount(def.Properties.Weapons.AmmoTypeDef) >= def.Properties.Weapons.AmmoUse;
+        return WeaponUsesAmmo(def);
     }
 
     private static bool CheckSelectedWeaponUsesAmmo(Player player)
@@ -167,7 +164,12 @@ public class StatusBarConditionResolver(LookupArray<EntityDefinition> id24Pickup
         if (player.Weapon == null)
             return false;
 
-        return player.Weapon.Definition.Properties.Weapons.AmmoUse > 0;
+        return WeaponUsesAmmo(player.Weapon.Definition);
+    }
+
+    private static bool WeaponUsesAmmo(EntityDefinition def)
+    {
+        return def.Properties.Weapons.AmmoType.Length > 0 && def.Properties.Weapons.AmmoUse > 0;
     }
 
     private bool CheckAmmoMatch(Player player, int param)
