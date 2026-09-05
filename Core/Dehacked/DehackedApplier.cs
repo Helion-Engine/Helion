@@ -257,15 +257,15 @@ public class DehackedApplier
 
     private static EntityDefinition? GetWeaponByIdDefinition(DehackedDefinition dehacked, EntityDefinitionComposer composer, int id)
     {
-        if (id < 0 || id >= dehacked.WeaponNamesById.Length)
+        if (id < 0 || id >= Constants.Id24WeaponsById.Length)
             return null;
 
-        return composer.GetByName(dehacked.WeaponNamesById[id]);
+        return composer.GetByName(Constants.Id24WeaponsById[id]);
     }
 
     private static void RemapWeaponSlotPriorities(DehackedDefinition dehacked, EntityDefinitionComposer composer, GameInfoDef gameDef)
     {
-        foreach (var weaponName in dehacked.WeaponNamesById)
+        foreach (var weaponName in Constants.Id24WeaponsById)
         {
             var weaponDef = composer.GetByName(weaponName);
             if (weaponDef == null)
@@ -857,13 +857,13 @@ public class DehackedApplier
 
     private static void SetWeaponType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, int weaponType)
     {
-        if (weaponType < 0 || weaponType >= dehacked.WeaponNamesById.Length)
+        if (weaponType < 0 || weaponType >= Constants.Id24WeaponsById.Length)
         {
             Log.Warn("Invalid weapon pickup type {type} for {number} {name}", weaponType, thing.Number, thing.Name);
             return;
         }
 
-        var weaponDef = composer.GetByName(dehacked.WeaponNamesById[weaponType]);
+        var weaponDef = composer.GetByName(Constants.Id24WeaponsById[weaponType]);
         if (weaponDef == null)
             return;
 
