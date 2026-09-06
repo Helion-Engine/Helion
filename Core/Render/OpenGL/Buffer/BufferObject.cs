@@ -100,12 +100,22 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         Uploaded = true;
     }
 
+    // Will attempt to use BufferSubData first using the underlying buffer's Length.
+    // If the underlying buffer has not been uploaded or was reallocated then it will be flagged to upload.
+    public void UploadSubDataOrSetNotUploaded(int index, int length)
+    {
+        if (!BufferSubData(index, length))
+        {
+            Uploaded = false;
+        }
+    }
+
     public void UploadSubData(int start, int length)
     {
         BufferSubData(start, length);
     }
 
-    protected abstract void BufferSubData(int start, int length);
+    protected abstract bool BufferSubData(int start, int length);
 
     public void UploadIfNeeded()
     {

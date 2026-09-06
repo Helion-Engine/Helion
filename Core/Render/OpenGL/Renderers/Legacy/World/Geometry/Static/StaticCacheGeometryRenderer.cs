@@ -46,7 +46,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly LegacySkyRenderer m_skyRenderer;
 
-    private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
     private readonly GeometryRenderer.RenderCoverWallAction m_renderCoverWallAction;
     private readonly DynamicVertex[] m_coverWallVertices3D = new DynamicVertex[6];
@@ -81,11 +80,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_renderTwoSidedMiddleSliceFunc = m_geometryRenderer.RenderTwoSidedMiddleSlice;
         m_renderSectorWallVertices3D = RenderSectorWallVertices3D;
         m_vanillaRender = archiveCollection.Config.Render.VanillaRender;
-    }
-
-    private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
-    {
-        return x.Index.CompareTo(y.Index);
     }
 
     private static int TransparentGeometryCompare(GeometryData x, GeometryData y)
@@ -230,6 +224,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         {
             var oneSided = world.Lines.Count(x => x.Back == null);
             var sidesWithTextures = world.Sides.Count(x => x.Upper.TextureHandle != 0 || x.Lower.TextureHandle != 0);
+            oneSided = 1;
+            sidesWithTextures = 1;
 
             m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, textureIndex,
                 repeat: true, addToGeometry: false, sidesWithTextures * WallVertices, overrideTexture: texture, "CoverWall Two-Sided");
@@ -617,8 +613,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions);
         }
 
-        staticVertices.SetLength(staticVertices.Length + vertices.Length);
-        
+        staticVertices.SetLength(staticVertices.Length + vertices.Length);        
     }
 
     private static void CopyVertices(StaticVertex[] staticVertices, Span<DynamicVertex> vertices, int index)
@@ -1398,10 +1393,9 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         {
             var useGeometry = oneSided ? m_coverWallGeometryOneSided : m_coverWallGeometry;
             var geometryVbo = useGeometry.Pipeline.Vbo;
-            EnsureCoverWallVboCapacity(staticGeometryData, sideVertices, geometryVbo);
             var vertices = geometryVbo.Data;
-            geometryVbo.Data.EnsureCapacity(vertices.Length + sideVertices.Length);
             staticGeometryData = new(useGeometry, vertices.Length, length);
+            EnsureCoverWallVboCapacity(staticGeometryData, sideVertices, geometryVbo);
             CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, location);
             vertices.Length += length;
             m_coverWallLookup[key] = staticGeometryData;
@@ -1432,7 +1426,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         else
         {
             geometryVbo.Bind();
-            geometryVbo.UploadSubData(index, length);
+            geometryVbo.UploadSubDataOrSetNotUploaded(index, length);
         }
     }
 
