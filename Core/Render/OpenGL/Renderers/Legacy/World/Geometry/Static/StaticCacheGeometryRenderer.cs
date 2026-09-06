@@ -224,8 +224,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         {
             var oneSided = world.Lines.Count(x => x.Back == null);
             var sidesWithTextures = world.Sides.Count(x => x.Upper.TextureHandle != 0 || x.Lower.TextureHandle != 0);
-            oneSided = 1;
-            sidesWithTextures = 1;
 
             m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, textureIndex,
                 repeat: true, addToGeometry: false, sidesWithTextures * WallVertices, overrideTexture: texture, "CoverWall Two-Sided");
