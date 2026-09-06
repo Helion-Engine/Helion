@@ -1,4 +1,5 @@
 using System;
+using Helion.Util.Assertion;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Buffer.Array;
@@ -9,6 +10,8 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
     protected abstract BufferUsageHint Hint { get; }
 
     private IntPtr m_ptr;
+    private bool m_initialized;
+    private int m_uploadedSize;
 
     protected unsafe ArrayBufferObject(string objectLabel, int capacity = DefaultCapacity) : base(objectLabel, capacity)
     {
@@ -20,16 +23,26 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 
     protected override void PerformUpload()
     {
-        GL.BufferData(Target, BytesPerElement * Data.Length, Data.Data, Hint);
+        m_initialized = true;
+        m_uploadedSize = BytesPerElement * Data.Length;
+        GL.BufferData(Target, m_uploadedSize, Data.Data, Hint);
     }
 
     protected override void PerformUploadCapacity()
     {
-        GL.BufferData(Target, BytesPerElement * Data.Capacity, Data.Data, Hint);
+        m_initialized = true;
+        m_uploadedSize = BytesPerElement * Data.Capacity;
+        GL.BufferData(Target, m_uploadedSize, Data.Data, Hint);
     }
 
-    protected unsafe override void BufferSubData(int index, int length)
+    protected unsafe override bool BufferSubData(int index, int length)
     {
+        if (!Uploaded || !m_initialized)
+        {
+            Uploaded = false;
+            return false;
+        }
+
         fixed (T* buffer = &Data.Data[0])
         {
             var ptr = (IntPtr)buffer;
@@ -39,13 +52,15 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
             {
                 m_ptr = ptr;
                 Uploaded = false;
-                return;
+                return false;
             }
 
             IntPtr offset = new(BytesPerElement * index);
             int size = BytesPerElement * length;
 
+            Assert.Precondition(m_uploadedSize >= offset + size, "Offset and size are out of bounds for the GPU");
             GL.BufferSubData(Target, offset, size, ptr + (BytesPerElement * index));
         }
+        return true;
     }
 }
