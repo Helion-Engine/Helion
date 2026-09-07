@@ -117,15 +117,17 @@ public static class Constants
         "InvulnerabilitySphere",
     ];
 
-    public static readonly string[] Id24PickupWeaponLookup =
-     [
-        "Chainsaw",
+    public static readonly string[] Id24WeaponsById =
+    [
+        "Fist",
+        "Pistol",
         "Shotgun",
-        "SuperShotgun",
         "Chaingun",
         "RocketLauncher",
         "PlasmaRifle",
         "BFG9000",
+        "Chainsaw",
+        "SuperShotgun"
     ];
 
     public static class MenuSounds

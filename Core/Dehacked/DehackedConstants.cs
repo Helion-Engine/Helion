@@ -41,19 +41,6 @@ public partial class DehackedDefinition
         ["RocketLauncher"]
     ];
 
-    public readonly string[] WeaponNamesById =
-    [
-        "Fist",
-        "Pistol",
-        "Shotgun",
-        "Chaingun",
-        "RocketLauncher",
-        "PlasmaRifle",
-        "BFG9000",
-        "Chainsaw",
-        "SuperShotgun"
-    ];
-
     public readonly string[] ActorNames =
     [
         "DoomPlayer",               // MT_PLAYER

@@ -33,6 +33,8 @@ public sealed class SectorPlane : SectorSoundSource
     public TransferHeights? TransferHeights;
     public override Sector SoundSector => Sector;
 
+    public int InvalidatedCount;
+
     private readonly double m_initialZ;
     private readonly int m_initialTextureHandle;
     private readonly RenderOffsets m_initialRenderOffsets;
@@ -72,6 +74,7 @@ public sealed class SectorPlane : SectorSoundSource
         MidTextureHack = default;
         NoRender = default;
         SkyGeometry = default;
+        InvalidatedCount = default;
 
         RenderOffsets = m_initialRenderOffsets;
     }

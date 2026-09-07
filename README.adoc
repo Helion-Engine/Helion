@@ -8,7 +8,7 @@ Helion uses static rendering with a state management system to reconcile dynamic
 
 Helion supports WADs targeting vanilla, Boom, MBF, MBF21, UDMF (partial support), and ID24.
 
-Minimum requirements are Windows 7 or Linux and an Open GL 3.3 capable GPU.
+Minimum requirements are Windows 7 (x64), Linux (x64), or MacOS (ARM64) and an OpenGL 3.3 compatible GPU or IGPU.
 
 ## Screenshots
 
@@ -43,13 +43,13 @@ image:https://i.imgur.com/QYXFuz4.png[Summer of Slaughter MAP32]
 
 ## Installing and Playing
 
-The latest stable release for Windows and most Linux distros can be https://github.com/Helion-Engine/Helion/releases/latest[downloaded here]. Nightly experimental builds are also https://github.com/Helion-Engine/Helion/releases/tag/nightly[available here] for users who want to test the latest features before they're ready.
+We support Windows (x86-64), Linux (x86-64), and MacOS (ARM 64-bit, M-series devices only).  Our latest stable release is https://github.com/Helion-Engine/Helion/releases/latest[here]. Nightly experimental builds are also https://github.com/Helion-Engine/Helion/releases/tag/nightly[available here], but may contain additional bugs or half-finished features.
 
-Helion uses .NET 10. The AOT and self-contained Helion releases include it, otherwise Windows users will need to https://dotnet.microsoft.com/en-us/download/dotnet/10.0[install the Desktop Runtime], and Linux users will need to follow the https://learn.microsoft.com/en-us/dotnet/core/install/linux[instructions for their distro]. On Linux, you will also need to make sure OpenAL, libsndfile, and libmpg123 are installed.
+Helion uses the Microsoft .NET SDK.  All of our official releases (including nightly builds) provide their own runtime and should not require additional components.  Linux users will need to ensure that `libsndfile` and `mpg123` are present (they generally are, on most "desktop" distributions).
 
 For information on setting up and playing, see the bundled link:/Assets/Documentation/README.md[game documentation].  Note that you will need to provide an IWAD (game data file); we do not distribute these.  Options include https://store.steampowered.com/app/2280/DOOM__DOOM_II/[Doom + Doom II], https://github.com/Doom-Utils/shareware-collection[Doom shareware], and https://freedoom.github.io/download.html[Freedoom].
 
-If you want to compile from source, see the link:/INSTALL.adoc[build instructions].
+If you want to compile from source, see the link:/INSTALL.adoc[build instructions], which cover all three supported platforms.
 
 ## Documents
 

@@ -24,14 +24,20 @@ public enum Id24PickupType
     Berserk,
     PartialInvisibility,
     RadiationSuit,
-    Invulnerability,
-    Chainsaw = 100,
+    Invulnerability
+}
+
+public enum Id24WeaponPickupType
+{
+    Fist,
+    Pistol,
     Shotgun,
-    SuperShotgun,
     Chaingun,
     RocketLauncher,
     PlasmaRifle,
     BFG9000,
+    Chainsaw,
+    SuperShotgun
 }
 
 public enum Id24AmmoType

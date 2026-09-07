@@ -68,6 +68,10 @@ public sealed class Side
     public SideFlags Flags;
     public float Alpha = 1f;
     public RenderDataStyle RenderDataStyle;
+    public int UpperInvalidatedCount;
+    public int MiddleInvalidatedCount;
+    public int LowerInvalidatedCount;
+    public int AlphaInvalidatedCount;
 
     public MapUserProperties UserProperties;
     public Sector? LightSector3D;
@@ -117,6 +121,10 @@ public sealed class Side
         MidTextureFlood = default;
         Flags.BlockmapLinked = default;
         Flags.UpperSky = default;
+        UpperInvalidatedCount = default;
+        MiddleInvalidatedCount = default;
+        LowerInvalidatedCount = default;
+        AlphaInvalidatedCount = default;
 
         Upper.Reset();
         Middle.Reset();
