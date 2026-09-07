@@ -936,11 +936,6 @@ public partial class GeometryRenderer : IDisposable
 
     private void RenderTwoSided(Side facingSide, bool isFrontSide)
     {
-        if (facingSide.Line.Id == 29033)
-        {
-            int lol = 1;
-        }
-
         var otherSide = facingSide.PartnerSide!;
         var facingSector = facingSide.Sector.GetRenderSector(m_transferHeightsView);
         var otherSector = otherSide.Sector.GetRenderSector(m_transferHeightsView);
@@ -950,13 +945,6 @@ public partial class GeometryRenderer : IDisposable
         // Don't set the game tick if rendering cover walls. This will prevent lines from rendering when the camera goes from back side to front.
         if (!m_renderCoverOnly)
             facingSide.LastRenderGametick = m_world.Gametick;
-
-        //bool invalidated = m_vertexLookupInvalidated[facingSide.Id];
-        //if (invalidated)
-        //{
-        //    m_vertexLookupInvalidated.Set(facingSide.Id, false);
-        //    m_sectorChangedLine = true;
-        //}
 
         var visibility = GetSideVisibility(facingSide, otherSide, facingSector, otherSector);
         var renderSlices3D = WorldStatic.Sector3D && facingSide.Sector.Sectors3D.Length > 0;
