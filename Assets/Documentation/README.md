@@ -100,6 +100,14 @@ printgame                       | Prints the current game/WAD name
 2.  Similar to the Windows ZIP files, the standard `Helion-<version>-linux-x64.zip` file requires a .NET 10.x runtime.  See https://learn.microsoft.com/en-us/dotnet/core/install/linux .  The `Helion-<version>-linux-x64_SelfContained.zip` file provides its own self-contained runtime and does not require this.
 3.  Helion requires OpenGL (GLFW) and OpenAL runtime components.  You must install these if they are not present, otherwise Helion will fail to start.  On a barebones Ubuntu install, OpenAL may need to be installed (`sudo apt-get install libopenal1`)  Additionally, the music library (ZMusic) requires libsndfile and libmpg123.  These are usually already installed by major Linux distributions (including Ubuntu) but may need to be installed manually on less common configurations.  The included music libraries were built on Ubuntu 22.04.
 4.  While we _do_ test with Linux environments, we are limited in how many different distributions we can test.  You are most likely to have success with distributions based on the latest Ubuntu LTS branch (24.04 at the time of this writing); other versions may work if you build your own native libraries.
+5.  We presently only support x86-64, as we are unaware of any AARCH64 devices with a full OpenGL implementation.
+
+## MacOS
+
+1. We only support ARM64 MacOS.  Apple has deprecated support for Intel-based hardware.  We have only tested on M-series machines.  Continued support for this platform is contingent on Apple continuing to provide an OpenGL 3.3+ implementation.
+2. Our executables are presently not signed, although they are built entirely via a GitHub runner in an automated process.  You will need to click through the various security-approval prompts to run Helion.
+3. We recommend the AOT version.  On our M1 Air test device, we found the music subsystem slow to start in non-AOT builds.  Additionally, per (2), our AOT builds are statically linked single files and thus you'll only need to bypass security for the single executable, not for the executable and five or so loose `.dylib` files.
+4. Overall, our ability to test on this platform is severely constrained compared to Windows and Linux.
 
 # Contact Us
 
