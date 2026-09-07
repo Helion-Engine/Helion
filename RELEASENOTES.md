@@ -28,6 +28,7 @@
 - Fix status bar weapon slot condition to correctly check against switched weapon instead of the weapon that's actively being switched to.
 - Fix status bar uses ammo condition.
 - Fix BufferSubData call that could write out of bounds on GPU resulting in corrupted/missing walls.
+- Fix rendering issue with lines when changing transfer heights views.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
