@@ -29,6 +29,7 @@
 - Fix status bar uses ammo condition.
 - Fix BufferSubData call that could write out of bounds on GPU resulting in corrupted/missing walls.
 - Fix rendering issue with lines when changing transfer heights views.
+- Fix width, speed, and mass properties to default to zero for dehacked isntead of using default decorate values.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
