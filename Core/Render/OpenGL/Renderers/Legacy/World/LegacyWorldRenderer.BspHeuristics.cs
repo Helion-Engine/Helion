@@ -70,9 +70,9 @@ public partial class LegacyWorldRenderer
         // Don't let the BSP heuristics flip-flop too quickly. If the smoothed time is within 10% of the threshold, don't switch.
         if (shouldUseBsp != m_bspHeuristics.Info.UseBsp)
         {
-            const double PercentRange = 0.1;
-            var highRange = threshold * (1 + PercentRange);
-            var lowRange = threshold * (1 - PercentRange);
+            var percentRange = m_config.Render.Adaptive.HysteresisPercent.Value;
+            var highRange = threshold * (1 + percentRange);
+            var lowRange = threshold * (1 - percentRange);
             if (m_smoothedBspTimeUs >= lowRange && m_smoothedBspTimeUs <= highRange)
                 shouldUseBsp = m_bspHeuristics.Info.UseBsp;
         }

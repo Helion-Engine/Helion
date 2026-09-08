@@ -238,6 +238,9 @@ public class ConfigRenderAdaptive : ConfigElement<ConfigRenderAdaptive>
     [ConfigInfo("The number microseconds until the mode is switched to static when using adapative.")]
     public readonly ConfigValue<int> TimeThreshold = new(2200, GreaterOrEqual(1));
 
+    [ConfigInfo("Percentage band for time threshold to switch modes.")]
+    public readonly ConfigValue<double> HysteresisPercent = new(0.05, Clamp(0.01, 0.5));
+
     [ConfigInfo("The number segs until the mode is switched to static when using adapative.")]
     public readonly ConfigValue<int> SegThreshold = new(8000, GreaterOrEqual(1));
 
