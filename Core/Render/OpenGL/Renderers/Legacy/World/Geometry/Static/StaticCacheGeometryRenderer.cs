@@ -130,6 +130,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 AddSectorPlane(sector, SectorPlaneFace.Ceiling, false);
         }
 
+        BuildTextureArray(world);
+
         if (WorldStatic.Sector3D)
         {
             for (int i = 0; i < world.Sectors.Count; i++)
@@ -164,6 +166,19 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
 
         m_worldReload = false;
+    }
+
+    private void BuildTextureArray(IWorld world)
+    {
+        // This is currently a test that assumes 64x64 flats
+        var textures = new HashSet<int>();
+        foreach (var sector in world.Sectors)
+        {
+            textures.Add(sector.Floor.TextureHandle);
+            textures.Add(sector.Ceiling.TextureHandle);
+        }
+
+        m_textureManager.CreateTextureArray(textures.ToArray(), true);
     }
 
     private void World_SectorFogColorChanged(object? sender, SectorFogEvent e)
@@ -738,12 +753,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         vbo.Data.Clear();
     }
 
-    private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
-    {
-        for (int i = 0; i < bufferData.Capacity; i++)
-            bufferData.Data[i]?.FlushStruct();
-    }
-
     private void AddSectorPlane(Sector sectorForSubsectors, SectorPlaneFace face, bool floor, bool update = false, 
         Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false, Sector3D? sector3D = null)
     {
@@ -809,8 +818,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     public void RenderMiddle3D() =>
          RenderGeometry(m_geometry.GetGeometry(GeometryType.Middle3D));
 
-    public void RenderFlats() => 
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
+    public void RenderFlats(IRenderTextureArray renderTextureArray) => 
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat), renderTextureArray);
 
     public void Render(GeometryType type) =>
         RenderGeometry(m_geometry.GetGeometry(type));
@@ -845,10 +854,12 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         data.Pipeline.DrawArrays();
     }
 
-    private void RenderGeometry(List<GeometryData> geometry)
+    private void RenderGeometry(List<GeometryData> geometry, IRenderTextureArray? renderTextureArray = null)
     {
         if (geometry.Count == 0)
             return;
+
+        GLLegacyTexture? lastTexture = null;
 
         for (int i = 0; i < geometry.Count; i++)
         {
@@ -856,14 +867,26 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             if (data.Pipeline.Vbo.Count == 0)
                 continue;
 
-            GL.ActiveTexture(BindTextures.BoundTexture);
             bool isNullCompatTex = data.TextureHandle <= Constants.NullCompatibilityTextureIndex;
             bool repeatY = (data.Texture.Flags & TextureFlags.ClampY) == 0;
             // Special case for one-sided walls with no texture. Uses black texture to block rendering so use directly.
             var texture = isNullCompatTex
                 ? data.Texture
                 : m_textureManager.GetTexture(data.TextureHandle, repeatY);
-            texture.Bind();
+
+            if (renderTextureArray != null && texture.IsArray && texture.ParentArrayTexture != null)
+            {
+                renderTextureArray.SetRenderTextureArray(texture.ArrayIndex);
+                texture = texture.ParentArrayTexture;
+            }
+
+            if (lastTexture != texture)
+            {
+                GL.ActiveTexture(BindTextures.BoundTexture);
+                texture.Bind();
+            }
+
+            lastTexture = texture;
 
             var brightmapTexture = isNullCompatTex
                 ? null

@@ -31,6 +31,7 @@ public static class PlaneClip
             ${{InVars}}
 
             uniform sampler2DArray boundTexture;
+            uniform int boundTextureIndex;
 
             layout (location = 0) out vec3 outPlane;
 
@@ -57,6 +58,7 @@ public static class PlaneClip
             ${InVars}
 
             uniform sampler2DArray boundTexture;
+            uniform int boundTextureIndex;
 
             layout (location = 0) out vec4 outPlane;
 
@@ -109,7 +111,7 @@ public static class PlaneClip
         if (!alphaSample)
             return "";
 
-        return @"float alpha = texture(boundTexture, vec3(uvFrag.xy, 0)).a;
+        return @"float alpha = texture(boundTexture, vec3(uvFrag.xy, boundTextureIndex)).a;
                 if (alpha <= 0) discard;";
     }
 

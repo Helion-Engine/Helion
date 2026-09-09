@@ -370,8 +370,8 @@ public partial class GeometryRenderer : IDisposable
     public void RenderStaticGeometryWalls() =>
         m_staticCacheGeometryRenderer.RenderWalls();
 
-    public void RenderStaticGeometryFlats() =>
-        m_staticCacheGeometryRenderer.RenderFlats();
+    public void RenderStaticGeometryFlats(IRenderTextureArray renderTextureArray) =>
+        m_staticCacheGeometryRenderer.RenderFlats(renderTextureArray);
 
     public void RenderStaticCoverWalls() =>
         m_staticCacheGeometryRenderer.RenderCoverWalls();

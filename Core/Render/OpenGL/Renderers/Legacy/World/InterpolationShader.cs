@@ -53,6 +53,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
         uniform sampler2DArray boundTexture;
         uniform int useSectorColor;
         uniform int useSectorFog;
+        uniform int boundTextureIndex;
 
         void main() {
             ${VertexOptionsSet}
@@ -137,6 +138,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
             uniform float downScaleAmount;
             uniform ivec2 screenBounds;
             uniform int useSectorFog;
+            uniform int boundTextureIndex;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}

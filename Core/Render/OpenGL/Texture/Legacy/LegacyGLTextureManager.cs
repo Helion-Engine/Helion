@@ -10,7 +10,6 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
-using Helion.World.Entities.Players;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -101,6 +100,45 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         Dispose();
     }
 
+    public unsafe void UploadAndSetParameters(GLLegacyTexture texture, Image[] images, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
+    {
+        GL.BindTexture(texture.Target, texture.TextureId);
+
+        if (resourceNamespace == ResourceNamespace.Sprites || resourceNamespace == ResourceNamespace.Undefined)
+            flags = TextureFlags.ClampX | TextureFlags.ClampY;
+
+        GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, images[0].Width, images[0].Height, images.Length, 0,
+            PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
+
+        for (int i = 0; i < images.Length; i++)
+        {
+            var image = images[i];
+            fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
+            {
+                IntPtr ptr = new(pixelPtr);
+                GL.TexSubImage3D(
+                        texture.Target,
+                        level: 0,
+                        xoffset: 0,
+                        yoffset: 0,
+                        zoffset: i,
+                        image.Width,
+                        image.Height,
+                        depth: 1,
+                        PixelFormat.Bgra,
+                        PixelType.UnsignedInt8888Reversed,
+                        ptr
+                    );                
+            }
+        }
+
+        GL.GenerateMipmap(GenerateMipmapTarget.Texture2DArray);
+        SetTextureParameters(texture.Target, resourceNamespace, flags);
+
+        GL.BindTexture(texture.Target, 0);
+        texture.Flags = flags;
+    }
+
     public unsafe void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
     {
         GL.BindTexture(texture.Target, texture.TextureId);
@@ -119,7 +157,6 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
                     PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
 
                 // TODO this is forcing everything to be a 2DArray with one layer.
-                int layer = 0;
                 GL.TexSubImage3D(
                         texture.Target,
                         level: 0,
@@ -131,7 +168,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
                         depth: 1,
                         PixelFormat.Bgra,
                         PixelType.UnsignedInt8888Reversed,
-                        ptr   // pointer or byte[] for this layer
+                        ptr
                     );
             }
             else
@@ -181,6 +218,29 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         UploadAndSetParameters(texture, image, name, resourceNamespace, flags);
 
         return texture;
+    }
+
+    protected override GLLegacyTexture[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags)
+    {
+        int textureId = GL.GenTexture();
+        var arrayTexture = new GLLegacyTexture(textureId, $"Texture Array {dimension}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0);
+        UploadAndSetParameters(arrayTexture, images, "", resourceNamespace, flags);
+
+        var textures = new GLLegacyTexture[images.Length];
+        for (int i = 0; i < images.Length; i++)
+        {
+            var image = images[i];
+            var texture = new GLLegacyTexture(textureId, $"Sub Image {i}", dimension, image.Offset, resourceNamespace, TextureTarget.Texture2DArray,
+                image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom)
+            {
+                ArrayIndex = i,
+                ParentArrayTexture = arrayTexture
+            };
+
+            textures[i] = texture;
+        }
+
+        return textures;
     }
 
     /// <summary>

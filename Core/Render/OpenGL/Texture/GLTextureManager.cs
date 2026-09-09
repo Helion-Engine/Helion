@@ -4,6 +4,7 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Zdoom;
@@ -208,6 +209,30 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return (GLTextureType)renderTexture;
     }
 
+    public void CreateTextureArray(int[] indices, bool repeatY)
+    {
+        if (indices.Length == 0)
+            return;
+
+        var images = new Image[indices.Length];
+        var textures = new Resources.Texture[indices.Length];
+
+        for (int i = 0; i < indices.Length; i++)
+        {
+            var index = indices[i];
+            TextureManager.EnsureTextureImageLoaded(index);
+            var texture = TextureManager.GetTexture(index);
+            // TODO this can't be null
+            images[i] = texture.Image;
+            textures[i] = texture;
+        }
+
+        var flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
+        var glTextures = GenerateTextureArray(images, images[0].Dimension, ResourceNamespace.Textures, flags);
+        for (int i = 0; i < images.Length; i++)
+            textures[i].SetGLTexture(glTextures[i], repeatY);
+    }
+
     public GLTextureType? GetBrightmapTexture(int index, bool repeatY = true)
     {
         var texture = TextureManager.GetTexture(index);
@@ -403,6 +428,12 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return texture;
     }
 
+    //protected GLTextureType[] CreateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, bool repeatY)
+    //{  
+    //    TextureFlags flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
+    //    return GenerateTextureArray(images, dimension, resourceNamespace, flags);
+    //}
+
     private ResourceTracker<GLTextureType> GetTextureTracker(bool repeatY) =>
         repeatY ? TextureTracker : TextureTrackerClamp;
 
@@ -432,6 +463,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);
+    protected abstract GLTextureType[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags);
 
     public abstract void ReUpload(GLTextureType texture, Image image, uint[] imagePixels);
 

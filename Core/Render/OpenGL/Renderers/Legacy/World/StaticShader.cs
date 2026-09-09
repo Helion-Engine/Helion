@@ -46,6 +46,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         uniform sampler2DArray boundTexture;
         uniform int useSectorColor;
         uniform int useSectorFog;
+        uniform int boundTextureIndex;
 
         void main() {
             uvFrag = uv;
@@ -128,6 +129,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             uniform float downScaleAmount;
             uniform ivec2 screenBounds;
             uniform int useSectorFog;
+            uniform int boundTextureIndex;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}

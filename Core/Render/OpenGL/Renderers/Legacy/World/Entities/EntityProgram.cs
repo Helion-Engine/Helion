@@ -96,6 +96,7 @@ public class EntityProgram : RenderProgramBase
         uniform float timeFrac;
         uniform int useSectorColor;
         uniform int useSectorFog;
+        uniform int boundTextureIndex;
         uniform sampler2DArray boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
@@ -258,6 +259,7 @@ public class EntityProgram : RenderProgramBase
         uniform vec2 downScaleSampleFactor;
         uniform float colorClamp;
         uniform int useSectorFog;
+        uniform int boundTextureIndex;
 
         uniform sampler2D planeClipTexture;
         uniform sampler2D wallClipTexture;

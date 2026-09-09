@@ -8,6 +8,9 @@ namespace Helion.Render.OpenGL.Texture.Legacy;
 public class GLLegacyTexture : GLTexture
 {
     public TextureFlags Flags;
+    public int ArrayIndex;
+    public bool IsArray => ParentArrayTexture != null;
+    public GLLegacyTexture? ParentArrayTexture;
 
     public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
         int transparentPixelCount, int blankRowsFromTop = 0, int blankRowsFromBottom = 0)

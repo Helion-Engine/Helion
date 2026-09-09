@@ -186,7 +186,7 @@ public class FragFunction
 
         var fragColor = @$"
         {textureMappingClamp}
-        {declareFragColor} = texture(boundTexture, vec3(texUV, 0));";
+        {declareFragColor} = texture(boundTexture, vec3(texUV, boundTextureIndex));";
 
         return
             fragColor +

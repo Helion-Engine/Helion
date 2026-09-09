@@ -54,6 +54,7 @@ public class FloodFillProgram : RenderProgramBase
         uniform float timeFrac;
         uniform int useSectorColor;
         uniform int useSectorFog;
+        uniform int boundTextureIndex;
 
         void main()
         {
@@ -117,6 +118,7 @@ public class FloodFillProgram : RenderProgramBase
             uniform int colormapIndex;
             uniform int useBrightmaps;
             uniform int useSectorFog;
+        uniform int boundTextureIndex;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
