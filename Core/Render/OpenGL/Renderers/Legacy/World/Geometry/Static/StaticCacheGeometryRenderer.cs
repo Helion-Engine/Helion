@@ -1,4 +1,5 @@
-﻿using Helion.Geometry.Vectors;
+﻿using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -130,7 +131,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 AddSectorPlane(sector, SectorPlaneFace.Ceiling, false);
         }
 
-        BuildTextureArray(world);
+        BuildTextureArrays(world);
 
         if (WorldStatic.Sector3D)
         {
@@ -168,17 +169,53 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_worldReload = false;
     }
 
-    private void BuildTextureArray(IWorld world)
+    private void BuildTextureArrays(IWorld world)
     {
         // This is currently a test that assumes 64x64 flats
-        var textures = new HashSet<int>();
-        foreach (var sector in world.Sectors)
+        BuildTextureArray(m_geometryRenderer.FlatTextures.ToArray());
+
+        var textures = new List<Resources.Texture>();
+        foreach (var index in m_geometryRenderer.WallTexturesRepeat)
+            textures.Add(m_archiveCollection.TextureManager.GetTexture(index));
+
+        textures.Sort(SortTexturesByDimensions);
+
+        var arrayTextures = new List<Resources.Texture>();
+        var dimension = new Dimension(0, 0);
+        foreach (var texture in textures)
         {
-            textures.Add(sector.Floor.TextureHandle);
-            textures.Add(sector.Ceiling.TextureHandle);
+            if (texture.Image == null)
+                continue;
+
+            if (dimension != texture.Image.Dimension)
+            {
+                if (arrayTextures.Count > 0)
+                    BuildTextureArray(arrayTextures.Select(x => x.Index).ToArray());
+                arrayTextures.Clear();
+                dimension = texture.Image.Dimension;
+            }
+
+            arrayTextures.Add(texture);
         }
 
-        m_textureManager.CreateTextureArray(textures.ToArray(), true);
+        if (arrayTextures.Count > 0)
+            BuildTextureArray(arrayTextures.Select(x => x.Index).ToArray());
+    }
+
+    private static int SortTexturesByDimensions(Resources.Texture x, Resources.Texture y)
+    {
+        if (x.Image == null || y.Image == null)
+            return -1;
+
+        if (x.Image.Height == y.Image.Height)
+            return x.Image.Width.CompareTo(y.Image.Width);
+
+        return x.Image.Height.CompareTo(y.Image.Height);
+    }
+
+    private void BuildTextureArray(int[] textures)
+    {
+        m_textureManager.CreateTextureArray(textures, true);
     }
 
     private void World_SectorFogColorChanged(object? sender, SectorFogEvent e)
@@ -809,8 +846,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         AddVertices(vertices, renderedVertices);
     }
 
-    public void RenderWalls() =>
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Wall));
+    public void RenderWalls(IRenderTextureArray renderTextureArray) =>
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Wall), renderTextureArray);
 
     public void RenderTwoSidedMiddleWalls() =>
         RenderGeometry(m_geometry.GetGeometry(GeometryType.TwoSidedMiddleWall));

@@ -22,6 +22,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public readonly TextureTarget Target;
     public readonly int TransparentPixelCount;
     private bool m_disposed;
+    private bool m_ownsTexture;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -30,7 +31,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public int BlankRowsFromBottom;
 
     protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
-        int transparentPixelCount, int blankRowsFromTop, int blankRowsFromBottom)
+        int transparentPixelCount, int blankRowsFromTop, int blankRowsFromBottom, bool ownsTexture = true)
     {
         TextureId = textureId;
         Name = name;
@@ -42,6 +43,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
         TransparentPixelCount = transparentPixelCount;
         BlankRowsFromTop = blankRowsFromTop;
         BlankRowsFromBottom = blankRowsFromBottom;
+        m_ownsTexture = ownsTexture;
     }
 
     ~GLTexture()
@@ -57,7 +59,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 
     protected virtual void ReleaseUnmanagedResources()
     {
-        if (m_disposed)
+        if (m_disposed || !m_ownsTexture)
             return;
         
         GL.DeleteTexture(TextureId);

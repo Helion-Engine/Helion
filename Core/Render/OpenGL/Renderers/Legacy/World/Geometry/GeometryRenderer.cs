@@ -37,6 +37,10 @@ public partial class GeometryRenderer : IDisposable
 {
     public delegate void RenderCoverWallAction(Side side, Span<DynamicVertex> vertices, WallLocation location, bool oneSided);
 
+    public HashSet<int> FlatTextures = [];
+    public HashSet<int> WallTexturesRepeat = [];
+    public HashSet<int> WallTexturesClamp = [];
+
     private const double MaxSky = 16384;
     private static readonly Sector DefaultSector = CreateDefault();
     private static readonly GLLegacyTexture TestTexture = new(0, "TEST", default, default, default, default, default);
@@ -367,8 +371,8 @@ public partial class GeometryRenderer : IDisposable
         m_hitLines.SetAll(false);
     }
 
-    public void RenderStaticGeometryWalls() =>
-        m_staticCacheGeometryRenderer.RenderWalls();
+    public void RenderStaticGeometryWalls(IRenderTextureArray renderTextureArray) =>
+        m_staticCacheGeometryRenderer.RenderWalls(renderTextureArray);
 
     public void RenderStaticGeometryFlats(IRenderTextureArray renderTextureArray) =>
         m_staticCacheGeometryRenderer.RenderFlats(renderTextureArray);
@@ -609,44 +613,49 @@ public partial class GeometryRenderer : IDisposable
         if (world.SameAsPreviousMap)
             return;
 
-        HashSet<int> textures = [];
         for (int i = 0; i < world.Lines.Count; i++)
         {
             var line = world.Lines[i];
-            AddSideTextures(textures, line.Front);
+            AddSideTextures(WallTexturesRepeat, WallTexturesClamp, line.Front);
 
             if (line.Back == null)
                 continue;
 
-            AddSideTextures(textures, line.Back);
+            AddSideTextures(WallTexturesRepeat, WallTexturesClamp, line.Back);
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            textures.Add(sector.Floor.TextureHandle);
-            textures.Add(sector.Ceiling.TextureHandle);
+            FlatTextures.Add(sector.Floor.TextureHandle);
+            FlatTextures.Add(sector.Ceiling.TextureHandle);
             if (sector.FloorSkyTextureHandle.HasValue)
-                textures.Add(sector.FloorSkyTextureHandle.Value);
+                FlatTextures.Add(sector.FloorSkyTextureHandle.Value);
             if (sector.CeilingSkyTextureHandle.HasValue)
-                textures.Add(sector.CeilingSkyTextureHandle.Value);
+                FlatTextures.Add(sector.CeilingSkyTextureHandle.Value);
         }
 
         foreach (var textureName in world.GetPreCacheTextureNames())
         {
             var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Global, ResourceNamespace.Textures);
             if (texture.Index > 0)
-                textures.Add(texture.Index);
+            {
+                WallTexturesRepeat.Add(texture.Index);
+                WallTexturesClamp.Add(texture.Index);
+            }
         }
 
-        TextureManager.LoadTextureImages(textures);
+        TextureManager.LoadTextureImages(FlatTextures);
+        TextureManager.LoadTextureImages(WallTexturesClamp);
+        TextureManager.LoadTextureImages(WallTexturesRepeat);
     }
 
-    private static void AddSideTextures(HashSet<int> textures, Side side)
+    private static void AddSideTextures(HashSet<int> wallTexturesRepeat, HashSet<int> wallTexturesClamp, Side side)
     {
-        textures.Add(side.Lower.TextureHandle);
-        textures.Add(side.Middle.TextureHandle);
-        textures.Add(side.Upper.TextureHandle);
+        wallTexturesRepeat.Add(side.Lower.TextureHandle);
+        wallTexturesRepeat.Add(side.Middle.TextureHandle);
+        wallTexturesClamp.Add(side.Middle.TextureHandle);
+        wallTexturesRepeat.Add(side.Upper.TextureHandle);
     }
 
     private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)

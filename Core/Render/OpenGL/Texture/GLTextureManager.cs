@@ -209,6 +209,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return (GLTextureType)renderTexture;
     }
 
+    private List<GLTextureType[]> m_arrayTextures = [];
+
     public void CreateTextureArray(int[] indices, bool repeatY)
     {
         if (indices.Length == 0)
@@ -223,6 +225,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
             TextureManager.EnsureTextureImageLoaded(index);
             var texture = TextureManager.GetTexture(index);
             // TODO this can't be null
+            if (texture.Image == null)
+            {
+                int x = 1;
+            }
+
             images[i] = texture.Image;
             textures[i] = texture;
         }
@@ -231,6 +238,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         var glTextures = GenerateTextureArray(images, images[0].Dimension, ResourceNamespace.Textures, flags);
         for (int i = 0; i < images.Length; i++)
             textures[i].SetGLTexture(glTextures[i], repeatY);
+
+        m_arrayTextures.Add(glTextures);
     }
 
     public GLTextureType? GetBrightmapTexture(int index, bool repeatY = true)

@@ -357,7 +357,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticProgram, renderInfo);
                 m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
-                m_geometryRenderer.RenderStaticGeometryWalls();
+                m_geometryRenderer.RenderStaticGeometryWalls(m_staticProgram);
                 m_staticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticGeometryFlats(m_staticProgram);
             }
@@ -387,7 +387,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetStaticUniforms(m_staticProgram, renderInfo);
             m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
-            m_geometryRenderer.RenderStaticGeometryWalls();
+            m_geometryRenderer.RenderStaticGeometryWalls(m_staticProgram);
 
             if (m_downscaleVanillaBuffer)
             {

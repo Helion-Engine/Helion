@@ -231,7 +231,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         {
             var image = images[i];
             var texture = new GLLegacyTexture(textureId, $"Sub Image {i}", dimension, image.Offset, resourceNamespace, TextureTarget.Texture2DArray,
-                image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom)
+                image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom, ownsTexture: false)
             {
                 ArrayIndex = i,
                 ParentArrayTexture = arrayTexture
