@@ -4,6 +4,7 @@
 - Add Radsuit intensity.
 - Automatic blood color and fuzz blood options.
 - Initial support for MacOS ARM64 builds.
+- Add weapon fire bob option.
 
 ## Bug Fixes:
 - Do not clear player velocity when slide movement fails. Matches vanilla doom behavior where players can move out of lines with enough momentum to pass clip checks. (Fixes Hellevator MAP06 start)
