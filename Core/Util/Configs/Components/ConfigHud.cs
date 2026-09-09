@@ -187,6 +187,10 @@ public class ConfigHud: ConfigElement<ConfigHud>
     [OptionMenu(OptionSectionType.Hud, "Weapon Bob", sliderMin: 0, sliderMax: 1.0, sliderStep: .05)]
     public readonly ConfigValue<double> WeaponBob = new(1.0, ClampNormalized);
 
+    [ConfigInfo("If the weapon should bob when firing.")]
+    [OptionMenu(OptionSectionType.Hud, "Weapon Fire Bob")]
+    public readonly ConfigValue<bool> WeaponFireBob = new(false);
+
 
     // Status bar
 

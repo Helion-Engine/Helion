@@ -1148,8 +1148,9 @@ public class Player : Entity
     private void SetBob()
     {
         m_viewBob = CalculateBob(WorldStatic.World.Config.Hud.ViewBob);
+        var weaponFireBob = WorldStatic.World.Config.Hud.WeaponFireBob.Value;
         // chainsaw is only ready to fire on tick 1 of its 4-tick A_WeaponReady -- this fixes the choppy bobbing
-        if (Weapon != null && (Weapon.ReadyToFire || Weapon.FrameState.Frame.ActionFunction == EntityActionFunctions.A_WeaponReady))
+        if (Weapon != null && (weaponFireBob || Weapon.ReadyToFire || Weapon.FrameState.Frame.ActionFunction == EntityActionFunctions.A_WeaponReady))
         {
             const double WeaponSwayMultiplier = Math.PI / 32;
             double value = WeaponSwayMultiplier * WorldStatic.World.LevelTime;
@@ -1531,7 +1532,7 @@ public class Player : Entity
         if (PendingWeapon != null || Weapon == null || !Weapon.ReadyToFire)
             return false;
 
-        SetWeaponTop();
+        SetWeaponTop(resetWeaponBob: !WorldStatic.World.Config.Hud.WeaponFireBob);
         Weapon.RequestFire();
         SetFireState();
 
@@ -1606,11 +1607,12 @@ public class Player : Entity
             SetWeaponTop();
     }
 
-    private void SetWeaponTop()
+    private void SetWeaponTop(bool resetWeaponBob = true)
     {
         WeaponOffset.X = PrevWeaponOffset.X = 1;
         WeaponOffset.Y = PrevWeaponOffset.Y = Constants.WeaponTop;
-        WeaponBobOffset = PrevWeaponBobOffset = Vec2D.Zero;
+        if (resetWeaponBob)
+            WeaponBobOffset = PrevWeaponBobOffset = Vec2D.Zero;
     }
 
     private void SetWeaponBottom()
