@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
@@ -11,7 +10,10 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
+using Helion.World.Entities.Players;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
@@ -108,18 +110,41 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
         if (GLInfo.DebugLabel)
             GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
-
         fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
         {
             IntPtr ptr = new(pixelPtr);
-            // Because the C# image format is 'ARGB', we can get it into the
-            // RGBA format by doing a BGRA format and then reversing it.
-            GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,
-                PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            if (texture.Target == TextureTarget.Texture2DArray)
+            {
+                GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 1, 0,
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
+
+                // TODO this is forcing everything to be a 2DArray with one layer.
+                int layer = 0;
+                GL.TexSubImage3D(
+                        texture.Target,
+                        level: 0,
+                        xoffset: 0,
+                        yoffset: 0,
+                        zoffset: 0,
+                        image.Width,
+                        image.Height,
+                        depth: 1,
+                        PixelFormat.Bgra,
+                        PixelType.UnsignedInt8888Reversed,
+                        ptr   // pointer or byte[] for this layer
+                    );
+            }
+            else
+            {
+                // Because the C# image format is 'ARGB', we can get it into the
+                // RGBA format by doing a BGRA format and then reversing it.
+                GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            }
         }
 
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-        SetTextureParameters(TextureTarget.Texture2D, resourceNamespace, flags);
+        GL.GenerateMipmap(texture.Target == TextureTarget.Texture2DArray ? GenerateMipmapTarget.Texture2DArray : GenerateMipmapTarget.Texture2D);
+        SetTextureParameters(texture.Target, resourceNamespace, flags);
 
         GL.BindTexture(texture.Target, 0);
         texture.Flags = flags;

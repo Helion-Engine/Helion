@@ -11,7 +11,7 @@ public class GLLegacyTexture : GLTexture
 
     public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
         int transparentPixelCount, int blankRowsFromTop = 0, int blankRowsFromBottom = 0)
-        : base(textureId, name, dimension, offset, ns, target, transparentPixelCount, blankRowsFromTop, blankRowsFromBottom)
+        : base(textureId, name, dimension, offset, ns, TextureTarget.Texture2DArray, transparentPixelCount, blankRowsFromTop, blankRowsFromBottom)
     {
     }
 

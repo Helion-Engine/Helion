@@ -106,7 +106,7 @@ public class FloodFillProgram : RenderProgramBase
 
             out vec4 fragColor;
 
-            uniform sampler2D boundTexture;
+            uniform sampler2DArray boundTexture;
             uniform sampler2D brightmapTexture;
             uniform vec3 camera;
             uniform mat4 mvpNoPitch;
@@ -128,7 +128,7 @@ public class FloodFillProgram : RenderProgramBase
                 vec3 lookDir = normalize(vertexPosFrag - camera);
                 float planeDot = dot(pointOnPlane - camera, planeNormal) / dot(lookDir, planeNormal);
                 vec3 planePos = camera + (lookDir * planeDot);
-                vec2 texDim = textureSize(boundTexture, 0);
+                vec2 texDim = textureSize(boundTexture, 0).xy;
                 vec2 uvFrag = vec2(planePos.x / texDim.x, planePos.y / texDim.y);
 
                 uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.

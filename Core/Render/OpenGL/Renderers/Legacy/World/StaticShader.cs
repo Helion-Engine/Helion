@@ -43,7 +43,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         uniform mat4 mvp;
         uniform float timeFrac;
         uniform int vertexGapClampUV;
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform int useSectorColor;
         uniform int useSectorFog;
 
@@ -116,7 +116,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             ${OutTargets}
 
             uniform int hasInvulnerability;
-            uniform sampler2D boundTexture;
+            uniform sampler2DArray boundTexture;
             uniform sampler2D brightmapTexture;
             uniform vec3 colorMix;
             uniform int paletteIndex;

@@ -96,7 +96,7 @@ public class EntityProgram : RenderProgramBase
         uniform float timeFrac;
         uniform int useSectorColor;
         uniform int useSectorFog;
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
 
@@ -126,7 +126,7 @@ public class EntityProgram : RenderProgramBase
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
             offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
             offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
-            ivec2 textureDim = textureSize(boundTexture, 0);
+            ivec2 textureDim = textureSize(boundTexture, 0).xy;
             textureWidthFrag = textureDim.x;
             
             ${SectorColorMapVertexFunction}
@@ -232,7 +232,7 @@ public class EntityProgram : RenderProgramBase
 
         uniform int hasInvulnerability;
         uniform float fuzzFrac;
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform sampler2D brightmapTexture;
         uniform samplerBuffer colormapTexture;
         uniform float lightLevelMix;

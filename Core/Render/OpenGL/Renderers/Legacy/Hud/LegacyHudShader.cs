@@ -129,7 +129,7 @@ public class LegacyHudShader : RenderProgram
 
         out vec4 fragColor;
 
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform sampler2D opaqueTexture;
         uniform sampler2D brightmapTexture;
         uniform samplerBuffer colormapTexture;
@@ -148,7 +148,7 @@ public class LegacyHudShader : RenderProgram
         ${FuzzFunction}
 
         void main() {
-            fragColor = texture(boundTexture, uvFrag.st);
+            fragColor = texture(boundTexture, vec3(uvFrag.st, 0));
             ${ColorMapFetch}
             ${AlphaFlag}
             fragColor.w *= alphaFrag;
