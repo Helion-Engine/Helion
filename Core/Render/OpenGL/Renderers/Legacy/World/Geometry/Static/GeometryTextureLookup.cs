@@ -1,17 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Helion.Render.OpenGL.Texture;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
-public class GeometryTextureLookup
+public class GeometryTextureLookup(IArrayTextureLookup arrayTextureLookup)
 {
     private readonly GeometryTypeLookup<TextureGeometryLookup> m_lookup = new(() => new TextureGeometryLookup());
-    private readonly Dictionary<int, int> m_arrayTextureLookup = [];
-
-    public void AddTextureArrayMap(int arrayTextureIndex, int textureIndex)
-    {
-        m_arrayTextureLookup[textureIndex] = arrayTextureIndex;
-    }
+    private readonly IArrayTextureLookup m_arrayTextureLookup = arrayTextureLookup;
 
     public void Clear()
     {
@@ -22,15 +18,13 @@ public class GeometryTextureLookup
 
     public bool TryGetValue(GeometryType type, int textureHandle, bool repeatY, [NotNullWhen(true)] out GeometryData? value)
     {
-        if (m_arrayTextureLookup.TryGetValue(textureHandle, out var arrayTextureHandle))
-            textureHandle = arrayTextureHandle;
+        textureHandle = m_arrayTextureLookup.GetArrayTextureHandle(textureHandle);
         return m_lookup.Get(type).TryGetValue(textureHandle, repeatY, out value);
     }
 
     public void Add(GeometryType type, int textureHandle, bool repeatY, GeometryData data)
     {
-        if (m_arrayTextureLookup.TryGetValue(textureHandle, out var arrayTextureHandle))
-            textureHandle = arrayTextureHandle;
+        textureHandle = m_arrayTextureLookup.GetArrayTextureHandle(textureHandle);
         m_lookup.Get(type).Add(textureHandle, repeatY, data);
     }
 }

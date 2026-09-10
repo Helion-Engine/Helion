@@ -43,7 +43,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly RenderProgram m_program;
     private readonly RenderGeometry m_geometry = new();
 
-    private readonly GeometryTextureLookup m_textureToGeometryLookup = new();
+    private readonly GeometryTextureLookup m_textureToGeometryLookup;
 
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly LegacySkyRenderer m_skyRenderer;
@@ -74,6 +74,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_floodFillRenderer = geometryRenderer.Portals.GetStaticFloodFillRenderer();
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager);
+        m_textureToGeometryLookup = new(textureManager);
         m_renderCoverWallAction = AddOrUpdateCoverWall;
 
         m_renderOneSidedSliceFunc = m_geometryRenderer.RenderOneSidedSlice;
@@ -248,10 +249,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         var arrayTexture = m_textureManager.CreateTextureArray(textures, repeatY);
         if (arrayTexture == null)
             return 0;
-
-        foreach (var index in textures)
-            m_textureToGeometryLookup.AddTextureArrayMap(arrayTexture.Index, index);
-
         return 1;
     }
 

@@ -28,7 +28,13 @@ public enum TextureFlags
     ClampY = 2,
 }
 
-public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
+public interface IArrayTextureLookup
+{
+    // Returns unique base array texture handle given a texture handle from the TextureManager
+    int GetArrayTextureHandle(int textureHandle);
+}
+
+public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager, IArrayTextureLookup
     where GLTextureType : GLTexture
 {
     protected readonly IConfig Config;
@@ -37,6 +43,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     protected readonly ResourceTracker<GLTextureType> TextureTrackerClamp = new();
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
     private readonly DynamicArray<GLTextureType[]> m_arrayTextures = new(256);
+    private readonly Dictionary<int, int> m_arrayTextureLookup = [];
     private bool m_disposed;
 
     private TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -233,10 +240,23 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         var flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
         var glTextures = GenerateTextureArray(images, images[0].Dimension, ResourceNamespace.Textures, flags, out var arrayTexture);
         for (int i = 0; i < images.Length; i++)
-            textures[i].SetGLTexture(glTextures[i], repeatY);
+        {
+            var glTexture = glTextures[i];
+            var texture = textures[i];
+            // Flip high bit to ensure no collisions
+            m_arrayTextureLookup[texture.Index] = arrayTexture.TextureId | (1 << 30);
+            textures[i].SetGLTexture(glTexture, repeatY);
+        }
 
         m_arrayTextures.Add(glTextures);
         return arrayTexture;
+    }
+
+    public int GetArrayTextureHandle(int textureHandle)
+    {
+        if (m_arrayTextureLookup.TryGetValue(textureHandle, out var handle))
+            return handle;
+        return textureHandle;
     }
 
     public GLTextureType? GetBrightmapTexture(int index, bool repeatY = true)
@@ -434,12 +454,6 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return texture;
     }
 
-    //protected GLTextureType[] CreateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, bool repeatY)
-    //{  
-    //    TextureFlags flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
-    //    return GenerateTextureArray(images, dimension, resourceNamespace, flags);
-    //}
-
     private ResourceTracker<GLTextureType> GetTextureTracker(bool repeatY) =>
         repeatY ? TextureTracker : TextureTrackerClamp;
 
@@ -469,7 +483,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);
-    protected abstract GLTextureType[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, out GLTextureType? arrayTexture);
+    protected abstract GLTextureType[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, out GLTextureType arrayTexture);
 
     public abstract void ReUpload(GLTextureType texture, Image image, uint[] imagePixels);
 

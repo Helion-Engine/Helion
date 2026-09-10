@@ -220,7 +220,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         return texture;
     }
 
-    protected override GLLegacyTexture[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, out GLLegacyTexture? arrayTexture)
+    protected override GLLegacyTexture[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, out GLLegacyTexture arrayTexture)
     {
         int textureId = GL.GenTexture();
         arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={images.Length}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0);
