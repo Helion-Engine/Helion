@@ -871,7 +871,8 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var geometryType = GetGeometryType(style, baseType);
-            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
+            var arrayTexture = m_glTextureManager?.GetParentArrayTexture(side.Middle.TextureHandle) ?? TestTexture;
+            var renderData = m_worldDataManager.GetRenderData(arrayTexture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.AddMemoryCopy(data);
             if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
@@ -1228,7 +1229,8 @@ public partial class GeometryRenderer : IDisposable
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
+                var arrayTexture = m_glTextureManager.GetParentArrayTexture(lowerWall.TextureHandle);
+                var renderData = m_worldDataManager.GetRenderData(arrayTexture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.AddMemoryCopy(data);
             }
             vertices = data;
@@ -1349,7 +1351,8 @@ public partial class GeometryRenderer : IDisposable
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
+                var arrayTexture = m_glTextureManager.GetParentArrayTexture(upperWall.TextureHandle);
+                var renderData = m_worldDataManager.GetRenderData(arrayTexture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.AddMemoryCopy(data);
             }
             vertices = data;
@@ -1535,7 +1538,8 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var geometryType = facingSide == m_fogSide ? GeometryType.FogBarrier : GetWallType(facingSide, facingSide.Middle, null);
-            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
+            var arrayTexture = m_glTextureManager.GetParentArrayTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
+            var renderData = m_worldDataManager.GetRenderData(arrayTexture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.AddMemoryCopy(data);
         }
         vertices = data;
@@ -1827,7 +1831,8 @@ public partial class GeometryRenderer : IDisposable
             vertices = lookupData;
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
+                var arrayTexture = m_glTextureManager.GetParentArrayTexture(textureHandle);
+                var renderData = m_worldDataManager.GetRenderData(arrayTexture, geometryType, brightmapTexture);
                 renderData.Pipeline.Vbo.AddMemoryCopy(lookupData);
                 // Don't need to clip floor on lower view and ceiling on upper view
                 if (sector.TransferHeights != null

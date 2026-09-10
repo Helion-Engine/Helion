@@ -53,7 +53,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         var label = GetLabel(plane);
         var pipeline = new VertexPipeline<FloodFillVertex>(m_program, new StaticVertexBuffer<FloodFillVertex>(label), label);
 
-        var texture = m_glTextureManager.GetArrayTextureOrDefault(plane.TextureHandle);
+        var texture = m_glTextureManager.GetParentArrayTexture(plane.TextureHandle);
         return new(plane.TextureHandle, texture, plane.Z, pipeline);
     }
 

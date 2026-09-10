@@ -44,7 +44,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         m_registeredTextures.Remove(texture);
     }
 
-    public GLLegacyTexture GetArrayTextureOrDefault(int index, bool repeatY = true)
+    public GLLegacyTexture GetParentArrayTexture(int index, bool repeatY = true)
     {
         var texture = GetTexture(index, repeatY);
         return texture.ParentArrayTexture ?? texture;

@@ -39,6 +39,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
         flat out float mapIdFrag;
         flat out float upperFrag;
         flat out float lowerFrag;
+        flat out float boundTextureIndex;
         out float depthFrag;
         ${VertexGapVariables}
         ${VertexDistVar3D}
@@ -54,7 +55,6 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
         uniform sampler2DArray boundTexture;
         uniform int useSectorColor;
         uniform int useSectorFog;
-        uniform int boundTextureIndex;
 
         void main() {
             ${VertexOptionsSet}
@@ -75,6 +75,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
             gl_Position = mvp * mixPos;
             zPos = mixPos.z;
             depthFrag = gl_Position.${Depth};
+            boundTextureIndex = textureIndex;
         }
     "
     .Replace("${LightLevelVertexVariables}", planeClip ? "" : LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -120,6 +121,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
             flat in float distFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
+            flat in float boundTextureIndex;
             in float depthFrag;
             ${VertexGapVariables}
             ${VertexDistVar3D}
@@ -139,7 +141,6 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
             uniform float downScaleAmount;
             uniform ivec2 screenBounds;
             uniform int useSectorFog;
-            uniform int boundTextureIndex;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
