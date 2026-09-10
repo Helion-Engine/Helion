@@ -10,6 +10,7 @@ using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
@@ -82,6 +83,14 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         return ref m_floodGeometry.Data[floodKey];
     }
 
+    private bool TryGetFloodFillInfoIndex(int textureHandle, out int index)
+    {
+        textureHandle = m_glTextureManager.GetArrayTextureHandle(textureHandle);
+        var success = m_textureHandleToFloodFillInfoIndex.TryGetValue(textureHandle, out index);
+        Assert.Precondition(success, $"Failed to find flood fill info for {textureHandle}");
+        return success;
+    }
+
     public void UpdateStaticWall(int floodKey, SectorPlane floodPlane, WallVertices vertices, double minPlaneZ, double maxPlaneZ, 
         SideTexture sideTexture, int mapId, bool isFloodFillPlane = false)
     {
@@ -98,7 +107,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
             return;
         }
 
-        if (!m_textureHandleToFloodFillInfoIndex.TryGetValue(data.TextureHandle, out int index))
+        if (!TryGetFloodFillInfoIndex(data.TextureHandle, out int index))
             return;
 
         FloodFillInfo floodInfo = m_floodFillInfos[index];
@@ -267,7 +276,9 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         ref var data = ref TryGetFloodGeometry(floodKey, out var success);
         if (success)
         {
-            int listIndex = m_textureHandleToFloodFillInfoIndex[data.TextureHandle];
+            if (!TryGetFloodFillInfoIndex(data.TextureHandle, out var listIndex))
+                return;
+
             FloodFillInfo info = m_floodFillInfos[listIndex];
             OverwriteAndSubUploadVboWithZero(info.Pipeline.Vbo, data.VboOffset, data.Vertices);
 
