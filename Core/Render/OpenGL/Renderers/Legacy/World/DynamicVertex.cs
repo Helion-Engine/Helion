@@ -32,4 +32,7 @@ public struct DynamicVertex
 
     [VertexAttribute]
     public float RenderOptions;
+
+    [VertexAttribute]
+    public float TextureIndex;
 }

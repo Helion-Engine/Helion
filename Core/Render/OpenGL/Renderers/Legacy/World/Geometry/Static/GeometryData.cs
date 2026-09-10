@@ -23,4 +23,9 @@ public sealed class GeometryData
     {
         Pipeline.Dispose();
     }
+
+    public override string ToString()
+    {
+        return Texture.ToString();
+    }
 }

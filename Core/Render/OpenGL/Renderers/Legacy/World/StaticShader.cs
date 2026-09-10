@@ -20,6 +20,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         layout(location = 2) in float lightLevelAdd;
         layout(location = 3) in float surfaceOptions;
         layout(location = 4) in float renderOptions;
+        layout(location = 5) in float textureIndex;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -31,6 +32,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         flat out float mapIdFrag;
         flat out float upperFrag;
         flat out float lowerFrag;
+        flat out float boundTextureIndex;
         out float depthFrag;
         ${VertexGapVariables}
         ${VertexDistVar3D}
@@ -46,7 +48,6 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         uniform sampler2DArray boundTexture;
         uniform int useSectorColor;
         uniform int useSectorFog;
-        uniform int boundTextureIndex;
 
         void main() {
             uvFrag = uv;
@@ -65,6 +66,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             gl_Position = mvp * mixPos;
             zPos = pos.z;
             depthFrag = gl_Position.${Depth};
+            boundTextureIndex = textureIndex;
         }
     "
     .Replace("${LightLevelVertexVariables}", planeClip ? "" : LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -110,6 +112,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             flat in float mapIdFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
+            flat in float boundTextureIndex;
             in float depthFrag;
             ${VertexGapVariables}
             ${VertexDistVar3D}
@@ -129,7 +132,6 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             uniform float downScaleAmount;
             uniform ivec2 screenBounds;
             uniform int useSectorFog;
-            uniform int boundTextureIndex;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}

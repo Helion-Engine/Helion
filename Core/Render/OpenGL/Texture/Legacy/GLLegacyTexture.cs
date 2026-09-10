@@ -14,7 +14,7 @@ public class GLLegacyTexture : GLTexture
 
     public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
         int transparentPixelCount, int blankRowsFromTop = 0, int blankRowsFromBottom = 0, bool ownsTexture = true)
-        : base(textureId, name, dimension, offset, ns, TextureTarget.Texture2DArray, transparentPixelCount, blankRowsFromTop, blankRowsFromBottom)
+        : base(textureId, name, dimension, offset, ns, TextureTarget.Texture2DArray, transparentPixelCount, blankRowsFromTop, blankRowsFromBottom, ownsTexture)
     {
     }
 
@@ -28,5 +28,5 @@ public class GLLegacyTexture : GLTexture
         GL.BindTexture(Target, 0);
     }
 
-    public override string ToString() => $"{TextureId}:{Name}";
+    public override string ToString() => $"{TextureId}:{Name} [{Dimension}]";
 }

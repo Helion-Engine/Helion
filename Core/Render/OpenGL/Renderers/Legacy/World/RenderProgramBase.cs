@@ -6,7 +6,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-public abstract class RenderProgramBase : RenderProgram, IRenderTextureArray
+public abstract class RenderProgramBase : RenderProgram
 {
     private readonly int m_boundTextureLocation;
     private readonly int m_sectorLightTextureLocation;
@@ -38,7 +38,6 @@ public abstract class RenderProgramBase : RenderProgram, IRenderTextureArray
     private readonly int m_fogBarrierLocation;
     private readonly int m_useSectorColorLocation;
     private readonly int m_useSectorFogLocation;
-    private readonly int m_boundTextureIndexLocation;
 
     public RenderProgramBase(string label) : base(label)
     {
@@ -72,9 +71,6 @@ public abstract class RenderProgramBase : RenderProgram, IRenderTextureArray
         m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
         m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
         m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
-        m_boundTextureIndexLocation = Uniforms.GetLocation("boundTextureIndex");
-
-        SetRenderTextureArray(0);
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -108,6 +104,4 @@ public abstract class RenderProgramBase : RenderProgram, IRenderTextureArray
     public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
     public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
     public void UseSectorFog(int value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
-
-    public void SetRenderTextureArray(int index) => ProgramUniforms.Set(index, m_boundTextureIndexLocation);
 }

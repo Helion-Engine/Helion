@@ -21,8 +21,8 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public readonly ResourceNamespace Namespace;
     public readonly TextureTarget Target;
     public readonly int TransparentPixelCount;
+    private readonly bool m_ownsTexture;
     private bool m_disposed;
-    private bool m_ownsTexture;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;

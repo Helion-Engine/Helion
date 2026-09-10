@@ -357,9 +357,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticProgram, renderInfo);
                 m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
-                m_geometryRenderer.RenderStaticGeometryWalls(m_staticProgram);
+                m_geometryRenderer.RenderStaticGeometryWalls();
                 m_staticProgram.VertexGapClampUV(false);
-                m_geometryRenderer.RenderStaticGeometryFlats(m_staticProgram);
+                m_geometryRenderer.RenderStaticGeometryFlats();
             }
 
             RenderTwoSidedMiddleWalls(renderInfo);
@@ -387,12 +387,12 @@ public partial class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetStaticUniforms(m_staticProgram, renderInfo);
             m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
-            m_geometryRenderer.RenderStaticGeometryWalls(m_staticProgram);
+            m_geometryRenderer.RenderStaticGeometryWalls();
 
             if (m_downscaleVanillaBuffer)
             {
                 m_staticProgram.VertexGapClampUV(false);
-                m_geometryRenderer.RenderStaticGeometryFlats(m_staticProgram);
+                m_geometryRenderer.RenderStaticGeometryFlats();
             }
         }
 
@@ -561,7 +561,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 program.VertexGapClampUV(false);
                 SetStaticUniforms(program, renderInfo);
-                m_geometryRenderer.RenderStaticGeometryFlats(program);
+                m_geometryRenderer.RenderStaticGeometryFlats();
             }
         }
 

@@ -27,6 +27,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
         layout(location = 4) in vec3 prevPos;
         layout(location = 5) in vec2 prevUV;
         layout(location = 6) in float renderOptions;
+        layout(location = 7) in float textureIndex;
 
         out vec2 uvFrag;
         flat out float alphaFrag;

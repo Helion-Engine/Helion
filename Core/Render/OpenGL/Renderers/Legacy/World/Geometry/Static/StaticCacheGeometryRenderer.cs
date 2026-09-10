@@ -14,6 +14,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
+using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -116,7 +117,11 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_geometryRenderer.SetInitRender();
 
         if (!world.SameAsPreviousMap)
+        {
             m_skyRenderer.Reset();
+            // TODO probably needs to be smarter
+            BuildTextureArrays();
+        }
 
         SetupCoverGeometry(world);
 
@@ -130,8 +135,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, SectorPlaneFace.Ceiling, false);
         }
-
-        BuildTextureArrays(world);
 
         if (WorldStatic.Sector3D)
         {
@@ -169,18 +172,36 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_worldReload = false;
     }
 
-    private void BuildTextureArrays(IWorld world)
+    private void BuildTextureArrays()
     {
-        // This is currently a test that assumes 64x64 flats
-        BuildTextureArray(m_geometryRenderer.FlatTextures.ToArray());
+        int totalTextures = 0;
+        int arrayTextures = 0;
+        var textures = new DynamicArray<Resources.Texture>(1024);
+        foreach (var index in m_geometryRenderer.FlatTextures)
+            AddTexture(textures, index);
 
-        var textures = new List<Resources.Texture>();
         foreach (var index in m_geometryRenderer.WallTexturesRepeat)
-            textures.Add(m_archiveCollection.TextureManager.GetTexture(index));
+            AddTexture(textures, index);
 
+        totalTextures += textures.Count;
         textures.Sort(SortTexturesByDimensions);
+        arrayTextures += BuildTextureArrayFromTextures(textures, true);
 
-        var arrayTextures = new List<Resources.Texture>();
+        textures.Clear();
+        foreach (var index in m_geometryRenderer.WallTexturesClamp)
+            AddTexture(textures, index);
+
+        totalTextures += textures.Count;
+        textures.Sort(SortTexturesByDimensions);
+        arrayTextures += BuildTextureArrayFromTextures(textures, false);
+
+        HelionLog.Info($"Compressed textures {totalTextures} -> {arrayTextures}");
+    }
+
+    private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, bool repeatY)
+    {
+        int textureCount = 0;
+        var arrayTextures = new DynamicArray<int>();
         var dimension = new Dimension(0, 0);
         foreach (var texture in textures)
         {
@@ -189,23 +210,32 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
             if (dimension != texture.Image.Dimension)
             {
-                if (arrayTextures.Count > 0)
-                    BuildTextureArray(arrayTextures.Select(x => x.Index).ToArray());
+                if (arrayTextures.Count > 0)                
+                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), repeatY);
                 arrayTextures.Clear();
                 dimension = texture.Image.Dimension;
             }
 
-            arrayTextures.Add(texture);
+            arrayTextures.Add(texture.Index);
         }
 
         if (arrayTextures.Count > 0)
-            BuildTextureArray(arrayTextures.Select(x => x.Index).ToArray());
+            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), repeatY);
+
+        return textureCount;
+    }
+
+    private void AddTexture(DynamicArray<Resources.Texture> textures, int index)
+    {
+        var texture = m_archiveCollection.TextureManager.GetTexture(index);
+        if (texture.Image != null)
+            textures.Add(texture);
     }
 
     private static int SortTexturesByDimensions(Resources.Texture x, Resources.Texture y)
     {
         if (x.Image == null || y.Image == null)
-            return -1;
+            throw new NullReferenceException("Texture image must not be null");
 
         if (x.Image.Height == y.Image.Height)
             return x.Image.Width.CompareTo(y.Image.Width);
@@ -213,9 +243,16 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         return x.Image.Height.CompareTo(y.Image.Height);
     }
 
-    private void BuildTextureArray(int[] textures)
+    private int BuildTextureArray(Span<int> textures, bool repeatY)
     {
-        m_textureManager.CreateTextureArray(textures, true);
+        var arrayTexture = m_textureManager.CreateTextureArray(textures, repeatY);
+        if (arrayTexture == null)
+            return 0;
+
+        foreach (var index in textures)
+            m_textureToGeometryLookup.AddTextureArrayMap(arrayTexture.Index, index);
+
+        return 1;
     }
 
     private void World_SectorFogColorChanged(object? sender, SectorFogEvent e)
@@ -660,10 +697,10 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         {
             ref var v = ref vertices[i];
             staticVertices.Data[staticStartIndex + i] = new StaticVertex(v.X, v.Y, v.Z, v.U, v.V,
-                v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions);
+                v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions, v.TextureIndex);
         }
 
-        staticVertices.SetLength(staticVertices.Length + vertices.Length);        
+        staticVertices.SetLength(staticVertices.Length + vertices.Length);     
     }
 
     private static void CopyVertices(StaticVertex[] staticVertices, Span<DynamicVertex> vertices, int index)
@@ -672,7 +709,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         {
             ref var v = ref vertices[i];
             staticVertices[index + i] = new StaticVertex(v.X, v.Y, v.Z, v.U, v.V,
-                v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions);
+                v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions, v.TextureIndex);
         }        
     }
 
@@ -724,6 +761,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         vboSize = Math.Max(vboSize, 32);
         label ??= GetGeometryLabel(type, textureHandle, repeat);
         var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
+        if (texture.ParentArrayTexture != null)
+            texture = texture.ParentArrayTexture;
         var brightmapTexture = m_textureManager.GetBrightmapTexture(textureHandle, repeat);
         var vbo = new StaticVertexBuffer<StaticVertex>(label, vboSize);
         var pipeline = new VertexPipeline<StaticVertex>(m_program, vbo, label);
@@ -846,8 +885,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         AddVertices(vertices, renderedVertices);
     }
 
-    public void RenderWalls(IRenderTextureArray renderTextureArray) =>
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Wall), renderTextureArray);
+    public void RenderWalls() =>
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Wall));
 
     public void RenderTwoSidedMiddleWalls() =>
         RenderGeometry(m_geometry.GetGeometry(GeometryType.TwoSidedMiddleWall));
@@ -855,8 +894,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     public void RenderMiddle3D() =>
          RenderGeometry(m_geometry.GetGeometry(GeometryType.Middle3D));
 
-    public void RenderFlats(IRenderTextureArray renderTextureArray) => 
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat), renderTextureArray);
+    public void RenderFlats() => 
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
 
     public void Render(GeometryType type) =>
         RenderGeometry(m_geometry.GetGeometry(type));
@@ -891,12 +930,10 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         data.Pipeline.DrawArrays();
     }
 
-    private void RenderGeometry(List<GeometryData> geometry, IRenderTextureArray? renderTextureArray = null)
+    private void RenderGeometry(List<GeometryData> geometry)
     {
         if (geometry.Count == 0)
             return;
-
-        GLLegacyTexture? lastTexture = null;
 
         for (int i = 0; i < geometry.Count; i++)
         {
@@ -909,21 +946,12 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             // Special case for one-sided walls with no texture. Uses black texture to block rendering so use directly.
             var texture = isNullCompatTex
                 ? data.Texture
-                : m_textureManager.GetTexture(data.TextureHandle, repeatY);
+                : data.Texture;
+            // TODO animation
+            //m_textureManager.GetTexture(data.TextureHandle, repeatY);
 
-            if (renderTextureArray != null && texture.IsArray && texture.ParentArrayTexture != null)
-            {
-                renderTextureArray.SetRenderTextureArray(texture.ArrayIndex);
-                texture = texture.ParentArrayTexture;
-            }
-
-            if (lastTexture != texture)
-            {
-                GL.ActiveTexture(BindTextures.BoundTexture);
-                texture.Bind();
-            }
-
-            lastTexture = texture;
+            GL.ActiveTexture(BindTextures.BoundTexture);
+            texture.Bind();
 
             var brightmapTexture = isNullCompatTex
                 ? null

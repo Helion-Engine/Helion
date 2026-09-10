@@ -30,6 +30,7 @@ public class FloodFillProgram : RenderProgramBase
         layout(location = 6) in float surfaceOptions;
         layout(location = 7) in float renderOptions;
         layout(location = 8) in float mapId;
+        layout(location = 9) in float textureIndex;
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
@@ -41,6 +42,7 @@ public class FloodFillProgram : RenderProgramBase
         flat out float mapIdFrag;
         flat out float upperFrag;
         flat out float lowerFrag;
+        flat out float boundTextureIndex;
         out float depthFrag;
 
         ${SectorColorMapVertexFragVariables}
@@ -54,7 +56,6 @@ public class FloodFillProgram : RenderProgramBase
         uniform float timeFrac;
         uniform int useSectorColor;
         uniform int useSectorFog;
-        uniform int boundTextureIndex;
 
         void main()
         {
@@ -78,6 +79,7 @@ public class FloodFillProgram : RenderProgramBase
 
             gl_Position = mvp * vec4(worldPos, 1.0);
             depthFrag = gl_Position.${Depth};
+            boundTextureIndex = textureIndex;
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.NoDist))
@@ -102,6 +104,7 @@ public class FloodFillProgram : RenderProgramBase
             flat in float mapIdFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
+            flat in float boundTextureIndex;
             in vec3 vertexPosFrag;
             in float dist2D;
 
@@ -118,7 +121,6 @@ public class FloodFillProgram : RenderProgramBase
             uniform int colormapIndex;
             uniform int useBrightmaps;
             uniform int useSectorFog;
-        uniform int boundTextureIndex;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
