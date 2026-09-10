@@ -44,6 +44,12 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         m_registeredTextures.Remove(texture);
     }
 
+    public GLLegacyTexture GetArrayTextureOrDefault(int index, bool repeatY = true)
+    {
+        var texture = GetTexture(index, repeatY);
+        return texture.ParentArrayTexture ?? texture;
+    }
+
     private void HandleFilterChange(object? sender, FilterType e)
     {
         UpdateTextureTrackerFilter(TextureTracker);

@@ -29,8 +29,8 @@ public class FloodFillProgram : RenderProgramBase
         layout(location = 5) in float prevPlaneZ;
         layout(location = 6) in float surfaceOptions;
         layout(location = 7) in float renderOptions;
-        layout(location = 8) in float mapId;
-        layout(location = 9) in float textureIndex;
+        layout(location = 8) in float textureIndex;
+        layout(location = 9) in float mapId;
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;

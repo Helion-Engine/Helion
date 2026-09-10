@@ -4,9 +4,8 @@ using Helion.Render.OpenGL.Vertex;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
-// TODO textureIndex
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, float surfaceOptions, float renderOptions, int mapId, int textureIndex = 0)
+public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, float surfaceOptions, float renderOptions, int mapId, int textureIndex)
 {
     [VertexAttribute("pos", size: 3)]
     public Vec3F Pos = pos;
@@ -32,9 +31,9 @@ public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPl
     [VertexAttribute("renderOptions", size: 1)]
     public float RenderOptions = renderOptions;
 
-    [VertexAttribute("mapId", size: 1, required: false)]
-    public float MapId = mapId;
-
     [VertexAttribute("textureId", size: 1)]
     public float TextureIndex = textureIndex;
+
+    [VertexAttribute("mapId", size: 1, required: false)]
+    public float MapId = mapId;
 }
