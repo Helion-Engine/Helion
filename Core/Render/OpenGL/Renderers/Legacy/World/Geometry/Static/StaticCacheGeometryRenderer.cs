@@ -1,5 +1,4 @@
-﻿using Helion.Geometry;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -14,7 +13,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
-using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -118,11 +116,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_geometryRenderer.SetInitRender();
 
         if (!world.SameAsPreviousMap)
-        {
             m_skyRenderer.Reset();
-            // TODO probably needs to be smarter
-            BuildTextureArrays();
-        }
 
         SetupCoverGeometry(world);
 
@@ -173,84 +167,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_worldReload = false;
     }
 
-    private void BuildTextureArrays()
-    {
-        int totalTextures = 0;
-        int arrayTextures = 0;
-        var textures = new DynamicArray<Resources.Texture>(1024);
-        foreach (var index in m_geometryRenderer.FlatTextures)
-            AddTexture(textures, index);
 
-        foreach (var index in m_geometryRenderer.WallTexturesRepeat)
-            AddTexture(textures, index);
-
-        totalTextures += textures.Count;
-        textures.Sort(SortTexturesByDimensions);
-        arrayTextures += BuildTextureArrayFromTextures(textures, true);
-
-        textures.Clear();
-        foreach (var index in m_geometryRenderer.WallTexturesClamp)
-            AddTexture(textures, index);
-
-        totalTextures += textures.Count;
-        textures.Sort(SortTexturesByDimensions);
-        arrayTextures += BuildTextureArrayFromTextures(textures, false);
-
-        HelionLog.Info($"Compressed textures {totalTextures} -> {arrayTextures}");
-    }
-
-    private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, bool repeatY)
-    {
-        int textureCount = 0;
-        var arrayTextures = new DynamicArray<int>();
-        var dimension = new Dimension(0, 0);
-        foreach (var texture in textures)
-        {
-            if (texture.Image == null)
-                continue;
-
-            if (dimension != texture.Image.Dimension)
-            {
-                if (arrayTextures.Count > 0)                
-                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), repeatY);
-                arrayTextures.Clear();
-                dimension = texture.Image.Dimension;
-            }
-
-            arrayTextures.Add(texture.Index);
-        }
-
-        if (arrayTextures.Count > 0)
-            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), repeatY);
-
-        return textureCount;
-    }
-
-    private void AddTexture(DynamicArray<Resources.Texture> textures, int index)
-    {
-        var texture = m_archiveCollection.TextureManager.GetTexture(index);
-        if (texture.Image != null)
-            textures.Add(texture);
-    }
-
-    private static int SortTexturesByDimensions(Resources.Texture x, Resources.Texture y)
-    {
-        if (x.Image == null || y.Image == null)
-            throw new NullReferenceException("Texture image must not be null");
-
-        if (x.Image.Height == y.Image.Height)
-            return x.Image.Width.CompareTo(y.Image.Width);
-
-        return x.Image.Height.CompareTo(y.Image.Height);
-    }
-
-    private int BuildTextureArray(Span<int> textures, bool repeatY)
-    {
-        var arrayTexture = m_textureManager.CreateTextureArray(textures, repeatY);
-        if (arrayTexture == null)
-            return 0;
-        return 1;
-    }
 
     private void World_SectorFogColorChanged(object? sender, SectorFogEvent e)
     {
@@ -941,9 +858,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             // Special case for one-sided walls with no texture. Uses black texture to block rendering so use directly.
             var texture = isNullCompatTex
                 ? data.Texture
-                : data.Texture;
-            // TODO animation
-            //m_textureManager.GetTexture(data.TextureHandle, repeatY);
+                : m_textureManager.GetTexture(data.TextureHandle, repeatY);
 
             GL.ActiveTexture(BindTextures.BoundTexture);
             texture.Bind();

@@ -42,7 +42,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     protected readonly ResourceTracker<GLTextureType> TextureTracker = new();
     protected readonly ResourceTracker<GLTextureType> TextureTrackerClamp = new();
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
-    private readonly DynamicArray<GLTextureType[]> m_arrayTextures = new(256);
+    private readonly DynamicArray<GLTextureType[]> m_arraySubTextures = new(256);
+    private readonly DynamicArray<GLTextureType> m_arrayTextures = new(256);
+    private readonly DynamicArray<Resources.Texture> m_texturesForArrays = new(256);
     private readonly Dictionary<int, int> m_arrayTextureLookup = [];
     private bool m_disposed;
 
@@ -97,6 +99,24 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     ~GLTextureManager()
     {
         Dispose();
+    }
+
+    public void DestroyTextureArrays()
+    {
+        for (int i = 0; i < m_arrayTextures.Length; i++)
+            m_arrayTextures.Data[i].Dispose();
+
+        for (int i = 0; i < m_texturesForArrays.Length; i++)
+        {
+            var texture = m_texturesForArrays.Data[i];
+            texture.RenderStore = null;
+            texture.RenderStoreClamp = null;
+        }
+
+        m_arrayTextures.Clear();
+        m_arraySubTextures.Clear();
+        m_arrayTextureLookup.Clear();
+        m_texturesForArrays.Clear();
     }
 
     public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
@@ -235,6 +255,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
             images[i] = texture.Image ?? new Image(default, ImageType.Argb);
             textures[i] = texture;
+            m_texturesForArrays.Add(texture);
         }
 
         var flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
@@ -248,7 +269,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             textures[i].SetGLTexture(glTexture, repeatY);
         }
 
-        m_arrayTextures.Add(glTextures);
+        m_arrayTextures.Add(arrayTexture);
+        m_arraySubTextures.Add(glTextures);
         return arrayTexture;
     }
 

@@ -231,6 +231,9 @@ public partial class GeometryRenderer : IDisposable
 
         if (!unitTest)
         {
+            var arrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_glTextureManager);
+            arrayBuilder.BuildLevel(FlatTextures, WallTexturesRepeat, WallTexturesClamp);
+
             Portals.UpdateTo(world);
             m_staticCacheGeometryRenderer.UpdateTo(world);
             m_worldDataManager?.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
