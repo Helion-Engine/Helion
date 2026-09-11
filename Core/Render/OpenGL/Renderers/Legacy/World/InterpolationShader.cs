@@ -1,9 +1,4 @@
-using GlmSharp;
-using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.Render.OpenGL.Shader;
-using Helion.Util.Configs.Components;
-using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
@@ -27,7 +22,6 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
         layout(location = 4) in vec3 prevPos;
         layout(location = 5) in vec2 prevUV;
         layout(location = 6) in float renderOptions;
-        layout(location = 7) in float textureIndex;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -75,7 +69,6 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
             gl_Position = mvp * mixPos;
             zPos = mixPos.z;
             depthFrag = gl_Position.${Depth};
-            boundTextureIndex = textureIndex;
         }
     "
     .Replace("${LightLevelVertexVariables}", planeClip ? "" : LightLevel.VertexVariables(LightLevelOptions.Default))

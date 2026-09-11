@@ -35,11 +35,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public partial class GeometryRenderer : IDisposable
 {
-    public delegate void RenderCoverWallAction(Side side, Span<DynamicVertex> vertices, WallLocation location, bool oneSided);
+    sealed record class LoadTextureCounts(HashSet<int> FlatTextures, HashSet<int> WallTexturesRepeat, HashSet<int> WallTexturesClamp);
 
-    public HashSet<int> FlatTextures = [];
-    public HashSet<int> WallTexturesRepeat = [];
-    public HashSet<int> WallTexturesClamp = [];
+    public delegate void RenderCoverWallAction(Side side, Span<DynamicVertex> vertices, WallLocation location, bool oneSided);
 
     private const double MaxSky = 16384;
     private static readonly Sector DefaultSector = CreateDefault();
@@ -150,7 +148,7 @@ public partial class GeometryRenderer : IDisposable
         m_renderTwoSidedMiddleSliceFunc = RenderTwoSidedMiddleSlice;
         m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
-        var options = VertexOptions.PackSurface(1, 1, 0, 0, 0, 0);
+        var options = VertexOptions.PackSurface(1, 1, 0, 0, 0, 0, 0);
         for (int i = 0; i < m_wallVertices.Length; i++)
             m_wallVertices[i].SurfaceOptions = options;
 
@@ -178,8 +176,6 @@ public partial class GeometryRenderer : IDisposable
         m_vanillaRender = world.Config.Render.VanillaRender;
         m_pixelGapCorrection = world.Config.Render.PixelGapCorrection;
 
-        PreloadAllTextures(world);
-
         int sideCount = world.Geometry.GetSideCount();
         int sectorCount = world.Geometry.GetSectorCount();
         bool freeData = !world.SameAsPreviousMap;
@@ -197,8 +193,11 @@ public partial class GeometryRenderer : IDisposable
 
         m_invalidatedCounter = 1;
 
+        LoadTextureCounts? loadTextureCounts = null;
         if (!world.SameAsPreviousMap)
         {
+            loadTextureCounts = PreloadAllTextures(world);
+
             for (int i = 0; i < m_subsectors.Length; i++)
             {
                 m_subsectors[i].FlushReferences();
@@ -231,8 +230,11 @@ public partial class GeometryRenderer : IDisposable
 
         if (!unitTest)
         {
-            var arrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_glTextureManager);
-            arrayBuilder.BuildLevel(FlatTextures, WallTexturesRepeat, WallTexturesClamp);
+            if (!world.SameAsPreviousMap && loadTextureCounts != null)
+            {
+                var arrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_glTextureManager);
+                arrayBuilder.BuildLevel(loadTextureCounts.FlatTextures, loadTextureCounts.WallTexturesRepeat, loadTextureCounts.WallTexturesClamp);
+            }
 
             Portals.UpdateTo(world);
             m_staticCacheGeometryRenderer.UpdateTo(world);
@@ -611,31 +613,32 @@ public partial class GeometryRenderer : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void PreloadAllTextures(IWorld world)
+    private LoadTextureCounts? PreloadAllTextures(IWorld world)
     {
-        if (world.SameAsPreviousMap)
-            return;
+        var wallTexturesRepeat = new HashSet<int>(128);
+        var wallTexturesClamp = new HashSet<int>(128);
+        var flatTextures = new HashSet<int>(128);
 
         for (int i = 0; i < world.Lines.Count; i++)
         {
             var line = world.Lines[i];
-            AddSideTextures(WallTexturesRepeat, WallTexturesClamp, line.Front, line.Flags.TwoSided);
+            AddSideTextures(wallTexturesRepeat, wallTexturesClamp, line.Front, line.Flags.TwoSided);
 
             if (line.Back == null)
                 continue;
 
-            AddSideTextures(WallTexturesRepeat, WallTexturesClamp, line.Back, line.Flags.TwoSided);
+            AddSideTextures(wallTexturesRepeat, wallTexturesClamp, line.Back, line.Flags.TwoSided);
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            FlatTextures.Add(sector.Floor.TextureHandle);
-            FlatTextures.Add(sector.Ceiling.TextureHandle);
+            flatTextures.Add(sector.Floor.TextureHandle);
+            flatTextures.Add(sector.Ceiling.TextureHandle);
             if (sector.FloorSkyTextureHandle.HasValue)
-                FlatTextures.Add(sector.FloorSkyTextureHandle.Value);
+                flatTextures.Add(sector.FloorSkyTextureHandle.Value);
             if (sector.CeilingSkyTextureHandle.HasValue)
-                FlatTextures.Add(sector.CeilingSkyTextureHandle.Value);
+                flatTextures.Add(sector.CeilingSkyTextureHandle.Value);
         }
 
         foreach (var textureName in world.GetPreCacheTextureNames())
@@ -643,14 +646,15 @@ public partial class GeometryRenderer : IDisposable
             var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Global, ResourceNamespace.Textures);
             if (texture.Index > 0)
             {
-                WallTexturesRepeat.Add(texture.Index);
-                WallTexturesClamp.Add(texture.Index);
+                wallTexturesClamp.Add(texture.Index);
+                wallTexturesRepeat.Add(texture.Index);
             }
         }
 
-        TextureManager.LoadTextureImages(FlatTextures);
-        TextureManager.LoadTextureImages(WallTexturesClamp);
-        TextureManager.LoadTextureImages(WallTexturesRepeat);
+        TextureManager.LoadTextureImages(flatTextures);
+        TextureManager.LoadTextureImages(wallTexturesClamp);
+        TextureManager.LoadTextureImages(wallTexturesRepeat);
+        return new(flatTextures, wallTexturesRepeat, wallTexturesClamp);
     }
 
     private static void AddSideTextures(HashSet<int> wallTexturesRepeat, HashSet<int> wallTexturesClamp, Side side, bool twoSided)
@@ -2059,10 +2063,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -2075,10 +2078,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -2091,10 +2093,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -2107,10 +2108,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -2123,10 +2123,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -2139,10 +2138,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
         }
     }
 
@@ -2181,10 +2179,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             // 1
             vertex++;
@@ -2198,10 +2195,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             // 2
             vertex++;
@@ -2215,10 +2211,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             // 3
             vertex++;
@@ -2232,10 +2227,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             // 4
             vertex++;
@@ -2249,10 +2243,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             // 5
             vertex++;
@@ -2266,10 +2259,9 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
         }
 
         return data;
@@ -2278,7 +2270,7 @@ public partial class GeometryRenderer : IDisposable
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
         int lightIndex, int overrideLightIndex, int flatLightLevel, int upper, int lower, int addAlpha, float alpha, int textureIndex)
     {
-        var surfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+        var surfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
         var renderOptions = VertexOptions.PackRender(lightIndex, flatLightLevel);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {
@@ -2295,7 +2287,6 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = root.PrevV;
             vertex->SurfaceOptions = surfaceOptions;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             vertex++;
             vertex->X = second.X;
@@ -2310,7 +2301,6 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = second.PrevV;
             vertex->SurfaceOptions = surfaceOptions;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
 
             vertex++;
             vertex->X = third.X;
@@ -2325,7 +2315,6 @@ public partial class GeometryRenderer : IDisposable
             vertex->PrevV = third.PrevV;
             vertex->SurfaceOptions = surfaceOptions;
             vertex->RenderOptions = renderOptions;
-            vertex->TextureIndex = textureIndex;
         }
     }
 

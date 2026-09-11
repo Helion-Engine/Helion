@@ -45,7 +45,8 @@ public static class VertexFunction
             addAlphaFrag = float((intOptions >> 9) & 1);
             upperFrag = float((intOptions >> 10) & 1);
             lowerFrag =  float((intOptions >> 11) & 1);
-            float overrideLightIndex = float(float(intOptions >> 12));";
+            float overrideLightIndex = float((intOptions >> 12) & 1);
+            boundTextureIndex = float((intOptions >> 13) & 0xFFFFF);";
 
     public static string ColorMapAndLightLevelSet =>
         @"            

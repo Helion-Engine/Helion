@@ -20,7 +20,6 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         layout(location = 2) in float lightLevelAdd;
         layout(location = 3) in float surfaceOptions;
         layout(location = 4) in float renderOptions;
-        layout(location = 5) in float textureIndex;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -66,7 +65,6 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             gl_Position = mvp * mixPos;
             zPos = pos.z;
             depthFrag = gl_Position.${Depth};
-            boundTextureIndex = textureIndex;
         }
     "
     .Replace("${LightLevelVertexVariables}", planeClip ? "" : LightLevel.VertexVariables(LightLevelOptions.Default))

@@ -7,10 +7,10 @@ public static class VertexOptions
 {
     // When overrideLightIndex is non-zero then lighting uses index overrideLightIndex - 1
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float PackSurface(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex)
+    public static unsafe float PackSurface(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex, int textureIndex)
     {
         int alphaByte = (int)(alpha * 255.0f);
-        int packed = (alphaByte & 0xFF) | (topLeft << 8) | (addAlpha << 9) | (upper << 10) | (lower << 11) | (overrideLightIndex << 12);
+        int packed = (alphaByte & 0xFF) | (topLeft << 8) | (addAlpha << 9) | (upper << 10) | (lower << 11) | (overrideLightIndex << 12) | ((textureIndex & 0xFFFFF) << 13);
         return *(float*)&packed;
     }
     
