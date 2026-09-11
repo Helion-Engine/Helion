@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+﻿namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
 public enum WallClipFragOptions
 {
@@ -27,11 +25,11 @@ public static class PlaneClip
             flat in float zPos;
             flat in float upperFrag;
             flat in float lowerFrag;
+            flat in float boundTextureIndex;
             in float depthFrag;
             ${{InVars}}
 
             uniform sampler2DArray boundTexture;
-            uniform int boundTextureIndex;
 
             layout (location = 0) out vec3 outPlane;
 
@@ -54,11 +52,11 @@ public static class PlaneClip
             flat in float mapIdFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
+            flat in float boundTextureIndex;
             in float depthFrag;
             ${InVars}
 
             uniform sampler2DArray boundTexture;
-            uniform int boundTextureIndex;
 
             layout (location = 0) out vec4 outPlane;
 
