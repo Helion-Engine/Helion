@@ -259,8 +259,11 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
             if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
                 continue;
 
-            line.Flags |= StructLineFlags.SeenForAutomap;
-            line.Line.DataChanges |= LineDataTypes.Automap;
+            if (m_markLines)
+            {
+                line.Flags |= StructLineFlags.SeenForAutomap;
+                line.Line.DataChanges |= LineDataTypes.Automap;
+            }
         }        
     }
 
