@@ -107,7 +107,7 @@ public partial class LegacyWorldRenderer
         if (!m_worldGeometryWindow.IsInitialized)
             return;
 
-        if (milliseconds < 1000 / 60.0 || (m_config.Render.MaxFPS.Value != 0 && milliseconds < m_config.Render.MaxFPS.Value / 1000.0))
+        if (milliseconds < 1000 / 60.0 || (m_config.Render.MaxFPS.Value != 0 && milliseconds < 1000.0 / m_config.Render.MaxFPS.Value))
             return;
 
         if (m_bspHeuristics.Microseconds >= m_config.Render.Adaptive.TimeThreshold.Value * 0.7)
