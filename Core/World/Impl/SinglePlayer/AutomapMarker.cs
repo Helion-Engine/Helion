@@ -71,8 +71,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
 
         m_thread = new Thread(() => AutomapTask(m_cancelTasks.Token))
         {
-            IsBackground = true,
-            Priority = ThreadPriority.Normal
+            IsBackground = true
         };
         m_thread.Start();
     }
