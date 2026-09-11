@@ -19,6 +19,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
+using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -108,13 +109,14 @@ public partial class GeometryRenderer : IDisposable
     private BitArray m_hitLines = new(0);
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, ViewClipper viewClipper, ViewClipper viewClipperPrev, bool unitTest = false)
+        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, 
+        ViewClipper viewClipper, ViewClipper viewClipperPrev, RenderProfiler renderProfiler, bool unitTest = false)
     {
         m_config = config;
         m_program = program;
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
-        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
+        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, renderProfiler);
         m_archiveCollection = archiveCollection;
         m_fakeSideScrollData = new();
         m_fakeSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_sliceSector)
@@ -140,8 +142,8 @@ public partial class GeometryRenderer : IDisposable
         }
         else
         {
-            Portals = new(archiveCollection, glTextureManager);
-            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
+            Portals = new(archiveCollection, glTextureManager, renderProfiler);
+            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, renderProfiler, this);
             m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
         }
 

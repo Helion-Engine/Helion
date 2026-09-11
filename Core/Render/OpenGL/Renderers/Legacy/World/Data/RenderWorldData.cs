@@ -42,10 +42,10 @@ public class RenderWorldData : IDisposable
         Pipeline.Clear();
     }
 
-    public void Draw()
+    public bool Draw()
     {
         if (Pipeline.Empty)
-            return;
+            return false;
 
         // We are doing binding manually since apparently these are all
         // coming up in the memory profiler as a bunch of new 'actions'.
@@ -64,6 +64,7 @@ public class RenderWorldData : IDisposable
         Pipeline.DrawArrays();
         Pipeline.Unbind();
         Texture.Unbind();
+        return true;
     }
 
     public void Dispose()

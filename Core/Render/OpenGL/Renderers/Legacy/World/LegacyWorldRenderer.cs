@@ -79,13 +79,18 @@ public partial class LegacyWorldRenderer : WorldRenderer
     {
         m_config = config;
         m_renderProfiler = renderProfiler;
-        m_entityRenderer = new(config, textureManager, archiveCollection);
+        m_entityRenderer = new(config, textureManager, archiveCollection, renderProfiler);
         m_primitiveRenderer = new();
-        m_worldDataManager = new(m_interpolationProgram);
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev);
+        m_worldDataManager = new(m_interpolationProgram, OnDynamicDraw);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev, renderProfiler);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;
+    }
+
+    private void OnDynamicDraw()
+    {
+        m_renderProfiler.DrawCounts.GeometryDynamic++;
     }
 
     ~LegacyWorldRenderer()

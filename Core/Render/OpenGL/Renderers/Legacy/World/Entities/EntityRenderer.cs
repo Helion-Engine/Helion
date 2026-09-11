@@ -10,6 +10,7 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
+using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -40,6 +41,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly SpriteRotation m_nullSpriteRotation;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly RenderDataPool<EntityVertex> m_renderDataPool;
+    private readonly RenderProfiler m_renderProfiler;
     private readonly bool m_vanillaRender;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
@@ -54,19 +56,25 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private bool m_disposed;
     private int m_lastViewerEntityId;
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection, RenderProfiler renderProfiler)
     {
         m_config = config;
         m_textureManager = textureManager;
         m_archiveCollection = archiveCollection;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
         m_renderDataPool = new(m_program, RenderPoolSize);
-        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPool);
+        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPool, OnDraw);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_vanillaRender = m_config.Render.VanillaRender;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax.Value;
+        m_renderProfiler = renderProfiler;
+    }
+
+    private void OnDraw()
+    {
+        m_renderProfiler.DrawCounts.Sprites++;
     }
 
     ~EntityRenderer()

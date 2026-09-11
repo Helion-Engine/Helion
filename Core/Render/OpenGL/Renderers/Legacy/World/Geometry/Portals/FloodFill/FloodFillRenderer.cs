@@ -12,6 +12,7 @@ using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
+using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Static;
@@ -19,7 +20,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
-public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFillRenderMode renderMode) : IDisposable
+public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFillRenderMode renderMode, RenderProfiler renderProfiler) : IDisposable
 {
     const int FloodPlaneAddCount = 2;
     const int VerticesPerWall = 6;
@@ -33,6 +34,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     private readonly DynamicArray<FloodGeometry> m_floodGeometry = [];
     private readonly LinkedList<FloodGeometry> m_freeData = [];
     private readonly DynamicArray<LinkedListNode<FloodGeometry>> m_freeNodes = [];
+    private readonly RenderProfiler m_renderProfiler = renderProfiler;
     private TextureManager? m_textureManager;
     private bool m_disposed;
 
@@ -342,6 +344,11 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
             info.Pipeline.Vbo.UploadIfNeeded();
             info.Pipeline.Bind();
             info.Pipeline.DrawArrays();
+
+            if (m_renderMode == FloodFillRenderMode.Dynamic)
+                m_renderProfiler.DrawCounts.FloodFillDynamic++;
+            else
+                m_renderProfiler.DrawCounts.FloodFillStatic++;
         }
     }
 

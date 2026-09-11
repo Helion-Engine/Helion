@@ -13,6 +13,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
+using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -40,6 +41,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly FloodFillRenderer m_floodFillRenderer;
     private readonly RenderProgram m_program;
     private readonly RenderGeometry m_geometry = new();
+    private readonly RenderProfiler m_renderProfiler;
 
     private readonly GeometryTextureLookup m_textureToGeometryLookup;
 
@@ -64,16 +66,17 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
-        RenderProgram program, GeometryRenderer geometryRenderer)
+        RenderProgram program, RenderProfiler renderProfiler, GeometryRenderer geometryRenderer)
     {
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_floodFillRenderer = geometryRenderer.Portals.GetStaticFloodFillRenderer();
         m_program = program;
-        m_skyRenderer = new(archiveCollection, textureManager);
+        m_skyRenderer = new(archiveCollection, textureManager, renderProfiler);
         m_textureToGeometryLookup = new(textureManager);
         m_freeManager = new(textureManager);
+        m_renderProfiler = renderProfiler;
         m_renderCoverWallAction = AddOrUpdateCoverWall;
 
         m_renderOneSidedSliceFunc = m_geometryRenderer.RenderOneSidedSlice;
@@ -881,6 +884,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
             data.Pipeline.Bind();
             data.Pipeline.DrawArrays();
+
+            m_renderProfiler.DrawCounts.GeometryStatic++;
         }
     }
 
