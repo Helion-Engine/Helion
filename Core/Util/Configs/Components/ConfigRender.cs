@@ -85,10 +85,15 @@ public class ConfigRenderHealthBar : ConfigElement<ConfigRenderHealthBar>
 
 public class ConfigRender : ConfigElement<ConfigRender>
 {
+    [ConfigInfo("Changes the render mode. Adaptive can be very beneficial on itegrated GPUs.")]
+    [OptionMenu(OptionSectionType.Render, "Mode")]
+    public readonly ConfigValue<AdaptiveRenderMode> Mode = new(AdaptiveRenderMode.Static);
+    public readonly ConfigRenderAdaptive Adaptive = new();
+
     // VSync and rate limiting
 
     [ConfigInfo("Vertical synchronization. Prevents tearing, but affects input processing (unless you have G-Sync).")]
-    [OptionMenu(OptionSectionType.Render, "VSync")]
+    [OptionMenu(OptionSectionType.Render, "VSync", spacer: true)]
     public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
 
     [ConfigInfo("Maximum frames per second. Zero is equivalent to no cap if vsync is off (or monitor refresh rate if vsync is on/adaptive).")]
@@ -227,10 +232,6 @@ public class ConfigRender : ConfigElement<ConfigRender>
     // This option is a hacked test that writes everything directly to the default backbuffer. Relies on undefined behavior since certain rendering functions need the depth texture.
     [ConfigInfo("Disables post processing effects like spectre fuzz refraction and skips FBO. Can have rendering defects.", restartRequired: true)]
     public readonly ConfigValue<bool> PostProcessingEffects = new(true);
-
-    [ConfigInfo("Changes the render mode.")]
-    public readonly ConfigValue<AdaptiveRenderMode> Mode = new(AdaptiveRenderMode.Static);
-    public readonly ConfigRenderAdaptive Adaptive = new();
 }
 
 public class ConfigRenderAdaptive : ConfigElement<ConfigRenderAdaptive>
