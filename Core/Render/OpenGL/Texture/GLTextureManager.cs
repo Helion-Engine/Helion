@@ -365,10 +365,14 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
                     continue;
 
                 if (rotation.Texture.RenderStore != null)
+                {
+                    rotation.RenderStore ??= rotation.Texture.RenderStore;
+                    rotation.BrightmapRenderStore ??= rotation.Texture.RenderStore;
                     continue;
+                }
 
-                rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
-                rotation.Texture.BrightmapRenderStore = CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
+                rotation.RenderStore = rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
+                rotation.BrightmapRenderStore = rotation.Texture.BrightmapRenderStore = CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
             }
         }
     }
