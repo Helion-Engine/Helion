@@ -4,6 +4,7 @@ using Helion.Util.Container;
 using Helion.Util.Loggers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
@@ -41,7 +42,13 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
         var totalTextures = flatTextures.Count() + wallTexturesRepeat.Count() + wallTexturesClamp.Count();
         var animated = totalTextures - buildTextures;
-        HelionLog.Info($"Compressed textures {totalTextures} -> {arrayTextures + animated}");
+        DebugLog(totalTextures, arrayTextures + animated);
+    }
+
+    [Conditional("DEBUG")]
+    private static void DebugLog(int totalTextures, int compressed)
+    {
+        HelionLog.Info($"Compressed textures {totalTextures} -> {compressed}");
     }
 
     private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, bool repeatY)
