@@ -674,7 +674,13 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     {
         vboSize = Math.Max(vboSize, 32);
         label ??= GetGeometryLabel(type, textureHandle, repeat);
-        var texture = overrideTexture ?? m_textureManager.GetParentArrayTexture(textureHandle, repeat);
+
+        GLLegacyTexture? texture;
+        if (overrideTexture != null)
+            texture = overrideTexture.ParentArrayTexture ?? overrideTexture;
+        else
+            texture = m_textureManager.GetParentArrayTexture(textureHandle, repeat);
+
         var brightmapTexture = m_textureManager.GetBrightmapTexture(textureHandle, repeat);
         var vbo = new StaticVertexBuffer<StaticVertex>(label, vboSize);
         var pipeline = new VertexPipeline<StaticVertex>(m_program, vbo, label);
@@ -1310,6 +1316,10 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         if (textureHandle <= Constants.NullCompatibilityTextureIndex && !isOneSidedLine)
             return;
+
+        // This doesn't practically matter but makes debugging nicer
+        if (texture != null)
+            texture = texture.ParentArrayTexture ?? texture;
 
         // If this surface generated more vertices than previously cached, release so a new one can be requested. (happens with 3D sectors)
         if (staticGeometry.GeometryData != null && staticGeometry.Length < vertices.Length)

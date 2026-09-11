@@ -22,7 +22,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
     private bool m_disposed;
 
-    private List<GLLegacyTexture> m_registeredTextures = new();
+    private readonly List<GLLegacyTexture> m_registeredTextures = [];
 
     public LegacyGLTextureManager(IConfig config, ArchiveCollection archiveCollection) :
         base(config, archiveCollection)
@@ -229,7 +229,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     protected override GLLegacyTexture[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, out GLLegacyTexture arrayTexture)
     {
         int textureId = GL.GenTexture();
-        arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={images.Length}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0);
+        arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={images.Length} {flags}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0);
         UploadAndSetParameters(arrayTexture, images, "", resourceNamespace, flags);
 
         var textures = new GLLegacyTexture[images.Length];

@@ -62,4 +62,9 @@ public class Texture
     /// </summary>
     public object? BrightmapRenderStore;
     public object? BrightmapRenderStoreClamp;
+
+    public override string ToString()
+    {
+        return $"{Name} {Image?.Dimension}";
+    }
 }

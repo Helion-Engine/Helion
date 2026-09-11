@@ -14,7 +14,10 @@ using Helion.Util.Configs;
 using Helion.Util.Container;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using static System.Net.Mime.MediaTypeNames;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
 
@@ -31,7 +34,7 @@ public enum TextureFlags
 public interface IArrayTextureLookup
 {
     // Returns unique base array texture handle given a texture handle from the TextureManager
-    int GetArrayTextureHandle(int textureHandle);
+    int GetArrayTextureHandle(int textureHandle, bool repeatY);
 }
 
 public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager, IArrayTextureLookup
@@ -46,6 +49,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     private readonly DynamicArray<GLTextureType> m_arrayTextures = new(256);
     private readonly DynamicArray<Resources.Texture> m_texturesForArrays = new(256);
     private readonly Dictionary<int, int> m_arrayTextureLookup = [];
+    private readonly Dictionary<int, int> m_arrayTextureLookupClamp = [];
     private bool m_disposed;
 
     private TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -258,15 +262,18 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             m_texturesForArrays.Add(texture);
         }
 
+        var lookup = repeatY ? m_arrayTextureLookup : m_arrayTextureLookupClamp;
         var flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
         var glTextures = GenerateTextureArray(images, images[0].Dimension, ResourceNamespace.Textures, flags, out var arrayTexture);
+        // Flip high bit to ensure no collisions
+        var arrayTextureId = arrayTexture.TextureId | (1 << 30);
         for (int i = 0; i < images.Length; i++)
         {
             var glTexture = glTextures[i];
             var texture = textures[i];
-            // Flip high bit to ensure no collisions
-            m_arrayTextureLookup[texture.Index] = arrayTexture.TextureId | (1 << 30);
-            textures[i].SetGLTexture(glTexture, repeatY);
+            SetDebugName(glTexture, texture);
+            lookup[texture.Index] = arrayTextureId;
+            texture.SetGLTexture(glTexture, repeatY);
         }
 
         m_arrayTextures.Add(arrayTexture);
@@ -274,9 +281,16 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return arrayTexture;
     }
 
-    public int GetArrayTextureHandle(int textureHandle)
+    [Conditional("DEBUG")]
+    private static void SetDebugName(GLTextureType glTexture, Resources.Texture texture)
     {
-        if (m_arrayTextureLookup.TryGetValue(textureHandle, out var handle))
+        glTexture.Name = $"{glTexture.Name} {texture.Index}:{texture.Name}";
+    }
+
+    public int GetArrayTextureHandle(int textureHandle, bool repeatY)
+    {
+        var lookup = repeatY ? m_arrayTextureLookup : m_arrayTextureLookupClamp;
+        if (lookup.TryGetValue(textureHandle, out var handle))
             return handle;
         return textureHandle;
     }

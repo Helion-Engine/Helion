@@ -16,7 +16,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public Dimension Dimension { get; }
     public Vec2I Offset { get; }
     public readonly int TextureId;
-    public readonly string Name;
+    public string Name;
     public readonly Vec2F UVInverse;
     public readonly ResourceNamespace Namespace;
     public readonly TextureTarget Target;
