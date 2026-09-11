@@ -41,6 +41,7 @@ public class SinglePlayerWorld : WorldBase
     private WorldType m_worldType = WorldType.SinglePlayer;
     private int m_renderDistanceOverride;
     private bool m_firstUpdate = true;
+    private bool m_disableAutomapMarker;
 
     public override WorldType WorldType => m_worldType;
     public override Player Player { get; protected set; }
@@ -158,6 +159,11 @@ public class SinglePlayerWorld : WorldBase
         }
     }
 
+    public void DisableAutomapMarker()
+    {
+        m_disableAutomapMarker = true;
+    }
+
     private void CheckDistanceOverride()
     {
         if (CompatibilityMapDefinition != null && CompatibilityMapDefinition.MaxDistanceOverride > 0)
@@ -216,7 +222,9 @@ public class SinglePlayerWorld : WorldBase
     {
         var player = m_chaseCamMode ? ChaseCamPlayer : Player;
         var camera = player.GetCamera(0);
-        m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, player.AngleRadians, player.PitchRadians, GameTicker, !m_chaseCamMode);
+
+        if (!m_disableAutomapMarker)
+            m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, player.AngleRadians, player.PitchRadians, GameTicker, !m_chaseCamMode);
 
         if (GetCrosshairTarget(out Entity? entity))
             Player.SetCrosshairTarget(entity);
@@ -330,7 +338,8 @@ public class SinglePlayerWorld : WorldBase
         if (!PlayLevelMusic(musicName))
             AudioSystem.Music.Stop();
 
-        m_automapMarker.Start(this);
+        if (!m_disableAutomapMarker)
+            m_automapMarker.Start(this);
     }
 
     public override bool PlayLevelMusic(string name, MusicFlags flags = MusicFlags.Loop, Entity? activator = null)

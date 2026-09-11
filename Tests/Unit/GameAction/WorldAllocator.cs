@@ -109,6 +109,7 @@ internal static class WorldAllocator
             skillDef, outputMap, existingPlayer, worldModel, random, unitTest: true, sameAsPreviousMap: sameAsPreviousMap) ?? throw new Exception("Failed to create world");
         StaticWorld = world;
         world.OnTick += World_OnTick;
+        world.DisableAutomapMarker();
         world.Start(worldModel);
         world.OnDestroying += World_OnDestroying;
         onInit(world);
@@ -138,7 +139,6 @@ internal static class WorldAllocator
     public static Config CreateConfig()
     {
         Config config = new();
-        config.Render.AutomapBspThread.Set(false);
         return config;
     }
 
