@@ -31,7 +31,6 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     private readonly RenderInfo m_renderInfo = new();
     private readonly OldCamera m_camera = new(default, default, 0, 0);
     private readonly Entity m_dummyEntity = new();
-    private readonly HashSet<int> m_visibleTextures = new(256);
     private Thread? m_thread;
     private CancellationTokenSource m_cancelTasks = new();
     private IWorld m_world = null!;
@@ -144,7 +143,6 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
                 m_hitLines.SetAll(false);
-                m_visibleTextures.Clear();
 
                 SetFrustum(viewport, pos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
