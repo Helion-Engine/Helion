@@ -17,7 +17,12 @@ public class SampleWindow
 
     public bool IsInitialized => m_init;
 
-    public void Clear() => Array.Clear(m_samples, 0, m_windowSize);
+    public void Clear()
+    {
+        m_index = 0;
+        m_init = false;
+        Array.Clear(m_samples, 0, m_windowSize);
+    }
 
     public ReadOnlySpan<double> GetSampleWindow() => m_samples.AsSpan(0, m_windowSize);
 
