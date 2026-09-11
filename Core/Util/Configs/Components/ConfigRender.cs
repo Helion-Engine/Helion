@@ -51,8 +51,11 @@ public enum RenderContrastMode
 
 public enum AdaptiveRenderMode
 {
+    [Description("Static")]
     Static,
+    [Description("BSP")]
     Bsp,
+    [Description("Adaptive")]
     Adaptive
 }
 
