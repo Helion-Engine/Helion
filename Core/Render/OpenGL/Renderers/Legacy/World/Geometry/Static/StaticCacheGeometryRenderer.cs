@@ -43,7 +43,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private readonly GeometryTextureLookup m_textureToGeometryLookup;
 
-    private readonly FreeGeometryManager m_freeManager = new();
+    private readonly FreeGeometryManager m_freeManager;
     private readonly LegacySkyRenderer m_skyRenderer;
 
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
@@ -73,6 +73,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager);
         m_textureToGeometryLookup = new(textureManager);
+        m_freeManager = new(textureManager);
         m_renderCoverWallAction = AddOrUpdateCoverWall;
 
         m_renderOneSidedSliceFunc = m_geometryRenderer.RenderOneSidedSlice;
@@ -166,8 +167,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         m_worldReload = false;
     }
-
-
 
     private void World_SectorFogColorChanged(object? sender, SectorFogEvent e)
     {
@@ -1534,7 +1533,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
     }
 
-    private static unsafe void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
+    private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
     {
         ref var reference = ref geometryData.Pipeline.Vbo.Data.Data[startIndex];
         Unsafe.InitBlockUnaligned(ref Unsafe.As<StaticVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<StaticVertex>() * length));

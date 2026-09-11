@@ -16,8 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using static System.Net.Mime.MediaTypeNames;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
 
@@ -29,12 +27,6 @@ public enum TextureFlags
     Default,
     ClampX = 1,
     ClampY = 2,
-}
-
-public interface IArrayTextureLookup
-{
-    // Returns unique base array texture handle given a texture handle from the TextureManager
-    int GetArrayTextureHandle(int textureHandle, bool repeatY);
 }
 
 public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager, IArrayTextureLookup
