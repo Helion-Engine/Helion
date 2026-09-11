@@ -13,6 +13,8 @@ using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
@@ -24,6 +26,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using Helion.World.Special.Switches;
 using Helion.World.Static;
 using System;
 using System.Collections;
@@ -651,10 +654,46 @@ public partial class GeometryRenderer : IDisposable
             }
         }
 
+        AddLineSwitchTextures(wallTexturesRepeat, wallTexturesClamp);
+
         TextureManager.LoadTextureImages(flatTextures);
         TextureManager.LoadTextureImages(wallTexturesClamp);
         TextureManager.LoadTextureImages(wallTexturesRepeat);
         return new(flatTextures, wallTexturesRepeat, wallTexturesClamp);
+    }
+
+    private void AddLineSwitchTextures(HashSet<int> wallTexturesRepeat, HashSet<int> wallTexturesClamp)
+    {
+        var switches = new List<AnimatedSwitch>(m_archiveCollection.Definitions.Animdefs.AnimatedSwitches.Count);
+        for (int i = 0; i < m_archiveCollection.Definitions.Animdefs.AnimatedSwitches.Count; i++)
+        {
+            var animSwitch = m_archiveCollection.Definitions.Animdefs.AnimatedSwitches[i];
+            if (animSwitch.IWad != IWadBaseType.None && animSwitch.IWad != m_archiveCollection.IWadType)
+                continue;
+            switches.Add(animSwitch);
+        }
+
+        AddLineSwitchTextures(wallTexturesRepeat, switches);
+        AddLineSwitchTextures(wallTexturesClamp, switches);
+    }
+
+    private static void AddLineSwitchTextures(HashSet<int> wallTextures, List<AnimatedSwitch> switches)
+    {
+        var addTextures = new HashSet<int>();
+        foreach (var textureIndex in wallTextures)
+        {
+            foreach (var animSwitch in switches)
+            {
+                if (animSwitch.IsMatch(textureIndex))
+                {
+                    addTextures.Add(animSwitch.GetOpposingTexture(textureIndex));
+                    break;
+                }
+            }
+        }
+
+        foreach (var textureIndex in addTextures)
+            wallTextures.Add(textureIndex);
     }
 
     private static void AddSideTextures(HashSet<int> wallTexturesRepeat, HashSet<int> wallTexturesClamp, Side side, bool twoSided)
