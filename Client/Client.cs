@@ -38,6 +38,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using static Helion.Util.Assertion.Assert;
 
@@ -126,7 +127,7 @@ public partial class Client : IDisposable, IInputManagement
         }
 
         GLFW.WindowHint(WindowHintString.WaylandAppID, "Helion");
-        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, 
+        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, m_profiler, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, 
             () => CheckOpenGLSupport(!commandLineArgs.GlVersion.HasValue));
         m_screenshotGenerator = new(m_window.Renderer);
         m_soundManager.SoundCreated += m_window.JoystickAdapter.RumbleForSoundCreated;

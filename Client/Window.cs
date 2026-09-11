@@ -10,6 +10,8 @@ using Helion.Resources.Archives.Collection;
 using Helion.Strings;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
+using Helion.Util.Profiling;
+using Helion.Util.Profiling.Timers;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
@@ -68,7 +70,7 @@ public class Window : GameWindow, IWindow
     private Vector2i? m_knownGoodWindowPos;
     private bool IsWindowsBorderlessFullscreen => m_isWindows && m_renderWindowState == RenderWindowState.BorderlessFullscreenWindow;
 
-    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
+    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, Profiler profiler, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor, flags))
     {
@@ -79,7 +81,7 @@ public class Window : GameWindow, IWindow
         m_renderWindowState = config.Window.State;
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
-        Renderer = new(this, config, archiveCollection, tracker);
+        Renderer = new(this, config, archiveCollection, tracker, profiler.Render);
 
         KeyDown += Window_KeyDown;
         KeyUp += Window_KeyUp;

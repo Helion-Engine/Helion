@@ -122,6 +122,7 @@ public partial class WorldLayer : IGameLayerParent
         m_renderFpsMinString = InitRenderableString(TextAlign.Right);
         m_renderFpsMaxString = InitRenderableString(TextAlign.Right);
         m_renderTimeString = InitRenderableString(TextAlign.Right);
+        m_renderBspString = InitRenderableString(TextAlign.Right);
 
         World.LevelExiting += World_LevelExiting;
         World.WorldPaused += World_WorldPaused;

@@ -77,11 +77,13 @@ public partial class WorldLayer
     private readonly SpanString m_fpsMaxString = new();
     private readonly SpanString m_timeString = new();
     private readonly SpanString m_renderMessageSpan = new(128);
+    private readonly SpanString m_bspString = new();
 
     private readonly RenderableString m_renderFpsString;
     private readonly RenderableString m_renderFpsMinString;
     private readonly RenderableString m_renderFpsMaxString;
     private readonly RenderableString m_renderTimeString;
+    private readonly RenderableString m_renderBspString;
 
     private readonly RenderStat[] m_renderStats;
 
@@ -124,6 +126,8 @@ public partial class WorldLayer
             DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY, 
                 suppressStats: (sbarCoverage & StatusBarCoverage.Stats) != 0,
                 suppressTime: (sbarCoverage & StatusBarCoverage.Time) != 0);
+
+            DrawBspStats(hud);
 
             DrawBottomHud(hud, automapVisible, activeSbarLayout);
             
@@ -287,7 +291,6 @@ public partial class WorldLayer
                 maxLabelWidth = Math.Max(renderStat.RenderLabel.DrawArea.Width, maxLabelWidth);
                 maxValueWidth = Math.Max(renderStat.RenderValue.DrawArea.Width, maxValueWidth);
             }
-
             labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
             for (int i = 0; i < m_renderStats.Length; i++)
             {
@@ -331,6 +334,31 @@ public partial class WorldLayer
         }
 
         topRightY = labelPos.Y;
+    }
+
+    private void DrawBspStats(IHudRenderContext hud)
+    {
+        if (!m_config.Developer.Render.DebugAdaptiveMode.Value)
+            return;
+
+        var bspHeuristics = World.GetBspHeuristics();
+        if (bspHeuristics == null)
+            return;
+
+        m_bspString.Clear();
+        var x = hud.MeasureText("        ", FixedNumberFont, m_infoFontSize).Width;
+
+        m_bspString.Append(bspHeuristics.Info.UseBsp ? "BSP (" : "Static (");
+        m_bspString.Append(bspHeuristics.Info.SegCount);
+        m_bspString.Append('/');
+        m_bspString.Append(bspHeuristics.Info.BelowThresholdCount);
+        m_bspString.Append('/');
+        m_bspString.Append(bspHeuristics.Info.AboveThresholdCount);
+        m_bspString.Append('/');
+        m_bspString.Append(bspHeuristics.Info.SmoothTime);
+        m_bspString.Append(')');
+        SetRenderableString(m_bspString.AsSpan(), m_renderBspString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
+        hud.Text(m_renderBspString, (-x, m_padding / 2), Align.TopMiddle, alpha: m_hudAlpha);
     }
 
     private static SpanString AppendStatString(SpanString str, int current, int max)
