@@ -324,7 +324,6 @@ public class LegacyAutomapRenderer : IDisposable
                 player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings);
         }
 
-        bool forceDraw = !world.Config.Render.AutomapBspThread;
         bool markSecrets = world.Config.Game.MarkSecrets;
         bool markFlood = world.Config.Developer.MarkFlood;
         bool checkMarkedSectors = markSecrets || markFlood || world.Config.Game.MarkSpecials;
@@ -340,7 +339,7 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
 
             bool markedLine = IsLineMarked(ref line, markSecrets, markFlood, checkMarkedSectors);
-            if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap() || line.AutomapFlags.NeverDraw))
+            if (!line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap() || line.AutomapFlags.NeverDraw))
                 continue;
 
             if (!markedLine && line.LockKey != -1)
@@ -351,11 +350,11 @@ public class LegacyAutomapRenderer : IDisposable
 
             if (line.BackSector == null || line.Secret() || line.AutomapFlags.AlwaysDraw)
             {
-                AddLine(GetLineColor(ref line, m_wallColor, m_unseenWallColor, forceDraw, markedLine, allMap, out _), start, end);
+                AddLine(GetLineColor(ref line, m_wallColor, m_unseenWallColor, markedLine, allMap, out _), start, end);
                 continue;
             }
 
-            var color = GetLineColor(ref line, m_twoSidedWallColor, m_unseenWallColor, forceDraw, markedLine, allMap, out var specialColor);
+            var color = GetLineColor(ref line, m_twoSidedWallColor, m_unseenWallColor, markedLine, allMap, out var specialColor);
             if (!allMap && !specialColor && line.BackFloorPlane != null && line.BackCeilingPlane != null &&
                 line.FrontFloorPlane.Z == line.BackFloorPlane.Z && line.FrontCeilingPlane.Z == line.BackCeilingPlane.Z)
                 continue;
@@ -364,7 +363,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
     }
 
-    private Color GetLineColor(ref StructLine line, Color seenColor, Color unseenColor, bool forceDraw, bool marked, bool allMap, out bool specialColor)
+    private Color GetLineColor(ref StructLine line, Color seenColor, Color unseenColor, bool marked, bool allMap, out bool specialColor)
     {
         specialColor = false;
 
@@ -374,7 +373,7 @@ public class LegacyAutomapRenderer : IDisposable
             return GetMarkedColor();
         }
 
-        if (line.SeenForAutomap() || forceDraw || allMap)
+        if (line.SeenForAutomap() || allMap)
         {
             if (line.IsTeleportSpecial())
             {

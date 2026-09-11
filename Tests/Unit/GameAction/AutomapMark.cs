@@ -108,7 +108,7 @@ public class AutomapMark
 
     private AutomapMarker CreateAutomapMarker()
     {
-        var marker = new AutomapMarker();
+        var marker = new AutomapMarker(World.Config);
         marker.Start(World);
         return marker;
     }

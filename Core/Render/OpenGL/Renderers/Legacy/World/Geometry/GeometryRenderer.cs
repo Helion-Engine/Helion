@@ -1668,7 +1668,7 @@ public partial class GeometryRenderer : IDisposable
         if (m_prevTransferHeightsView != m_transferHeightsView)
             m_invalidatedCounter++;
 
-        var clearFloodVertices = !m_config.Developer.LockRender;
+        var clearFloodVertices = !m_config.Developer.Render.Lock.Value;
         if (clearFloodVertices && !newTick)
             clearFloodVertices = false;
 

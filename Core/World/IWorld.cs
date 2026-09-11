@@ -7,9 +7,9 @@ using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -231,6 +231,7 @@ public interface IWorld : IDisposable
     bool SectorReturnStop();
     IEnumerable<string> GetPreCacheTextureNames();
     IEnumerable<string> GetPreCacheSoundNames();
+    IBspHeuristics? GetBspHeuristics();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

@@ -3,10 +3,12 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render;
 using Helion.Render.Common.Shared;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
-using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -17,11 +19,10 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Helion.World.Impl.SinglePlayer;
 
-public class AutomapMarker
+public class AutomapMarker(IConfig config) : IBspHeuristics
 {
     private BitArray m_hitLines = new(0);
     private readonly Stopwatch m_stopwatch = new();
@@ -29,19 +30,32 @@ public class AutomapMarker
     private readonly RenderInfo m_renderInfo = new();
     private readonly OldCamera m_camera = new(default, default, 0, 0);
     private readonly Entity m_dummyEntity = new();
-    private Task? m_task;
+    private Thread? m_thread;
     private CancellationTokenSource m_cancelTasks = new();
     private IWorld m_world = null!;
     private FrustumPlanes m_frustumPlanes;
+    private int m_subsectorCount;
+    private int m_segCount;
+    private int m_lineCount;
+    private bool m_markLines;
 
+    private readonly IConfig m_config = config;
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
-
-    public int LastProcessedId;
+    
+    public int LastProcessedId { get; private set; }
     public event EventHandler<PlayerPosition>? PositionProcessed;
+
+    public bool Valid { get; private set; }
+    public int SubsectorCount {  get; private set; }
+    public int SegCount { get; private set; }
+    public int LineCount { get; private set; }
+    public int Microseconds { get; private set; }
+    public long LastProcessedTimeStamp { get; private set; }
+    public BspHeuristicInfo Info { get; } = new();
 
     public void Start(IWorld world)
     {
-        if (m_task != null)
+        if (m_thread != null)
             return;
 
         ClearData();
@@ -53,8 +67,11 @@ public class AutomapMarker
 
         m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world, default);
 
-        m_task = Task.Factory.StartNew(() => AutomapTask(m_cancelTasks.Token), m_cancelTasks.Token,
-            TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        m_thread = new Thread(() => AutomapTask(m_cancelTasks.Token))
+        {
+            IsBackground = true
+        };
+        m_thread.Start();
     }
 
     private void World_OnDestroying(object? sender, EventArgs e)
@@ -69,17 +86,17 @@ public class AutomapMarker
 
     public void Stop()
     {
-        if (m_task == null)
+        if (m_thread == null)
             return;
 
         m_cancelTasks.Cancel();
         m_cancelTasks.Dispose();
-        m_task.Wait();
+        m_thread.Join();
 
         ClearData();
 
         m_cancelTasks = new CancellationTokenSource();
-        m_task = null;
+        m_thread = null;
     }
 
     private void ClearData()
@@ -88,9 +105,10 @@ public class AutomapMarker
         m_viewClipper.Clear();
     }
 
-    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id)
+    public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians, int id, bool markLines = true)
     {
-        m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id));
+        if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive || m_positions.IsEmpty)
+            m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians, id, markLines));
     }
 
     private void AutomapTask(CancellationToken token)
@@ -109,11 +127,18 @@ public class AutomapMarker
             {
                 // Don't let the queue fill up indefinitely when processing too slowly
                 if (m_positions.Count > ClearCount)
+                {
+                    MaxHeuristics();
                     m_positions.Clear();
+                }
 
                 if (token.IsCancellationRequested)
                     return;
 
+                m_markLines = pos.MarkLines;
+                m_subsectorCount = 0;
+                m_segCount = 0;
+                m_lineCount = 0;
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
                 m_hitLines.SetAll(false);
@@ -122,14 +147,38 @@ public class AutomapMarker
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
                 LastProcessedId = pos.Id;
                 PositionProcessed?.Invoke(this, pos);
+
+                SetHeuristics();
             }
 
             m_stopwatch.Stop();
             if (m_stopwatch.ElapsedMilliseconds >= ticks)
                 continue;
 
-            Thread.Sleep(Math.Max(ticks - (int)m_stopwatch.ElapsedMilliseconds, 0));
+            if (m_config.Render.Mode.Value != AdaptiveRenderMode.Adaptive)
+                Thread.Sleep(Math.Max(ticks - (int)m_stopwatch.ElapsedMilliseconds, 0));
+            else
+                Thread.Yield();
         }
+    }
+
+    private void MaxHeuristics()
+    {
+        Valid = false;
+        Microseconds = int.MaxValue;
+        SubsectorCount = int.MaxValue;
+        SegCount = int.MaxValue;
+        LineCount = int.MaxValue;
+    }
+
+    private void SetHeuristics()
+    {
+        Valid = true;
+        LastProcessedTimeStamp = Stopwatch.GetTimestamp();
+        Microseconds = (int)m_stopwatch.Elapsed.TotalMicroseconds;
+        SubsectorCount = m_subsectorCount;
+        SegCount = m_segCount;
+        LineCount = m_lineCount;
     }
 
     private void SetFrustum(Rectangle viewport, PlayerPosition pos)
@@ -168,6 +217,7 @@ public class AutomapMarker
                 return;
         }
 
+        m_subsectorCount++;
         var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
         var lineArray = world.StructLines.Data;
         uint smallerAngle;
@@ -193,20 +243,27 @@ public class AutomapMarker
             if (edge.BackSectorId == -1  || RenderBlock.IsBlocked(side, m_world.Sectors[edge.FrontSectorId], m_world.Sectors[edge.BackSectorId]))
                 m_viewClipper.AddLine(smallerAngle, largerAngle);
 
+            m_segCount++;
+
             if (m_hitLines.Get(edge.LineId))
                 continue;
 
-            ref var line = ref lineArray[edge.LineId];
-            if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
-                continue;
+            m_hitLines.Set(edge.LineId, true);
 
+            ref var line = ref lineArray[edge.LineId];
             if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
                 !m_frustumPlanes.PointInFrustum(line.Segment.End.X, line.Segment.End.Y))
                 continue;
 
-            m_hitLines.Set(line.Id, true);
-            line.Flags |= StructLineFlags.SeenForAutomap;
-            line.Line.DataChanges |= LineDataTypes.Automap;
+            m_lineCount++;
+            if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
+                continue;
+
+            if (m_markLines)
+            {
+                line.Flags |= StructLineFlags.SeenForAutomap;
+                line.Line.DataChanges |= LineDataTypes.Automap;
+            }
         }        
     }
 

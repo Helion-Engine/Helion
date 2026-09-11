@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
@@ -34,12 +35,13 @@ public class SinglePlayerWorld : WorldBase
     private static bool SoundsCached;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly CheatType[] ChaseCameraCheats = [CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings];
-    private readonly AutomapMarker m_automapMarker = new();
+    private readonly AutomapMarker m_automapMarker;
     private readonly HashSet<int> m_renderDistanceOverrideTags = [];
     private bool m_chaseCamMode;
     private WorldType m_worldType = WorldType.SinglePlayer;
     private int m_renderDistanceOverride;
     private bool m_firstUpdate = true;
+    private bool m_disableAutomapMarker;
 
     public override WorldType WorldType => m_worldType;
     public override Player Player { get; protected set; }
@@ -59,6 +61,7 @@ public class SinglePlayerWorld : WorldBase
         IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null, bool reuse = true, int playerSpawnArg0 = 0)
         : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random, sameAsPreviousMap, reuse)
     {
+        m_automapMarker = new(config);
         m_worldType = config.Game.SoloNet ? WorldType.Cooperative : WorldType.SinglePlayer;
 
         if (worldModel == null)
@@ -137,7 +140,6 @@ public class SinglePlayerWorld : WorldBase
 
         config.Player.Name.OnChanged += PlayerName_OnChanged;
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
-        config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
         config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
 
         ChaseCamPlayer = CreateChaseCamPlayer();
@@ -155,6 +157,11 @@ public class SinglePlayerWorld : WorldBase
             if (entry != null)
                 AudioSystem.Music.CacheMusicEntry(entry);
         }
+    }
+
+    public void DisableAutomapMarker()
+    {
+        m_disableAutomapMarker = true;
     }
 
     private void CheckDistanceOverride()
@@ -205,16 +212,6 @@ public class SinglePlayerWorld : WorldBase
         MarkSpecials.Clear(this, Player);
     }
 
-    private void AutomapBspThread_OnChanged(object? sender, bool set)
-    {
-        m_automapMarker.Stop();
-
-        if (!set)
-            return;
-
-        m_automapMarker.Start(this);
-    }
-
     public override ListenerParams GetListener()
     {
         var player = GetCameraPlayer();
@@ -223,11 +220,11 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Tick()
     {
-        if (Config.Render.AutomapBspThread)
-        {
-            var camera = Player.GetCamera(0);
-            m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians, GameTicker);
-        }
+        var player = m_chaseCamMode ? ChaseCamPlayer : Player;
+        var camera = player.GetCamera(0);
+
+        if (!m_disableAutomapMarker)
+            m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, player.AngleRadians, player.PitchRadians, GameTicker, !m_chaseCamMode);
 
         if (GetCrosshairTarget(out Entity? entity))
             Player.SetCrosshairTarget(entity);
@@ -341,7 +338,7 @@ public class SinglePlayerWorld : WorldBase
         if (!PlayLevelMusic(musicName))
             AudioSystem.Music.Stop();
 
-        if (Config.Render.AutomapBspThread.Value)
+        if (!m_disableAutomapMarker)
             m_automapMarker.Start(this);
     }
 
@@ -542,7 +539,6 @@ public class SinglePlayerWorld : WorldBase
 
         Config.Player.Name.OnChanged -= PlayerName_OnChanged;
         Config.Player.Gender.OnChanged -= PlayerGender_OnChanged;
-        Config.Render.AutomapBspThread.OnChanged -= AutomapBspThread_OnChanged;
         Config.Game.MarkSpecials.OnChanged -= MarkSpecials_OnChanged;
 
         base.PerformDispose();
@@ -612,4 +608,6 @@ public class SinglePlayerWorld : WorldBase
             input.Manager.AnalogAdapter.ZeroGyroAbsolute();
         }
     }
+
+    public override IBspHeuristics? GetBspHeuristics() => m_automapMarker;
 }
