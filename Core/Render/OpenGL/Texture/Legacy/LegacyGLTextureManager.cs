@@ -162,20 +162,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
                 GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 1, 0,
                     PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
 
-                // TODO this is forcing everything to be a 2DArray with one layer.
-                GL.TexSubImage3D(
-                        texture.Target,
-                        level: 0,
-                        xoffset: 0,
-                        yoffset: 0,
-                        zoffset: 0,
-                        image.Width,
-                        image.Height,
-                        depth: 1,
-                        PixelFormat.Bgra,
-                        PixelType.UnsignedInt8888Reversed,
-                        ptr
-                    );
+                GL.TexSubImage3D(texture.Target, 0, 0, 0, 0, image.Width, image.Height, depth: 1, 
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
             }
             else
             {
