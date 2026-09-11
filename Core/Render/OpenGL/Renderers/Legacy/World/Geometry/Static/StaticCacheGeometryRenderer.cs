@@ -1230,6 +1230,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             CheckForFloodFill(e.Side, e.Side.PartnerSide, e.Side.Sector, e.Side.PartnerSide.Sector, e.Side.IsFront);
         }
 
+        m_geometryRenderer.SetBuffer(false);
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
         AddLine(e.Side.Line, update: true);
 
@@ -1271,6 +1272,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         e.Plane.Static.GeometryData = null;
 
+        m_geometryRenderer.SetBuffer(false);
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
 
         if (WorldStatic.Sector3D && e.Plane.Sector.TaggedSectors3D.Length > 0)
