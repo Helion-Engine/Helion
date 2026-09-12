@@ -14,6 +14,7 @@ public class SpriteDefinition
     public const int MaxRotationIndex = MaxRotations - 1;
     public SpriteRotation?[,] Rotations = new SpriteRotation[MaxFrames, MaxRotations];
     public bool HasRotations;
+    public bool Cached;
 
     private static readonly Dictionary<string, Texture> SpriteTextureLookup = [];
 

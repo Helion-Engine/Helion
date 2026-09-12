@@ -126,10 +126,11 @@ public partial class LegacyWorldRenderer : WorldRenderer
         for (int i = 0; i < spriteDefinitions.Length; i++)
         {
             var spriteDefinition = spriteDefinitions[i];
-            if (spriteDefinition == null)
+            if (spriteDefinition == null || spriteDefinition.Cached)
                 continue;
 
             m_textureManager.CacheSpriteRotations(spriteDefinition);
+            spriteDefinition.Cached = true;
         }
 
         m_geometryRenderer.UpdateTo(world);
