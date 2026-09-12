@@ -109,7 +109,7 @@ public class FloodFillProgram : RenderProgramBase
             out vec4 fragColor;
 
             uniform sampler2DArray boundTexture;
-            uniform sampler2D brightmapTexture;
+            uniform sampler2DArray brightmapTexture;
             uniform vec3 camera;
             uniform mat4 mvpNoPitch;
             uniform mat4 mvp;

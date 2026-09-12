@@ -233,7 +233,7 @@ public class EntityProgram : RenderProgramBase
         uniform int hasInvulnerability;
         uniform float fuzzFrac;
         uniform sampler2DArray boundTexture;
-        uniform sampler2D brightmapTexture;
+        uniform sampler2DArray brightmapTexture;
         uniform samplerBuffer colormapTexture;
         uniform float lightLevelMix;
         uniform int extraLight;

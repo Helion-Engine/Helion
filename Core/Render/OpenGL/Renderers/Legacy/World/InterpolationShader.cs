@@ -123,7 +123,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
 
             uniform int hasInvulnerability;
             uniform sampler2DArray boundTexture;
-            uniform sampler2D brightmapTexture;
+            uniform sampler2DArray brightmapTexture;
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;

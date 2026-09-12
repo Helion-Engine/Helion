@@ -119,7 +119,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
 
             uniform int hasInvulnerability;
             uniform sampler2DArray boundTexture;
-            uniform sampler2D brightmapTexture;
+            uniform sampler2DArray brightmapTexture;
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;
