@@ -51,6 +51,8 @@ public partial class Renderer : IDisposable
 
     public readonly IWindow Window;
     public readonly GLSurface Default;
+    public readonly RenderProfiler RenderProfiler;
+    public DrawCounts LastDrawCounts;
     private GLFramebuffer m_mainFramebuffer;
     private GLFramebuffer? m_virtualFramebuffer;
     private GLFramebuffer m_worldFramebuffer;
@@ -86,6 +88,7 @@ public partial class Renderer : IDisposable
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker, RenderProfiler renderProfiler)
     {
         Window = window;
+        RenderProfiler = renderProfiler;
         m_config = config;
         m_archiveCollection = archiveCollection;
         m_fpsTracker = fpsTracker;
@@ -95,7 +98,7 @@ public partial class Renderer : IDisposable
 
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, renderProfiler);
-        m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
+        m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache, renderProfiler);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
@@ -608,6 +611,8 @@ public partial class Renderer : IDisposable
 
         if (!virtualFrameBufferDraw)
             DrawVirtualFramebufferToMain();
+
+        LastDrawCounts = RenderProfiler.DrawCounts;
     }
 
     private static void HandleScissorCommand(ScissorCommand cmd)

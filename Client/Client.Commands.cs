@@ -657,6 +657,21 @@ public partial class Client
     private static void GarbageCollect(ConsoleCommandEventArgs args) =>
         GCUtil.ForceGarbageCollection();
 
+    [ConsoleCommand("drawcounts", "Logs the draw counts of the renderer.")]
+    private void DrawCounts(ConsoleCommandEventArgs args)
+    {
+        ref var counts = ref m_window.Renderer.LastDrawCounts;
+        HelionLog.Info($"GeometryStatic:   {counts.GeometryStatic}");
+        HelionLog.Info($"GeometryDynamic:  {counts.GeometryDynamic}");
+        HelionLog.Info($"FloodFillStatic:  {counts.FloodFillStatic}");
+        HelionLog.Info($"FloodFillDynamic: {counts.FloodFillDynamic}");
+        HelionLog.Info($"Skies:            {counts.Skies}");
+        HelionLog.Info($"Sprites:          {counts.Sprites}");
+        HelionLog.Info($"HudElements:      {counts.HudElements}");
+        HelionLog.Info($"Level Total:      {counts.GeometryStatic + counts.GeometryDynamic + counts.FloodFillStatic + counts.FloodFillDynamic + counts.Skies + counts.Sprites}");
+        HelionLog.Info($"Total:            {counts.GeometryStatic + counts.GeometryDynamic + counts.FloodFillStatic + counts.FloodFillDynamic + counts.Skies + counts.Sprites + counts.HudElements}");
+    }
+
     private void DoUseCommand(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null || args.Args.Count == 0)

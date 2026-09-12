@@ -10,6 +10,7 @@ public struct DrawCounts
     public int FloodFillStatic;
     public int FloodFillDynamic;
     public int Skies;
+    public int HudElements;
 }
 
 public class RenderProfiler : ProfileComponent<RenderProfiler>

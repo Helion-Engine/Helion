@@ -13,6 +13,7 @@ using Helion.Resources;
 using Helion.Resources.Definitions.Zdoom;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Profiling.Timers;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -25,12 +26,14 @@ public class LegacyHudRenderer : HudRenderer
     private readonly LegacyHudShader m_program;
     private readonly HudDrawBuffer m_drawBuffer;
     private readonly IConfig m_config;
+    private readonly RenderProfiler m_renderProfiler;
     private float DrawDepth = 1.0f;
 
-    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, DataCache dataCache)
+    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, DataCache dataCache, RenderProfiler renderProfiler)
     {
         m_config = config;
         m_textureManager = textureManager;
+        m_renderProfiler = renderProfiler;
         m_program = new();
         m_pipeline = new(m_program, new StreamVertexBuffer<HudVertex>("Hud"), "Hud");
         m_drawBuffer = new(dataCache);
@@ -178,6 +181,7 @@ public class LegacyHudRenderer : HudRenderer
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             m_pipeline.DrawArrays();
             data.Texture.Unbind();
+            m_renderProfiler.DrawCounts.HudElements++;
         }
 
         m_pipeline.Unbind();
