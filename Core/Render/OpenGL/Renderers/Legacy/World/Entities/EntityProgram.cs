@@ -268,9 +268,10 @@ public class EntityProgram : RenderProgramBase
         ${FuzzFunction}
         ${SoftwareSpriteEmulationFunctions}
 
+        const int boundTextureIndex = 0;
+
         void main()
         {
-            int boundTextureIndex = 0;
             ${CheckPlaneClip}
             ${LightLevelFragFunction}
             ${SectorColorMapFragFunction}

@@ -145,6 +145,8 @@ public class LegacyHudShader : RenderProgram
         uniform vec2 fuzzSampleOffset;
         uniform int fuzzRefraction;
 
+        const int boundTextureIndex = 0;
+
         ${FuzzFunction}
 
         void main() {
