@@ -62,7 +62,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
     private FloodFillInfo GetOrCreateFloodFillInfo(SectorPlane plane)
     {
-        var textureHandle = m_glTextureManager.GetArrayTextureHandle(plane.TextureHandle, true);
+        var textureHandle = m_glTextureManager.GetWorldArrayTextureHandle(plane.TextureHandle, true);
         if (m_textureHandleToFloodFillInfoIndex.TryGetValue(textureHandle, out int index))
             return m_floodFillInfos[index];
 
@@ -87,7 +87,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
     private bool TryGetFloodFillInfoIndex(int textureHandle, out int index)
     {
-        textureHandle = m_glTextureManager.GetArrayTextureHandle(textureHandle, true);
+        textureHandle = m_glTextureManager.GetWorldArrayTextureHandle(textureHandle, true);
         var success = m_textureHandleToFloodFillInfoIndex.TryGetValue(textureHandle, out index);
         Assert.Precondition(success, $"Failed to find flood fill info for {textureHandle}");
         return success;

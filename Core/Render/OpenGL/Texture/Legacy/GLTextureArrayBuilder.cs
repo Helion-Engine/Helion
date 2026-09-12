@@ -16,7 +16,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
     public void BuildLevel(IEnumerable<int> flatTextures, IEnumerable<int> wallTexturesRepeat, IEnumerable<int> wallTexturesClamp)
     {
-        m_glTextureManager.DestroyTextureArrays();
+        m_glTextureManager.DestroyTextureArrays(TextureContext.WorldArray);
 
         // Animations are excluded. This leaves them reliant on their previous behavior of swapping textures.
         int buildTextures = 0;
@@ -99,7 +99,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
     private int BuildTextureArray(Span<int> textures, bool repeatY)
     {
-        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, repeatY);
+        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, TextureContext.WorldArray, repeatY);
         return arrayTexture == null ? 0 : 1;
     }
 }

@@ -27,6 +27,12 @@ public class Texture
             BrightmapRenderStoreClamp = glTexture;
     }
 
+    public void ClearGLTexture()
+    {
+        RenderStore = null;
+        RenderStoreClamp = null;
+    }
+
     /// <summary>
     /// Name of the texture.
     /// </summary>

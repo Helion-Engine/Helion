@@ -17,13 +17,13 @@ public class GeometryTextureLookup(IArrayTextureLookup arrayTextureLookup)
 
     public bool TryGetValue(GeometryType type, int textureHandle, bool repeatY, [NotNullWhen(true)] out GeometryData? value)
     {
-        textureHandle = m_arrayTextureLookup.GetArrayTextureHandle(textureHandle, repeatY);
+        textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(textureHandle, repeatY);
         return m_lookup.Get(type).TryGetValue(textureHandle, repeatY, out value);
     }
 
     public void Add(GeometryType type, int textureHandle, bool repeatY, GeometryData data)
     {
-        textureHandle = m_arrayTextureLookup.GetArrayTextureHandle(textureHandle, repeatY);
+        textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(textureHandle, repeatY);
         m_lookup.Get(type).Add(textureHandle, repeatY, data);
     }
 }

@@ -8,6 +8,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Texture;
 
+public enum TextureContext
+{
+    Default,
+    WorldArray
+}
+
 public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 {
     public int Index => TextureId;
@@ -21,6 +27,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public readonly ResourceNamespace Namespace;
     public readonly TextureTarget Target;
     public readonly int TransparentPixelCount;
+    public readonly TextureContext Context;
     private readonly bool m_ownsTexture;
     private bool m_disposed;
 
@@ -31,7 +38,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public int BlankRowsFromBottom;
 
     protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
-        int transparentPixelCount, int blankRowsFromTop, int blankRowsFromBottom, bool ownsTexture = true)
+        int transparentPixelCount, int blankRowsFromTop, int blankRowsFromBottom, bool ownsTexture = true, TextureContext textureContext = TextureContext.Default)
     {
         TextureId = textureId;
         Name = name;
@@ -44,6 +51,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
         BlankRowsFromTop = blankRowsFromTop;
         BlankRowsFromBottom = blankRowsFromBottom;
         m_ownsTexture = ownsTexture;
+        Context = textureContext;
     }
 
     ~GLTexture()

@@ -99,11 +99,6 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
 
         bool planeClip = this is StaticPlaneClipShaderMrt;
 
-        if (!planeClip)
-        {
-            int lol = 1;
-        }
-
         return @"
             #version 330
 

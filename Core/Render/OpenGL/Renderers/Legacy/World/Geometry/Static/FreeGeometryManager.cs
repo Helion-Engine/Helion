@@ -40,7 +40,7 @@ public class FreeGeometryManager(IArrayTextureLookup arrayTextureLookup)
         if (geometryData.GeometryData == null)
             return;
 
-        var textureHandle = m_arrayTextureLookup.GetArrayTextureHandle(geometryData.GeometryData.TextureHandle, repeatY);
+        var textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(geometryData.GeometryData.TextureHandle, repeatY);
         var key = new GeometryKey(textureHandle, type, repeatY);
 
         if (!m_data.TryGetValue(key, out var list))
@@ -88,7 +88,7 @@ public class FreeGeometryManager(IArrayTextureLookup arrayTextureLookup)
     {
         int minLength = int.MaxValue;
         int minIndex = -1;
-        textureHandle = m_arrayTextureLookup.GetArrayTextureHandle(textureHandle, repeatY);
+        textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(textureHandle, repeatY);
         var key = new GeometryKey(textureHandle, type, repeatY);
 
         if (!m_data.TryGetValue(key, out var list))
