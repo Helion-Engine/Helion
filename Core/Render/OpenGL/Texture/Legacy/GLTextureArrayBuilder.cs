@@ -80,8 +80,9 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
     private void AddTexture(DynamicArray<Resources.Texture> textures, int index)
     {
+        // Exclude brightmaps for now. They probably could be made into arrays but like animations the complication may not be worth it.
         var texture = m_textureManager.GetTexture(index);
-        if (texture.Image != null)
+        if (texture.Image != null && texture.BrightmapImage == null)
             textures.Add(texture);
     }
 
