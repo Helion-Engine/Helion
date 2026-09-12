@@ -338,7 +338,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
                 if (brightmapTexture != null)
                     brightmapTexture.Bind();
                 else
-                    GL.BindTexture(TextureTarget.Texture2D, 0);
+                    GL.BindTexture(texture.Target, 0);
             }
 
             info.Pipeline.Vbo.UploadIfNeeded();

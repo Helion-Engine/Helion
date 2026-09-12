@@ -843,7 +843,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         GL.ActiveTexture(BindTextures.BoundTexture);
         texture.Bind();
         GL.ActiveTexture(BindTextures.BrightmapTexture);
-        GL.BindTexture(TextureTarget.Texture2D, 0);
+        GL.BindTexture(data.Texture.Target, 0);
 
         data.Pipeline.Vbo.UploadCapacity();
         data.Pipeline.Bind();
@@ -878,7 +878,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             if (brightmapTexture != null)
                 brightmapTexture.Bind();
             else
-                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.BindTexture(texture.Target, 0);
 
             data.Pipeline.Vbo.UploadIfNeeded();
 

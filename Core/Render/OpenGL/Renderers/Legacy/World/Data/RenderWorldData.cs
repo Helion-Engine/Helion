@@ -57,7 +57,7 @@ public class RenderWorldData : IDisposable
         if (BrightmapTexture != null)
             BrightmapTexture.Bind();
         else
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(Texture.Target, 0);
 
         Pipeline.Bind(true);
         Pipeline.Vbo.Upload();

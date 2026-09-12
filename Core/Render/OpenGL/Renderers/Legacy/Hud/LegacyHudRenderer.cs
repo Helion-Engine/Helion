@@ -178,7 +178,7 @@ public class LegacyHudRenderer : HudRenderer
             if (data.BrightmapTexture != null)
                 data.BrightmapTexture.Bind();
             else
-                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.BindTexture(data.Texture.Target, 0);
             m_pipeline.DrawArrays();
             data.Texture.Unbind();
             m_renderProfiler.DrawCounts.HudElements++;
