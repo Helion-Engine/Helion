@@ -668,8 +668,8 @@ public partial class Client
         HelionLog.Info($"Skies:            {counts.Skies}");
         HelionLog.Info($"Sprites:          {counts.Sprites}");
         HelionLog.Info($"HudElements:      {counts.HudElements}");
-        HelionLog.Info($"Level Total:      {counts.GeometryStatic + counts.GeometryDynamic + counts.FloodFillStatic + counts.FloodFillDynamic + counts.Skies + counts.Sprites}");
-        HelionLog.Info($"Total:            {counts.GeometryStatic + counts.GeometryDynamic + counts.FloodFillStatic + counts.FloodFillDynamic + counts.Skies + counts.Sprites + counts.HudElements}");
+        HelionLog.Info($"Level Total:      {counts.LevelTotal()}");
+        HelionLog.Info($"Total:            {counts.Total()}");
     }
 
     private void DoUseCommand(ConsoleCommandEventArgs args)

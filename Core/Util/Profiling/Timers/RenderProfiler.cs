@@ -11,6 +11,9 @@ public struct DrawCounts
     public int FloodFillDynamic;
     public int Skies;
     public int HudElements;
+
+    public readonly int Total() => GeometryStatic + GeometryDynamic + FloodFillStatic + FloodFillDynamic + Skies + Sprites + HudElements;
+    public readonly int LevelTotal() => Total() - HudElements;
 }
 
 public class RenderProfiler : ProfileComponent<RenderProfiler>
