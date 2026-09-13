@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.Loggers;
@@ -10,8 +11,11 @@ using System.Linq;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
 
+record struct TextureBucket(Dimension Dimension, DynamicArray<Resources.Texture> Textures);
+
 public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextureManager glTextureManager)
 {
+
     private readonly TextureManager m_textureManager = textureManager;
     private readonly LegacyGLTextureManager m_glTextureManager = glTextureManager;
 
@@ -71,7 +75,9 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             }
         }
 
-        BuildTextureArrayFromTextures(spriteTextures, TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY);
+        var buckets = CreateTextureBuckets(spriteTextures, 32, 5);
+        foreach (var bucket in buckets)
+            BuildTextureArray(bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY);
 
         foreach (var spriteDefinition in spriteDefinitions)
         {
@@ -158,5 +164,54 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
     {
         var arrayTexture = m_glTextureManager.CreateTextureArray(textures, textureContext, textureFlags);
         return arrayTexture == null ? 0 : 1;
+    }
+
+    private static TextureBucket[] CreateTextureBuckets(DynamicArray<Resources.Texture> textures, int baseSize, int bucketCount)
+    {
+        if (baseSize <= 0)
+            throw new ArgumentException($"Invalid baseSize {baseSize}");
+        if (bucketCount <= 0)
+            throw new ArgumentException($"Invalid bucketCount {bucketCount}");
+
+        var buckets = new TextureBucket[bucketCount];
+
+        for (int i = 0; i < bucketCount; i++)
+        {
+            var size = baseSize * (int)Math.Pow(2, i);
+            buckets[i] = new TextureBucket(new Dimension(size, size), new(128));
+        }
+
+        buckets[^1] = new TextureBucket(new Dimension(0, 0), []);
+
+        foreach (var texture in textures)
+        {
+            // This shouldn't happen
+            if (texture.Image == null)
+                continue;
+
+            var index = GetBucketIndex(texture.Image.Dimension, baseSize, bucketCount);
+            buckets[index].Textures.Add(texture);
+        }
+
+        return buckets;
+    }
+
+    private static int GetBucketIndex(Dimension dimension, int baseSize, int bucketCount)
+    {
+        int size = MathHelper.Max(dimension.Width, dimension.Height);
+        // Fits in the smallest bucket
+        if (size <= baseSize)
+            return 0;
+
+        int index = 0;
+        int current = baseSize;
+
+        while (index < bucketCount - 1 && size > current)
+        {
+            current *= 2;
+            index++;
+        }
+
+        return index;
     }
 }
