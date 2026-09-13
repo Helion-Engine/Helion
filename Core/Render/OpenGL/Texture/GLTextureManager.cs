@@ -243,7 +243,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             var glTexture = arraySubTextures[i];
             var texture = textures[i];
             SetDebugName(glTexture, texture);
-            texture.SetGLTexture(glTexture, (textureFlags & TextureFlags.ClampY) != 0);
+            texture.SetGLTexture(glTexture, (textureFlags & TextureFlags.ClampY) == 0);
         }
 
         if (!m_arrayTextures.TryGetValue((int)textureContext, out var arrayTextureData))
@@ -252,7 +252,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             m_arrayTextures.Set((int)textureContext, arrayTextureData);
         }
 
-        arrayTextureData.Add(arrayTexture, arraySubTextures, textures, (textureFlags & TextureFlags.ClampY) != 0);
+        arrayTextureData.Add(arrayTexture, arraySubTextures, textures, textureFlags);
         return arrayTexture;
     }
 
@@ -265,7 +265,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     public int GetWorldArrayTextureHandle(int textureHandle, bool repeatY)
     {
         if (m_arrayTextures.TryGetValue((int)TextureContext.WorldArray, out var arrayTextureData))
-            return arrayTextureData.GetArrayTextureHandle(textureHandle, repeatY);
+            return arrayTextureData.GetArrayTextureHandle(textureHandle, repeatY ? TextureFlags.Default : TextureFlags.ClampY);
 
         return textureHandle;
     }

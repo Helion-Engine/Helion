@@ -1,5 +1,4 @@
-﻿using Helion.Dehacked;
-using Helion.Geometry;
+﻿using Helion.Geometry;
 using Helion.Resources;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
