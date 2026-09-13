@@ -1,7 +1,9 @@
 ﻿using Helion.Util.Assertion;
 using Helion.Util.Container;
+using OpenTK.Platform.Windows;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Texture;
 
@@ -19,7 +21,7 @@ internal sealed class ArrayTextureData<GLTextureType>(TextureContext context) wh
     {
         Assert.Precondition(arraySubTextures.Length == textures.Length, "arraySubTextures != textures length");
         // Flip high bit to ensure no collisions
-        var arrayTextureId = arrayTexture.TextureId | (1 << 30);
+        var arrayTextureId = arrayTexture.TextureId | (1 << 30 - (int)Context);
         m_arrayTextures.Add(arrayTexture);
         m_arraySubTextures.Add(arraySubTextures);
         m_texturesForArrays.Add(textures);
@@ -34,6 +36,22 @@ internal sealed class ArrayTextureData<GLTextureType>(TextureContext context) wh
         if (lookup.TryGetValue(textureHandle, out var handle))
             return handle;
         return textureHandle;
+    }
+
+    public bool TryGetTexture(int textureIndex, [NotNullWhen(true)] out Resources.Texture? texture)
+    {
+        for (int i = 0; i < m_texturesForArrays.Length; i++)
+        {
+            var check = m_texturesForArrays.Data[i];
+            if (check.Index == textureIndex)
+            {
+                texture = check;
+                return true;
+            }
+        }
+
+        texture = null;
+        return false;
     }
 
     public void Destroy()

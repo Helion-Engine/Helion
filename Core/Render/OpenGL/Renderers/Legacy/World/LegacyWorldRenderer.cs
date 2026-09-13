@@ -67,6 +67,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private bool m_downscaleVanillaBuffer;
     private bool m_postProcessingEffects;
     private bool m_lastUseBsp;
+    private bool m_spritesCached;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
@@ -122,15 +123,11 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         m_previousWorld?.OnResetInterpolation -= World_OnResetInterpolation;
 
-        var spriteDefinitions = m_archiveCollection.TextureManager.SpriteDefinitions;
-        for (int i = 0; i < spriteDefinitions.Length; i++)
+        if (!m_spritesCached)
         {
-            var spriteDefinition = spriteDefinitions[i];
-            if (spriteDefinition == null || spriteDefinition.Cached)
-                continue;
-
-            m_textureManager.CacheSpriteRotations(spriteDefinition);
-            spriteDefinition.Cached = true;
+            var textureArrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_textureManager);
+            textureArrayBuilder.BuildSprites(m_archiveCollection.TextureManager.SpriteDefinitions);
+            m_spritesCached = true;
         }
 
         m_geometryRenderer.UpdateTo(world);

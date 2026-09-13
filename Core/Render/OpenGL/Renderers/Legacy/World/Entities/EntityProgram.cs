@@ -69,6 +69,7 @@ public class EntityProgram : RenderProgramBase
         layout(location = 2) in vec3 prevPos;
         layout(location = 3) in float offsetXYZ;
         layout(location = 4) in float renderOptions;
+        layout(location = 5) in float textureIndex;
 
         flat out float lightLevelFrag;
         flat out float alphaFrag;
@@ -76,6 +77,7 @@ public class EntityProgram : RenderProgramBase
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
         flat out float textureWidthFrag;
+        flat out float boundTextureIndex;
         flat out vec3 centerPosFrag;
         flat out vec3 minPosFrag;
         flat out vec3 maxPosFrag;
@@ -170,6 +172,7 @@ public class EntityProgram : RenderProgramBase
             minPosFrag = minPos;
             maxPosFrag = maxPos;
             renderDistSquared = distSquared(viewPos.xy, interpolatedPos.xy);
+            boundTextureIndex = textureIndex;
         }
     "
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag"))
@@ -222,6 +225,7 @@ public class EntityProgram : RenderProgramBase
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
         flat in float textureWidthFrag;
+        flat in float boundTextureIndex;
         flat in vec3 centerPosFrag;
         flat in vec3 minPosFrag;
         flat in vec3 maxPosFrag;
@@ -267,8 +271,6 @@ public class EntityProgram : RenderProgramBase
         ${OitVariables}
         ${FuzzFunction}
         ${SoftwareSpriteEmulationFunctions}
-
-        const int boundTextureIndex = 0;
 
         void main()
         {

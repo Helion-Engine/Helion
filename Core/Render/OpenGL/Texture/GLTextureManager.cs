@@ -100,21 +100,6 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
         arrayTextureData.Destroy();
         m_arrayTextures.Set((int)textureContext, null);
-        //for (int i = 0; i < m_arrayTextures.Length; i++)
-        //    m_arrayTextures[i].Dispose();
-
-        //for (int i = 0; i < m_texturesForArrays.Length; i++)
-        //{
-        //    var texture = m_texturesForArrays.Data[i];
-        //    texture.RenderStore = null;
-        //    texture.RenderStoreClamp = null;
-        //}
-
-        //m_arrayTextures.Clear();
-        //m_arraySubTextures.Clear();
-        //m_arrayTextureLookup.Clear();
-        //m_arrayTextureLookupClamp.Clear();
-        //m_texturesForArrays.Clear();
     }
 
     public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
@@ -236,7 +221,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return (GLTextureType)renderTexture;
     }
 
-    public GLTextureType? CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, bool repeatY)
+    public GLTextureType? CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags)
     {
         if (textures.Length == 0)
             return null;
@@ -252,14 +237,13 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             textures[i] = texture;
         }
 
-        var flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
-        var arraySubTextures = GenerateTextureArray(images, images[0].Dimension, ResourceNamespace.Textures, flags, textureContext, out var arrayTexture);
+        var arraySubTextures = GenerateTextureArray(images, images[0].Dimension, ResourceNamespace.Textures, textureFlags, textureContext, out var arrayTexture);
         for (int i = 0; i < images.Length; i++)
         {
             var glTexture = arraySubTextures[i];
             var texture = textures[i];
             SetDebugName(glTexture, texture);
-            texture.SetGLTexture(glTexture, repeatY);
+            texture.SetGLTexture(glTexture, (textureFlags & TextureFlags.ClampY) != 0);
         }
 
         if (!m_arrayTextures.TryGetValue((int)textureContext, out var arrayTextureData))
@@ -268,7 +252,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             m_arrayTextures.Set((int)textureContext, arrayTextureData);
         }
 
-        arrayTextureData.Add(arrayTexture, arraySubTextures, textures, repeatY);
+        arrayTextureData.Add(arrayTexture, arraySubTextures, textures, (textureFlags & TextureFlags.ClampY) != 0);
         return arrayTexture;
     }
 
@@ -284,6 +268,17 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             return arrayTextureData.GetArrayTextureHandle(textureHandle, repeatY);
 
         return textureHandle;
+    }
+
+    public bool TryGetTexture(int textureIndex, TextureContext textureContext, [NotNullWhen(true)] out Resources.Texture? texture)
+    {
+        if (!m_arrayTextures.TryGetValue((int)textureContext, out var arrayTextureData))
+        {
+            texture = null;
+            return false;
+        }
+
+        return arrayTextureData.TryGetTexture(textureIndex, out texture);
     }
 
     public GLTextureType? GetBrightmapTexture(int index, bool repeatY = true)
@@ -351,29 +346,6 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         }
 
         return spriteRotation;
-    }
-
-    public void CacheSpriteRotations(SpriteDefinition spriteDef)
-    {
-        for (int i = 0; i < SpriteDefinition.MaxFrames; i++)
-        {
-            for (int j = 0; j < SpriteDefinition.MaxRotations; j++)
-            {
-                var rotation = spriteDef.Rotations[i, j];
-                if (rotation == null)
-                    continue;
-
-                if (rotation.Texture.RenderStore != null)
-                {
-                    rotation.RenderStore ??= rotation.Texture.RenderStore;
-                    rotation.BrightmapRenderStore ??= rotation.Texture.RenderStore;
-                    continue;
-                }
-
-                rotation.RenderStore = rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
-                rotation.BrightmapRenderStore = rotation.Texture.BrightmapRenderStore = CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
-            }
-        }
     }
 
     public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
@@ -449,7 +421,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return (int)Math.Floor(Math.Log(smallerAxis, 2));
     }
 
-    protected GLTextureType CreateBrightMapTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
+    public GLTextureType CreateBrightMapTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
     {
         var texture = CreateTexture(image, name, resourceNamespace, repeatY);
         // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.

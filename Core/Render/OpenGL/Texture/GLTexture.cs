@@ -11,7 +11,8 @@ namespace Helion.Render.OpenGL.Texture;
 public enum TextureContext
 {
     Default,
-    WorldArray
+    WorldArray,
+    WorldSprites
 }
 
 public abstract class GLTexture : IRenderableTextureHandle, IDisposable

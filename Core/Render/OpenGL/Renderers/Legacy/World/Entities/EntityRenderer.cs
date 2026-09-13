@@ -176,7 +176,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     }
 
     public void RenderEntity(Entity entity, in Vec2D position, int renderIndex)
-    {        
+    {
         Vec3D centerBottom = entity.Position;
         Vec2D nudgeAmount = default;
 
@@ -246,7 +246,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         var disableFullbright = spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
-        
 
         int fuzz;
         RenderStyle renderStyle;
@@ -257,7 +256,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         }
         else
         {
-            renderStyle = m_spriteAlpha ? entity.RenderStyle: RenderStyle.Normal;
+            renderStyle = m_spriteAlpha ? entity.RenderStyle : RenderStyle.Normal;
             fuzz = 0;
         }
 
@@ -277,7 +276,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (renderStyle == RenderStyle.ColorAdd)
             entityAlpha = 1.0f;
 
-        var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
+        var arrayTexture = texture.ParentArrayTexture ?? texture;
+        var renderData = m_dataManager.GetByRenderStyle(renderStyle, arrayTexture, brightmapTexture);
         var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
 
         var arrayData = renderData.ArrayData;
@@ -299,6 +299,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.SurfaceOptions = VertexOptions.EntityPackSurface(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.RenderOptions = VertexOptions.EntityPackRender(
             Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
+        vertex.TextureIndex = texture.ArrayIndex;
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
@@ -309,7 +310,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             vertex.Pos.Z = ceilingZ + diff;
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
-        
+
         vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(offsetX, offsetZ);
         arrayData.Length = length + 1;
 
