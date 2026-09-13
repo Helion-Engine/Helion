@@ -1,5 +1,6 @@
 ﻿using Helion.Util.Assertion;
 using Helion.Util.Container;
+using System;
 using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Texture;
@@ -14,7 +15,7 @@ internal sealed class ArrayTextureData<GLTextureType>(TextureContext context) wh
     private readonly Dictionary<int, int> m_arrayTextureLookup = [];
     private readonly Dictionary<int, int> m_arrayTextureLookupClamp = [];
 
-    public void Add(GLTextureType arrayTexture, GLTextureType[] arraySubTextures, Resources.Texture[] textures, bool clamp)
+    public void Add(GLTextureType arrayTexture, GLTextureType[] arraySubTextures, Span<Resources.Texture> textures, bool clamp)
     {
         Assert.Precondition(arraySubTextures.Length == textures.Length, "arraySubTextures != textures length");
         // Flip high bit to ensure no collisions

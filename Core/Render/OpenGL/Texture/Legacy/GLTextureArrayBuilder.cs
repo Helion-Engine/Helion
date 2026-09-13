@@ -54,7 +54,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
     private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, TextureContext textureContext, bool repeatY)
     {
         int textureCount = 0;
-        var arrayTextures = new DynamicArray<int>();
+        var arrayTextures = new DynamicArray<Resources.Texture>();
         var dimension = new Dimension(0, 0);
         foreach (var texture in textures)
         {
@@ -69,7 +69,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
                 dimension = texture.Image.Dimension;
             }
 
-            arrayTextures.Add(texture.Index);
+            arrayTextures.Add(texture);
         }
 
         if (arrayTextures.Count > 0)
@@ -97,7 +97,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         return x.Image.Height.CompareTo(y.Image.Height);
     }
 
-    private int BuildTextureArray(Span<int> textures, TextureContext textureContext, bool repeatY)
+    private int BuildTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, bool repeatY)
     {
         var arrayTexture = m_glTextureManager.CreateTextureArray(textures, textureContext, repeatY);
         return arrayTexture == null ? 0 : 1;

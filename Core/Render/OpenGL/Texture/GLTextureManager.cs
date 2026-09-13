@@ -236,19 +236,16 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return (GLTextureType)renderTexture;
     }
 
-    public GLTextureType? CreateTextureArray(Span<int> indices, TextureContext textureContext, bool repeatY)
+    public GLTextureType? CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, bool repeatY)
     {
-        if (indices.Length == 0)
+        if (textures.Length == 0)
             return null;
 
-        var images = new Image[indices.Length];
-        var textures = new Resources.Texture[indices.Length];
-
-        for (int i = 0; i < indices.Length; i++)
+        var images = new Image[textures.Length];
+        for (int i = 0; i < textures.Length; i++)
         {
-            var index = indices[i];
-            TextureManager.EnsureTextureImageLoaded(index);
-            var texture = TextureManager.GetTexture(index);
+            var texture = textures[i];
+            TextureManager.EnsureTextureImageLoaded(texture.Index);
             Assert.Precondition(texture.Image != null, "Texture must have an image");
 
             images[i] = texture.Image ?? new Image(default, ImageType.Argb);
