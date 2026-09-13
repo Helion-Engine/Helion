@@ -30,7 +30,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
         buildTextures += textures.Count;
         textures.Sort(SortTexturesByDimensions);
-        arrayTextures += BuildTextureArrayFromTextures(textures, true);
+        arrayTextures += BuildTextureArrayFromTextures(textures, TextureContext.WorldArray, true);
 
         textures.Clear();
         foreach (var index in wallTexturesClamp.Where(x => !m_textureManager.IsTextureAnimated(x)))
@@ -38,7 +38,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
         buildTextures += textures.Count;
         textures.Sort(SortTexturesByDimensions);
-        arrayTextures += BuildTextureArrayFromTextures(textures, false);
+        arrayTextures += BuildTextureArrayFromTextures(textures, TextureContext.WorldArray, false);
 
         var totalTextures = flatTextures.Count() + wallTexturesRepeat.Count() + wallTexturesClamp.Count();
         var animated = totalTextures - buildTextures;
@@ -51,7 +51,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         HelionLog.Info($"Compressed textures {totalTextures} -> {compressed}");
     }
 
-    private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, bool repeatY)
+    private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, TextureContext textureContext, bool repeatY)
     {
         int textureCount = 0;
         var arrayTextures = new DynamicArray<int>();
@@ -64,7 +64,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             if (dimension != texture.Image.Dimension)
             {
                 if (arrayTextures.Count > 0)
-                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), repeatY);
+                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, repeatY);
                 arrayTextures.Clear();
                 dimension = texture.Image.Dimension;
             }
@@ -73,7 +73,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         }
 
         if (arrayTextures.Count > 0)
-            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), repeatY);
+            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, repeatY);
 
         return textureCount;
     }
@@ -97,9 +97,9 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         return x.Image.Height.CompareTo(y.Image.Height);
     }
 
-    private int BuildTextureArray(Span<int> textures, bool repeatY)
+    private int BuildTextureArray(Span<int> textures, TextureContext textureContext, bool repeatY)
     {
-        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, TextureContext.WorldArray, repeatY);
+        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, textureContext, repeatY);
         return arrayTexture == null ? 0 : 1;
     }
 }
