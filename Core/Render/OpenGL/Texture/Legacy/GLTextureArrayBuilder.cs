@@ -76,8 +76,13 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         }
 
         var buckets = CreateTextureBuckets(spriteTextures, 32, 5);
-        foreach (var bucket in buckets)
-            BuildTextureArray(bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY);
+        for (int i = 0; i < buckets.Length - 1; i++)
+        {
+            var bucket = buckets[i];
+            BuildTextureArray(bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY, bucket.Dimension);
+        }
+
+        // TODO overflow bucket ^1
 
         foreach (var spriteDefinition in spriteDefinitions)
         {
@@ -127,7 +132,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             if (dimension != texture.Image.Dimension)
             {
                 if (arrayTextures.Count > 0)
-                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags);
+                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags, dimension);
                 arrayTextures.Clear();
                 dimension = texture.Image.Dimension;
             }
@@ -136,7 +141,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         }
 
         if (arrayTextures.Count > 0)
-            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags);
+            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags, dimension);
 
         return textureCount;
     }
@@ -160,9 +165,9 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         return x.Image.Height.CompareTo(y.Image.Height);
     }
 
-    private int BuildTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags)
+    private int BuildTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension)
     {
-        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, textureContext, textureFlags);
+        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, textureContext, textureFlags, dimension);
         return arrayTexture == null ? 0 : 1;
     }
 
@@ -173,7 +178,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         if (bucketCount <= 0)
             throw new ArgumentException($"Invalid bucketCount {bucketCount}");
 
-        var buckets = new TextureBucket[bucketCount];
+        var buckets = new TextureBucket[bucketCount + 1];
 
         for (int i = 0; i < bucketCount; i++)
         {
