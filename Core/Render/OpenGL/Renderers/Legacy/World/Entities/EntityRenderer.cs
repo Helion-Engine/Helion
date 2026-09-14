@@ -299,8 +299,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.SurfaceOptions = VertexOptions.EntityPackSurface(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.RenderOptions = VertexOptions.EntityPackRender(
             Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
-        vertex.TextureIndex = texture.ArrayIndex;
-        vertex.TextureDimIndex = spriteRotation.Texture.Index;
+        vertex.TextureIndex = VertexOptions.EntityPackTextureIndex(texture.ArrayIndex, spriteRotation.TextureIndex);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {

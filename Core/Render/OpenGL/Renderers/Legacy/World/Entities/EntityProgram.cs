@@ -73,7 +73,6 @@ public class EntityProgram : RenderProgramBase
         layout(location = 3) in float offsetXYZ;
         layout(location = 4) in float renderOptions;
         layout(location = 5) in float textureIndex;
-        layout(location = 6) in float textureDimIndex;
 
         flat out float lightLevelFrag;
         flat out float alphaFrag;
@@ -127,13 +126,16 @@ public class EntityProgram : RenderProgramBase
 
             intOptions = floatBitsToInt(offsetXYZ);
             float offsetXYOption = float((intOptions >> 16) & 0x3FFF);
-
             float offsetZ = float(intOptions & 0x3FFF);
             float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
             offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
             offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
-            uvec2 textureDim = texelFetch(spriteTextureDimensionsTexture, int(textureDimIndex)).rg;
+
+            intOptions = floatBitsToInt(textureIndex);
+            boundTextureIndex = (intOptions >> 16);
+            int textureDimIndex = intOptions & 0xFFFF;
+            uvec2 textureDim = texelFetch(spriteTextureDimensionsTexture, textureDimIndex).rg;
             textureWidthFrag = textureDim.x;
             
             ${SectorColorMapVertexFunction}
@@ -179,7 +181,6 @@ public class EntityProgram : RenderProgramBase
             minPosFrag = minPos;
             maxPosFrag = maxPos;
             renderDistSquared = distSquared(viewPos.xy, interpolatedPos.xy);
-            boundTextureIndex = textureIndex;
         }
     "
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag"))

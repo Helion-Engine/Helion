@@ -63,4 +63,11 @@ public static class VertexOptions
         int packed = (offsetXYSign << 31) | (offsetZSign << 30) | (offsetXY << 16) | offsetZ;
         return *(float*)&packed;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe float EntityPackTextureIndex(int arrayIndex, int textureDimensionIndex)
+    {
+        int packed = (arrayIndex << 16) | textureDimensionIndex;
+        return *(float*)&packed;
+    }
 }
