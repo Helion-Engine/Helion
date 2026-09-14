@@ -21,7 +21,6 @@ public class EntityProgram : RenderProgramBase
     private readonly int m_mapDataTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
     private readonly int m_colorClampLocation;
-    private readonly int m_spriteTextureDimensionsTextureLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -39,14 +38,12 @@ public class EntityProgram : RenderProgramBase
         m_fuzzTextureLocation = Uniforms.GetLocation("fuzzTexture");
         m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_colorClampLocation = Uniforms.GetLocation("colorClamp");
-        m_spriteTextureDimensionsTextureLocation = Uniforms.GetLocation("spriteTextureDimensionsTexture");
     }
     
     public void FuzzTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_opaqueTextureLocation);
     public void MapDataTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_mapDataTextureLocation);
     public void LineHeightsTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_lineHeightsTextureLocation);
-    public void SpriteTextureDimensionsTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_spriteTextureDimensionsTextureLocation);
     public void FuzzFrac(float frac) => ProgramUniforms.Set(frac, m_fuzzFracLocation);
     public void ViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_viewRightNormalLocation);
     public void PrevViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_prevViewRightNormalLocation);
@@ -72,7 +69,7 @@ public class EntityProgram : RenderProgramBase
         layout(location = 2) in vec3 prevPos;
         layout(location = 3) in float offsetXYZ;
         layout(location = 4) in float renderOptions;
-        layout(location = 5) in float textureIndex;
+        layout(location = 5) in float textureInfo;
 
         flat out float lightLevelFrag;
         flat out float alphaFrag;
@@ -104,7 +101,6 @@ public class EntityProgram : RenderProgramBase
         uniform sampler2DArray boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
-        uniform usamplerBuffer spriteTextureDimensionsTexture;
 
         float distSquared(vec2 v1, vec2 v2) {
             vec2 length = v1.xy - v2.xy;
@@ -132,10 +128,9 @@ public class EntityProgram : RenderProgramBase
             offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
             offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
 
-            intOptions = floatBitsToInt(textureIndex);
-            boundTextureIndex = (intOptions >> 16);
-            int textureDimIndex = intOptions & 0xFFFF;
-            uvec2 textureDim = texelFetch(spriteTextureDimensionsTexture, textureDimIndex).rg;
+            intOptions = floatBitsToInt(textureInfo);
+            boundTextureIndex = (intOptions >> 20) & 0xFFF;
+            ivec2 textureDim = ivec2((intOptions >> 10) & 0x3FF, intOptions & 0x3FF);
             textureWidthFrag = textureDim.x;
             
             ${SectorColorMapVertexFunction}

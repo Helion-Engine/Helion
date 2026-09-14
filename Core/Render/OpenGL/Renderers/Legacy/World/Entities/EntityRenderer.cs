@@ -299,7 +299,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.SurfaceOptions = VertexOptions.EntityPackSurface(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.RenderOptions = VertexOptions.EntityPackRender(
             Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
-        vertex.TextureIndex = VertexOptions.EntityPackTextureIndex(texture.ArrayIndex, spriteRotation.TextureIndex);
+        vertex.TextureInfo = VertexOptions.EntityPackTextureInfo(texture.ArrayIndex, spriteRotation.TextureDimension.Width, spriteRotation.TextureDimension.Height);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
@@ -343,7 +343,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
         vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(0, offset);
-        vertex.TextureIndex = 0;
+        vertex.TextureInfo = 0;
 
         array.SetLength(array.Length + 1);
     }
@@ -419,7 +419,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.MapDataTexture(BindTextures.MapLineData);
         program.LineHeightsTexture(BindTextures.LineHeights);
-        program.SpriteTextureDimensionsTexture(BindTextures.SpriteTextureDimensions);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)

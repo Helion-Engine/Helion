@@ -24,5 +24,5 @@ public struct EntityVertex
     public float RenderOptions;
 
     [VertexAttribute(divisor: 1)]
-    public float TextureIndex;
+    public float TextureInfo;
 }

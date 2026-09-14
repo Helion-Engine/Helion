@@ -552,7 +552,6 @@ public partial class Renderer : IDisposable
         BindLightBuffer();
         BindMapDataBuffer();
         BindLineHeightsBuffer();
-        BindSpriteTextureDimensionsBuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
@@ -657,11 +656,6 @@ public partial class Renderer : IDisposable
     private void BindLineHeightsBuffer()
     {
         m_lineHeightsBuffer?.BindTexture(BindTextures.LineHeights);
-    }
-
-    private void BindSpriteTextureDimensionsBuffer()
-    {
-        m_spriteTextureDimensionsBuffer?.BindTexture(BindTextures.SpriteTextureDimensions);
     }
 
     public void PerformThrowableErrorChecks()

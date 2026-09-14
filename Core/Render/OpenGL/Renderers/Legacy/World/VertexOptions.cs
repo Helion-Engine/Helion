@@ -65,9 +65,10 @@ public static class VertexOptions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float EntityPackTextureIndex(int arrayIndex, int textureDimensionIndex)
+    public static unsafe float EntityPackTextureInfo(int arrayIndex, int paddedWidth, int paddedHeight)
     {
-        int packed = (arrayIndex << 16) | textureDimensionIndex;
+        // 12, 10, and 10 bits
+        int packed = ((arrayIndex & 0xFFF) << 20) | ((paddedWidth & 0x3FF) << 10) | ((paddedHeight & 0x3FF));
         return *(float*)&packed;
     }
 }

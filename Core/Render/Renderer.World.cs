@@ -40,7 +40,6 @@ public partial class Renderer
     private GLBufferTextureStorage<float>? m_colorMapBuffer;
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
-    private GLBufferTextureStorage<uint>? m_spriteTextureDimensionsBuffer;
 
     private bool m_sectorFog;
     private bool m_sectorColor;
@@ -109,30 +108,6 @@ public partial class Renderer
         m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         SetLineHeights(world, alloc);
-
-        if (m_spriteTextureDimensionsBuffer == null)
-        {
-            var bufferLength = (m_worldRenderer.SpriteTextureBuckets.MaxTextureIndex + 1) * 2;
-            m_spriteTextureDimensionsBuffer = new("Sprite Texture Dimensions", new uint[bufferLength], SizedInternalFormat.Rg32ui, false);
-            m_spriteTextureDimensionsBuffer.Map(data =>
-            {
-                uint* buffer = (uint*)data.ToPointer();
-                foreach (var bucket in m_worldRenderer.SpriteTextureBuckets.Buckets)
-                {
-                    for (int i = 0; i < bucket.Textures.Length; i++)
-                    {
-                        var texture = bucket.Textures[i];
-                        if (texture.Image == null)
-                            continue;
-
-                        var index = texture.Index * 2;
-                        Assert.Precondition(index + 1 < bufferLength, $"Invalid texture index {texture.Index}");
-                        buffer[index] = (uint)texture.Image.Dimension.Width;
-                        buffer[index + 1] = (uint)texture.Image.Dimension.Height;
-                    }
-                }
-            });
-        }
     }
 
     private unsafe void SetLineHeights(IWorld world, bool alloc)
