@@ -237,7 +237,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
             if (image.Dimension.Width < dimension.Width || image.Dimension.Height < dimension.Height)
             {
-                var fitImage = new Image(dimension, image.ImageType);
+                var fitImage = new Image(dimension, image.ImageType, offset: image.Offset);
 
                 // TODO probably make this faster
                 for (int x = 0; x < image.Dimension.Width; x++)

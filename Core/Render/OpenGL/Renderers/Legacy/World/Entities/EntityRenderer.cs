@@ -136,9 +136,9 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
     }
 
-    private int GetOffsetZ(Entity entity, GLLegacyTexture texture)
+    private int GetOffsetZ(Entity entity, GLLegacyTexture texture, int textureHeight)
     {
-        int offsetAmount = texture.Offset.Y - texture.Height;
+        int offsetAmount = texture.Offset.Y - textureHeight;
         if (m_vanillaRender)
             return offsetAmount;
 
@@ -148,13 +148,13 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
             return offsetAmount;
 
-        if (!m_spriteClip || texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
+        if (!m_spriteClip || textureHeight < m_spriteClipMin || entity.Definition.IsInventory)
             return MathHelper.Max(offsetAmount, -texture.BlankRowsFromBottom);
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
             // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
-            int maxHeight = (int)((texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
+            int maxHeight = (int)((textureHeight - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
             if (-offsetAmount > maxHeight)
                 offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
             return offsetAmount;
@@ -245,7 +245,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
         var disableFullbright = spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
-        var offsetZ = GetOffsetZ(entity, texture);
+        var offsetZ = GetOffsetZ(entity, texture, spriteRotation.TextureDimension.Height);
 
         int fuzz;
         RenderStyle renderStyle;
@@ -312,7 +312,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
 
-        offsetZ = 0;
         vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(offsetX, offsetZ);
         arrayData.Length = length + 1;
 

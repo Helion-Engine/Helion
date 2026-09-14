@@ -70,13 +70,12 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
                     if (spriteTextureHandles.Add(rotation.Texture.Index))
                         spriteTextures.Add(rotation.Texture);
-
                 }
             }
         }
 
-        const int BaseSize = 32;
-        const int BucketCount = 5;
+        const int BaseSize = 16;
+        const int BucketCount = 6;
         var buckets = CreateTextureBuckets(spriteTextures, BaseSize, BucketCount);
         for (int i = 0; i < buckets.Length - 1; i++)
         {
@@ -101,9 +100,6 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
                     if (rotation.RenderStore != null)
                         continue;
-
-                    if (rotation.Texture.Image != null)
-                        rotation.TextureBucket = GetBucketIndex(rotation.Texture.Image.Dimension, BaseSize, BucketCount);
 
                     rotation.BrightmapRenderStore = m_glTextureManager.CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
 
