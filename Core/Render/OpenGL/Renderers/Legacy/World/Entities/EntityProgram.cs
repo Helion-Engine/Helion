@@ -159,9 +159,6 @@ public class EntityProgram : RenderProgramBase
             float z = mix(minPos.z, maxPos.z, ySelect);
 
             vec3 cornerPos = vec3(x, y, z);
-
-            //float leftU = clamp(flipU, 0, calcU);
-            //float rightU = 1 - clamp(flipU, 0, calcU);
             float leftU  = mix(0.0, calcU, float(flipU));
             float rightU = mix(calcU, 0.0, float(flipU));
 

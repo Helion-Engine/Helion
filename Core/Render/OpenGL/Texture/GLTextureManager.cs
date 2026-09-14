@@ -234,30 +234,23 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             Assert.Precondition(texture.Image != null, "Texture must have an image");
 
             var image = texture.Image ?? new Image(default, ImageType.Argb);
-
-            if (image.Dimension.Width < dimension.Width || image.Dimension.Height < dimension.Height)
-            {
-                var fitImage = new Image(dimension, image.ImageType, offset: image.Offset);
-
-                // TODO probably make this faster
-                for (int x = 0; x < image.Dimension.Width; x++)
-                {
-                    for (int y = 0; y < image.Dimension.Height; y++)
-                    {
-                        fitImage.SetPixel(x, y, image.GetPixel(x, y));
-                        if (image.ImageType == ImageType.PaletteWithArgb)
-                            fitImage.SetIndex(x, y, image.GetIndex(x, y));  
-                    }
-                }
-
-                image = fitImage;
-            }
-
             images[i] = image;
             textures[i] = texture;
         }
 
-        var arraySubTextures = GenerateTextureArray(images, images[0].Dimension, ResourceNamespace.Textures, textureFlags, textureContext, out var arrayTexture);
+        var fitImage = new Image(dimension, images[0].ImageType);
+
+        var arraySubTextures = GenerateTextureArray(imageIndex =>
+        {
+            var image = images[imageIndex];
+            if (image.Width == dimension.Width && image.Height == dimension.Height)
+                return image;
+
+            fitImage.CopyPixelsFrom(image);
+            fitImage.Offset = image.Offset;
+            return fitImage;
+        }, images.Length, dimension, ResourceNamespace.Textures, textureFlags, textureContext, out var arrayTexture);
+
         for (int i = 0; i < images.Length; i++)
         {
             var glTexture = arraySubTextures[i];
@@ -450,9 +443,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return texture;
     }
 
-    protected GLTextureType CreateTexture(Image? image, bool repeatY) => CreateTexture(image, null, ResourceNamespace.Global, repeatY);
+    public GLTextureType CreateTexture(Image? image, bool repeatY) => CreateTexture(image, null, ResourceNamespace.Global, repeatY);
 
-    protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
+    public GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
     {
         var textureTracker = GetTextureTracker(repeatY);
         GLTextureType? texture;
@@ -506,7 +499,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);
-    protected abstract GLTextureType[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, TextureContext textureContext, out GLTextureType arrayTexture);
+    protected abstract GLTextureType[] GenerateTextureArray(Func<int, Image> getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, TextureContext textureContext, out GLTextureType arrayTexture);
 
     public abstract void ReUpload(GLTextureType texture, Image image, uint[] imagePixels);
 

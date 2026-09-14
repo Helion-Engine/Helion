@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry;
 using Helion.Resources;
+using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
@@ -105,6 +106,12 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
                     rotation.BrightmapRenderStore = m_glTextureManager.CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
 
+                    if (!CanTextureArray(rotation.Texture))
+                    {
+                        rotation.RenderStore = m_glTextureManager.CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
+                        continue;
+                    }
+
                     if (m_glTextureManager.TryGetTexture(rotation.Texture.Index, TextureContext.WorldSprites, out var texture))
                         rotation.RenderStore = texture.RenderStoreClamp ?? texture.RenderStore;
 
@@ -153,10 +160,15 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
     private void AddTexture(DynamicArray<Resources.Texture> textures, int index)
     {
-        // Exclude brightmaps for now. They probably could be made into arrays but like animations the complication may not be worth it.
         var texture = m_textureManager.GetTexture(index);
-        if (texture.Image != null && texture.BrightmapImage == null)
+        if (CanTextureArray(texture))
             textures.Add(texture);
+    }
+
+    private static bool CanTextureArray(Resources.Texture texture)
+    {
+        // Exclude brightmaps for now. They probably could be made into arrays but like animations the complication may not be worth it.
+        return texture.Image != null && texture.BrightmapImage == null;
     }
 
     private static int SortTexturesByDimensions(Resources.Texture x, Resources.Texture y)
@@ -191,15 +203,12 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             buckets[i] = new TextureBucket(new Dimension(size, size), new(128));
         }
 
-        buckets[^1] = new TextureBucket(new Dimension(0, 0), []);
+        var overflowBucketIndex = buckets.Length - 1;
+        buckets[overflowBucketIndex] = new TextureBucket(new Dimension(0, 0), []);
 
         foreach (var texture in textures)
         {
-            // This shouldn't happen
-            if (texture.Image == null)
-                continue;
-
-            var index = GetBucketIndex(texture.Image.Dimension, baseSize, bucketCount);
+            var index = CanTextureArray(texture) ? GetBucketIndex(texture.Image!.Dimension, baseSize, bucketCount) : overflowBucketIndex;
             buckets[index].Textures.Add(texture);
         }
 

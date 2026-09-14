@@ -106,26 +106,28 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         Dispose();
     }
 
-    private unsafe void UploadAndSetParameters3D(GLLegacyTexture texture, Image[] images, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
+    private unsafe void UploadAndSetParameters3D(GLLegacyTexture texture, Func<int, Image> getImage, int imageLength, string name, ResourceNamespace resourceNamespace, TextureFlags flags, 
+        Dimension dimensions, Action<int, Image> onUploadImage)
     {
         GL.BindTexture(texture.Target, texture.TextureId);
         flags = GetFlagsForNamespace(resourceNamespace, flags);
 
-        GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, images[0].Width, images[0].Height, images.Length, 0,
+        GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, dimensions.Width, dimensions.Height, imageLength, 0,
             PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
 
         if (GLInfo.DebugLabel)
             GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
 
-        for (int i = 0; i < images.Length; i++)
+        for (int i = 0; i < imageLength; i++)
         {
-            var image = images[i];
+            var image = getImage(i);
             fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
             {
                 IntPtr ptr = new(pixelPtr);
                 GL.TexSubImage3D(texture.Target, 0, 0, 0, zoffset: i, image.Width, image.Height,
                     depth: 1, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
             }
+            onUploadImage(i, image);
         }
 
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2DArray);
@@ -218,27 +220,25 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         return texture;
     }
 
-    protected override GLLegacyTexture[] GenerateTextureArray(Image[] images, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags,
+    protected override GLLegacyTexture[] GenerateTextureArray(Func<int, Image> getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags,
         TextureContext textureContext, out GLLegacyTexture arrayTexture)
     {
+        var textures = new GLLegacyTexture[imageLength];
         int textureId = GL.GenTexture();
-        arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={images.Length} {flags}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0,
+        arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={imageLength} {flags}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0,
             textureContext: textureContext);
-        UploadAndSetParameters3D(arrayTexture, images, arrayTexture.Name, resourceNamespace, flags);
-
-        var textures = new GLLegacyTexture[images.Length];
-        for (int i = 0; i < images.Length; i++)
+        var parentArrayTexture = arrayTexture;
+        UploadAndSetParameters3D(arrayTexture, getImage, imageLength, arrayTexture.Name, resourceNamespace, flags, dimension, (int imageIndex, Image image) =>
         {
-            var image = images[i];
-            var texture = new GLLegacyTexture(textureId, $"Sub Image {i}", dimension, image.Offset, resourceNamespace, TextureTarget.Texture2DArray,
+            var texture = new GLLegacyTexture(textureId, $"Sub Image {imageIndex}", dimension, image.Offset, resourceNamespace, TextureTarget.Texture2DArray,
                 image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom, ownsTexture: false)
             {
-                ArrayIndex = i,
-                ParentArrayTexture = arrayTexture
+                ArrayIndex = imageIndex,
+                ParentArrayTexture = parentArrayTexture
             };
 
-            textures[i] = texture;
-        }
+            textures[imageIndex] = texture;
+        });
 
         return textures;
     }
