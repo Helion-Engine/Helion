@@ -5,7 +5,6 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Textures;
-using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -14,7 +13,6 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Linq;
 using static Helion.Util.Constants;
 
 namespace Helion.Render;
