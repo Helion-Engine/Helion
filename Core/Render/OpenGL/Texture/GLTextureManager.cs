@@ -238,10 +238,18 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             if (image.Dimension.Width < dimension.Width || image.Dimension.Height < dimension.Height)
             {
                 var fitImage = new Image(dimension, image.ImageType);
-                for (int x = 0; x < image.Indices.Length; x++)
-                    fitImage.Indices[x] = image.Indices[x];
-                for (int x = 0; x < image.Pixels.Length; x++)
-                    fitImage.Pixels[x] = image.Pixels[x];
+
+                // TODO probably make this faster
+                for (int x = 0; x < image.Dimension.Width; x++)
+                {
+                    for (int y = 0; y < image.Dimension.Height; y++)
+                    {
+                        fitImage.SetPixel(x, y, image.GetPixel(x, y));
+                        if (image.ImageType == ImageType.PaletteWithArgb)
+                            fitImage.SetIndex(x, y, image.GetIndex(x, y));  
+                    }
+                }
+
                 image = fitImage;
             }
 

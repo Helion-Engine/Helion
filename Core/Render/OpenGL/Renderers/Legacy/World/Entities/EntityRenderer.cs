@@ -300,6 +300,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.RenderOptions = VertexOptions.EntityPackRender(
             Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
         vertex.TextureIndex = texture.ArrayIndex;
+        vertex.TextureDimIndex = spriteRotation.Texture.Index;
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
@@ -311,6 +312,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
 
+        offsetZ = 0;
         vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(offsetX, offsetZ);
         arrayData.Length = length + 1;
 
@@ -418,6 +420,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.MapDataTexture(BindTextures.MapLineData);
         program.LineHeightsTexture(BindTextures.LineHeights);
+        program.SpriteTextureDimensionsTexture(BindTextures.SpriteTextureDimensions);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)

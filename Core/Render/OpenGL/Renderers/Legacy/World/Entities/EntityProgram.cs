@@ -21,6 +21,7 @@ public class EntityProgram : RenderProgramBase
     private readonly int m_mapDataTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
     private readonly int m_colorClampLocation;
+    private readonly int m_spriteTextureDimensionsTextureLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -38,12 +39,14 @@ public class EntityProgram : RenderProgramBase
         m_fuzzTextureLocation = Uniforms.GetLocation("fuzzTexture");
         m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_colorClampLocation = Uniforms.GetLocation("colorClamp");
+        m_spriteTextureDimensionsTextureLocation = Uniforms.GetLocation("spriteTextureDimensionsTexture");
     }
     
     public void FuzzTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_opaqueTextureLocation);
     public void MapDataTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_mapDataTextureLocation);
     public void LineHeightsTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_lineHeightsTextureLocation);
+    public void SpriteTextureDimensionsTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_spriteTextureDimensionsTextureLocation);
     public void FuzzFrac(float frac) => ProgramUniforms.Set(frac, m_fuzzFracLocation);
     public void ViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_viewRightNormalLocation);
     public void PrevViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_prevViewRightNormalLocation);
@@ -70,6 +73,7 @@ public class EntityProgram : RenderProgramBase
         layout(location = 3) in float offsetXYZ;
         layout(location = 4) in float renderOptions;
         layout(location = 5) in float textureIndex;
+        layout(location = 6) in float textureDimIndex;
 
         flat out float lightLevelFrag;
         flat out float alphaFrag;
@@ -101,6 +105,7 @@ public class EntityProgram : RenderProgramBase
         uniform sampler2DArray boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
+        uniform samplerBuffer spriteTextureDimensionsTexture;
 
         float distSquared(vec2 v1, vec2 v2) {
             vec2 length = v1.xy - v2.xy;
@@ -128,8 +133,9 @@ public class EntityProgram : RenderProgramBase
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
             offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
             offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
-            ivec2 textureDim = textureSize(boundTexture, 0).xy;
-            textureWidthFrag = textureDim.x;
+            vec3 textureDimFloat = texelFetch(spriteTextureDimensionsTexture, int(textureDimIndex)).rgb;
+            ivec2 textureDim = ivec2(textureDimFloat.x, textureDimFloat.y);
+            textureWidthFrag = textureDimFloat.x;
             
             ${SectorColorMapVertexFunction}
 
@@ -137,6 +143,9 @@ public class EntityProgram : RenderProgramBase
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOption, 0);
             vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
 
+            float baseSize = float(textureSize(boundTexture, 0).x);
+            float calcU = textureDimFloat.x / baseSize;
+            float calcV = textureDimFloat.y / baseSize;
             ${MinMaxPos}
 
             centerPosFrag = interpolatedPos;
@@ -152,11 +161,13 @@ public class EntityProgram : RenderProgramBase
 
             vec3 cornerPos = vec3(x, y, z);
 
-            float leftU = clamp(flipU, 0, 1);
-            float rightU = 1 - clamp(flipU, 0, 1);
+            //float leftU = clamp(flipU, 0, calcU);
+            //float rightU = 1 - clamp(flipU, 0, calcU);
+            float leftU  = mix(0.0, calcU, float(flipU));
+            float rightU = mix(calcU, 0.0, float(flipU));
 
             float u = mix(leftU, rightU, xSelect);
-            float v = mix(1.0, 0.0, ySelect);
+            float v = mix(calcV, 0.0, ySelect);
 
             uvFrag = vec2(u, v);
 
@@ -196,10 +207,12 @@ public class EntityProgram : RenderProgramBase
         }
 
         return @"
+            float worldWidth  = calcU * baseSize;
+            float worldHeight = calcV * baseSize;
             zPosFrag = interpolatedPos.z;
             interpolatedPos.z += offsetZ;
             vec3 minPos = interpolatedPos - offsetXY;
-            vec3 maxPos = interpolatedPos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
+            vec3 maxPos = interpolatedPos + (posMoveDir * worldWidth) + (vec3(0, 0, 1) * worldHeight) - offsetXY;";
     }
 
     private static string AdjustSpriteVertexClip()

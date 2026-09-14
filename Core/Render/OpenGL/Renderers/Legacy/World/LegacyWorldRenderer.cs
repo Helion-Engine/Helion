@@ -17,7 +17,6 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Profiling.Timers;
-using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -30,6 +29,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public partial class LegacyWorldRenderer : WorldRenderer
 {
+    public override TextureBucket[] SpriteTextureBuckets { get; protected set; } = [];
+
     const int EntityRenderIndexMax = 100;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly IConfig m_config;
@@ -126,7 +127,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         if (!m_spritesCached)
         {
             var textureArrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_textureManager);
-            textureArrayBuilder.BuildSprites(m_archiveCollection.TextureManager.SpriteDefinitions);
+            SpriteTextureBuckets = textureArrayBuilder.BuildSprites(m_archiveCollection.TextureManager.SpriteDefinitions);
             m_spritesCached = true;
         }
 

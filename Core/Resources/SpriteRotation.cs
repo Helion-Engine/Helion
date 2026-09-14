@@ -11,6 +11,7 @@ public class SpriteRotation(Texture texture, bool mirror, bool brightmapNoFullbr
     public object? RenderStore;
     public object? BrightmapRenderStore;
     public bool BrightmapNoFullbright = brightmapNoFullbright;
+    public int TextureBucket;
     private LookupArray<SpriteRotation>? m_translationRotations;
 
     public bool TryGetTranslationRotation(int index, [NotNullWhen(true)] out SpriteRotation? rotation)

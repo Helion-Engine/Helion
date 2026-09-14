@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
 
-record struct TextureBucket(Dimension Dimension, DynamicArray<Resources.Texture> Textures);
+public record struct TextureBucket(Dimension Dimension, DynamicArray<Resources.Texture> Textures);
 
 public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextureManager glTextureManager)
 {
@@ -48,7 +48,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         DebugLog(totalTextures, arrayTextures + animated);
     }
 
-    public void BuildSprites(DynamicArray<SpriteDefinition> spriteDefinitions)
+    public TextureBucket[] BuildSprites(DynamicArray<SpriteDefinition> spriteDefinitions)
     {
         var spriteTextures = new DynamicArray<Resources.Texture>();
         var spriteTextureHandles = new HashSet<int>();
@@ -75,7 +75,9 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             }
         }
 
-        var buckets = CreateTextureBuckets(spriteTextures, 32, 5);
+        const int BaseSize = 32;
+        const int BucketCount = 5;
+        var buckets = CreateTextureBuckets(spriteTextures, BaseSize, BucketCount);
         for (int i = 0; i < buckets.Length - 1; i++)
         {
             var bucket = buckets[i];
@@ -99,7 +101,10 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
                     if (rotation.RenderStore != null)
                         continue;
-                    
+
+                    if (rotation.Texture.Image != null)
+                        rotation.TextureBucket = GetBucketIndex(rotation.Texture.Image.Dimension, BaseSize, BucketCount);
+
                     rotation.BrightmapRenderStore = m_glTextureManager.CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
 
                     if (m_glTextureManager.TryGetTexture(rotation.Texture.Index, TextureContext.WorldSprites, out var texture))
@@ -109,6 +114,8 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
                 }
             }
         }
+
+        return buckets;
     }
 
     [Conditional("DEBUG")]
@@ -201,7 +208,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         return buckets;
     }
 
-    private static int GetBucketIndex(Dimension dimension, int baseSize, int bucketCount)
+    public static int GetBucketIndex(Dimension dimension, int baseSize, int bucketCount)
     {
         int size = MathHelper.Max(dimension.Width, dimension.Height);
         // Fits in the smallest bucket

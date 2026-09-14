@@ -25,4 +25,7 @@ public struct EntityVertex
 
     [VertexAttribute(divisor: 1)]
     public float TextureIndex;
+
+    [VertexAttribute(divisor: 1)]
+    public float TextureDimIndex;
 }

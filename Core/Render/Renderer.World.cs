@@ -4,8 +4,11 @@ using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Textures;
+using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -13,6 +16,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Linq;
 using static Helion.Util.Constants;
 
 namespace Helion.Render;
@@ -40,6 +44,7 @@ public partial class Renderer
     private GLBufferTextureStorage<float>? m_colorMapBuffer;
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
+    private GLBufferTextureStorage<float>? m_spriteTextureDimensionsBuffer;
 
     private bool m_sectorFog;
     private bool m_sectorColor;
@@ -108,6 +113,36 @@ public partial class Renderer
         m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         SetLineHeights(world, alloc);
+
+        if (m_spriteTextureDimensionsBuffer == null)
+        {
+            var textures = new DynamicArray<Resources.Texture>();
+            foreach (var bucket in m_worldRenderer.SpriteTextureBuckets)
+                textures.AddRange(bucket.Textures);
+
+            var maxId = 0;
+            foreach (var texture in textures)
+                maxId = MathHelper.Max(maxId, texture.Index);
+
+            // TODO probably shouldn't be float
+            var bufferLength = (maxId + 1) * 2;
+            m_spriteTextureDimensionsBuffer = new("Sprite Texture Dimensions", new float[bufferLength], SizedInternalFormat.Rg32f, false);
+            m_spriteTextureDimensionsBuffer.Map(data =>
+            {
+                float* buffer = (float*)data.ToPointer();
+                for (int i = 0; i < textures.Length; i++)
+                {
+                    var texture = textures[i];
+                    if (texture.Image == null)
+                        continue;
+
+                    var index = texture.Index * 2;
+                    Assert.Precondition(index + 1 < bufferLength, $"Invalid texture index {texture.Index}");
+                    buffer[index] = texture.Image.Dimension.Width;
+                    buffer[index + 1] = texture.Image.Dimension.Height;
+                }
+            });
+        }
     }
 
     private unsafe void SetLineHeights(IWorld world, bool alloc)

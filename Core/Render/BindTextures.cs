@@ -19,4 +19,5 @@ public static class BindTextures
     public const TextureUnit LineHeights = TextureUnit.Texture11;
     public const TextureUnit BrightmapTexture = TextureUnit.Texture12;
     public const TextureUnit SectorFog = TextureUnit.Texture13;
+    public const TextureUnit SpriteTextureDimensions = TextureUnit.Texture14;
 }
