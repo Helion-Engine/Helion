@@ -142,9 +142,9 @@ public class EntityProgram : RenderProgramBase
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOption, 0);
             vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
 
-            float baseSize = float(textureSize(boundTexture, 0).x);
-            float calcU = textureDim.x / baseSize;
-            float calcV = textureDim.y / baseSize;
+            ivec2 boundTextureSize = textureSize(boundTexture, 0).xy;
+            float calcU = textureDim.x / float(boundTextureSize.x);
+            float calcV = textureDim.y / float(boundTextureSize.y);
             ${MinMaxPos}
 
             centerPosFrag = interpolatedPos;
@@ -203,8 +203,8 @@ public class EntityProgram : RenderProgramBase
         }
 
         return @"
-            float worldWidth  = calcU * baseSize;
-            float worldHeight = calcV * baseSize;
+            float worldWidth  = calcU * boundTextureSize.x;
+            float worldHeight = calcV * boundTextureSize.y;
             zPosFrag = interpolatedPos.z;
             interpolatedPos.z += offsetZ;
             vec3 minPos = interpolatedPos - offsetXY;
