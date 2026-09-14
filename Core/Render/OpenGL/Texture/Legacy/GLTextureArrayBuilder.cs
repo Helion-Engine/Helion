@@ -74,8 +74,8 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             }
         }
 
-        const int BaseSize = 16;
-        const int BucketCount = 6;
+        const int BaseSize = 32;
+        const int BucketCount = 5;
         var buckets = CreateTextureBuckets(spriteTextures, BaseSize, BucketCount);
         for (int i = 0; i < buckets.Length - 1; i++)
         {
