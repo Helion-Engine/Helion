@@ -343,6 +343,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
         vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(0, offset);
+        vertex.TextureIndex = 0;
 
         array.SetLength(array.Length + 1);
     }

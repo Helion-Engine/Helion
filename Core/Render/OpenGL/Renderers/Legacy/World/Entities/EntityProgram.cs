@@ -144,9 +144,6 @@ public class EntityProgram : RenderProgramBase
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOption, 0);
             vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
 
-            ivec2 boundTextureSize = textureSize(boundTexture, 0).xy;
-            float calcU = textureDim.x / float(boundTextureSize.x);
-            float calcV = textureDim.y / float(boundTextureSize.y);
             ${MinMaxPos}
 
             centerPosFrag = interpolatedPos;
@@ -195,6 +192,8 @@ public class EntityProgram : RenderProgramBase
         if (this is EntityHealthBarProgram)
         {
             return @"
+                float calcU = 1;
+                float calcV = 1;
                 zPosFrag = interpolatedPos.z;
                 interpolatedPos.z += offsetZ;
                 vec3 minPos = interpolatedPos;
@@ -204,6 +203,10 @@ public class EntityProgram : RenderProgramBase
         }
 
         return @"
+            ivec2 boundTextureSize = textureSize(boundTexture, 0).xy;
+            float calcU = textureDim.x / float(boundTextureSize.x);
+            float calcV = textureDim.y / float(boundTextureSize.y);
+
             float worldWidth  = calcU * boundTextureSize.x;
             float worldHeight = calcV * boundTextureSize.y;
             zPosFrag = interpolatedPos.z;
