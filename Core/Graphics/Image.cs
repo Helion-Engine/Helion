@@ -410,7 +410,7 @@ public class Image
 
     public void CopyPixelsFrom(Image image)
     {
-        Assert.Precondition(image.ImageType == ImageType, "Image type mismatch");
+        Precondition(!(image.Indices.Length > 0 && Indices.Length == 0), "Image type mismatch");
 
         var width = Math.Min(image.Dimension.Width, Dimension.Width);
         var height = Math.Min(image.Dimension.Height, Dimension.Height);

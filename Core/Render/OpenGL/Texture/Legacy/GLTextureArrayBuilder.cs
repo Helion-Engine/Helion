@@ -1,6 +1,6 @@
 ﻿using Helion.Geometry;
+using Helion.Render.OpenGL.Context;
 using Helion.Resources;
-using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
@@ -54,7 +54,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
     {
         var maxIndex = 0;
         var spriteTextures = new DynamicArray<Resources.Texture>();
-        var spriteTextureHandles = new HashSet<int>();
+        var spriteTextureHandles = new HashSet<int>(spriteDefinitions.Length);
         foreach (var spriteDefinition in spriteDefinitions)
         {
             if (spriteDefinition == null)
@@ -85,8 +85,6 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             var bucket = buckets[i];
             BuildTextureArray(bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY, bucket.Dimension);
         }
-
-        // TODO overflow bucket ^1
 
         foreach (var spriteDefinition in spriteDefinitions)
         {
@@ -212,7 +210,39 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             buckets[index].Textures.Add(texture);
         }
 
-        return buckets;
+        // Split buckets that overflow GLInfo.MaxArrayLayers
+        return FinalizeTextureBuckets(buckets);
+    }
+
+    private static TextureBucket[] FinalizeTextureBuckets(TextureBucket[] buckets)
+    {
+        var finalizedBuckets = new List<TextureBucket>();
+        foreach (var bucket in buckets)
+        {
+            if (bucket.Textures.Length <= GLInfo.MaxArrayLayers)
+            {
+                finalizedBuckets.Add(bucket);
+                continue;
+            }
+
+            var remaining = bucket.Textures.Length;
+            var offset = 0;
+
+            while (remaining > 0)
+            {
+                var count = MathHelper.Min(remaining, GLInfo.MaxArrayLayers);
+                var newBucket = new TextureBucket(bucket.Dimension, new(count));
+                for (int i = 0; i < count; i++)
+                    newBucket.Textures.Add(bucket.Textures[offset + i]);
+
+                finalizedBuckets.Add(newBucket);
+
+                offset += count;
+                remaining -= count;
+            }
+        }
+
+        return [.. finalizedBuckets];
     }
 
     public static int GetBucketIndex(Dimension dimension, int baseSize, int bucketCount)

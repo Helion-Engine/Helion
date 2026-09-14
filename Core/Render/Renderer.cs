@@ -682,6 +682,7 @@ public partial class Renderer : IDisposable
         Log.Info("GL_ARB_clip_control {0}", GLInfo.ClipControlSupported);
         Log.Info("GL_ARB_shader_image_load_store {0}", GLInfo.MemoryBarrierSupported);
         Log.Info("GL_ARB_buffer_storage {0}", GLInfo.MapPersistentBitSupported);
+        Log.Info("MaxArrayLayers {0}", GLInfo.MaxArrayLayers);
 
         InfoPrinted = true;
     }
