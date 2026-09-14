@@ -11,6 +11,7 @@ using System.Linq;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
 
+public record struct TextureBuckets(int MaxTextureIndex, TextureBucket[] Buckets);
 public record struct TextureBucket(Dimension Dimension, DynamicArray<Resources.Texture> Textures);
 
 public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextureManager glTextureManager)
@@ -48,8 +49,9 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         DebugLog(totalTextures, arrayTextures + animated);
     }
 
-    public TextureBucket[] BuildSprites(DynamicArray<SpriteDefinition> spriteDefinitions)
+    public TextureBuckets BuildSprites(DynamicArray<SpriteDefinition> spriteDefinitions)
     {
+        var maxIndex = 0;
         var spriteTextures = new DynamicArray<Resources.Texture>();
         var spriteTextureHandles = new HashSet<int>();
         foreach (var spriteDefinition in spriteDefinitions)
@@ -65,11 +67,11 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
                     if (rotation == null)
                         continue;
 
-                    if (rotation.Texture.RenderStore != null)
-                        continue;
-
                     if (spriteTextureHandles.Add(rotation.Texture.Index))
+                    {
                         spriteTextures.Add(rotation.Texture);
+                        maxIndex = MathHelper.Max(rotation.Texture.Index, maxIndex);
+                    }
                 }
             }
         }
@@ -111,7 +113,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             }
         }
 
-        return buckets;
+        return new(maxIndex, buckets);
     }
 
     [Conditional("DEBUG")]

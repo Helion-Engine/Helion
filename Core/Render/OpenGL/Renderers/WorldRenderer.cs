@@ -11,7 +11,7 @@ namespace Helion.Render.OpenGL.Renderers;
 /// </summary>
 public abstract class WorldRenderer : IDisposable
 {
-    public abstract TextureBucket[] SpriteTextureBuckets { get; protected set; }
+    public abstract TextureBuckets SpriteTextureBuckets { get; protected set; }
 
     protected readonly WeakReference<IWorld?> m_lastRenderedWorld = new WeakReference<IWorld?>(null);
 

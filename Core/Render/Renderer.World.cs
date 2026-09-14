@@ -4,11 +4,9 @@ using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Textures;
 using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -44,7 +42,7 @@ public partial class Renderer
     private GLBufferTextureStorage<float>? m_colorMapBuffer;
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
-    private GLBufferTextureStorage<float>? m_spriteTextureDimensionsBuffer;
+    private GLBufferTextureStorage<uint>? m_spriteTextureDimensionsBuffer;
 
     private bool m_sectorFog;
     private bool m_sectorColor;
@@ -116,30 +114,24 @@ public partial class Renderer
 
         if (m_spriteTextureDimensionsBuffer == null)
         {
-            var textures = new DynamicArray<Resources.Texture>();
-            foreach (var bucket in m_worldRenderer.SpriteTextureBuckets)
-                textures.AddRange(bucket.Textures);
-
-            var maxId = 0;
-            foreach (var texture in textures)
-                maxId = MathHelper.Max(maxId, texture.Index);
-
-            // TODO probably shouldn't be float
-            var bufferLength = (maxId + 1) * 2;
-            m_spriteTextureDimensionsBuffer = new("Sprite Texture Dimensions", new float[bufferLength], SizedInternalFormat.Rg32f, false);
+            var bufferLength = (m_worldRenderer.SpriteTextureBuckets.MaxTextureIndex + 1) * 2;
+            m_spriteTextureDimensionsBuffer = new("Sprite Texture Dimensions", new uint[bufferLength], SizedInternalFormat.Rg32ui, false);
             m_spriteTextureDimensionsBuffer.Map(data =>
             {
-                float* buffer = (float*)data.ToPointer();
-                for (int i = 0; i < textures.Length; i++)
+                uint* buffer = (uint*)data.ToPointer();
+                foreach (var bucket in m_worldRenderer.SpriteTextureBuckets.Buckets)
                 {
-                    var texture = textures[i];
-                    if (texture.Image == null)
-                        continue;
+                    for (int i = 0; i < bucket.Textures.Length; i++)
+                    {
+                        var texture = bucket.Textures[i];
+                        if (texture.Image == null)
+                            continue;
 
-                    var index = texture.Index * 2;
-                    Assert.Precondition(index + 1 < bufferLength, $"Invalid texture index {texture.Index}");
-                    buffer[index] = texture.Image.Dimension.Width;
-                    buffer[index + 1] = texture.Image.Dimension.Height;
+                        var index = texture.Index * 2;
+                        Assert.Precondition(index + 1 < bufferLength, $"Invalid texture index {texture.Index}");
+                        buffer[index] = (uint)texture.Image.Dimension.Width;
+                        buffer[index + 1] = (uint)texture.Image.Dimension.Height;
+                    }
                 }
             });
         }

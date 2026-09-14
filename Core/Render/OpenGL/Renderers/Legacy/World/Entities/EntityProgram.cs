@@ -105,7 +105,7 @@ public class EntityProgram : RenderProgramBase
         uniform sampler2DArray boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
-        uniform samplerBuffer spriteTextureDimensionsTexture;
+        uniform usamplerBuffer spriteTextureDimensionsTexture;
 
         float distSquared(vec2 v1, vec2 v2) {
             vec2 length = v1.xy - v2.xy;
@@ -133,9 +133,8 @@ public class EntityProgram : RenderProgramBase
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
             offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
             offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
-            vec3 textureDimFloat = texelFetch(spriteTextureDimensionsTexture, int(textureDimIndex)).rgb;
-            ivec2 textureDim = ivec2(textureDimFloat.x, textureDimFloat.y);
-            textureWidthFrag = textureDimFloat.x;
+            uvec2 textureDim = texelFetch(spriteTextureDimensionsTexture, int(textureDimIndex)).rg;
+            textureWidthFrag = textureDim.x;
             
             ${SectorColorMapVertexFunction}
 
@@ -144,8 +143,8 @@ public class EntityProgram : RenderProgramBase
             vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
 
             float baseSize = float(textureSize(boundTexture, 0).x);
-            float calcU = textureDimFloat.x / baseSize;
-            float calcV = textureDimFloat.y / baseSize;
+            float calcU = textureDim.x / baseSize;
+            float calcV = textureDim.y / baseSize;
             ${MinMaxPos}
 
             centerPosFrag = interpolatedPos;

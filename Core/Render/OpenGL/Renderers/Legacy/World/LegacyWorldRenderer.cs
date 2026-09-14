@@ -29,7 +29,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public partial class LegacyWorldRenderer : WorldRenderer
 {
-    public override TextureBucket[] SpriteTextureBuckets { get; protected set; } = [];
+    public override TextureBuckets SpriteTextureBuckets { get; protected set; }
 
     const int EntityRenderIndexMax = 100;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
