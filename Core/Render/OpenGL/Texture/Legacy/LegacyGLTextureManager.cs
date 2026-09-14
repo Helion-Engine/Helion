@@ -139,7 +139,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
     private static TextureFlags GetFlagsForNamespace(ResourceNamespace resourceNamespace, TextureFlags flags)
     {
-        if (resourceNamespace == ResourceNamespace.Sprites || resourceNamespace == ResourceNamespace.Undefined)
+        if (resourceNamespace == ResourceNamespace.Sprites || resourceNamespace == ResourceNamespace.Brightmaps || resourceNamespace == ResourceNamespace.Undefined)
             flags = TextureFlags.ClampX | TextureFlags.ClampY;
         return flags;
     }

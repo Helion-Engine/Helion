@@ -447,6 +447,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
     public GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
     {
+        repeatY = resourceNamespace != ResourceNamespace.Sprites && resourceNamespace != ResourceNamespace.Brightmaps && resourceNamespace != ResourceNamespace.Brightmaps && repeatY;
         var textureTracker = GetTextureTracker(repeatY);
         GLTextureType? texture;
         if (name != null)
