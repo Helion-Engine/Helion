@@ -138,7 +138,7 @@ public sealed class SkyGeometryManager
             return;
 
         ref var reference = ref data.Vbo.Data.Data[data.Index];
-        Unsafe.InitBlockUnaligned(ref Unsafe.As<SkyGeometryVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<StaticVertex>() * data.Length));
+        Unsafe.InitBlockUnaligned(ref Unsafe.As<SkyGeometryVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<SkyGeometryVertex>() * data.Length));
 
         data.Vbo.Bind();
         data.Vbo.UploadSubData(data.Index, data.Length);
