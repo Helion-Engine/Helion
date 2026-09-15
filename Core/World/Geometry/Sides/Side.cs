@@ -125,6 +125,7 @@ public sealed class Side
         MiddleInvalidatedCount = default;
         LowerInvalidatedCount = default;
         AlphaInvalidatedCount = default;
+        SkyGeometry = default;
 
         Upper.Reset();
         Middle.Reset();

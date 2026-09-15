@@ -59,6 +59,10 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
             int size = BytesPerElement * length;
 
             Assert.Precondition(m_uploadedSize >= offset + size, "Offset and size are out of bounds for the GPU");
+            // This shouldn't happen and should be handled upstream but never upload out of range for the GPU.
+            if (m_uploadedSize < offset + size)
+                return false;
+
             GL.BufferSubData(Target, offset, size, ptr + (BytesPerElement * index));
         }
         return true;

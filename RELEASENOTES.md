@@ -30,6 +30,7 @@
 - Fix status bar weapon slot condition to correctly check against switched weapon instead of the weapon that's actively being switched to.
 - Fix status bar uses ammo condition.
 - Fix BufferSubData call that could write out of bounds on GPU resulting in corrupted/missing walls.
+- Fix sky geometry holding stale references on map reloads.
 - Fix rendering issue with lines when changing transfer heights views.
 - Fix width, speed, and mass properties to default to zero for dehacked instead of using default decorate values.
 

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using Helion.Render.OpenGL.Buffer.Array.Vertex;
+﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -43,8 +44,7 @@ public sealed class SkyGeometryManager
         int index = sky.Vbo.Count;
         sky.Add(vertices, vertices.Length);
 
-        if (side.SkyGeometry == null)
-            side.SkyGeometry = new();
+        side.SkyGeometry ??= new();
 
         if (vertices == null)
             return;
@@ -137,13 +137,8 @@ public sealed class SkyGeometryManager
         if (data == null)
             return;
 
-        for (int i = 0; i < data.Length; i++)
-        {
-            int index = data.Index + i;
-            data.Vbo.Data.Data[index].X = 0;
-            data.Vbo.Data.Data[index].Y = 0;
-            data.Vbo.Data.Data[index].Z = 0;
-        }
+        ref var reference = ref data.Vbo.Data.Data[data.Index];
+        Unsafe.InitBlockUnaligned(ref Unsafe.As<SkyGeometryVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<StaticVertex>() * data.Length));
 
         data.Vbo.Bind();
         data.Vbo.UploadSubData(data.Index, data.Length);
