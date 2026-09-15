@@ -69,6 +69,7 @@ public class EntityProgram : RenderProgramBase
         layout(location = 2) in vec3 prevPos;
         layout(location = 3) in float offsetXYZ;
         layout(location = 4) in float renderOptions;
+        layout(location = 5) in float textureInfo;
 
         flat out float lightLevelFrag;
         flat out float alphaFrag;
@@ -76,6 +77,7 @@ public class EntityProgram : RenderProgramBase
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
         flat out float textureWidthFrag;
+        flat out float boundTextureIndex;
         flat out vec3 centerPosFrag;
         flat out vec3 minPosFrag;
         flat out vec3 maxPosFrag;
@@ -96,7 +98,7 @@ public class EntityProgram : RenderProgramBase
         uniform float timeFrac;
         uniform int useSectorColor;
         uniform int useSectorFog;
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform samplerBuffer sectorColormapTexture;
         uniform samplerBuffer sectorFogTexture;
 
@@ -120,13 +122,15 @@ public class EntityProgram : RenderProgramBase
 
             intOptions = floatBitsToInt(offsetXYZ);
             float offsetXYOption = float((intOptions >> 16) & 0x3FFF);
-
             float offsetZ = float(intOptions & 0x3FFF);
             float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
             float offsetZSign = float(((intOptions >> 30) & 1) > 0);
             offsetXYOption = mix(offsetXYOption, -offsetXYOption, offsetXYSign);
             offsetZ = mix(offsetZ, -offsetZ, offsetZSign);
-            ivec2 textureDim = textureSize(boundTexture, 0);
+
+            intOptions = floatBitsToInt(textureInfo);
+            boundTextureIndex = (intOptions >> 20) & 0xFFF;
+            ivec2 textureDim = ivec2((intOptions >> 10) & 0x3FF, intOptions & 0x3FF);
             textureWidthFrag = textureDim.x;
             
             ${SectorColorMapVertexFunction}
@@ -149,12 +153,11 @@ public class EntityProgram : RenderProgramBase
             float z = mix(minPos.z, maxPos.z, ySelect);
 
             vec3 cornerPos = vec3(x, y, z);
-
-            float leftU = clamp(flipU, 0, 1);
-            float rightU = 1 - clamp(flipU, 0, 1);
+            float leftU  = mix(0.0, calcU, float(flipU));
+            float rightU = mix(calcU, 0.0, float(flipU));
 
             float u = mix(leftU, rightU, xSelect);
-            float v = mix(1.0, 0.0, ySelect);
+            float v = mix(calcV, 0.0, ySelect);
 
             uvFrag = vec2(u, v);
 
@@ -184,6 +187,8 @@ public class EntityProgram : RenderProgramBase
         if (this is EntityHealthBarProgram)
         {
             return @"
+                float calcU = 1;
+                float calcV = 1;
                 zPosFrag = interpolatedPos.z;
                 interpolatedPos.z += offsetZ;
                 vec3 minPos = interpolatedPos;
@@ -193,10 +198,16 @@ public class EntityProgram : RenderProgramBase
         }
 
         return @"
+            ivec2 boundTextureSize = textureSize(boundTexture, 0).xy;
+            float calcU = textureDim.x / float(boundTextureSize.x);
+            float calcV = textureDim.y / float(boundTextureSize.y);
+
+            float worldWidth  = calcU * boundTextureSize.x;
+            float worldHeight = calcV * boundTextureSize.y;
             zPosFrag = interpolatedPos.z;
             interpolatedPos.z += offsetZ;
             vec3 minPos = interpolatedPos - offsetXY;
-            vec3 maxPos = interpolatedPos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;";
+            vec3 maxPos = interpolatedPos + (posMoveDir * worldWidth) + (vec3(0, 0, 1) * worldHeight) - offsetXY;";
     }
 
     private static string AdjustSpriteVertexClip()
@@ -222,6 +233,7 @@ public class EntityProgram : RenderProgramBase
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
         flat in float textureWidthFrag;
+        flat in float boundTextureIndex;
         flat in vec3 centerPosFrag;
         flat in vec3 minPosFrag;
         flat in vec3 maxPosFrag;
@@ -232,8 +244,8 @@ public class EntityProgram : RenderProgramBase
 
         uniform int hasInvulnerability;
         uniform float fuzzFrac;
-        uniform sampler2D boundTexture;
-        uniform sampler2D brightmapTexture;
+        uniform sampler2DArray boundTexture;
+        uniform sampler2DArray brightmapTexture;
         uniform samplerBuffer colormapTexture;
         uniform float lightLevelMix;
         uniform int extraLight;

@@ -1,4 +1,5 @@
-﻿using Helion.Util.Assertion;
+﻿using Helion.Render.OpenGL.Texture;
+using Helion.Util.Assertion;
 using Helion.World.Static;
 using System;
 using System.Collections.Generic;
@@ -29,8 +30,9 @@ readonly struct GeometryKey(int textureHandle, GeometryType type, bool repeatY) 
     }
 }
 
-public class FreeGeometryManager
+public class FreeGeometryManager(IArrayTextureLookup arrayTextureLookup)
 {
+    private readonly IArrayTextureLookup m_arrayTextureLookup = arrayTextureLookup;
     private readonly Dictionary<GeometryKey, FreeGeometryList> m_data = new(128);
 
     public void Add(in StaticGeometryData geometryData, GeometryType type, bool repeatY)
@@ -38,7 +40,7 @@ public class FreeGeometryManager
         if (geometryData.GeometryData == null)
             return;
 
-        var textureHandle = geometryData.GeometryData.TextureHandle;
+        var textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(geometryData.GeometryData.TextureHandle, repeatY);
         var key = new GeometryKey(textureHandle, type, repeatY);
 
         if (!m_data.TryGetValue(key, out var list))
@@ -86,6 +88,7 @@ public class FreeGeometryManager
     {
         int minLength = int.MaxValue;
         int minIndex = -1;
+        textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(textureHandle, repeatY);
         var key = new GeometryKey(textureHandle, type, repeatY);
 
         if (!m_data.TryGetValue(key, out var list))

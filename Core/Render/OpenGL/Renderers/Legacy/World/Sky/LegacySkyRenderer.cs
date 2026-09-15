@@ -8,12 +8,13 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
+using Helion.Util.Profiling.Timers;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 
-public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager) : IDisposable
+public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager, RenderProfiler renderProfiler) : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
@@ -23,6 +24,7 @@ public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLText
     private readonly LegacyGLTextureManager m_glTextureManager = glTextureManager;
     private readonly Dictionary<SkyKey, ISkyComponent> m_skyComponents = [];
     private readonly List<ISkyComponent> m_skyComponentsList = [];
+    private readonly RenderProfiler m_renderProfiler = renderProfiler;
 
     ~LegacySkyRenderer()
     {
@@ -108,6 +110,7 @@ public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLText
             sky.RenderSky(renderInfo);
                 
             GL.Enable(EnableCap.DepthTest);
+            m_renderProfiler.DrawCounts.Skies++;
         }
 
         GL.Disable(EnableCap.StencilTest);

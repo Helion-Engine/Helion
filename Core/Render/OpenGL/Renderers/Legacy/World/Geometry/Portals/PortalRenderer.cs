@@ -14,6 +14,7 @@ using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.Resources;
 using Helion.World.Geometry.Walls;
+using Helion.Util.Profiling.Timers;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 
@@ -39,11 +40,11 @@ public class PortalRenderer : IDisposable
     private bool m_disposed;
 
 
-    public PortalRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
+    public PortalRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager, RenderProfiler renderProfiler)
     {
         m_archiveCollection = archiveCollection;
-        m_floodFillStatic = new(glTextureManager, FloodFillRenderMode.Static);
-        m_floodFillDynamic = new(glTextureManager, FloodFillRenderMode.Dynamic);
+        m_floodFillStatic = new(glTextureManager, FloodFillRenderMode.Static, renderProfiler);
+        m_floodFillDynamic = new(glTextureManager, FloodFillRenderMode.Dynamic, renderProfiler);
         m_floodFillRenderer = m_floodFillStatic;
         m_transferHeightView = TransferHeightView.Middle;
     }

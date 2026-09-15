@@ -2,7 +2,21 @@ using System.Collections.Generic;
 
 namespace Helion.Util.Profiling.Timers;
 
-public class RenderProfiler: ProfileComponent<RenderProfiler>
+public struct DrawCounts
+{
+    public int Sprites;
+    public int GeometryStatic;
+    public int GeometryDynamic;
+    public int FloodFillStatic;
+    public int FloodFillDynamic;
+    public int Skies;
+    public int HudElements;
+
+    public readonly int Total() => GeometryStatic + GeometryDynamic + FloodFillStatic + FloodFillDynamic + Skies + Sprites + HudElements;
+    public readonly int LevelTotal() => Total() - HudElements;
+}
+
+public class RenderProfiler : ProfileComponent<RenderProfiler>
 {
     public readonly ProfilerStopwatch FlushPipeline = new();
     public readonly ProfilerStopwatch Hud = new();
@@ -16,6 +30,8 @@ public class RenderProfiler: ProfileComponent<RenderProfiler>
     public readonly ProfilerStopwatch WorldTransparent = new();
     public readonly ProfilerStopwatch WorldFloodFill = new();
     public readonly ProfilerStopwatch Automap = new();
+
+    public DrawCounts DrawCounts;
 
     public override List<ProfilerPath> Profilers { get; } = [];
 
@@ -47,5 +63,6 @@ public class RenderProfiler: ProfileComponent<RenderProfiler>
         WorldTransparent.Reset();
         WorldFloodFill.Reset();
         Automap.Reset();
+        DrawCounts = default;
     }
 }

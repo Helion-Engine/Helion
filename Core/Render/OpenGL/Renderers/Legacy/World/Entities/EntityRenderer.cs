@@ -10,6 +10,7 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
+using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -40,6 +41,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly SpriteRotation m_nullSpriteRotation;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly RenderDataPool<EntityVertex> m_renderDataPool;
+    private readonly RenderProfiler m_renderProfiler;
     private readonly bool m_vanillaRender;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
@@ -54,19 +56,25 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private bool m_disposed;
     private int m_lastViewerEntityId;
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection, RenderProfiler renderProfiler)
     {
         m_config = config;
         m_textureManager = textureManager;
         m_archiveCollection = archiveCollection;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
         m_renderDataPool = new(m_program, RenderPoolSize);
-        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPool);
+        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPool, OnDraw);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_vanillaRender = m_config.Render.VanillaRender;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax.Value;
+        m_renderProfiler = renderProfiler;
+    }
+
+    private void OnDraw()
+    {
+        m_renderProfiler.DrawCounts.Sprites++;
     }
 
     ~EntityRenderer()
@@ -128,9 +136,9 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
     }
 
-    private int GetOffsetZ(Entity entity, GLLegacyTexture texture)
+    private int GetOffsetZ(Entity entity, GLLegacyTexture texture, int textureHeight)
     {
-        int offsetAmount = texture.Offset.Y - texture.Height;
+        int offsetAmount = texture.Offset.Y - textureHeight;
         if (m_vanillaRender)
             return offsetAmount;
 
@@ -140,13 +148,13 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
             return offsetAmount;
 
-        if (!m_spriteClip || texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
+        if (!m_spriteClip || textureHeight < m_spriteClipMin || entity.Definition.IsInventory)
             return MathHelper.Max(offsetAmount, -texture.BlankRowsFromBottom);
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
             // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
-            int maxHeight = (int)((texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
+            int maxHeight = (int)((textureHeight - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
             if (-offsetAmount > maxHeight)
                 offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
             return offsetAmount;
@@ -168,7 +176,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     }
 
     public void RenderEntity(Entity entity, in Vec2D position, int renderIndex)
-    {        
+    {
         Vec3D centerBottom = entity.Position;
         Vec2D nudgeAmount = default;
 
@@ -237,8 +245,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
         var disableFullbright = spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
-        var offsetZ = GetOffsetZ(entity, texture);
-        
+        var offsetZ = GetOffsetZ(entity, texture, spriteRotation.TextureDimension.Height);
 
         int fuzz;
         RenderStyle renderStyle;
@@ -249,7 +256,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         }
         else
         {
-            renderStyle = m_spriteAlpha ? entity.RenderStyle: RenderStyle.Normal;
+            renderStyle = m_spriteAlpha ? entity.RenderStyle : RenderStyle.Normal;
             fuzz = 0;
         }
 
@@ -269,7 +276,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (renderStyle == RenderStyle.ColorAdd)
             entityAlpha = 1.0f;
 
-        var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
+        var arrayTexture = texture.ParentArrayTexture ?? texture;
+        var renderData = m_dataManager.GetByRenderStyle(renderStyle, arrayTexture, brightmapTexture);
         var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
 
         var arrayData = renderData.ArrayData;
@@ -291,6 +299,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.SurfaceOptions = VertexOptions.EntityPackSurface(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.RenderOptions = VertexOptions.EntityPackRender(
             Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
+        vertex.TextureInfo = VertexOptions.EntityPackTextureInfo(texture.ArrayIndex, spriteRotation.TextureDimension.Width, spriteRotation.TextureDimension.Height);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
@@ -301,7 +310,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
             vertex.Pos.Z = ceilingZ + diff;
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
-        
+
         vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(offsetX, offsetZ);
         arrayData.Length = length + 1;
 
@@ -334,6 +343,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
         vertex.OffsetXYZ = VertexOptions.EntityPackXYZ(0, offset);
+        vertex.TextureInfo = 0;
 
         array.SetLength(array.Length + 1);
     }

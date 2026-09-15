@@ -165,7 +165,7 @@ public class FragFunction
 
     static string BrightMapLightColorIndexFetch(string uvVar) =>
         @$"
-            vec3 brightColor = texture(brightmapTexture, {uvVar}).rgb;
+            vec3 brightColor = texture(brightmapTexture, vec3({uvVar}, boundTextureIndex)).rgb;
             float hasBrightColor = float(brightColor.r != 0 && brightColor.r == brightColor.g && brightColor.g == brightColor.b);
             lightColorIndex = int(mix(lightColorIndex, min(int((1 - brightColor.r) * 31), lightColorIndex), hasBrightColor));
         ";
@@ -186,7 +186,7 @@ public class FragFunction
 
         var fragColor = @$"
         {textureMappingClamp}
-        {declareFragColor} = texture(boundTexture, texUV);";
+        {declareFragColor} = texture(boundTexture, vec3(texUV, boundTextureIndex));";
 
         return
             fragColor +
@@ -232,7 +232,7 @@ public class FragFunction
 
         return @"
             if (useBrightmaps == 1)
-                fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel));
+                fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, vec3(texUV, boundTextureIndex)).rgb + vec3(lightLevel));
             else
                 fragColor.rgb *= lightLevel;";
     }

@@ -13,10 +13,13 @@ using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
+using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -24,6 +27,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using Helion.World.Special.Switches;
 using Helion.World.Static;
 using System;
 using System.Collections;
@@ -35,6 +39,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public partial class GeometryRenderer : IDisposable
 {
+    sealed record class LoadTextureCounts(HashSet<int> FlatTextures, HashSet<int> WallTexturesRepeat, HashSet<int> WallTexturesClamp);
+
     public delegate void RenderCoverWallAction(Side side, Span<DynamicVertex> vertices, WallLocation location, bool oneSided);
 
     private const double MaxSky = 16384;
@@ -103,13 +109,14 @@ public partial class GeometryRenderer : IDisposable
     private BitArray m_hitLines = new(0);
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, ViewClipper viewClipper, ViewClipper viewClipperPrev, bool unitTest = false)
+        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, 
+        ViewClipper viewClipper, ViewClipper viewClipperPrev, RenderProfiler renderProfiler, bool unitTest = false)
     {
         m_config = config;
         m_program = program;
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
-        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
+        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, renderProfiler);
         m_archiveCollection = archiveCollection;
         m_fakeSideScrollData = new();
         m_fakeSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_sliceSector)
@@ -135,8 +142,8 @@ public partial class GeometryRenderer : IDisposable
         }
         else
         {
-            Portals = new(archiveCollection, glTextureManager);
-            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
+            Portals = new(archiveCollection, glTextureManager, renderProfiler);
+            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, renderProfiler, this);
             m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
         }
 
@@ -146,7 +153,7 @@ public partial class GeometryRenderer : IDisposable
         m_renderTwoSidedMiddleSliceFunc = RenderTwoSidedMiddleSlice;
         m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
-        var options = VertexOptions.PackSurface(1, 1, 0, 0, 0, 0);
+        var options = VertexOptions.PackSurface(1, 1, 0, 0, 0, 0, 0);
         for (int i = 0; i < m_wallVertices.Length; i++)
             m_wallVertices[i].SurfaceOptions = options;
 
@@ -174,8 +181,6 @@ public partial class GeometryRenderer : IDisposable
         m_vanillaRender = world.Config.Render.VanillaRender;
         m_pixelGapCorrection = world.Config.Render.PixelGapCorrection;
 
-        PreloadAllTextures(world);
-
         int sideCount = world.Geometry.GetSideCount();
         int sectorCount = world.Geometry.GetSectorCount();
         bool freeData = !world.SameAsPreviousMap;
@@ -193,8 +198,11 @@ public partial class GeometryRenderer : IDisposable
 
         m_invalidatedCounter = 1;
 
+        LoadTextureCounts? loadTextureCounts = null;
         if (!world.SameAsPreviousMap)
         {
+            loadTextureCounts = PreloadAllTextures(world);
+
             for (int i = 0; i < m_subsectors.Length; i++)
             {
                 m_subsectors[i].FlushReferences();
@@ -227,6 +235,12 @@ public partial class GeometryRenderer : IDisposable
 
         if (!unitTest)
         {
+            if (!world.SameAsPreviousMap && loadTextureCounts != null)
+            {
+                var arrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_glTextureManager);
+                arrayBuilder.BuildLevel(loadTextureCounts.FlatTextures, loadTextureCounts.WallTexturesRepeat, loadTextureCounts.WallTexturesClamp);
+            }
+
             Portals.UpdateTo(world);
             m_staticCacheGeometryRenderer.UpdateTo(world);
             m_worldDataManager?.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
@@ -604,49 +618,95 @@ public partial class GeometryRenderer : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void PreloadAllTextures(IWorld world)
+    private LoadTextureCounts? PreloadAllTextures(IWorld world)
     {
-        if (world.SameAsPreviousMap)
-            return;
+        var wallTexturesRepeat = new HashSet<int>(128);
+        var wallTexturesClamp = new HashSet<int>(128);
+        var flatTextures = new HashSet<int>(128);
 
-        HashSet<int> textures = [];
         for (int i = 0; i < world.Lines.Count; i++)
         {
             var line = world.Lines[i];
-            AddSideTextures(textures, line.Front);
+            AddSideTextures(wallTexturesRepeat, wallTexturesClamp, line.Front, line.Flags.TwoSided);
 
             if (line.Back == null)
                 continue;
 
-            AddSideTextures(textures, line.Back);
+            AddSideTextures(wallTexturesRepeat, wallTexturesClamp, line.Back, line.Flags.TwoSided);
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            textures.Add(sector.Floor.TextureHandle);
-            textures.Add(sector.Ceiling.TextureHandle);
+            flatTextures.Add(sector.Floor.TextureHandle);
+            flatTextures.Add(sector.Ceiling.TextureHandle);
             if (sector.FloorSkyTextureHandle.HasValue)
-                textures.Add(sector.FloorSkyTextureHandle.Value);
+                flatTextures.Add(sector.FloorSkyTextureHandle.Value);
             if (sector.CeilingSkyTextureHandle.HasValue)
-                textures.Add(sector.CeilingSkyTextureHandle.Value);
+                flatTextures.Add(sector.CeilingSkyTextureHandle.Value);
         }
 
         foreach (var textureName in world.GetPreCacheTextureNames())
         {
             var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Global, ResourceNamespace.Textures);
             if (texture.Index > 0)
-                textures.Add(texture.Index);
+            {
+                wallTexturesClamp.Add(texture.Index);
+                wallTexturesRepeat.Add(texture.Index);
+            }
         }
 
-        TextureManager.LoadTextureImages(textures);
+        AddLineSwitchTextures(wallTexturesRepeat, wallTexturesClamp);
+
+        TextureManager.LoadTextureImages(flatTextures);
+        TextureManager.LoadTextureImages(wallTexturesClamp);
+        TextureManager.LoadTextureImages(wallTexturesRepeat);
+        return new(flatTextures, wallTexturesRepeat, wallTexturesClamp);
     }
 
-    private static void AddSideTextures(HashSet<int> textures, Side side)
+    private void AddLineSwitchTextures(HashSet<int> wallTexturesRepeat, HashSet<int> wallTexturesClamp)
     {
-        textures.Add(side.Lower.TextureHandle);
-        textures.Add(side.Middle.TextureHandle);
-        textures.Add(side.Upper.TextureHandle);
+        var switches = new List<AnimatedSwitch>(m_archiveCollection.Definitions.Animdefs.AnimatedSwitches.Count);
+        for (int i = 0; i < m_archiveCollection.Definitions.Animdefs.AnimatedSwitches.Count; i++)
+        {
+            var animSwitch = m_archiveCollection.Definitions.Animdefs.AnimatedSwitches[i];
+            if (animSwitch.IWad != IWadBaseType.None && animSwitch.IWad != m_archiveCollection.IWadType)
+                continue;
+            switches.Add(animSwitch);
+        }
+
+        AddLineSwitchTextures(wallTexturesRepeat, switches);
+        AddLineSwitchTextures(wallTexturesClamp, switches);
+    }
+
+    private static void AddLineSwitchTextures(HashSet<int> wallTextures, List<AnimatedSwitch> switches)
+    {
+        var addTextures = new HashSet<int>();
+        foreach (var textureIndex in wallTextures)
+        {
+            foreach (var animSwitch in switches)
+            {
+                if (animSwitch.IsMatch(textureIndex))
+                {
+                    addTextures.Add(animSwitch.GetOpposingTexture(textureIndex));
+                    break;
+                }
+            }
+        }
+
+        foreach (var textureIndex in addTextures)
+            wallTextures.Add(textureIndex);
+    }
+
+    private static void AddSideTextures(HashSet<int> wallTexturesRepeat, HashSet<int> wallTexturesClamp, Side side, bool twoSided)
+    {
+        wallTexturesRepeat.Add(side.Lower.TextureHandle);
+        wallTexturesRepeat.Add(side.Upper.TextureHandle);
+
+        if (twoSided)
+            wallTexturesClamp.Add(side.Middle.TextureHandle);
+        else
+            wallTexturesRepeat.Add(side.Middle.TextureHandle);
     }
 
     private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)
@@ -849,9 +909,9 @@ public partial class GeometryRenderer : IDisposable
             int addAlpha = allowAlpha ? 0 : 1;
             WorldTriangulator.HandleOneSided(side, offsetSide ?? side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, overrideLightIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha, alpha: side.Alpha);
+                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, overrideLightIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, texture.ArrayIndex, addAlpha: addAlpha, alpha: side.Alpha);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, overrideLightIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha, alpha: side.Alpha);
+                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, overrideLightIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, texture.ArrayIndex, addAlpha: addAlpha, alpha: side.Alpha);
 
             SetCachedSide(m_vertexLookup, side, data);
         }
@@ -859,7 +919,8 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var geometryType = GetGeometryType(style, baseType);
-            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
+            var arrayTexture = m_glTextureManager?.GetParentArrayTexture(side.Middle.TextureHandle) ?? TestTexture;
+            var renderData = m_worldDataManager.GetRenderData(arrayTexture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.AddMemoryCopy(data);
             if (m_vanillaRender && baseType == GeometryType.Wall && style == RenderDataStyle.Normal)
                 m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location, true);
@@ -1207,16 +1268,17 @@ public partial class GeometryRenderer : IDisposable
 
                 WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower, texture.ArrayIndex);
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower, texture.ArrayIndex);
 
                 SetCachedSide(m_vertexLowerLookup, facingSide, data);
             }
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
+                var arrayTexture = m_glTextureManager.GetParentArrayTexture(lowerWall.TextureHandle);
+                var renderData = m_worldDataManager.GetRenderData(arrayTexture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.AddMemoryCopy(data);
             }
             vertices = data;
@@ -1328,16 +1390,17 @@ public partial class GeometryRenderer : IDisposable
                 int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Upper, lightLevelSector, out var overrideLightIndex);
                 WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper, texture.ArrayIndex);
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper, texture.ArrayIndex);
 
                 SetCachedSide(m_vertexUpperLookup, facingSide, data);
             }
 
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, GeometryType.Wall, brightmapTexture);
+                var arrayTexture = m_glTextureManager.GetParentArrayTexture(upperWall.TextureHandle);
+                var renderData = m_worldDataManager.GetRenderData(arrayTexture, GeometryType.Wall, brightmapTexture);
                 renderData.Pipeline.Vbo.AddMemoryCopy(data);
             }
             vertices = data;
@@ -1383,7 +1446,7 @@ public partial class GeometryRenderer : IDisposable
             WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
             WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
-        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, lightIndex, 0, facingSide.Line.Id, location);
+        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, lightIndex, 0, facingSide.Line.Id, location, 0);
         return m_wallVertices;
     }
 
@@ -1511,9 +1574,9 @@ public partial class GeometryRenderer : IDisposable
                 clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, otherSide, facingSector, otherSector), restrictSpan: restrictSpan);
 
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);
+                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, texture.ArrayIndex, alpha, addAlpha: 0);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, overrideLightIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, texture.ArrayIndex, alpha, addAlpha: 0);
 
             SetCachedSide(m_vertexLookup, facingSide, data);
             line.RenderSegStart = saveStart;
@@ -1523,7 +1586,8 @@ public partial class GeometryRenderer : IDisposable
         if (m_buffer)
         {
             var geometryType = facingSide == m_fogSide ? GeometryType.FogBarrier : GetWallType(facingSide, facingSide.Middle, null);
-            var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
+            var arrayTexture = m_glTextureManager.GetParentArrayTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
+            var renderData = m_worldDataManager.GetRenderData(arrayTexture, geometryType, brightmapTexture);
             renderData.Pipeline.Vbo.AddMemoryCopy(data);
         }
         vertices = data;
@@ -1805,7 +1869,7 @@ public partial class GeometryRenderer : IDisposable
                     {
                         ref var second = ref m_subsectorVertices.Data[i];
                         ref var third = ref m_subsectorVertices.Data[i + 1];
-                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, overrideLightIndex, flatLightLevel, upper, lower, addAlpha, alpha);
+                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, overrideLightIndex, flatLightLevel, upper, lower, addAlpha, alpha, texture.ArrayIndex);
                         indexStart += 3;
                     }
                 }
@@ -1815,7 +1879,8 @@ public partial class GeometryRenderer : IDisposable
             vertices = lookupData;
             if (m_buffer)
             {
-                var renderData = m_worldDataManager.GetRenderData(texture, geometryType, brightmapTexture);
+                var arrayTexture = m_glTextureManager.GetParentArrayTexture(textureHandle);
+                var renderData = m_worldDataManager.GetRenderData(arrayTexture, geometryType, brightmapTexture);
                 renderData.Pipeline.Vbo.AddMemoryCopy(lookupData);
                 // Don't need to clip floor on lower view and ceiling on upper view
                 if (sector.TransferHeights != null
@@ -2015,7 +2080,7 @@ public partial class GeometryRenderer : IDisposable
     }
 
     private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, int lightLevelAdd, int lightIndex, int overrideLightIndex, byte wallLightLevel,
-        int mapId, WallLocation location, float alpha = 1.0f, int addAlpha = 1)
+        int mapId, WallLocation location, int textureIndex, float alpha = 1.0f, int addAlpha = 1)
     {
         var uvFlags = UvFlags.Normal;
         if (wv.TopLeft.U > wv.BottomRight.U)
@@ -2039,7 +2104,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2054,7 +2119,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2069,7 +2134,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2084,7 +2149,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2099,7 +2164,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2114,14 +2179,14 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
         }
     }
 
     private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, int lightLevelAdd, int lightIndex, int overrideLightIndex, byte wallLightLevel,
-        int mapId, WallLocation location, float alpha = 1.0f, int addAlpha = 1)
+        int mapId, WallLocation location, int textureIndex, float alpha = 1.0f, int addAlpha = 1)
     {
         var uvFlags = UvFlags.Normal;
         if (wv.TopLeft.U > wv.BottomRight.U)
@@ -2155,7 +2220,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2171,7 +2236,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2187,7 +2252,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(1, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2203,7 +2268,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2219,7 +2284,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
 
@@ -2235,7 +2300,7 @@ public partial class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+            vertex->SurfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
             vertex->LightLevelAdd = lightLevelAddAndMapId;
             vertex->RenderOptions = renderOptions;
         }
@@ -2244,9 +2309,9 @@ public partial class GeometryRenderer : IDisposable
     }
 
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
-        int lightIndex, int overrideLightIndex, int flatLightLevel, int upper, int lower, int addAlpha, float alpha)
+        int lightIndex, int overrideLightIndex, int flatLightLevel, int upper, int lower, int addAlpha, float alpha, int textureIndex)
     {
-        var surfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex);
+        var surfaceOptions = VertexOptions.PackSurface(0, alpha, addAlpha, upper, lower, overrideLightIndex, textureIndex);
         var renderOptions = VertexOptions.PackRender(lightIndex, flatLightLevel);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {

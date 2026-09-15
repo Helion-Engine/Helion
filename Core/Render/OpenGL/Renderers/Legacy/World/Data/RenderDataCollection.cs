@@ -18,13 +18,15 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
     private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new(2048);
     private readonly RenderProgram m_program;
     private readonly RenderDataPool<TVertex> m_renderDataPool;
+    private readonly Action? m_onDraw;
     private int m_renderCount;
     private bool m_disposed;
     
-    public RenderDataCollection(RenderProgram program, RenderDataPool<TVertex> renderDataPool)
+    public RenderDataCollection(RenderProgram program, RenderDataPool<TVertex> renderDataPool, Action? onDraw = null)
     {
         m_program = program;
         m_renderDataPool = renderDataPool;
+        m_onDraw = onDraw;
     }
 
     ~RenderDataCollection()
@@ -72,7 +74,10 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
             return;
 
         for (int i = 0; i < m_dataToRender.Length; i++)
-            m_dataToRender[i].Draw();
+        {
+            if (m_dataToRender[i].Draw())
+                m_onDraw?.Invoke();
+        }
     }
     
     protected virtual void Dispose(bool disposing)

@@ -108,7 +108,7 @@ vec4 bottomFetchColor = bottomColor;
         out vec4 fragColor;
 
         uniform vec2 scale;
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform samplerBuffer colormapTexture;
         uniform int hasInvulnerability;
         uniform int paletteIndex;
@@ -144,7 +144,7 @@ vec4 bottomFetchColor = bottomColor;
             else {
                 vec2 textureUV = uvFrag - skyMin;
                 vec2 offset = mix(prevScrollOffset, scrollOffset, timeFrac);
-                fragColor = texture(boundTexture, textureUV / scale + offset);
+                fragColor = texture(boundTexture, vec3(textureUV / scale + offset, 0));
             }
 
             ${ColorMapFetch}

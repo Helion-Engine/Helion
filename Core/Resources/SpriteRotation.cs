@@ -1,3 +1,4 @@
+using Helion.Geometry;
 using Helion.Util.Container;
 using System.Diagnostics.CodeAnalysis;
 
@@ -8,9 +9,11 @@ public class SpriteRotation(Texture texture, bool mirror, bool brightmapNoFullbr
     public Texture Texture = texture;
     public bool Mirror = mirror;
     public int FlipU = mirror ? 1 : 0;
+    public int TextureIndex = texture.Index;
     public object? RenderStore;
     public object? BrightmapRenderStore;
     public bool BrightmapNoFullbright = brightmapNoFullbright;
+    public Dimension TextureDimension = texture.Image?.Dimension ?? default;
     private LookupArray<SpriteRotation>? m_translationRotations;
 
     public bool TryGetTranslationRotation(int index, [NotNullWhen(true)] out SpriteRotation? rotation)

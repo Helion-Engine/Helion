@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Helion.Render.OpenGL.Texture.Legacy;
+using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
-public record FloodFillInfo(int TextureHandle, double Z, VertexPipeline<FloodFillVertex> Pipeline) : IDisposable
+public record FloodFillInfo(int TextureHandle, GLLegacyTexture Texture, double Z, VertexPipeline<FloodFillVertex> Pipeline) : IDisposable
 {
     private bool m_disposed;
 

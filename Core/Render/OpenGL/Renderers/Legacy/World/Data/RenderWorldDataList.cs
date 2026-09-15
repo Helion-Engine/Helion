@@ -1,17 +1,17 @@
-﻿using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Texture.Legacy;
+﻿using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util.Container;
 using System;
 using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
-public class RenderWorldDataList(RenderWorldDataPool pool)
+public class RenderWorldDataList(RenderWorldDataPool pool, Action? onDraw)
 {
     public List<RenderWorldData> RenderData = [];
     private RenderWorldData?[] m_allRenderData = new RenderWorldData?[1024];
     private readonly DynamicArray<RenderWorldData> m_dataToRender = new(1024);
     private readonly RenderWorldDataPool m_pool = pool;
+    private readonly Action? m_onDraw = onDraw;
     private int m_renderCount;
 
     public void Reset()
@@ -60,7 +60,10 @@ public class RenderWorldDataList(RenderWorldDataPool pool)
     public void Draw()
     {
         for (int i = 0; i < m_dataToRender.Length; i++)
-            m_dataToRender[i].Draw();
+        {
+            if (m_dataToRender[i].Draw())
+                m_onDraw?.Invoke();
+        }
     }
 
     public void Clear()

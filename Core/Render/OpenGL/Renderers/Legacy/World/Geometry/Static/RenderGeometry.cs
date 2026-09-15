@@ -1,5 +1,4 @@
 ﻿using Helion.Util.Container;
-using Helion.World.Geometry;
 using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;

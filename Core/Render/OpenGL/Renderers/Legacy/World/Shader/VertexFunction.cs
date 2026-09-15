@@ -18,7 +18,7 @@ public static class VertexFunction
             uvClampMaxFrag = vec2(MaxValue, MaxValue);
 
             if (vertexGapClampUV == 1) {
-                ivec2 texSize = textureSize(boundTexture, 0);                
+                ivec2 texSize = textureSize(boundTexture, 0).xy;                
                 const float VertexGapX = 0.1;
                 float pixelSize = uvFrag.y * texSize.y;
                 // Push y further since it's more likely to show t-junction issue with subsector flat splits
@@ -45,7 +45,8 @@ public static class VertexFunction
             addAlphaFrag = float((intOptions >> 9) & 1);
             upperFrag = float((intOptions >> 10) & 1);
             lowerFrag =  float((intOptions >> 11) & 1);
-            float overrideLightIndex = float(float(intOptions >> 12));";
+            float overrideLightIndex = float((intOptions >> 12) & 1);
+            boundTextureIndex = float((intOptions >> 13) & 0xFFFFF);";
 
     public static string ColorMapAndLightLevelSet =>
         @"            

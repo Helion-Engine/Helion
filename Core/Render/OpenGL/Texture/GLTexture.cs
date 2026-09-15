@@ -8,6 +8,13 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Texture;
 
+public enum TextureContext
+{
+    Default,
+    WorldArray,
+    WorldSprites
+}
+
 public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 {
     public int Index => TextureId;
@@ -16,11 +23,13 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public Dimension Dimension { get; }
     public Vec2I Offset { get; }
     public readonly int TextureId;
-    public readonly string Name;
+    public string Name;
     public readonly Vec2F UVInverse;
     public readonly ResourceNamespace Namespace;
     public readonly TextureTarget Target;
     public readonly int TransparentPixelCount;
+    public readonly TextureContext Context;
+    private readonly bool m_ownsTexture;
     private bool m_disposed;
 
     public int Width => Dimension.Width;
@@ -30,7 +39,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public int BlankRowsFromBottom;
 
     protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
-        int transparentPixelCount, int blankRowsFromTop, int blankRowsFromBottom)
+        int transparentPixelCount, int blankRowsFromTop, int blankRowsFromBottom, bool ownsTexture = true, TextureContext textureContext = TextureContext.Default)
     {
         TextureId = textureId;
         Name = name;
@@ -42,6 +51,8 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
         TransparentPixelCount = transparentPixelCount;
         BlankRowsFromTop = blankRowsFromTop;
         BlankRowsFromBottom = blankRowsFromBottom;
+        m_ownsTexture = ownsTexture;
+        Context = textureContext;
     }
 
     ~GLTexture()
@@ -57,7 +68,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 
     protected virtual void ReleaseUnmanagedResources()
     {
-        if (m_disposed)
+        if (m_disposed || !m_ownsTexture)
             return;
         
         GL.DeleteTexture(TextureId);
