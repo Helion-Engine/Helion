@@ -2,6 +2,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
+using Helion.Util.Assertion;
 using Helion.Util.Extensions;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -30,7 +31,7 @@ public class Image
     public Dimension Dimension;
     public ImageType ImageType;
     public ImageType UploadType;
-    public readonly Vec2I Offset;
+    public Vec2I Offset;
     public readonly ResourceNamespace Namespace;
     public uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
     public readonly byte[] m_indices;
@@ -404,6 +405,24 @@ public class Image
             if (ImageType == ImageType.PaletteWithArgb)
                 m_indices[offset] = index;
             m_pixels[offset] = color.Uint;
+        }
+    }
+
+    public void CopyPixelsFrom(Image image)
+    {
+        Precondition(!(image.Indices.Length > 0 && Indices.Length == 0), "Image type mismatch");
+
+        var width = Math.Min(image.Dimension.Width, Dimension.Width);
+        var height = Math.Min(image.Dimension.Height, Dimension.Height);
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                SetPixel(x, y, image.GetPixel(x, y));
+                if (image.ImageType == ImageType.PaletteWithArgb)
+                    SetIndex(x, y, image.GetIndex(x, y));
+            }
         }
     }
 

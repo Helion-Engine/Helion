@@ -17,7 +17,6 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Profiling.Timers;
-using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -30,6 +29,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public partial class LegacyWorldRenderer : WorldRenderer
 {
+    public override TextureBuckets SpriteTextureBuckets { get; protected set; }
+
     const int EntityRenderIndexMax = 100;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly IConfig m_config;
@@ -67,6 +68,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private bool m_downscaleVanillaBuffer;
     private bool m_postProcessingEffects;
     private bool m_lastUseBsp;
+    private bool m_spritesCached;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
@@ -79,13 +81,18 @@ public partial class LegacyWorldRenderer : WorldRenderer
     {
         m_config = config;
         m_renderProfiler = renderProfiler;
-        m_entityRenderer = new(config, textureManager, archiveCollection);
+        m_entityRenderer = new(config, textureManager, archiveCollection, renderProfiler);
         m_primitiveRenderer = new();
-        m_worldDataManager = new(m_interpolationProgram);
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev);
+        m_worldDataManager = new(m_interpolationProgram, OnDynamicDraw);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev, renderProfiler);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;
+    }
+
+    private void OnDynamicDraw()
+    {
+        m_renderProfiler.DrawCounts.GeometryDynamic++;
     }
 
     ~LegacyWorldRenderer()
@@ -117,14 +124,11 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         m_previousWorld?.OnResetInterpolation -= World_OnResetInterpolation;
 
-        var spriteDefinitions = m_archiveCollection.TextureManager.SpriteDefinitions;
-        for (int i = 0; i < spriteDefinitions.Length; i++)
+        if (!m_spritesCached)
         {
-            var spriteDefinition = spriteDefinitions[i];
-            if (spriteDefinition == null)
-                continue;
-
-            m_textureManager.CacheSpriteRotations(spriteDefinition);
+            var textureArrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_textureManager);
+            SpriteTextureBuckets = textureArrayBuilder.BuildSprites(m_archiveCollection.TextureManager.SpriteDefinitions);
+            m_spritesCached = true;
         }
 
         m_geometryRenderer.UpdateTo(world);

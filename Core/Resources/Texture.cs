@@ -27,6 +27,12 @@ public class Texture
             BrightmapRenderStoreClamp = glTexture;
     }
 
+    public void ClearGLTexture()
+    {
+        RenderStore = null;
+        RenderStoreClamp = null;
+    }
+
     /// <summary>
     /// Name of the texture.
     /// </summary>
@@ -62,4 +68,9 @@ public class Texture
     /// </summary>
     public object? BrightmapRenderStore;
     public object? BrightmapRenderStoreClamp;
+
+    public override string ToString()
+    {
+        return $"{Name} {Image?.Dimension}";
+    }
 }

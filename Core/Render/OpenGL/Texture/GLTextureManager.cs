@@ -9,9 +9,12 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.Definitions.ZDoom;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
@@ -26,7 +29,7 @@ public enum TextureFlags
     ClampY = 2,
 }
 
-public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
+public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager, IArrayTextureLookup
     where GLTextureType : GLTexture
 {
     protected readonly IConfig Config;
@@ -34,6 +37,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     protected readonly ResourceTracker<GLTextureType> TextureTracker = new();
     protected readonly ResourceTracker<GLTextureType> TextureTrackerClamp = new();
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
+    private readonly LookupArray<ArrayTextureData<GLTextureType>?> m_arrayTextures = new();
     private bool m_disposed;
 
     private TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -87,6 +91,15 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     ~GLTextureManager()
     {
         Dispose();
+    }
+
+    public void DestroyTextureArrays(TextureContext textureContext)
+    {
+        if (!m_arrayTextures.TryGetValue((int)textureContext, out var arrayTextureData))
+            return;
+
+        arrayTextureData.Destroy();
+        m_arrayTextures.Set((int)textureContext, null);
     }
 
     public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
@@ -208,6 +221,79 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return (GLTextureType)renderTexture;
     }
 
+    public GLTextureType? CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension)
+    {
+        if (textures.Length == 0)
+            return null;
+
+        var images = new Image[textures.Length];
+        for (int i = 0; i < textures.Length; i++)
+        {
+            var texture = textures[i];
+            TextureManager.EnsureTextureImageLoaded(texture.Index);
+            Assert.Precondition(texture.Image != null, "Texture must have an image");
+
+            var image = texture.Image ?? new Image(default, ImageType.Argb);
+            images[i] = image;
+            textures[i] = texture;
+        }
+
+        var fitImage = new Image(dimension, images[0].ImageType);
+
+        var arraySubTextures = GenerateTextureArray(imageIndex =>
+        {
+            var image = images[imageIndex];
+            if (image.Width == dimension.Width && image.Height == dimension.Height)
+                return image;
+
+            fitImage.CopyPixelsFrom(image);
+            fitImage.Offset = image.Offset;
+            return fitImage;
+        }, images.Length, dimension, ResourceNamespace.Textures, textureFlags, textureContext, out var arrayTexture);
+
+        for (int i = 0; i < images.Length; i++)
+        {
+            var glTexture = arraySubTextures[i];
+            var texture = textures[i];
+            SetDebugName(glTexture, texture);
+            texture.SetGLTexture(glTexture, (textureFlags & TextureFlags.ClampY) == 0);
+        }
+
+        if (!m_arrayTextures.TryGetValue((int)textureContext, out var arrayTextureData))
+        {
+            arrayTextureData = new(textureContext);
+            m_arrayTextures.Set((int)textureContext, arrayTextureData);
+        }
+
+        arrayTextureData.Add(arrayTexture, arraySubTextures, textures, textureFlags);
+        return arrayTexture;
+    }
+
+    [Conditional("DEBUG")]
+    private static void SetDebugName(GLTextureType glTexture, Resources.Texture texture)
+    {
+        glTexture.Name = $"{glTexture.Name} {texture.Index}:{texture.Name}";
+    }
+
+    public int GetWorldArrayTextureHandle(int textureHandle, bool repeatY)
+    {
+        if (m_arrayTextures.TryGetValue((int)TextureContext.WorldArray, out var arrayTextureData))
+            return arrayTextureData.GetArrayTextureHandle(textureHandle, repeatY ? TextureFlags.Default : TextureFlags.ClampY);
+
+        return textureHandle;
+    }
+
+    public bool TryGetTexture(int textureIndex, TextureContext textureContext, [NotNullWhen(true)] out Resources.Texture? texture)
+    {
+        if (!m_arrayTextures.TryGetValue((int)textureContext, out var arrayTextureData))
+        {
+            texture = null;
+            return false;
+        }
+
+        return arrayTextureData.TryGetTexture(textureIndex, out texture);
+    }
+
     public GLTextureType? GetBrightmapTexture(int index, bool repeatY = true)
     {
         var texture = TextureManager.GetTexture(index);
@@ -273,25 +359,6 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         }
 
         return spriteRotation;
-    }
-
-    public void CacheSpriteRotations(SpriteDefinition spriteDef)
-    {
-        for (int i = 0; i < SpriteDefinition.MaxFrames; i++)
-        {
-            for (int j = 0; j < SpriteDefinition.MaxRotations; j++)
-            {
-                var rotation = spriteDef.Rotations[i, j];
-                if (rotation == null)
-                    continue;
-
-                if (rotation.Texture.RenderStore != null)
-                    continue;
-
-                rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
-                rotation.Texture.BrightmapRenderStore = CreateBrightMapTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
-            }
-        }
     }
 
     public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
@@ -367,7 +434,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return (int)Math.Floor(Math.Log(smallerAxis, 2));
     }
 
-    protected GLTextureType CreateBrightMapTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
+    public GLTextureType CreateBrightMapTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
     {
         var texture = CreateTexture(image, name, resourceNamespace, repeatY);
         // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.
@@ -376,10 +443,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return texture;
     }
 
-    protected GLTextureType CreateTexture(Image? image, bool repeatY) => CreateTexture(image, null, ResourceNamespace.Global, repeatY);
+    public GLTextureType CreateTexture(Image? image, bool repeatY) => CreateTexture(image, null, ResourceNamespace.Global, repeatY);
 
-    protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
+    public GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
     {
+        repeatY = resourceNamespace != ResourceNamespace.Sprites && resourceNamespace != ResourceNamespace.Brightmaps && resourceNamespace != ResourceNamespace.Brightmaps && repeatY;
         var textureTracker = GetTextureTracker(repeatY);
         GLTextureType? texture;
         if (name != null)
@@ -432,6 +500,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);
+    protected abstract GLTextureType[] GenerateTextureArray(Func<int, Image> getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, TextureContext textureContext, out GLTextureType arrayTexture);
 
     public abstract void ReUpload(GLTextureType texture, Image image, uint[] imagePixels);
 

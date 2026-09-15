@@ -42,10 +42,10 @@ public class RenderWorldData : IDisposable
         Pipeline.Clear();
     }
 
-    public void Draw()
+    public bool Draw()
     {
         if (Pipeline.Empty)
-            return;
+            return false;
 
         // We are doing binding manually since apparently these are all
         // coming up in the memory profiler as a bunch of new 'actions'.
@@ -57,13 +57,14 @@ public class RenderWorldData : IDisposable
         if (BrightmapTexture != null)
             BrightmapTexture.Bind();
         else
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(Texture.Target, 0);
 
         Pipeline.Bind(true);
         Pipeline.Vbo.Upload();
         Pipeline.DrawArrays();
         Pipeline.Unbind();
         Texture.Unbind();
+        return true;
     }
 
     public void Dispose()

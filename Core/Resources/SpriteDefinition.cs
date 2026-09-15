@@ -14,7 +14,9 @@ public class SpriteDefinition
     public const int MaxRotationIndex = MaxRotations - 1;
     public SpriteRotation?[,] Rotations = new SpriteRotation[MaxFrames, MaxRotations];
     public bool HasRotations;
+    public bool Cached;
 
+    private static int StaticId;
     private static readonly Dictionary<string, Texture> SpriteTextureLookup = [];
 
     public SpriteDefinition(IList<Entry> entries, IImageRetriever imageRetriever, ArchiveCollection archiveCollection)
@@ -52,7 +54,7 @@ public class SpriteDefinition
 
         if (!SpriteTextureLookup.TryGetValue(entry.Path.Name, out var texture))
         {
-            texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
+            texture = new(entry.Path.Name, ResourceNamespace.Sprites, ++StaticId);
             texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
             SpriteTextureLookup[entry.Path.Name] = texture;
         }

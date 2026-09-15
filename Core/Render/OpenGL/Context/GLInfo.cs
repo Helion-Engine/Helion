@@ -32,11 +32,18 @@ public static class GLInfo
     public static bool MapPersistentBitSupported = true;
     public static bool MemoryBarrierSupported = true;
     public static bool DebugLabel;
+    public static int MaxArrayLayers;
 
     static GLInfo()
     {
         Renderer = GL.GetString(StringName.Renderer);
         ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);
         Vendor = GL.GetString(StringName.Vendor);
+        MaxArrayLayers = GetMaxArrayLayers();
+    }
+    public static int GetMaxArrayLayers()
+    {
+        GL.GetInteger(GetPName.MaxArrayTextureLayers, out var maxLayers);
+        return maxLayers;
     }
 }

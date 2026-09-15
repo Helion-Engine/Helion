@@ -1,10 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Helion.Render.OpenGL.Texture;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
-public class GeometryTextureLookup
+public class GeometryTextureLookup(IArrayTextureLookup arrayTextureLookup)
 {
     private readonly GeometryTypeLookup<TextureGeometryLookup> m_lookup = new(() => new TextureGeometryLookup());
+    private readonly IArrayTextureLookup m_arrayTextureLookup = arrayTextureLookup;
 
     public void Clear()
     {
@@ -15,11 +17,13 @@ public class GeometryTextureLookup
 
     public bool TryGetValue(GeometryType type, int textureHandle, bool repeatY, [NotNullWhen(true)] out GeometryData? value)
     {
+        textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(textureHandle, repeatY);
         return m_lookup.Get(type).TryGetValue(textureHandle, repeatY, out value);
     }
 
     public void Add(GeometryType type, int textureHandle, bool repeatY, GeometryData data)
     {
+        textureHandle = m_arrayTextureLookup.GetWorldArrayTextureHandle(textureHandle, repeatY);
         m_lookup.Get(type).Add(textureHandle, repeatY, data);
     }
 }

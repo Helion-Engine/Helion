@@ -13,6 +13,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
+using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -40,10 +41,11 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly FloodFillRenderer m_floodFillRenderer;
     private readonly RenderProgram m_program;
     private readonly RenderGeometry m_geometry = new();
+    private readonly RenderProfiler m_renderProfiler;
 
-    private readonly GeometryTextureLookup m_textureToGeometryLookup = new();
+    private readonly GeometryTextureLookup m_textureToGeometryLookup;
 
-    private readonly FreeGeometryManager m_freeManager = new();
+    private readonly FreeGeometryManager m_freeManager;
     private readonly LegacySkyRenderer m_skyRenderer;
 
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
@@ -64,14 +66,17 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
-        RenderProgram program, GeometryRenderer geometryRenderer)
+        RenderProgram program, RenderProfiler renderProfiler, GeometryRenderer geometryRenderer)
     {
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_floodFillRenderer = geometryRenderer.Portals.GetStaticFloodFillRenderer();
         m_program = program;
-        m_skyRenderer = new(archiveCollection, textureManager);
+        m_skyRenderer = new(archiveCollection, textureManager, renderProfiler);
+        m_textureToGeometryLookup = new(textureManager);
+        m_freeManager = new(textureManager);
+        m_renderProfiler = renderProfiler;
         m_renderCoverWallAction = AddOrUpdateCoverWall;
 
         m_renderOneSidedSliceFunc = m_geometryRenderer.RenderOneSidedSlice;
@@ -611,7 +616,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 v.SurfaceOptions, v.LightLevelAdd, v.RenderOptions);
         }
 
-        staticVertices.SetLength(staticVertices.Length + vertices.Length);        
+        staticVertices.SetLength(staticVertices.Length + vertices.Length);     
     }
 
     private static void CopyVertices(StaticVertex[] staticVertices, Span<DynamicVertex> vertices, int index)
@@ -671,7 +676,13 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     {
         vboSize = Math.Max(vboSize, 32);
         label ??= GetGeometryLabel(type, textureHandle, repeat);
-        var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
+
+        GLLegacyTexture? texture;
+        if (overrideTexture != null)
+            texture = overrideTexture.ParentArrayTexture ?? overrideTexture;
+        else
+            texture = m_textureManager.GetParentArrayTexture(textureHandle, repeat);
+
         var brightmapTexture = m_textureManager.GetBrightmapTexture(textureHandle, repeat);
         var vbo = new StaticVertexBuffer<StaticVertex>(label, vboSize);
         var pipeline = new VertexPipeline<StaticVertex>(m_program, vbo, label);
@@ -736,12 +747,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             return;
         vbo.Data.Data.ZeroArray();
         vbo.Data.Clear();
-    }
-
-    private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
-    {
-        for (int i = 0; i < bufferData.Capacity; i++)
-            bufferData.Data[i]?.FlushStruct();
     }
 
     private void AddSectorPlane(Sector sectorForSubsectors, SectorPlaneFace face, bool floor, bool update = false, 
@@ -838,7 +843,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         GL.ActiveTexture(BindTextures.BoundTexture);
         texture.Bind();
         GL.ActiveTexture(BindTextures.BrightmapTexture);
-        GL.BindTexture(TextureTarget.Texture2D, 0);
+        GL.BindTexture(data.Texture.Target, 0);
 
         data.Pipeline.Vbo.UploadCapacity();
         data.Pipeline.Bind();
@@ -856,13 +861,14 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             if (data.Pipeline.Vbo.Count == 0)
                 continue;
 
-            GL.ActiveTexture(BindTextures.BoundTexture);
             bool isNullCompatTex = data.TextureHandle <= Constants.NullCompatibilityTextureIndex;
             bool repeatY = (data.Texture.Flags & TextureFlags.ClampY) == 0;
             // Special case for one-sided walls with no texture. Uses black texture to block rendering so use directly.
             var texture = isNullCompatTex
                 ? data.Texture
                 : m_textureManager.GetTexture(data.TextureHandle, repeatY);
+
+            GL.ActiveTexture(BindTextures.BoundTexture);
             texture.Bind();
 
             var brightmapTexture = isNullCompatTex
@@ -872,12 +878,14 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             if (brightmapTexture != null)
                 brightmapTexture.Bind();
             else
-                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.BindTexture(texture.Target, 0);
 
             data.Pipeline.Vbo.UploadIfNeeded();
 
             data.Pipeline.Bind();
             data.Pipeline.DrawArrays();
+
+            m_renderProfiler.DrawCounts.GeometryStatic++;
         }
     }
 
@@ -1227,6 +1235,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             CheckForFloodFill(e.Side, e.Side.PartnerSide, e.Side.Sector, e.Side.PartnerSide.Sector, e.Side.IsFront);
         }
 
+        m_geometryRenderer.SetBuffer(false);
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
         AddLine(e.Side.Line, update: true);
 
@@ -1268,6 +1277,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         e.Plane.Static.GeometryData = null;
 
+        m_geometryRenderer.SetBuffer(false);
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
 
         if (WorldStatic.Sector3D && e.Plane.Sector.TaggedSectors3D.Length > 0)
@@ -1312,6 +1322,10 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         if (textureHandle <= Constants.NullCompatibilityTextureIndex && !isOneSidedLine)
             return;
+
+        // This doesn't practically matter but makes debugging nicer
+        if (texture != null)
+            texture = texture.ParentArrayTexture ?? texture;
 
         // If this surface generated more vertices than previously cached, release so a new one can be requested. (happens with 3D sectors)
         if (staticGeometry.GeometryData != null && staticGeometry.Length < vertices.Length)
@@ -1526,7 +1540,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         }
     }
 
-    private static unsafe void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
+    private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
     {
         ref var reference = ref geometryData.Pipeline.Vbo.Data.Data[startIndex];
         Unsafe.InitBlockUnaligned(ref Unsafe.As<StaticVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<StaticVertex>() * length));

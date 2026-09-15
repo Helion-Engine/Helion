@@ -45,10 +45,10 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         Pipeline.Clear();
     }
     
-    public void Draw()
+    public bool Draw()
     {
         if (Pipeline.Empty)
-            return;
+            return false;
 
         GL.ActiveTexture(BindTextures.BoundTexture);
         Texture.Bind();
@@ -56,13 +56,14 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         if (BrightMapTexture != null)
             BrightMapTexture.Bind();
         else
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(Texture.Target, 0);
 
         Pipeline.Bind(true);
         Pipeline.Vbo.Upload();
         Pipeline.Vbo.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4);
 
         Texture.Unbind();
+        return true;
     }
 
     protected virtual void Dispose(bool disposing)

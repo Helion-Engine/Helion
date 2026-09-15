@@ -41,6 +41,7 @@ public class FloodFillProgram : RenderProgramBase
         flat out float mapIdFrag;
         flat out float upperFrag;
         flat out float lowerFrag;
+        flat out float boundTextureIndex;
         out float depthFrag;
 
         ${SectorColorMapVertexFragVariables}
@@ -101,13 +102,14 @@ public class FloodFillProgram : RenderProgramBase
             flat in float mapIdFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
+            flat in float boundTextureIndex;
             in vec3 vertexPosFrag;
             in float dist2D;
 
             out vec4 fragColor;
 
-            uniform sampler2D boundTexture;
-            uniform sampler2D brightmapTexture;
+            uniform sampler2DArray boundTexture;
+            uniform sampler2DArray brightmapTexture;
             uniform vec3 camera;
             uniform mat4 mvpNoPitch;
             uniform mat4 mvp;
@@ -128,7 +130,7 @@ public class FloodFillProgram : RenderProgramBase
                 vec3 lookDir = normalize(vertexPosFrag - camera);
                 float planeDot = dot(pointOnPlane - camera, planeNormal) / dot(lookDir, planeNormal);
                 vec3 planePos = camera + (lookDir * planeDot);
-                vec2 texDim = textureSize(boundTexture, 0);
+                vec2 texDim = textureSize(boundTexture, 0).xy;
                 vec2 uvFrag = vec2(planePos.x / texDim.x, planePos.y / texDim.y);
 
                 uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.

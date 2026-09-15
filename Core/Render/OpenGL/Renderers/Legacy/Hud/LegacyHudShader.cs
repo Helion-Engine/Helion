@@ -112,7 +112,7 @@ public class LegacyHudShader : RenderProgram
 
         return @"
             if (useBrightmaps == 1)
-                fragColor.rgb *= mix(vec3(1.0), min(vec3(1.0), texture(brightmapTexture, uvFrag.st).rgb + rgbMultiplierFrag.rgb), rgbMultiplierFrag.w);
+                fragColor.rgb *= mix(vec3(1.0), min(vec3(1.0), texture(brightmapTexture, vec3(uvFrag.st, 0)).rgb + rgbMultiplierFrag.rgb), rgbMultiplierFrag.w);
             else
                 fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);";
     }
@@ -129,9 +129,9 @@ public class LegacyHudShader : RenderProgram
 
         out vec4 fragColor;
 
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform sampler2D opaqueTexture;
-        uniform sampler2D brightmapTexture;
+        uniform sampler2DArray brightmapTexture;
         uniform samplerBuffer colormapTexture;
         uniform float fuzzFrac;
         uniform float fuzzDiv;
@@ -145,10 +145,12 @@ public class LegacyHudShader : RenderProgram
         uniform vec2 fuzzSampleOffset;
         uniform int fuzzRefraction;
 
+        const int boundTextureIndex = 0;
+
         ${FuzzFunction}
 
         void main() {
-            fragColor = texture(boundTexture, uvFrag.st);
+            fragColor = texture(boundTexture, vec3(uvFrag.st, 0));
             ${ColorMapFetch}
             ${AlphaFlag}
             fragColor.w *= alphaFrag;

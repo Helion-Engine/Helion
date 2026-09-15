@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
@@ -12,6 +11,8 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
@@ -21,7 +22,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
     private bool m_disposed;
 
-    private List<GLLegacyTexture> m_registeredTextures = new();
+    private readonly List<GLLegacyTexture> m_registeredTextures = [];
 
     public LegacyGLTextureManager(IConfig config, ArchiveCollection archiveCollection) :
         base(config, archiveCollection)
@@ -41,6 +42,12 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     public void UnRegisterTexture(GLLegacyTexture texture)
     {
         m_registeredTextures.Remove(texture);
+    }
+
+    public GLLegacyTexture GetParentArrayTexture(int index, bool repeatY = true)
+    {
+        var texture = GetTexture(index, repeatY);
+        return texture.ParentArrayTexture ?? texture;
     }
 
     private void HandleFilterChange(object? sender, FilterType e)
@@ -99,12 +106,48 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         Dispose();
     }
 
+    private unsafe void UploadAndSetParameters3D(GLLegacyTexture texture, Func<int, Image> getImage, int imageLength, string name, ResourceNamespace resourceNamespace, TextureFlags flags, 
+        Dimension dimensions, Action<int, Image> onUploadImage)
+    {
+        GL.BindTexture(texture.Target, texture.TextureId);
+        flags = GetFlagsForNamespace(resourceNamespace, flags);
+
+        GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, dimensions.Width, dimensions.Height, imageLength, 0,
+            PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
+
+        if (GLInfo.DebugLabel)
+            GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
+
+        for (int i = 0; i < imageLength; i++)
+        {
+            var image = getImage(i);
+            fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
+            {
+                IntPtr ptr = new(pixelPtr);
+                GL.TexSubImage3D(texture.Target, 0, 0, 0, zoffset: i, image.Width, image.Height,
+                    depth: 1, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            }
+            onUploadImage(i, image);
+        }
+
+        GL.GenerateMipmap(GenerateMipmapTarget.Texture2DArray);
+        SetTextureParameters(texture.Target, flags);
+
+        GL.BindTexture(texture.Target, 0);
+        texture.Flags = flags;
+    }
+
+    private static TextureFlags GetFlagsForNamespace(ResourceNamespace resourceNamespace, TextureFlags flags)
+    {
+        if (resourceNamespace == ResourceNamespace.Sprites || resourceNamespace == ResourceNamespace.Brightmaps || resourceNamespace == ResourceNamespace.Undefined)
+            flags = TextureFlags.ClampX | TextureFlags.ClampY;
+        return flags;
+    }
+
     public unsafe void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
     {
         GL.BindTexture(texture.Target, texture.TextureId);
-
-        if (resourceNamespace == ResourceNamespace.Sprites || resourceNamespace == ResourceNamespace.Undefined)
-            flags = TextureFlags.ClampX | TextureFlags.ClampY;
+        flags = GetFlagsForNamespace(resourceNamespace, flags);
 
         if (GLInfo.DebugLabel)
             GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
@@ -112,14 +155,25 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
         {
             IntPtr ptr = new(pixelPtr);
-            // Because the C# image format is 'ARGB', we can get it into the
-            // RGBA format by doing a BGRA format and then reversing it.
-            GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,
-                PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            if (texture.Target == TextureTarget.Texture2DArray)
+            {
+                GL.TexImage3D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 1, 0,
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
+
+                GL.TexSubImage3D(texture.Target, 0, 0, 0, 0, image.Width, image.Height, depth: 1, 
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            }
+            else
+            {
+                // Because the C# image format is 'ARGB', we can get it into the
+                // RGBA format by doing a BGRA format and then reversing it.
+                GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            }
         }
 
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-        SetTextureParameters(TextureTarget.Texture2D, resourceNamespace, flags);
+        GL.GenerateMipmap(texture.Target == TextureTarget.Texture2DArray ? GenerateMipmapTarget.Texture2DArray : GenerateMipmapTarget.Texture2D);
+        SetTextureParameters(texture.Target, flags);
 
         GL.BindTexture(texture.Target, 0);
         texture.Flags = flags;
@@ -132,8 +186,16 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         fixed (uint* pixelPtr = imagePixels)
         {
             IntPtr ptr = new(pixelPtr);
-            GL.TexSubImage2D(texture.Target, 0, 0, 0, image.Width, image.Height,
-                PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            if (texture.Target == TextureTarget.Texture2DArray)
+            {
+                GL.TexSubImage3D(texture.Target, 0, 0, 0, 0, image.Width, image.Height, depth: 1,
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            }
+            else
+            {
+                GL.TexSubImage2D(texture.Target, 0, 0, 0, image.Width, image.Height,
+                    PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+            }
         }
 
         GL.BindTexture(texture.Target, 0);
@@ -158,6 +220,29 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         return texture;
     }
 
+    protected override GLLegacyTexture[] GenerateTextureArray(Func<int, Image> getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags,
+        TextureContext textureContext, out GLLegacyTexture arrayTexture)
+    {
+        var textures = new GLLegacyTexture[imageLength];
+        int textureId = GL.GenTexture();
+        arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={imageLength} {flags}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0,
+            textureContext: textureContext);
+        var parentArrayTexture = arrayTexture;
+        UploadAndSetParameters3D(arrayTexture, getImage, imageLength, arrayTexture.Name, resourceNamespace, flags, dimension, (int imageIndex, Image image) =>
+        {
+            var texture = new GLLegacyTexture(textureId, $"Sub Image {imageIndex}", dimension, image.Offset, resourceNamespace, TextureTarget.Texture2DArray,
+                image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom, ownsTexture: false)
+            {
+                ArrayIndex = imageIndex,
+                ParentArrayTexture = parentArrayTexture
+            };
+
+            textures[imageIndex] = texture;
+        });
+
+        return textures;
+    }
+
     /// <summary>
     /// Creates a new font. The caller is responsible for disposing it.
     /// </summary>
@@ -172,7 +257,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         return fontTexture;
     }
 
-    private void SetTextureParameters(TextureTarget targetType, ResourceNamespace resourceNamespace, TextureFlags flags)
+    private void SetTextureParameters(TextureTarget targetType, TextureFlags flags)
     {
         TextureWrapMode textureWrapS = (flags & TextureFlags.ClampX) != 0 ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;
         TextureWrapMode textureWrapT = (flags & TextureFlags.ClampY) != 0 ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;

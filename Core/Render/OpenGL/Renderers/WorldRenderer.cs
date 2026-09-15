@@ -1,7 +1,8 @@
-using System;
 using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.World;
+using System;
 
 namespace Helion.Render.OpenGL.Renderers;
 
@@ -10,6 +11,8 @@ namespace Helion.Render.OpenGL.Renderers;
 /// </summary>
 public abstract class WorldRenderer : IDisposable
 {
+    public abstract TextureBuckets SpriteTextureBuckets { get; protected set; }
+
     protected readonly WeakReference<IWorld?> m_lastRenderedWorld = new WeakReference<IWorld?>(null);
 
     /// <summary>

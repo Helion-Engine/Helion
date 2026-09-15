@@ -7,10 +7,10 @@ public static class VertexOptions
 {
     // When overrideLightIndex is non-zero then lighting uses index overrideLightIndex - 1
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe float PackSurface(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex)
+    public static unsafe float PackSurface(int topLeft, float alpha, int addAlpha, int upper, int lower, int overrideLightIndex, int textureIndex)
     {
         int alphaByte = (int)(alpha * 255.0f);
-        int packed = (alphaByte & 0xFF) | (topLeft << 8) | (addAlpha << 9) | (upper << 10) | (lower << 11) | (overrideLightIndex << 12);
+        int packed = (alphaByte & 0xFF) | (topLeft << 8) | (addAlpha << 9) | (upper << 10) | (lower << 11) | (overrideLightIndex << 12) | ((textureIndex & 0xFFFFF) << 13);
         return *(float*)&packed;
     }
     
@@ -61,6 +61,14 @@ public static class VertexOptions
         int offsetZSign = maskZ & 1;
 
         int packed = (offsetXYSign << 31) | (offsetZSign << 30) | (offsetXY << 16) | offsetZ;
+        return *(float*)&packed;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe float EntityPackTextureInfo(int arrayIndex, int paddedWidth, int paddedHeight)
+    {
+        // 12, 10, and 10 bits
+        int packed = ((arrayIndex & 0xFFF) << 20) | ((paddedWidth & 0x3FF) << 10) | ((paddedHeight & 0x3FF));
         return *(float*)&packed;
     }
 }

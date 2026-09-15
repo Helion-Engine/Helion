@@ -1,6 +1,4 @@
-﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Vertex;
+﻿using Helion.Render.OpenGL.Texture.Legacy;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -22,5 +20,10 @@ public sealed class GeometryData
     public void Dispose()
     {
         Pipeline.Dispose();
+    }
+
+    public override string ToString()
+    {
+        return Texture.ToString();
     }
 }

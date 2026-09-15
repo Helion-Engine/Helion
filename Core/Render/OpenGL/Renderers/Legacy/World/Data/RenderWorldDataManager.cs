@@ -12,19 +12,21 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
 {
     private readonly RenderWorldDataPool m_pool;
     private readonly GeometryTypeLookup<RenderWorldDataList> m_lookup;
+    private readonly Action? m_onDraw;
     private RenderWorldData? m_coverWalls;
 
     public bool BufferCoverWalls = true;
 
-    public RenderWorldDataManager(RenderProgram program)
+    public RenderWorldDataManager(RenderProgram program, Action? onDraw)
     {
         m_pool = new(program, 1024);
+        m_onDraw = onDraw;
         m_lookup = new(AllocateDataList);
     }
 
     private RenderWorldDataList AllocateDataList()
     {
-        return new RenderWorldDataList(m_pool);
+        return new RenderWorldDataList(m_pool, m_onDraw);
     }
 
     public void Reset()

@@ -36,7 +36,7 @@ internal sealed class SkySphereForegroundShader : SkySphereShader
         out vec4 fragColor;
 
         uniform vec2 scale;
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform samplerBuffer colormapTexture;
         uniform int hasInvulnerability;
         uniform int paletteIndex;
@@ -78,7 +78,7 @@ internal sealed class SkySphereForegroundShader : SkySphereShader
             else {
                 vec2 textureUV = uvFrag - skyMin;
                 vec2 offset = mix(prevScrollOffset, scrollOffset, timeFrac);
-                fragColor = texture(boundTexture, textureUV / scale + offset);
+                fragColor = texture(boundTexture, vec3(textureUV / scale + offset, 0));
             }
 
             if (fragColor.a == 0)

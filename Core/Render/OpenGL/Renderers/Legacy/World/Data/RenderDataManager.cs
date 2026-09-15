@@ -23,16 +23,18 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
 
     private readonly RenderDataCollection<TVertex>[] m_renderDataStyles;
     private readonly RenderData<TVertex> m_healthBarData;
+    private readonly Action? m_onDraw;
     private bool m_disposed;
 
-    public RenderDataManager(RenderProgram program, GLLegacyTexture healthBarTexture, RenderDataPool<TVertex> renderDataPool)
+    public RenderDataManager(RenderProgram program, GLLegacyTexture healthBarTexture, RenderDataPool<TVertex> renderDataPool, Action? onDraw = null)
     {
         Assert.Precondition(RenderStyleLookup.Length == (int)RenderStyle.Count, "Render style lookup size mismatch");
         m_renderDataStyles = new RenderDataCollection<TVertex>[(int)RenderDataStyle.Count];
         for (int i = 0; i < m_renderDataStyles.Length; i++)
-            m_renderDataStyles[i] = new(program, renderDataPool);
+            m_renderDataStyles[i] = new(program, renderDataPool, onDraw);
 
         m_healthBarData = new(program, healthBarTexture);
+        m_onDraw = onDraw;
     }
 
     ~RenderDataManager()

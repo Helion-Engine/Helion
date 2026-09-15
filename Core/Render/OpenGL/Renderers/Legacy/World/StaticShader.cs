@@ -31,6 +31,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         flat out float mapIdFrag;
         flat out float upperFrag;
         flat out float lowerFrag;
+        flat out float boundTextureIndex;
         out float depthFrag;
         ${VertexGapVariables}
         ${VertexDistVar3D}
@@ -43,7 +44,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         uniform mat4 mvp;
         uniform float timeFrac;
         uniform int vertexGapClampUV;
-        uniform sampler2D boundTexture;
+        uniform sampler2DArray boundTexture;
         uniform int useSectorColor;
         uniform int useSectorFog;
 
@@ -109,6 +110,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             flat in float mapIdFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
+            flat in float boundTextureIndex;
             in float depthFrag;
             ${VertexGapVariables}
             ${VertexDistVar3D}
@@ -116,8 +118,8 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
             ${OutTargets}
 
             uniform int hasInvulnerability;
-            uniform sampler2D boundTexture;
-            uniform sampler2D brightmapTexture;
+            uniform sampler2DArray boundTexture;
+            uniform sampler2DArray brightmapTexture;
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;
