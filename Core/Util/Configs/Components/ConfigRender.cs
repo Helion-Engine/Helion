@@ -88,7 +88,7 @@ public class ConfigRenderHealthBar : ConfigElement<ConfigRenderHealthBar>
 
 public class ConfigRender : ConfigElement<ConfigRender>
 {
-    [ConfigInfo("Changes the render mode. Adaptive can be very beneficial on itegrated GPUs.")]
+    [ConfigInfo("Changes the render mode. Adaptive can be very beneficial on integrated GPUs.")]
     [OptionMenu(OptionSectionType.Render, "Mode")]
     public readonly ConfigValue<AdaptiveRenderMode> Mode = new(AdaptiveRenderMode.Static);
     public readonly ConfigRenderAdaptive Adaptive = new();
