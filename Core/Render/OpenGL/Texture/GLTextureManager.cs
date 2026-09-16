@@ -29,6 +29,10 @@ public enum TextureFlags
     ClampY = 2,
 }
 
+
+public readonly record struct ArrayTextureImage(Image Image, Dimension OriginalDimension);
+public delegate ArrayTextureImage GetImageFunc(int index);
+
 public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager, IArrayTextureLookup
     where GLTextureType : GLTexture
 {
@@ -244,11 +248,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         {
             var image = images[imageIndex];
             if (image.Width == dimension.Width && image.Height == dimension.Height)
-                return image;
+                return new(image, image.Dimension);
 
             fitImage.CopyPixelsFrom(image);
             fitImage.Offset = image.Offset;
-            return fitImage;
+            return new(fitImage, image.Dimension);
         }, images.Length, dimension, ResourceNamespace.Textures, textureFlags, textureContext, out var arrayTexture);
 
         for (int i = 0; i < images.Length; i++)
@@ -500,7 +504,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);
-    protected abstract GLTextureType[] GenerateTextureArray(Func<int, Image> getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, TextureContext textureContext, out GLTextureType arrayTexture);
+    protected abstract GLTextureType[] GenerateTextureArray(GetImageFunc getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags, TextureContext textureContext, out GLTextureType arrayTexture);
 
     public abstract void ReUpload(GLTextureType texture, Image image, uint[] imagePixels);
 

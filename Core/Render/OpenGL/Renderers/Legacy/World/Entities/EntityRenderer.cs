@@ -136,9 +136,9 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
     }
 
-    private int GetOffsetZ(Entity entity, GLLegacyTexture texture, int textureHeight)
+    private int GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
-        int offsetAmount = texture.Offset.Y - textureHeight;
+        int offsetAmount = texture.Offset.Y - texture.Height;
         if (m_vanillaRender)
             return offsetAmount;
 
@@ -148,13 +148,13 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
             return offsetAmount;
 
-        if (!m_spriteClip || textureHeight < m_spriteClipMin || entity.Definition.IsInventory)
+        if (!m_spriteClip || texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
             return MathHelper.Max(offsetAmount, -texture.BlankRowsFromBottom);
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
             // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
-            int maxHeight = (int)((textureHeight - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
+            int maxHeight = (int)((texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
             if (-offsetAmount > maxHeight)
                 offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
             return offsetAmount;
@@ -178,7 +178,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     public void RenderEntity(Entity entity, in Vec2D position, int renderIndex)
     {
         Vec3D centerBottom = entity.Position;
-        Vec2D nudgeAmount = default;
 
         SpriteDefinition? spriteDef;
         int spriteIndex = entity.FrameState.Frame.SpriteIndex;
@@ -245,7 +244,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
         var disableFullbright = spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
-        var offsetZ = GetOffsetZ(entity, texture, spriteRotation.TextureDimension.Height);
+        var offsetZ = GetOffsetZ(entity, texture);
 
         int fuzz;
         RenderStyle renderStyle;
@@ -290,16 +289,16 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         ref var vertex = ref arrayData.Data[length];
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
-        vertex.Pos.X = (float)(entity.Position.X - nudgeAmount.X);
-        vertex.Pos.Y = (float)(entity.Position.Y - nudgeAmount.Y);
+        vertex.Pos.X = (float)entity.Position.X;
+        vertex.Pos.Y = (float)entity.Position.Y;
         vertex.Pos.Z = (float)entity.Position.Z;
-        vertex.PrevPos.X = (float)(entity.PrevPosition.X - nudgeAmount.X);
-        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
+        vertex.PrevPos.X = (float)entity.PrevPosition.X;
+        vertex.PrevPos.Y = (float)entity.PrevPosition.Y;
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.SurfaceOptions = VertexOptions.EntityPackSurface(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.RenderOptions = VertexOptions.EntityPackRender(
             Renderer.GetLightBufferIndex(sector, WorldStatic.Sector3D && sector.Sectors3D.Length > 0 ? LightBufferType.Wall : LightBufferType.Floor), renderIndex);
-        vertex.TextureInfo = VertexOptions.EntityPackTextureInfo(texture.ArrayIndex, spriteRotation.TextureDimension.Width, spriteRotation.TextureDimension.Height);
+        vertex.TextureInfo = VertexOptions.EntityPackTextureInfo(texture.ArrayIndex, texture.Width, texture.Height);
 
         if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
