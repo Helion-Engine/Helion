@@ -9,6 +9,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Static;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Sides;
 
@@ -57,6 +58,7 @@ public sealed class Side
     public SideColormaps? Colormaps;
     public StaticSideSkyData? SkyGeometry;
 
+    public int LastRenderChangeGametick;
     public int LastRenderGametick;
     public int LastRenderGametickAlpha;
     public int BlockmapCount;
@@ -111,6 +113,7 @@ public sealed class Side
     {
         DataChanges = default;
         ScrollData = default;
+        LastRenderChangeGametick = default;
         LastRenderGametick = default;
         LastRenderGametickAlpha = default;
         BlockmapCount = default;
@@ -131,6 +134,9 @@ public sealed class Side
         Middle.Reset();
         Lower.Reset();
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool CheckRenderingChanged() => LastRenderChangeGametick >= LastRenderGametick;
 
     public void SetWallTexture(int texture, WallLocation location)
     {

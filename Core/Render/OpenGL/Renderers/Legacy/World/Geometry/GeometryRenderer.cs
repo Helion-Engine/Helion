@@ -867,9 +867,7 @@ public partial class GeometryRenderer : IDisposable
         RenderDataStyle style = RenderDataStyle.Normal, GeometryType baseType = GeometryType.Wall)
     {
         skyVertices = null;
-        m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
-        if (renderSector != null)
-            m_sectorChangedLine = renderSector.CheckRenderingChanged(side.LastRenderGametick);
+        SetRenderOneSided(side, renderSector);
 
         side.LastRenderGametick = m_world.Gametick;
 
@@ -972,15 +970,17 @@ public partial class GeometryRenderer : IDisposable
         return 0;
     }
 
-    public void SetRenderOneSided(Side side)
+    public void SetRenderOneSided(Side side, Sector? renderSector = null)
     {
-        m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
+        var sector = renderSector ?? side.Sector;
+        m_sectorChangedLine = side.CheckRenderingChanged() || sector.CheckRenderingChanged(side.LastRenderGametick);
     }
 
-    public void SetRenderTwoSided(Side facingSide)
+    public void SetRenderTwoSided(Side facingSide, Side otherSide)
     {
-        Side otherSide = facingSide.PartnerSide!;
-        m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
+        m_sectorChangedLine = facingSide.CheckRenderingChanged() ||
+            otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) ||
+            facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
     }
 
     public void SetRenderFloor(SectorPlane floor)
@@ -1001,7 +1001,7 @@ public partial class GeometryRenderer : IDisposable
         var facingSector = facingSide.Sector.GetRenderSector(m_transferHeightsView);
         var otherSector = otherSide.Sector.GetRenderSector(m_transferHeightsView);
 
-        m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
+        SetRenderTwoSided(facingSide, otherSide);
 
         // Don't set the game tick if rendering cover walls. This will prevent lines from rendering when the camera goes from back side to front.
         if (!m_renderCoverOnly)
