@@ -564,8 +564,8 @@ public partial class GeometryRenderer
         if (!SetSectorsForTwoSidedLowerSlice(args, out var facing, out var other))
             return RenderWallSliceResult.EmptyNoAddOffset;
 
-        RenderTwoSidedLower(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, out var skyVertices, lightLevelSector: args.LightSector);
-        return new(sideVertices, skyVertices, null);
+        RenderTwoSidedLower(args.Side, args.OtherSide, facing, other, args.IsFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2, lightLevelSector: args.LightSector);
+        return new(sideVertices, skyVertices, null, skyVertices2);
     }
 
     public bool SetSectorsForTwoSidedUpperSlice(in RenderWallSliceArgs args, out Sector facing, out Sector other)
