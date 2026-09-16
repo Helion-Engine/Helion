@@ -342,7 +342,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             return;
         }
 
-        m_geometryRenderer.SetRenderOneSided(side);
         m_geometryRenderer.RenderOneSided(side, isFrontSide, out var sideVertices, out var skyVertices, out var texture);
 
         AddSkyGeometry(side, WallLocation.Middle, null, skyVertices, side.Sector, update);
@@ -409,7 +408,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         bool lower = !(floorDynamic && side.IsDynamic);
         bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic);
 
-        m_geometryRenderer.SetRenderTwoSided(side);
+        m_geometryRenderer.SetRenderTwoSided(side, otherSide);
 
         if (fogBarrierOnly)
         {
@@ -1223,6 +1222,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)
     {
+        // Previously the texture was not part of the vertex. Now it's the array index which means the vertex needs to be rebuilt.
+        e.Side.LastRenderChangeGametick = m_world.Gametick;
         ClearSideGeometryVertices(e.Side, e.Wall);
 
         if (e.Wall.Static.GeometryData != null)
@@ -1271,6 +1272,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
+        e.Plane.LastRenderChangeGametick = m_world.Gametick;
         SkyGeometryManager.ClearGeometryVertices(e.Plane);
         if (e.Plane.Static.GeometryData != null && ClearGeometryVertices(e.Plane.Static))
             m_freeManager.Add(e.Plane.Static, GeometryType.Flat, repeatY: true);
