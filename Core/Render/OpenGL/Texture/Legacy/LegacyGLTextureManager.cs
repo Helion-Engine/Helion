@@ -8,6 +8,7 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Util.Assertion;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
@@ -106,8 +107,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         Dispose();
     }
 
-    private unsafe void UploadAndSetParameters3D(GLLegacyTexture texture, Func<int, Image> getImage, int imageLength, string name, ResourceNamespace resourceNamespace, TextureFlags flags, 
-        Dimension dimensions, Action<int, Image> onUploadImage)
+    private unsafe void UploadAndSetParameters3D(GLLegacyTexture texture, GetImageFunc getImage, int imageLength, string name, ResourceNamespace resourceNamespace, TextureFlags flags, 
+        Dimension dimensions, Action<int, Image, Dimension> onUploadImage)
     {
         GL.BindTexture(texture.Target, texture.TextureId);
         flags = GetFlagsForNamespace(resourceNamespace, flags);
@@ -120,14 +121,15 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
         for (int i = 0; i < imageLength; i++)
         {
-            var image = getImage(i);
+            var (image, actualDimension) = getImage(i);
+            Precondition(image.Dimension == dimensions, $"Incorrect array texture sub image dimension. {dimensions} vs {image.Dimension}");
             fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
             {
                 IntPtr ptr = new(pixelPtr);
                 GL.TexSubImage3D(texture.Target, 0, 0, 0, zoffset: i, image.Width, image.Height,
                     depth: 1, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
             }
-            onUploadImage(i, image);
+            onUploadImage(i, image, actualDimension);
         }
 
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2DArray);
@@ -220,7 +222,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         return texture;
     }
 
-    protected override GLLegacyTexture[] GenerateTextureArray(Func<int, Image> getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags,
+    protected override GLLegacyTexture[] GenerateTextureArray(GetImageFunc getImage, int imageLength, Dimension dimension, ResourceNamespace resourceNamespace, TextureFlags flags,
         TextureContext textureContext, out GLLegacyTexture arrayTexture)
     {
         var textures = new GLLegacyTexture[imageLength];
@@ -228,9 +230,9 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={imageLength} {flags}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0,
             textureContext: textureContext);
         var parentArrayTexture = arrayTexture;
-        UploadAndSetParameters3D(arrayTexture, getImage, imageLength, arrayTexture.Name, resourceNamespace, flags, dimension, (int imageIndex, Image image) =>
+        UploadAndSetParameters3D(arrayTexture, getImage, imageLength, arrayTexture.Name, resourceNamespace, flags, dimension, (imageIndex, image, imageDimension) =>
         {
-            var texture = new GLLegacyTexture(textureId, $"Sub Image {imageIndex}", dimension, image.Offset, resourceNamespace, TextureTarget.Texture2DArray,
+            var texture = new GLLegacyTexture(textureId, $"Sub Image {imageIndex}", imageDimension, image.Offset, resourceNamespace, TextureTarget.Texture2DArray,
                 image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom, ownsTexture: false)
             {
                 ArrayIndex = imageIndex,
