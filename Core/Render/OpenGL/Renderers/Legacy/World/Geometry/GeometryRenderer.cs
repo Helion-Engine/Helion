@@ -954,7 +954,7 @@ public partial class GeometryRenderer : IDisposable
             if (renderSlices3D)
                 RenderWallSlices3D(facingSide, facingSide.Lower, isFrontSide, otherSide, facingSector, otherSector, facingSide.Sector.SectorPlanes3D, m_renderTwoSidedLowerSliceFunc);
             else
-                RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
+                RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
         }
 
         if ((visibility & SideTexture.Upper) != 0)
@@ -1142,10 +1142,11 @@ public partial class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedLower(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, Sector? lightLevelSector = null)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2, Sector? lightLevelSector = null, bool renderSkySide = true)
     {
         vertices = null;
         skyVertices = null;
+        skyVertices2 = null;
 
         Wall lowerWall = facingSide.Lower;
         bool isSky = TextureManager.IsSkyTexture(otherSector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex &&
@@ -1175,6 +1176,9 @@ public partial class GeometryRenderer : IDisposable
         SectorPlane bottom = facingSector.Floor;
         lightLevelSector ??= facingSector;
 
+        if (renderSkySide && RenderBlock.IsBlocked(facingSide, facingSector, otherSector))
+            RenderSkySide(facingSide, facingSector, otherSector, texture, isFrontSide, out skyVertices2);
+
         if (isSky)
         {
             SkyGeometryVertex[]? data = m_skyWallVertexLowerLookup[facingSide.Id];
@@ -1189,8 +1193,11 @@ public partial class GeometryRenderer : IDisposable
                 m_skyWallVertexLowerLookup[facingSide.Id] = data;
             }
 
-            var sector = otherSide.Sector;
-            m_skyRenderer.Add(data, data.Length, sector.FloorSkyTextureHandle, sector.SkyOptions, sector.SkyOffset);
+            if (m_buffer)
+            {
+                var sector = otherSide.Sector;
+                m_skyRenderer.Add(data, data.Length, sector.FloorSkyTextureHandle, sector.SkyOptions, sector.SkyOffset);
+            }
             vertices = null;
             skyVertices = data;
         }
@@ -1252,8 +1259,7 @@ public partial class GeometryRenderer : IDisposable
 
         if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Upper) == 0 || isSky))
         {
-            // TODO why was this check here
-            //if (!isSky || (isSky && !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle)))
+            if (RenderBlock.IsBlocked(facingSide, facingSector, otherSector))
                 RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
         }
 
@@ -1275,7 +1281,7 @@ public partial class GeometryRenderer : IDisposable
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
 
-        if (renderSkySide)
+        if (renderSkySide && (!isSky || renderSkySideOnly))
             RenderSkySide(facingSide, facingSector, otherSector, texture, isFrontSide, out skyVertices2);
         if (renderSkySideOnly)
             return;
@@ -1284,16 +1290,14 @@ public partial class GeometryRenderer : IDisposable
 
         if (isSky)
         {
-            SkyGeometryVertex[]? data = m_skyWallVertexUpperLookup[facingSide.Id];
-
-            if (TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle) || !renderSkySide)
+            if (!renderSkySide || skyVertices2 != null || (TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle) && !RenderBlock.IsBlocked(facingSide, facingSector, otherSector)))
             {
-                //m_skyOverride = true;
                 vertices = null;
                 skyVertices = null;
                 return;
             }
 
+            var data = m_skyWallVertexUpperLookup[facingSide.Id];
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
                 WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
@@ -1305,8 +1309,8 @@ public partial class GeometryRenderer : IDisposable
                 m_skyWallVertexUpperLookup[facingSide.Id] = data;
             }
 
-            var sector = plane.Sector;
-            m_skyRenderer.Add(data, data.Length, sector.CeilingSkyTextureHandle, sector.SkyOptions, sector.SkyOffset);
+            if (m_buffer)
+                m_skyRenderer.Add(data, data.Length, facingSector.CeilingSkyTextureHandle, facingSector.SkyOptions, facingSector.SkyOffset);
             vertices = null;
             skyVertices = data;
         }
@@ -1420,9 +1424,13 @@ public partial class GeometryRenderer : IDisposable
         }
 
         SetSkyWallVertices(m_skyWallVertices, wall);
-        var sector = facingSide.Sector;
-        m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, sector.CeilingSkyTextureHandle, sector.SkyOptions, sector.SkyOffset);
         skyVertices = m_skyWallVertices;
+
+        if (m_buffer)
+        {
+            var sector = facingSide.Sector;
+            m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, sector.CeilingSkyTextureHandle, sector.SkyOptions, sector.SkyOffset);
+        }
     }
 
     public void RenderSkySide(Side facingSide, Sector facingSector, SectorPlaneFace face, bool isFront, out SkyGeometryVertex[]? skyVertices)
@@ -1764,8 +1772,12 @@ public partial class GeometryRenderer : IDisposable
 
             vertices = null;
             skyVertices = lookupData;
-            var skyHandle = floor ? sector.FloorSkyTextureHandle : sector.CeilingSkyTextureHandle;
-            m_skyRenderer.Add(lookupData, lookupData.Length, skyHandle, sector.SkyOptions, sector.SkyOffset);
+
+            if (m_buffer)
+            {
+                var skyHandle = floor ? sector.FloorSkyTextureHandle : sector.CeilingSkyTextureHandle;
+                m_skyRenderer.Add(lookupData, lookupData.Length, skyHandle, sector.SkyOptions, sector.SkyOffset);
+            }
         }
         else
         {
