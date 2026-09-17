@@ -133,6 +133,55 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return TryGet(name, ResourceNamespace.Global, out _);
     }
 
+    public bool TryGetImage(string name, [NotNullWhen(true)] out Image? image, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
+    {
+        if (TryGetImage(name, specificNamespace ?? ResourceNamespace.Undefined, out image, out var fetchedNamespace, upscalingFactor, brightmap))
+        {
+            return true;
+        }
+
+        image = null;
+        return false;
+    }
+
+    public bool TryGetImage(string name, ResourceNamespace priorityNamespace, 
+        [NotNullWhen(true)] out Image? image, out ResourceNamespace fetchedNamespace, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
+    {
+        // The reason we do this check before checking other namespaces is
+        // that we can end up missing the texture for the namespace in some
+        // pathological scenarios. Suppose we draw some texture that shares
+        // a name with some flat. Then suppose we try to draw the flat. If
+        // we check the GL texture cache first, we will find the texture
+        // and miss the flat and then never know that there is a specific
+        // flat that should have been used.
+        fetchedNamespace = priorityNamespace;
+        if (brightmap != null)
+            image = brightmap.GetImage(ArchiveCollection.ImageRetriever);
+        else if (priorityNamespace == ResourceNamespace.Undefined)
+            image = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
+        else
+            image = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
+
+        if (image == null)
+        {
+            // Note that because we are getting any texture, we don't want to
+            // use the provided namespace since if we ask for a flat, but get a
+            // texture, and then index it as a flat... things probably go bad.
+            image = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
+            if (image != null)
+                fetchedNamespace = image.Namespace;
+        }
+
+        if (image != null)
+        {
+            if (upscalingFactor > 1)
+                image = image.GetUpscaled(upscalingFactor);
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Gets the texture, with priority given to the namespace provided. If
     /// it cannot be found, the null texture handle is used instead.
@@ -157,55 +206,22 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             return true;
         }
 
-        // The reason we do this check before checking other namespaces is
-        // that we can end up missing the texture for the namespace in some
-        // pathological scenarios. Suppose we draw some texture that shares
-        // a name with some flat. Then suppose we try to draw the flat. If
-        // we check the GL texture cache first, we will find the texture
-        // and miss the flat and then never know that there is a specific
-        // flat that should have been used.
-        Image? imageForNamespace;
-        if (brightmap != null)
-            imageForNamespace = brightmap.GetImage(ArchiveCollection.ImageRetriever);
-        else if (priorityNamespace == ResourceNamespace.Undefined)
-            imageForNamespace = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
-        else
-            imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
-
-        if (imageForNamespace != null)
+        if (TryGetImage(name, priorityNamespace, out var image, out var fetchedNameSpace, upscalingFactor, brightmap))
         {
-            if (upscalingFactor > 1)
-            {
-                imageForNamespace = imageForNamespace.GetUpscaled(upscalingFactor);
-            }
-
-            texture = CreateTexture(imageForNamespace, name, priorityNamespace);
+            texture = CreateTexture(image, name, fetchedNameSpace);
             return true;
         }
 
         // Now that nothing in the desired namespace was found, we will
         // accept anything.
-        GLTextureType? anyTexture = TextureTracker.Get(name, priorityNamespace);
-        if (anyTexture != null)
-        {
-            texture = anyTexture;
-            return true;
-        }
+        //GLTextureType? anyTexture = TextureTracker.Get(name, priorityNamespace);
+        //if (anyTexture != null)
+        //{
+        //    texture = anyTexture;
+        //    return true;
+        //}
 
-        // Note that because we are getting any texture, we don't want to
-        // use the provided namespace since if we ask for a flat, but get a
-        // texture, and then index it as a flat... things probably go bad.
-        Image? image = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
-        if (image == null)
-            return false;
-
-        if (upscalingFactor > 1)
-        {
-            image = image.GetUpscaled(upscalingFactor);
-        }
-
-        texture = CreateTexture(image, name, image.Namespace);
-        return true;
+        return false;
     }
 
     public GLTextureType GetTexture(int index, bool repeatY = true)
@@ -225,7 +241,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return (GLTextureType)renderTexture;
     }
 
-    public GLTextureType? CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension)
+    public GLTextureType? CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker)
     {
         if (textures.Length == 0)
             return null;
@@ -261,6 +277,10 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             var texture = textures[i];
             SetDebugName(glTexture, texture);
             texture.SetGLTexture(glTexture, (textureFlags & TextureFlags.ClampY) == 0);
+
+            // TODO make less stupid
+            if (addToTextureTracker)
+                TextureTracker.Insert(texture.Name, ResourceNamespace.Undefined, glTexture);
         }
 
         if (!m_arrayTextures.TryGetValue((int)textureContext, out var arrayTextureData))

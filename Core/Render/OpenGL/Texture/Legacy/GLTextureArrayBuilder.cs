@@ -1,4 +1,6 @@
 ﻿using Helion.Geometry;
+using Helion.Graphics;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Context;
 using Helion.Resources;
 using Helion.Util;
@@ -12,12 +14,17 @@ using System.Linq;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
 
+public interface IArrayTexture
+{
+    public string FetchTextureName { get; }
+    public GLLegacyTexture? Texture { get; set; }
+}
+
 public record struct TextureBuckets(int MaxTextureIndex, TextureBucket[] Buckets);
 public record struct TextureBucket(Dimension Dimension, DynamicArray<Resources.Texture> Textures);
 
 public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextureManager glTextureManager)
 {
-
     private readonly TextureManager m_textureManager = textureManager;
     private readonly LegacyGLTextureManager m_glTextureManager = glTextureManager;
 
@@ -83,7 +90,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         for (int i = 0; i < buckets.Length - 1; i++)
         {
             var bucket = buckets[i];
-            BuildTextureArray(bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY, bucket.Dimension);
+            BuildTextureArray(bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY, bucket.Dimension, false);
         }
 
         foreach (var spriteDefinition in spriteDefinitions)
@@ -121,13 +128,48 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         return new(maxIndex, buckets);
     }
 
+    public void BuildHud(IRendererTextureManager textureManager, DynamicArray<IArrayTexture> arrayTextures)
+    {
+        var textures = new DynamicArray<Resources.Texture>(arrayTextures.Length);
+
+        var textureLookup = new Dictionary<int, IArrayTexture>();
+        //if (hud.Textures.TryGet(frame.ResolvedPatchName, out IRenderableTextureHandle? handle) ||
+        //    hud.Textures.TryGet(frame.ResolvedPatchName, out handle, ResourceNamespace.Sprites))
+        int index = 0;
+        foreach (var arrayTexture in arrayTextures)
+        {
+            var texture = new Resources.Texture(arrayTexture.FetchTextureName, ResourceNamespace.Sprites, index++);
+
+            if (textureManager.TryGetImage(arrayTexture.FetchTextureName, out var image) ||
+                textureManager.TryGetImage(arrayTexture.FetchTextureName, out image, ResourceNamespace.Sprites))
+            {
+                texture.Image = image;
+                textures.Add(texture);
+                textureLookup[texture.Index] = arrayTexture;
+            }
+            else
+            {
+                // fuck
+                int lol = 1;
+            }
+        }
+
+        BuildTextureArrayFromTextures(textures, TextureContext.Hud, TextureFlags.ClampX | TextureFlags.ClampY, true);
+
+        foreach (var texture in textures)
+        {
+            if (textureLookup.TryGetValue(texture.Index, out var findArrayTexture))
+                findArrayTexture.Texture = texture.RenderStoreClamp as GLLegacyTexture;
+        }
+    }
+
     [Conditional("DEBUG")]
     private static void DebugLog(int totalTextures, int compressed)
     {
         HelionLog.Info($"Compressed textures {totalTextures} -> {compressed}");
     }
 
-    private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags)
+    private int BuildTextureArrayFromTextures(DynamicArray<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, bool addToTextureTracker = false)
     {
         textures.Sort(SortTexturesByDimensions);
 
@@ -142,7 +184,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
             if (dimension != texture.Image.Dimension)
             {
                 if (arrayTextures.Count > 0)
-                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags, dimension);
+                    textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags, dimension, addToTextureTracker);
                 arrayTextures.Clear();
                 dimension = texture.Image.Dimension;
             }
@@ -151,7 +193,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         }
 
         if (arrayTextures.Count > 0)
-            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags, dimension);
+            textureCount += BuildTextureArray(arrayTextures.Data.AsSpan(0, arrayTextures.Length), textureContext, textureFlags, dimension, addToTextureTracker);
 
         return textureCount;
     }
@@ -180,9 +222,9 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         return x.Image.Height.CompareTo(y.Image.Height);
     }
 
-    private int BuildTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension)
+    private int BuildTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker)
     {
-        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, textureContext, textureFlags, dimension);
+        var arrayTexture = m_glTextureManager.CreateTextureArray(textures, textureContext, textureFlags, dimension, addToTextureTracker);
         return arrayTexture == null ? 0 : 1;
     }
 

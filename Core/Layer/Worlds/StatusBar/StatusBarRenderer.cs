@@ -7,6 +7,7 @@ using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
@@ -279,8 +280,12 @@ public class StatusBarRenderer
 
         if (!m_resolvedLayouts.Contains(layout))
         {
-            EnsureTexturesResolved(hud, layout);
+            var textures = new DynamicArray<IArrayTexture>(256);
+            EnsureTexturesResolved(hud, layout, textures);
             m_resolvedLayouts.Add(layout);
+
+            var arrayTextureBuilder = new GLTextureArrayBuilder(null!, hud.Textures as LegacyGLTextureManager);
+            arrayTextureBuilder.BuildHud(hud.Textures, textures);
         }
 
         const int Width = 320;
@@ -333,24 +338,25 @@ public class StatusBarRenderer
         m_ctx = default;
     }
 
-    private void EnsureTexturesResolved(IHudRenderContext hud, StatusBarLayoutDef layout)
+    private void EnsureTexturesResolved(IHudRenderContext hud, StatusBarLayoutDef layout, DynamicArray<IArrayTexture> textures)
     {
         foreach (StatusBarElementWrapper t in layout.Children)
-            ResolveElementTextures(hud, t);
+            ResolveElementTextures(hud, t, textures);
     }
 
-    private void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper)
+    private void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper, DynamicArray<IArrayTexture> textures)
     {
         if (wrapper.Graphic != null)
         {
             wrapper.Graphic.ResolvedPatchName = ResolvePatchName(wrapper.Graphic.Patch);
 
-            if (hud.Textures.TryGet(wrapper.Graphic.ResolvedPatchName, out IRenderableTextureHandle? handle) ||
-                hud.Textures.TryGet(wrapper.Graphic.ResolvedPatchName, out handle, ResourceNamespace.Sprites))
-            {
-                wrapper.Graphic.Handle = handle;
-                wrapper.Graphic.ResolvedHeight = handle.Dimension.Height;
-            }
+            //if (hud.Textures.TryGetImage(wrapper.Graphic.ResolvedPatchName, out var image) ||
+            //    hud.Textures.TryGetImage(wrapper.Graphic.ResolvedPatchName, out image, ResourceNamespace.Sprites))
+            //{
+                textures.Add(wrapper.Graphic);
+                //wrapper.Graphic.Handle = handle;
+                //wrapper.Graphic.ResolvedHeight = handle.Dimension.Height;
+            //}
         }
 
         if (wrapper.Animation != null)
@@ -358,56 +364,68 @@ public class StatusBarRenderer
             for (int i = 0; i < wrapper.Animation.Frames.Length; i++)
             {
                 ref var frame = ref wrapper.Animation.Frames[i];
-                frame.ResolvedPatchName = ResolvePatchName(frame.Lump);
+                textures.Add(frame);
+                //frame.ResolvedPatchName = ResolvePatchName(frame.Lump);
 
-                if (hud.Textures.TryGet(frame.ResolvedPatchName, out IRenderableTextureHandle? handle) ||
-                    hud.Textures.TryGet(frame.ResolvedPatchName, out handle, ResourceNamespace.Sprites))
-                    frame.Handle = handle;
+                //if (hud.Textures.TryGet(frame.ResolvedPatchName, out IRenderableTextureHandle? handle) ||
+                //    hud.Textures.TryGet(frame.ResolvedPatchName, out handle, ResourceNamespace.Sprites))
+                //    frame.Handle = handle;
             }
         }
 
         if (wrapper.String != null)
         {
-            if (m_hudFontLookup.TryGetValue(wrapper.String.Font, out StatusBarHudFontDef? f))
-            {
-                string zeroPatch = GetHudFontPatch(hud, f, '0');
-                wrapper.String.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h)
-                    ? h.Dimension.Height
-                    : hud.GetFontMaxHeight(f.Stem);
-            }
-            else
-            {
-                wrapper.String.ResolvedHeight = 8;
-            }
+            textures.Add(wrapper.String);
+            //if (m_hudFontLookup.TryGetValue(wrapper.String.Font, out StatusBarHudFontDef? f))
+            //{
+            //    string zeroPatch = GetHudFontPatch(hud, f, '0');
+            //    wrapper.String.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h)
+            //        ? h.Dimension.Height
+            //        : hud.GetFontMaxHeight(f.Stem);
+            //}
+            //else
+            //{
+            //    wrapper.String.ResolvedHeight = 8;
+            //}
         }
-        else if (wrapper.Number != null || wrapper.Percent != null)
+        else if (wrapper.Number != null)
         {
-            StatusBarBaseDef? num = (StatusBarBaseDef?)wrapper.Number ?? wrapper.Percent;
-            if (m_fontNumberLookup.TryGetValue(wrapper.Number?.Font ?? wrapper.Percent?.Font ?? string.Empty,
-                    out StatusBarNumberFontDef? nf))
-            {
-                string zeroPatch = GetFontPatch(hud, nf, '0');
-                num!.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h) ? h.Dimension.Height : 8;
-            }
-            else
-            {
-                num!.ResolvedHeight = 8;
-            }
+            textures.Add(wrapper.Number);
+            //StatusBarBaseDef? num = (StatusBarBaseDef?)wrapper.Number ?? wrapper.Percent;
+            //if (m_fontNumberLookup.TryGetValue(wrapper.Number?.Font ?? wrapper.Percent?.Font ?? string.Empty,
+            //        out StatusBarNumberFontDef? nf))
+            //{
+            //    string zeroPatch = GetFontPatch(hud, nf, '0');
+            //    num!.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h) ? h.Dimension.Height : 8;
+            //}
+            //else
+            //{
+            //    num!.ResolvedHeight = 8;
+            //}
         }
-        else if (wrapper.Face != null || wrapper.FaceBackground != null)
+        else if (wrapper.Percent != null)
         {
-            StatusBarBaseDef? face = (StatusBarBaseDef?)wrapper.Face ?? wrapper.FaceBackground;
-
-            face!.ResolvedHeight = hud.Textures.TryGet("STFST01", out IRenderableTextureHandle? h) ||
-                                   hud.Textures.TryGet("STFST01", out h, ResourceNamespace.Sprites)
-                ? h.Dimension.Height
-                : 32;
+            textures.Add(wrapper.Percent);
         }
+        //else if (wrapper.Face != null || wrapper.FaceBackground != null)
+        //{
+        //    textures.Add(wrapper.Face);
+        //    //StatusBarBaseDef? face = (StatusBarBaseDef?)wrapper.Face ?? wrapper.FaceBackground;
 
-        if (wrapper.FaceBackground != null)
-            if (hud.Textures.TryGet("STFB0", out IRenderableTextureHandle? handle) ||
-                hud.Textures.TryGet("STFB0", out handle, ResourceNamespace.Sprites))
-                wrapper.FaceBackground.Handle = handle;
+        //    //face!.ResolvedHeight = hud.Textures.TryGet("STFST01", out IRenderableTextureHandle? h) ||
+        //    //                       hud.Textures.TryGet("STFST01", out h, ResourceNamespace.Sprites)
+        //    //    ? h.Dimension.Height
+        //    //    : 32;
+        //}
+        //else if (wrapper.FaceBackground != null)
+        //{
+        //    textures.Add(wrapper.FaceBackground);
+        //}
+
+        //if (wrapper.FaceBackground != null)
+        //    if (hud.Textures.TryGet("STFB0", out IRenderableTextureHandle? handle) ||
+        //        hud.Textures.TryGet("STFB0", out handle, ResourceNamespace.Sprites))
+        //        wrapper.FaceBackground.Handle = handle;
 
         StatusBarBaseDef? baseDef = null;
         if (wrapper.Canvas != null)
@@ -439,7 +457,7 @@ public class StatusBarRenderer
             return;
 
         foreach (StatusBarElementWrapper t in baseDef.Children)
-            ResolveElementTextures(hud, t);
+            ResolveElementTextures(hud, t, textures);
     }
 
     private void DrawElementWrapper(IHudRenderContext hud,

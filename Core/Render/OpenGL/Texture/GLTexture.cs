@@ -12,7 +12,8 @@ public enum TextureContext
 {
     Default,
     WorldArray,
-    WorldSprites
+    WorldSprites,
+    Hud
 }
 
 public abstract class GLTexture : IRenderableTextureHandle, IDisposable

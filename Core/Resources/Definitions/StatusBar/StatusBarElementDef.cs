@@ -1,5 +1,6 @@
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Definitions.StatusBar.Enums;
 using System;
 using System.Text.Json.Serialization;
@@ -152,7 +153,7 @@ public class StatusBarListDef : StatusBarBaseDef
     public int Spacing { get; set; }
 }
 
-public class StatusBarStringDef : StatusBarBaseDef
+public class StatusBarStringDef : StatusBarBaseDef, IArrayTexture
 {
     private string m_font = "";
 
@@ -172,6 +173,12 @@ public class StatusBarStringDef : StatusBarBaseDef
     
     [JsonPropertyName("translucency")]
     public bool Translucency { get; set; }
+
+    [JsonIgnore]
+    public GLLegacyTexture? Texture { get; set; }
+
+    [JsonIgnore]
+    public string FetchTextureName => Font;
 }
 
 public class StatusBarFaceDef : StatusBarBaseDef 
@@ -269,7 +276,7 @@ public class StatusBarCarouselDef : StatusBarBaseDef
     public bool Translucency { get; set; }
 }
 
-public class StatusBarGraphicDef : StatusBarBaseDef
+public class StatusBarGraphicDef : StatusBarBaseDef, IArrayTexture
 {
     [JsonPropertyName("patch")]
     public string Patch { get; set; } = string.Empty;
@@ -279,6 +286,11 @@ public class StatusBarGraphicDef : StatusBarBaseDef
 
     [JsonIgnore]
     public IRenderableTextureHandle? Handle { get; set; }
+
+    [JsonIgnore]
+    public GLLegacyTexture? Texture { get; set; }
+    [JsonIgnore]
+    public string FetchTextureName => Patch;
 
     // v1.1 Extensions: Image Cropping
     [JsonPropertyName("width")]
@@ -310,7 +322,7 @@ public class StatusBarAnimationDef : StatusBarBaseDef
     public StatusBarFrameDef[] Frames { get; set; } = [];
 }
 
-public class StatusBarNumberDef : StatusBarBaseDef
+public class StatusBarNumberDef : StatusBarBaseDef, IArrayTexture
 {
     private string m_font = string.Empty;
 
@@ -332,6 +344,10 @@ public class StatusBarNumberDef : StatusBarBaseDef
     
     [JsonPropertyName("translucency")]
     public bool Translucency { get; set; }
+    [JsonIgnore]
+    public GLLegacyTexture? Texture { get; set; }
+    [JsonIgnore]
+    public string FetchTextureName => Font;
 }
 
 public struct StatusBarConditionDef
@@ -349,7 +365,7 @@ public struct StatusBarConditionDef
     public string? ParamString { get; set; }
 }
 
-public struct StatusBarFrameDef
+public struct StatusBarFrameDef : IArrayTexture
 {
     [JsonPropertyName("lump")]
     public string Lump { get; set; }
@@ -362,4 +378,10 @@ public struct StatusBarFrameDef
 
     [JsonPropertyName("duration")]
     public double Duration { get; set; }
+
+    [JsonIgnore]
+    public readonly string FetchTextureName => Lump;
+
+    [JsonIgnore]
+    public GLLegacyTexture? Texture { get; set; }
 }

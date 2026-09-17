@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Graphics;
 using Helion.Resources;
 using Helion.Resources.Definitions.Zdoom;
 
@@ -22,6 +23,8 @@ public interface IRendererTextureManager : IDisposable
     {
         return TryGet(name, out _, specificNamespace);
     }
+
+    public bool TryGetImage(string name, [NotNullWhen(true)] out Image? image, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null);
 
     /// <summary>
     /// Tries to get a handle for an image.
