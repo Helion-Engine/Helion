@@ -21,6 +21,7 @@ public struct SideFlags
 {
     public bool BlockmapLinked;
     public bool UpperSky;
+    public bool LowerSky;
     public bool LightLevelAbsolute;
     public bool NoFakeContrast;
     public bool SmoothLighting;

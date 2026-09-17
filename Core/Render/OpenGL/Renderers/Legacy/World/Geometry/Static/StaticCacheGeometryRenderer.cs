@@ -476,8 +476,15 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             }
             else
             {
-                m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
-                result = new(sideVertices, skyVertices, null);
+                m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
+                result = new(sideVertices, skyVertices, null, skyVertices2);
+            }
+
+            if (result.SkyVertices2 != null)
+            {
+                // The side has to be marked to be re-calculated on movement because it can completely change how the sky is rendered.
+                side.Flags.LowerSky = true;
+                result.SkyVertices = result.SkyVertices2;
             }
 
             SetSideVertices(side, side.Lower, update, result.Vertices, lowerVisible, true, null);
@@ -1006,11 +1013,14 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Upper);
             }
 
-            if (line.Front.IsDynamic)
+            if (line.Front.IsDynamic || line.Front.Flags.LowerSky)
             {
                 ClearSideGeometryVertices(line.Front, line.Front.Lower);
                 SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Lower);
+            }
 
+            if (line.Front.IsDynamic)
+            {
                 ClearSideGeometryVertices(line.Front, line.Front.Middle);
                 SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Middle);
 
@@ -1038,11 +1048,14 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Upper);
             }
 
-            if (line.Back.IsDynamic)
+            if (line.Back.IsDynamic || line.Back.Flags.LowerSky)
             {
                 ClearSideGeometryVertices(line.Back, line.Back.Lower);
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Lower);
+            }
 
+            if (line.Back.IsDynamic)
+            {
                 ClearSideGeometryVertices(line.Back, line.Back.Middle);
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Middle);
 

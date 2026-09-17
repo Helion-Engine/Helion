@@ -34,6 +34,7 @@
 - Fix sky geometry holding stale references on map reloads.
 - Fix rendering issue with lines when changing transfer heights views.
 - Fix width, speed, and mass properties to default to zero for dehacked instead of using default decorate values.
+- Fix dynamic sky rendering issues.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
