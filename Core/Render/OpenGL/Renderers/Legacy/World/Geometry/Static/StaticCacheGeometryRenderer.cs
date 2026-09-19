@@ -472,7 +472,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             RenderWallSliceResult result;
             if (side.Sector.Sectors3D.Length > 0)
             {
-                result = m_geometryRenderer.RenderWallSlices3D(side, side.Lower, isFrontSide, otherSide, facingSector, otherSector, side.Sector.SectorPlanes3D, m_renderTwoSidedLowerSliceFunc);
+                result = m_geometryRenderer.RenderWallSlices3D(side, side.Lower, isFrontSide, otherSide, facingSector, otherSector, side.Sector.SectorPlanes3D, m_renderTwoSidedLowerSliceFunc, renderSkySide: false);
             }
             else
             {
