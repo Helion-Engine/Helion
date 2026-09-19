@@ -1013,7 +1013,7 @@ public partial class GeometryRenderer : IDisposable
         if ((visibility & SideTexture.Lower) != 0)
         {
             if (renderSlices3D)
-                RenderWallSlices3D(facingSide, facingSide.Lower, isFrontSide, otherSide, facingSector, otherSector, facingSide.Sector.SectorPlanes3D, m_renderTwoSidedLowerSliceFunc);
+                RenderWallSlices3D(facingSide, facingSide.Lower, isFrontSide, otherSide, facingSector, otherSector, facingSide.Sector.SectorPlanes3D, m_renderTwoSidedLowerSliceFunc, renderSkySide: false);
             else
                 RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
         }
