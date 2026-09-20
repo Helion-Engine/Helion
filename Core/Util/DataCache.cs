@@ -39,7 +39,6 @@ public class DataCache
     private readonly DynamicArray<int> m_entities = new(DefaultLength);
     private readonly DynamicArray<IAudioSource> m_audioSources = new(64);
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
-    private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new(64);
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
     private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new(256);
@@ -220,26 +219,7 @@ public class DataCache
         list.Clear();
         m_entityLists.Add(list);
     }
-
-    public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
-    {
-        if (m_hudDrawBufferData.Length > 0)
-        {
-            var buffer = m_hudDrawBufferData.RemoveLast();
-            buffer.Set(texture, brightmapTexture);
-            return buffer;
-        }
-
-        return new HudDrawBufferData(texture, brightmapTexture);
-    }
-
-    public void FreeDrawHudBufferData(HudDrawBufferData data)
-    {
-        data.Texture = null!;
-        data.Vertices.Clear();
-        m_hudDrawBufferData.Add(data);
-    }
-   
+       
     public LinkedListNode<ISpecial> GetSpecialNode(ISpecial special)
     {
         if (m_specialNodes.Length > 0)

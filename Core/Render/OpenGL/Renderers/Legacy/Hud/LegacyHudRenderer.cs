@@ -29,14 +29,14 @@ public class LegacyHudRenderer : HudRenderer
     private readonly RenderProfiler m_renderProfiler;
     private float DrawDepth = 1.0f;
 
-    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, DataCache dataCache, RenderProfiler renderProfiler)
+    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderProfiler renderProfiler)
     {
         m_config = config;
         m_textureManager = textureManager;
         m_renderProfiler = renderProfiler;
         m_program = new();
         m_pipeline = new(m_program, new StreamVertexBuffer<HudVertex>("Hud"), "Hud");
-        m_drawBuffer = new(dataCache);
+        m_drawBuffer = new();
     }
 
     ~LegacyHudRenderer()
@@ -169,7 +169,10 @@ public class LegacyHudRenderer : HudRenderer
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {
-            HudDrawBufferData data = m_drawBuffer.DrawBuffer[i];
+            var data = m_drawBuffer.DrawBuffer[i];
+            if (data.Vertices.Count == 0)
+                continue;
+
             UploadVerticesToVbo(data);
 
             GL.ActiveTexture(BindTextures.BoundTexture);
@@ -272,11 +275,11 @@ public class LegacyHudRenderer : HudRenderer
             alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
 
         var bottomRight = new HudVertex(
-            drawArea.Right, drawArea.Bottom, DrawDepth, 
-            u1, v1, 
-            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
+            drawArea.Right, drawArea.Bottom, DrawDepth,
+            u1, v1,
+            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A,
             alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
-        
+
         var quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
         m_drawBuffer.Add(texture, quad, brightmapTexture);
 

@@ -151,10 +151,13 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
 
         foreach (var texture in textures)
         {
+            if (texture.RenderStoreClamp is not IRenderableTextureHandle handle)
+                continue;
+
             if (textureLookup.TryGetValue(texture.Index, out var findArrayTexture))
             {
-                findArrayTexture.Handle = (IRenderableTextureHandle)texture.RenderStoreClamp!;
-                textureManager.RegisterTexture(findArrayTexture.FetchTextureName, (IRenderableTextureHandle)texture.RenderStoreClamp!, ResourceNamespace.Undefined);
+                findArrayTexture.Handle = handle;
+                textureManager.RegisterTexture(findArrayTexture.FetchTextureName, handle, ResourceNamespace.Undefined);
             }
         }
     }

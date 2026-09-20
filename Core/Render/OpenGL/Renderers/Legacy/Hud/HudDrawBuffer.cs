@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Util;
-using Helion.Util.Extensions;
+using Helion.Util.Container;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
@@ -19,14 +18,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 /// </remarks>
 public class HudDrawBuffer
 {
-    public readonly List<HudDrawBufferData> DrawBuffer = new(256);
+    public readonly DynamicArray<HudDrawBufferData> DrawBuffer = new(256);
 
-    private readonly DataCache m_dataCache;
-
-    public HudDrawBuffer(DataCache dataCache)
-    {
-        m_dataCache = dataCache;
-    }
+    private readonly Dictionary<int, HudDrawBufferData> m_bufferLookup = [];
+    private int m_renderCount = 1;
 
     public void Add(GLLegacyTexture texture, HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
@@ -46,23 +41,32 @@ public class HudDrawBuffer
 
     public void Clear()
     {
-        for (int i = 0; i < DrawBuffer.Count; i++)
-            m_dataCache.FreeDrawHudBufferData(DrawBuffer[i]);
+        m_renderCount++;
+        for (int i = 0; i < DrawBuffer.Length; i++)
+            DrawBuffer.Data[i].Vertices.Clear();
         DrawBuffer.Clear();
     }
 
     public HudDrawBufferData GetOrCreate(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        if (DrawBuffer.Empty())
-            return AllocateNewAndAdd(texture, brightmapTexture);
+        if (m_bufferLookup.TryGetValue(texture.Index, out var buffer))
+        {
+            if (buffer.RenderCount != m_renderCount)
+            {
+                buffer.RenderCount = m_renderCount;
+                DrawBuffer.Add(buffer);
+            }
+            return buffer;
+        }
 
-        HudDrawBufferData front = DrawBuffer[^1];
-        return front.Texture == texture ? front : AllocateNewAndAdd(texture, brightmapTexture);
+        buffer = AllocateNewAndAdd(texture, brightmapTexture);
+        m_bufferLookup[texture.Index] = buffer;
+        return buffer;
     }
 
     private HudDrawBufferData AllocateNewAndAdd(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        HudDrawBufferData newData = m_dataCache.GetDrawHudBufferData(texture, brightmapTexture);
+        var newData = new HudDrawBufferData(texture, brightmapTexture);
         DrawBuffer.Add(newData);
         return newData;
     }
