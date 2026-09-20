@@ -762,6 +762,53 @@
             "_cacoco_name": "Keys Cluster"
           },
           {
+            "number": {
+              "x": 221,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "Classic Status Bar",
+              "type": 1,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "canvas": {
+              "x": 221,
+              "y": 3,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "graphic": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "patch": "STTPRCNT"
+                  }
+                }
+              ]
+            },
+            "_cacoco_text": {
+              "text": "%",
+              "font": "Classic Status Bar",
+              "spacing": 0
+            }
+          },
+          {
             "canvas": {
               "x": 288,
               "y": 0,
@@ -916,53 +963,6 @@
               ]
             },
             "_cacoco_name": "Max Ammo Group"
-          },
-          {
-            "number": {
-              "x": 221,
-              "y": 3,
-              "alignment": 2,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "font": "Classic Status Bar",
-              "type": 1,
-              "param": 0,
-              "maxlength": 3
-            }
-          },
-          {
-            "canvas": {
-              "x": 221,
-              "y": 3,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [
-                {
-                  "graphic": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "patch": "STTPRCNT"
-                  }
-                }
-              ]
-            },
-            "_cacoco_text": {
-              "text": "%",
-              "font": "Classic Status Bar",
-              "spacing": 0
-            }
           }
         ]
       },
@@ -1591,7 +1591,7 @@
                     "conditions": [],
                     "children": [],
                     "font": "Classic Status Bar",
-                    "type": 0,
+                    "type": 1,
                     "param": 0,
                     "maxlength": 3
                   }
