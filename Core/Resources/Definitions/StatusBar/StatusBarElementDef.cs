@@ -384,4 +384,7 @@ public struct StatusBarFrameDef : IArrayTexture
 
     [JsonIgnore]
     public GLLegacyTexture? Texture { get; set; }
+
+    [JsonIgnore]
+    public int ResolvedHeight { get; set; }
 }

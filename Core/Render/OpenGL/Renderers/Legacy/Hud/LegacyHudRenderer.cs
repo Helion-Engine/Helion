@@ -138,7 +138,7 @@ public class LegacyHudRenderer : HudRenderer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private HudVertex MakeVertex(float x, float y, float u, float v, in RenderableGlyph glyph, float alpha, bool drawPalette)
     {
-        return new(x, y, DrawDepth, u, v, glyph.Color.R, glyph.Color.G, glyph.Color.B, glyph.Color.A, alpha, false, false, drawPalette, 0);
+        return new(x, y, DrawDepth, u, v, glyph.Color.R, glyph.Color.G, glyph.Color.B, glyph.Color.A, alpha, false, false, drawPalette, 0, 0);
     }
 
     public override void Render(Rectangle viewport, Dimension windowDimension, Dimension virtualDimension, ShaderUniforms uniforms)
@@ -257,25 +257,25 @@ public class LegacyHudRenderer : HudRenderer
             drawArea.Left, drawArea.Top, DrawDepth, 
             u0, v0, 
             multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
 
         var topRight = new HudVertex(
             drawArea.Right, drawArea.Top, DrawDepth, 
             u1, v0, 
             multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
 
         var bottomLeft = new HudVertex(
             drawArea.Left, drawArea.Bottom, DrawDepth, 
             u0, v1, 
             multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
 
         var bottomRight = new HudVertex(
             drawArea.Right, drawArea.Bottom, DrawDepth, 
             u1, v1, 
             multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
         
         var quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
         m_drawBuffer.Add(texture, quad, brightmapTexture);

@@ -18,6 +18,7 @@ public interface IArrayTexture
 {
     public string FetchTextureName { get; }
     public GLLegacyTexture? Texture { get; set; }
+    public int ResolvedHeight { get; set; }
 }
 
 public record struct TextureBuckets(int MaxTextureIndex, TextureBucket[] Buckets);
@@ -133,24 +134,17 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         var textures = new DynamicArray<Resources.Texture>(arrayTextures.Length);
 
         var textureLookup = new Dictionary<int, IArrayTexture>();
-        //if (hud.Textures.TryGet(frame.ResolvedPatchName, out IRenderableTextureHandle? handle) ||
-        //    hud.Textures.TryGet(frame.ResolvedPatchName, out handle, ResourceNamespace.Sprites))
         int index = 0;
         foreach (var arrayTexture in arrayTextures)
         {
             var texture = new Resources.Texture(arrayTexture.FetchTextureName, ResourceNamespace.Sprites, index++);
-
             if (textureManager.TryGetImage(arrayTexture.FetchTextureName, out var image) ||
                 textureManager.TryGetImage(arrayTexture.FetchTextureName, out image, ResourceNamespace.Sprites))
             {
+                arrayTexture.ResolvedHeight = image.Dimension.Height;
                 texture.Image = image;
                 textures.Add(texture);
                 textureLookup[texture.Index] = arrayTexture;
-            }
-            else
-            {
-                // fuck
-                int lol = 1;
             }
         }
 
@@ -159,7 +153,10 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         foreach (var texture in textures)
         {
             if (textureLookup.TryGetValue(texture.Index, out var findArrayTexture))
+            {
                 findArrayTexture.Texture = texture.RenderStoreClamp as GLLegacyTexture;
+                textureManager.RegisterTexture(findArrayTexture.FetchTextureName, (IRenderableTextureHandle)texture.RenderStoreClamp!, ResourceNamespace.Undefined);
+            }
         }
     }
 

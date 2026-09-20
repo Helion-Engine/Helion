@@ -118,6 +118,12 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return false;
     }
 
+    public void RegisterTexture(string name, IRenderableTextureHandle handle, ResourceNamespace resourceNamespace)
+    {
+        if (handle is GLTextureType textureType)
+            TextureTracker.Insert(name, resourceNamespace, textureType);
+    }
+
     public IEnumerable<string> GetNames(ResourceNamespace specificNamespace)
     {
         return ArchiveCollection.ImageRetriever.GetNames(specificNamespace);

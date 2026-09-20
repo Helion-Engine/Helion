@@ -30,6 +30,7 @@ public class HudDrawBuffer
 
     public void Add(GLLegacyTexture texture, HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
+        texture = texture.ParentArrayTexture ?? texture;
         var hudDrawBuffer = GetOrCreate(texture, brightmapTexture);
 
         var length = hudDrawBuffer.Vertices.Length;

@@ -42,6 +42,13 @@ public enum StatusBarCoverage
     FPS = 1 << 4 // for fps_counter
 }
 
+internal class FakeArrayTexture(string name) : IArrayTexture
+{
+    public string FetchTextureName => name;
+    public GLLegacyTexture? Texture { get; set; }
+    public int ResolvedHeight { get; set; }
+}
+
 public class StatusBarRenderer
 {
     // Caches
@@ -342,6 +349,21 @@ public class StatusBarRenderer
     {
         foreach (StatusBarElementWrapper t in layout.Children)
             ResolveElementTextures(hud, t, textures);
+
+        foreach (var item in m_fontNumberLookup)
+        {
+            for (char c = '0'; c <= '9'; c++)
+                textures.Add(new FakeArrayTexture($"{item.Value.Stem}NUM{c}"));
+        }
+
+        foreach (var item in m_hudFontLookup)
+        {
+            for (int i = 33; i <= 95; i++)
+                textures.Add(new FakeArrayTexture($"{item.Value.Stem}0{i}"));
+            textures.Add(new FakeArrayTexture($"{item.Value.Stem}{121}"));
+        }
+
+        textures.Add(new FakeArrayTexture("STFB1"));
     }
 
     private void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper, DynamicArray<IArrayTexture> textures)
@@ -375,7 +397,7 @@ public class StatusBarRenderer
 
         if (wrapper.String != null)
         {
-            textures.Add(wrapper.String);
+            //textures.Add(wrapper.String);
             //if (m_hudFontLookup.TryGetValue(wrapper.String.Font, out StatusBarHudFontDef? f))
             //{
             //    string zeroPatch = GetHudFontPatch(hud, f, '0');
@@ -390,7 +412,20 @@ public class StatusBarRenderer
         }
         else if (wrapper.Number != null)
         {
-            textures.Add(wrapper.Number);
+            //textures.Add(wrapper.Number);
+            //var num = (StatusBarBaseDef?)wrapper.Number ?? wrapper.Percent;
+            //if (m_fontNumberLookup.TryGetValue(wrapper.Number?.Font ?? wrapper.Percent?.Font ?? string.Empty,
+            //        out StatusBarNumberFontDef? nf))
+            //{
+            //    string zeroPatch = GetFontPatch(hud, nf, '0');
+            //    //num.ResolvedHeight = hud.Textures.TryGetImage()
+            //    //num!.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h) ? h.Dimension.Height : 8;
+            //}
+            //else
+            //{
+            //    num!.ResolvedHeight = 8;
+            //}
+
             //StatusBarBaseDef? num = (StatusBarBaseDef?)wrapper.Number ?? wrapper.Percent;
             //if (m_fontNumberLookup.TryGetValue(wrapper.Number?.Font ?? wrapper.Percent?.Font ?? string.Empty,
             //        out StatusBarNumberFontDef? nf))
@@ -403,10 +438,10 @@ public class StatusBarRenderer
             //    num!.ResolvedHeight = 8;
             //}
         }
-        else if (wrapper.Percent != null)
-        {
-            textures.Add(wrapper.Percent);
-        }
+        //else if (wrapper.Percent != null)
+        //{
+        //    textures.Add(wrapper.Percent);
+        //}
         //else if (wrapper.Face != null || wrapper.FaceBackground != null)
         //{
         //    textures.Add(wrapper.Face);
@@ -426,6 +461,11 @@ public class StatusBarRenderer
         //    if (hud.Textures.TryGet("STFB0", out IRenderableTextureHandle? handle) ||
         //        hud.Textures.TryGet("STFB0", out handle, ResourceNamespace.Sprites))
         //        wrapper.FaceBackground.Handle = handle;
+
+        //"STFST01"
+        //"STFST01"
+        //"STFB0"
+        //"STFB0"
 
         StatusBarBaseDef? baseDef = null;
         if (wrapper.Canvas != null)

@@ -39,6 +39,8 @@ public interface IRendererTextureManager : IDisposable
     /// <returns>True if found, false if not.</returns>
     bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null);
 
+    void RegisterTexture(string name, IRenderableTextureHandle handle, ResourceNamespace resourceNamespace);
+
     /// <summary>
     /// Get a list of texture names
     /// </summary>

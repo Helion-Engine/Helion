@@ -71,14 +71,16 @@ public class LegacyHudShader : RenderProgram
         layout(location = 3) in float alpha;
         layout(location = 4) in float drawColorMap;
         layout(location = 5) in float hasFuzz;
-        layout(location = 6) in float drawPalette;
-        layout(location = 7) in float hudColorMapIndex;
+        layout(location = 6) in float textureIndex;
+        layout(location = 7) in float drawPalette;
+        layout(location = 8) in float hudColorMapIndex;
 
         out vec2 uvFrag;
         flat out vec4 rgbMultiplierFrag;
         flat out float alphaFrag;
         flat out float drawColorMapFrag;
         flat out float fuzzFrag;
+        flat out float boundTextureIndex;
         ${ColorMapFrag}
 
         uniform mat4 mvp;
@@ -89,6 +91,7 @@ public class LegacyHudShader : RenderProgram
             alphaFrag = alpha;
             drawColorMapFrag = drawColorMap;
             fuzzFrag = hasFuzz;
+            boundTextureIndex = textureIndex;
             ${ColorMapFragSet}
 
             gl_Position = mvp * vec4(pos, 1.0);
@@ -125,6 +128,7 @@ public class LegacyHudShader : RenderProgram
         flat in float alphaFrag;
         flat in float drawColorMapFrag;
         flat in float fuzzFrag;
+        flat in float boundTextureIndex;
         ${DrawPaletteFrag}
 
         out vec4 fragColor;
@@ -145,12 +149,10 @@ public class LegacyHudShader : RenderProgram
         uniform vec2 fuzzSampleOffset;
         uniform int fuzzRefraction;
 
-        const int boundTextureIndex = 0;
-
         ${FuzzFunction}
 
         void main() {
-            fragColor = texture(boundTexture, vec3(uvFrag.st, 0));
+            fragColor = texture(boundTexture, vec3(uvFrag.st, boundTextureIndex));
             ${ColorMapFetch}
             ${AlphaFlag}
             fragColor.w *= alphaFrag;
