@@ -102,13 +102,60 @@
             "graphic": {
               "x": 160,
               "y": 0,
-              "alignment": 1,
+              "alignment": 49,
               "tranmap": null,
               "translation": null,
               "translucency": false,
               "conditions": [],
               "children": [],
               "patch": "STBAR"
+            }
+          },
+          {
+            "number": {
+              "x": 90,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "Classic Status Bar",
+              "type": 0,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "canvas": {
+              "x": 90,
+              "y": 3,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "graphic": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "patch": "STTPRCNT"
+                  }
+                }
+              ]
+            },
+            "_cacoco_text": {
+              "text": "%",
+              "font": "Classic Status Bar",
+              "spacing": 0
             }
           },
           {
@@ -129,22 +176,6 @@
               "children": [],
               "font": "Classic Status Bar",
               "type": 4,
-              "param": 0,
-              "maxlength": 0
-            }
-          },
-          {
-            "percent": {
-              "x": 104,
-              "y": 3,
-              "alignment": 2,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "font": "Classic Status Bar",
-              "type": 0,
               "param": 0,
               "maxlength": 0
             }
@@ -731,8 +762,8 @@
             "_cacoco_name": "Keys Cluster"
           },
           {
-            "percent": {
-              "x": 235,
+            "number": {
+              "x": 221,
               "y": 3,
               "alignment": 2,
               "tranmap": null,
@@ -743,7 +774,38 @@
               "font": "Classic Status Bar",
               "type": 1,
               "param": 0,
-              "maxlength": 0
+              "maxlength": 3
+            }
+          },
+          {
+            "canvas": {
+              "x": 221,
+              "y": 3,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "graphic": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "patch": "STTPRCNT"
+                  }
+                }
+              ]
+            },
+            "_cacoco_text": {
+              "text": "%",
+              "font": "Classic Status Bar",
+              "spacing": 0
             }
           },
           {
@@ -922,6 +984,53 @@
               "children": [
                 {
                   "number": {
+                    "x": 90,
+                    "y": 3,
+                    "alignment": 2,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "Classic Status Bar",
+                    "type": 0,
+                    "param": 0,
+                    "maxlength": 3
+                  }
+                },
+                {
+                  "canvas": {
+                    "x": 90,
+                    "y": 3,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STTPRCNT"
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_text": {
+                    "text": "%",
+                    "font": "Classic Status Bar",
+                    "spacing": 0
+                  }
+                },
+                {
+                  "number": {
                     "x": 44,
                     "y": 3,
                     "alignment": 2,
@@ -938,22 +1047,6 @@
                     "children": [],
                     "font": "Classic Status Bar",
                     "type": 4,
-                    "param": 0,
-                    "maxlength": 0
-                  }
-                },
-                {
-                  "percent": {
-                    "x": 104,
-                    "y": 3,
-                    "alignment": 2,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "font": "Classic Status Bar",
-                    "type": 0,
                     "param": 0,
                     "maxlength": 0
                   }
@@ -1457,8 +1550,39 @@
                   "_cacoco_name": "Keys Cluster"
                 },
                 {
-                  "percent": {
-                    "x": 235,
+                  "canvas": {
+                    "x": 221,
+                    "y": 3,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [],
+                          "children": [],
+                          "patch": "STTPRCNT"
+                        }
+                      }
+                    ]
+                  },
+                  "_cacoco_text": {
+                    "text": "%",
+                    "font": "Classic Status Bar",
+                    "spacing": 0
+                  }
+                },
+                {
+                  "number": {
+                    "x": 221,
                     "y": 3,
                     "alignment": 2,
                     "tranmap": null,
@@ -1469,7 +1593,7 @@
                     "font": "Classic Status Bar",
                     "type": 1,
                     "param": 0,
-                    "maxlength": 0
+                    "maxlength": 3
                   }
                 },
                 {
