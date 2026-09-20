@@ -23,7 +23,7 @@ public class HudDrawBuffer
     private readonly Dictionary<int, HudDrawBufferData> m_bufferLookup = [];
     private int m_renderCount = 1;
 
-    public void Add(GLLegacyTexture texture, HudQuad quad, GLLegacyTexture? brightmapTexture = null)
+    public void Add(GLLegacyTexture texture, in HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
         texture = texture.ParentArrayTexture ?? texture;
         var hudDrawBuffer = GetOrCreate(texture, brightmapTexture);

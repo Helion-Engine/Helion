@@ -3,6 +3,7 @@ using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -247,10 +248,15 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return (GLTextureType)renderTexture;
     }
 
-    public GLTextureType? CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker)
+    public bool CreateTextureArray(Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker)
     {
         if (textures.Length == 0)
-            return null;
+            return false;
+
+        Assert.Precondition(textures.Length <= GLInfo.MaxArrayLayers, $"Texture array overflow {textures.Length} > {GLInfo.MaxArrayLayers}");
+
+        if (textures.Length > GLInfo.MaxArrayLayers)
+            return false;
 
         var images = new Image[textures.Length];
         for (int i = 0; i < textures.Length; i++)
@@ -296,7 +302,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         }
 
         arrayTextureData.Add(arrayTexture, arraySubTextures, textures, textureFlags);
-        return arrayTexture;
+        return true;
     }
 
     [Conditional("DEBUG")]

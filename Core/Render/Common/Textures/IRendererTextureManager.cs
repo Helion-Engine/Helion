@@ -1,9 +1,11 @@
+using Helion.Geometry;
+using Helion.Graphics;
+using Helion.Render.OpenGL.Texture;
+using Helion.Resources;
+using Helion.Resources.Definitions.Zdoom;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Graphics;
-using Helion.Resources;
-using Helion.Resources.Definitions.Zdoom;
 
 namespace Helion.Render.Common.Textures;
 
@@ -64,4 +66,6 @@ public interface IRendererTextureManager : IDisposable
     /// <param name="name">Name of the texture</param>
     /// <param name="resourceNamespace">Namespace for the texture</param>
     void RemoveTexture(string name, ResourceNamespace resourceNamespace);
+
+    bool CreateTextureArray(Span<Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker);
 }

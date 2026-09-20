@@ -42,7 +42,7 @@ public enum StatusBarCoverage
     FPS = 1 << 4 // for fps_counter
 }
 
-internal class FakeArrayTexture(string name) : IArrayTexture
+internal sealed class FakeArrayTexture(string name) : IArrayTexture
 {
     public string FetchTextureName => name;
     public IRenderableTextureHandle? Handle { get; set; }
@@ -287,12 +287,12 @@ public class StatusBarRenderer
 
         if (!m_resolvedLayouts.Contains(layout))
         {
-            var textures = new DynamicArray<IArrayTexture>(256);
-            EnsureTexturesResolved(hud, layout, textures);
+            var uniqueTextures = new UniqueArrayTextures();
+            EnsureTexturesResolved(hud, layout, uniqueTextures);
             m_resolvedLayouts.Add(layout);
 
-            var arrayTextureBuilder = new GLTextureArrayBuilder(null!, hud.Textures as LegacyGLTextureManager);
-            arrayTextureBuilder.BuildHud(hud.Textures, textures);
+            if (uniqueTextures.ArrayTextures.Length > 0)
+                GLTextureArrayBuilder.BuildHud(hud.Textures, uniqueTextures.ArrayTextures);
         }
 
         const int Width = 320;
@@ -345,7 +345,19 @@ public class StatusBarRenderer
         m_ctx = default;
     }
 
-    private void EnsureTexturesResolved(IHudRenderContext hud, StatusBarLayoutDef layout, DynamicArray<IArrayTexture> textures)
+    internal sealed class UniqueArrayTextures
+    {
+        public DynamicArray<IArrayTexture> ArrayTextures = new(256);
+        public HashSet<string> UniqueNames = new(256);
+
+        public void Add(IArrayTexture arrayTexture)
+        {
+            if (UniqueNames.Add(arrayTexture.FetchTextureName))
+                ArrayTextures.Add(arrayTexture);
+        }
+    }
+
+    private void EnsureTexturesResolved(IHudRenderContext hud, StatusBarLayoutDef layout, UniqueArrayTextures textures)
     {
         foreach (StatusBarElementWrapper t in layout.Children)
             ResolveElementTextures(hud, t, textures);
@@ -366,7 +378,7 @@ public class StatusBarRenderer
         textures.Add(new FakeArrayTexture("STFB1"));
     }
 
-    private static void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper, DynamicArray<IArrayTexture> textures)
+    private static void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper, UniqueArrayTextures textures)
     {
         if (wrapper.Graphic != null)
         {
