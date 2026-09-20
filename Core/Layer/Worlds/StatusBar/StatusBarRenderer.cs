@@ -366,19 +366,12 @@ public class StatusBarRenderer
         textures.Add(new FakeArrayTexture("STFB1"));
     }
 
-    private void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper, DynamicArray<IArrayTexture> textures)
+    private static void ResolveElementTextures(IHudRenderContext hud, StatusBarElementWrapper wrapper, DynamicArray<IArrayTexture> textures)
     {
         if (wrapper.Graphic != null)
         {
             wrapper.Graphic.ResolvedPatchName = ResolvePatchName(wrapper.Graphic.Patch);
-
-            //if (hud.Textures.TryGetImage(wrapper.Graphic.ResolvedPatchName, out var image) ||
-            //    hud.Textures.TryGetImage(wrapper.Graphic.ResolvedPatchName, out image, ResourceNamespace.Sprites))
-            //{
-                textures.Add(wrapper.Graphic);
-                //wrapper.Graphic.Handle = handle;
-                //wrapper.Graphic.ResolvedHeight = handle.Dimension.Height;
-            //}
+            textures.Add(wrapper.Graphic);
         }
 
         if (wrapper.Animation != null)
@@ -387,85 +380,8 @@ public class StatusBarRenderer
             {
                 ref var frame = ref wrapper.Animation.Frames[i];
                 textures.Add(frame);
-                //frame.ResolvedPatchName = ResolvePatchName(frame.Lump);
-
-                //if (hud.Textures.TryGet(frame.ResolvedPatchName, out IRenderableTextureHandle? handle) ||
-                //    hud.Textures.TryGet(frame.ResolvedPatchName, out handle, ResourceNamespace.Sprites))
-                //    frame.Handle = handle;
             }
         }
-
-        if (wrapper.String != null)
-        {
-            //textures.Add(wrapper.String);
-            //if (m_hudFontLookup.TryGetValue(wrapper.String.Font, out StatusBarHudFontDef? f))
-            //{
-            //    string zeroPatch = GetHudFontPatch(hud, f, '0');
-            //    wrapper.String.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h)
-            //        ? h.Dimension.Height
-            //        : hud.GetFontMaxHeight(f.Stem);
-            //}
-            //else
-            //{
-            //    wrapper.String.ResolvedHeight = 8;
-            //}
-        }
-        else if (wrapper.Number != null)
-        {
-            //textures.Add(wrapper.Number);
-            //var num = (StatusBarBaseDef?)wrapper.Number ?? wrapper.Percent;
-            //if (m_fontNumberLookup.TryGetValue(wrapper.Number?.Font ?? wrapper.Percent?.Font ?? string.Empty,
-            //        out StatusBarNumberFontDef? nf))
-            //{
-            //    string zeroPatch = GetFontPatch(hud, nf, '0');
-            //    //num.ResolvedHeight = hud.Textures.TryGetImage()
-            //    //num!.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h) ? h.Dimension.Height : 8;
-            //}
-            //else
-            //{
-            //    num!.ResolvedHeight = 8;
-            //}
-
-            //StatusBarBaseDef? num = (StatusBarBaseDef?)wrapper.Number ?? wrapper.Percent;
-            //if (m_fontNumberLookup.TryGetValue(wrapper.Number?.Font ?? wrapper.Percent?.Font ?? string.Empty,
-            //        out StatusBarNumberFontDef? nf))
-            //{
-            //    string zeroPatch = GetFontPatch(hud, nf, '0');
-            //    num!.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out IRenderableTextureHandle? h) ? h.Dimension.Height : 8;
-            //}
-            //else
-            //{
-            //    num!.ResolvedHeight = 8;
-            //}
-        }
-        //else if (wrapper.Percent != null)
-        //{
-        //    textures.Add(wrapper.Percent);
-        //}
-        //else if (wrapper.Face != null || wrapper.FaceBackground != null)
-        //{
-        //    textures.Add(wrapper.Face);
-        //    //StatusBarBaseDef? face = (StatusBarBaseDef?)wrapper.Face ?? wrapper.FaceBackground;
-
-        //    //face!.ResolvedHeight = hud.Textures.TryGet("STFST01", out IRenderableTextureHandle? h) ||
-        //    //                       hud.Textures.TryGet("STFST01", out h, ResourceNamespace.Sprites)
-        //    //    ? h.Dimension.Height
-        //    //    : 32;
-        //}
-        //else if (wrapper.FaceBackground != null)
-        //{
-        //    textures.Add(wrapper.FaceBackground);
-        //}
-
-        //if (wrapper.FaceBackground != null)
-        //    if (hud.Textures.TryGet("STFB0", out IRenderableTextureHandle? handle) ||
-        //        hud.Textures.TryGet("STFB0", out handle, ResourceNamespace.Sprites))
-        //        wrapper.FaceBackground.Handle = handle;
-
-        //"STFST01"
-        //"STFST01"
-        //"STFB0"
-        //"STFB0"
 
         StatusBarBaseDef? baseDef = null;
         if (wrapper.Canvas != null)
