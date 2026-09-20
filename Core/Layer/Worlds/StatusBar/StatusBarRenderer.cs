@@ -45,7 +45,7 @@ public enum StatusBarCoverage
 internal class FakeArrayTexture(string name) : IArrayTexture
 {
     public string FetchTextureName => name;
-    public GLLegacyTexture? Texture { get; set; }
+    public IRenderableTextureHandle? Handle { get; set; }
     public int ResolvedHeight { get; set; }
 }
 

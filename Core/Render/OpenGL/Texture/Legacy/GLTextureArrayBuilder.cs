@@ -1,5 +1,4 @@
 ﻿using Helion.Geometry;
-using Helion.Graphics;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Context;
 using Helion.Resources;
@@ -16,9 +15,9 @@ namespace Helion.Render.OpenGL.Texture.Legacy;
 
 public interface IArrayTexture
 {
-    public string FetchTextureName { get; }
-    public GLLegacyTexture? Texture { get; set; }
-    public int ResolvedHeight { get; set; }
+    string FetchTextureName { get; }
+    IRenderableTextureHandle? Handle { get; set; }
+    int ResolvedHeight { get; set; }
 }
 
 public record struct TextureBuckets(int MaxTextureIndex, TextureBucket[] Buckets);
@@ -154,7 +153,7 @@ public class GLTextureArrayBuilder(TextureManager textureManager, LegacyGLTextur
         {
             if (textureLookup.TryGetValue(texture.Index, out var findArrayTexture))
             {
-                findArrayTexture.Texture = texture.RenderStoreClamp as GLLegacyTexture;
+                findArrayTexture.Handle = (IRenderableTextureHandle)texture.RenderStoreClamp!;
                 textureManager.RegisterTexture(findArrayTexture.FetchTextureName, (IRenderableTextureHandle)texture.RenderStoreClamp!, ResourceNamespace.Undefined);
             }
         }

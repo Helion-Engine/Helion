@@ -175,7 +175,7 @@ public class StatusBarStringDef : StatusBarBaseDef, IArrayTexture
     public bool Translucency { get; set; }
 
     [JsonIgnore]
-    public GLLegacyTexture? Texture { get; set; }
+    public IRenderableTextureHandle? Handle { get; set; }
 
     [JsonIgnore]
     public string FetchTextureName => Font;
@@ -345,7 +345,7 @@ public class StatusBarNumberDef : StatusBarBaseDef, IArrayTexture
     [JsonPropertyName("translucency")]
     public bool Translucency { get; set; }
     [JsonIgnore]
-    public GLLegacyTexture? Texture { get; set; }
+    public IRenderableTextureHandle? Handle { get; set; }
     [JsonIgnore]
     public string FetchTextureName => Font;
 }
