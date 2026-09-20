@@ -34,6 +34,7 @@
 - Fix rendering issue with lines when changing transfer heights views.
 - Fix width, speed, and mass properties to default to zero for dehacked instead of using default decorate values.
 - Fix dynamic sky rendering issues.
+- Fix full status bar hud in SBARDEF not ignoring offsets for STBAR and correct health/armor number and percent sign positioning.
 
 ## Misc:
 - Use DrawArraysInstanced instead of geometry shader for sprite rendering (allows for MacOS support).
