@@ -245,12 +245,19 @@ public class LegacyHudRenderer : HudRenderer
         if (crop.HasValue)
         {
             var c = crop.Value;
-            
             u0 = c.Min.X / (float)texture.Dimension.Width;
             v0 = c.Min.Y / (float)texture.Dimension.Height;
             u1 = c.Max.X / (float)texture.Dimension.Width;
             v1 = c.Max.Y / (float)texture.Dimension.Height;
         }
+
+        // Dimensions less than 4 be clamped because the dimension stretching can cause out of bounds sampling issues (eg STYSNUM*). 5 and up appear to be fine.
+        // This behavior was observed on NVIDIA GPUs... doesn't appear to happen with Intel but clamping them always fixes it.
+        if (texture.Width <= 4 && drawArea.Width > texture.Width)
+            u1 = 1.0f - (1.0f / drawArea.Width / 2);
+
+        if (texture.Height <= 4 && drawArea.Height > texture.Height)
+            v1 = 1.0f - (1.0f / drawArea.Height / 2);
 
         // Remember that we are drawing along the Z for visual depth now.
         var topLeft = new HudVertex(
