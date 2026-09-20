@@ -17,18 +17,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 /// images. This right now is the best trade-off for the least amount of
 /// work.
 /// </remarks>
-public class HudDrawBuffer
+public class HudDrawBuffer(DataCache dataCache)
 {
     public readonly List<HudDrawBufferData> DrawBuffer = new(256);
 
-    private readonly DataCache m_dataCache;
+    private readonly DataCache m_dataCache = dataCache;
 
-    public HudDrawBuffer(DataCache dataCache)
-    {
-        m_dataCache = dataCache;
-    }
-
-    public void Add(GLLegacyTexture texture, HudQuad quad, GLLegacyTexture? brightmapTexture = null)
+    public void Add(GLLegacyTexture texture, in HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
         var hudDrawBuffer = GetOrCreate(texture, brightmapTexture);
 
