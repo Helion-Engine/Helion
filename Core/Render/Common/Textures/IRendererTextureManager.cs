@@ -26,7 +26,7 @@ public interface IRendererTextureManager : IDisposable
         return TryGet(name, out _, specificNamespace);
     }
 
-    public bool TryGetImage(string name, [NotNullWhen(true)] out Image? image, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null);
+    bool TryGetImage(string name, [NotNullWhen(true)] out Image? image, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null);
 
     /// <summary>
     /// Tries to get a handle for an image.
@@ -40,8 +40,6 @@ public interface IRendererTextureManager : IDisposable
     /// for the first time.  If 1, no upscaling is performed.</param>
     /// <returns>True if found, false if not.</returns>
     bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null);
-
-    void RegisterTexture(string name, IRenderableTextureHandle handle, ResourceNamespace resourceNamespace);
 
     /// <summary>
     /// Get a list of texture names
@@ -66,6 +64,8 @@ public interface IRendererTextureManager : IDisposable
     /// <param name="name">Name of the texture</param>
     /// <param name="resourceNamespace">Namespace for the texture</param>
     void RemoveTexture(string name, ResourceNamespace resourceNamespace);
+
+    void RegisterTexture(string name, IRenderableTextureHandle handle, ResourceNamespace resourceNamespace);
 
     bool CreateTextureArray(Span<Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker);
 }

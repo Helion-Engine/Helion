@@ -1,7 +1,6 @@
 ﻿using Helion.Geometry;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Assertion;
@@ -11,16 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
-
-public interface IArrayTexture
-{
-    string FetchTextureName { get; }
-    IRenderableTextureHandle? Handle { get; set; }
-    int ResolvedHeight { get; set; }
-}
 
 public record struct TextureBuckets(int MaxTextureIndex, TextureBucket[] Buckets);
 public record struct TextureBucket(Dimension Dimension, DynamicArray<Resources.Texture> Textures);

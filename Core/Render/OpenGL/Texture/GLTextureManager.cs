@@ -142,7 +142,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
     public bool TryGetImage(string name, [NotNullWhen(true)] out Image? image, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null)
     {
-        if (TryGetImage(name, specificNamespace ?? ResourceNamespace.Undefined, out image, out var fetchedNamespace, upscalingFactor, brightmap))
+        if (TryGetImage(name, specificNamespace ?? ResourceNamespace.Undefined, out image, out _, upscalingFactor, brightmap))
         {
             return true;
         }
@@ -221,12 +221,12 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
         // Now that nothing in the desired namespace was found, we will
         // accept anything.
-        //GLTextureType? anyTexture = TextureTracker.Get(name, priorityNamespace);
-        //if (anyTexture != null)
-        //{
-        //    texture = anyTexture;
-        //    return true;
-        //}
+        var anyTexture = TextureTracker.Get(name, priorityNamespace);
+        if (anyTexture != null)
+        {
+            texture = anyTexture;
+            return true;
+        }
 
         return false;
     }
@@ -270,7 +270,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             textures[i] = texture;
         }
 
-        var fitImage = new Image(dimension, images[0].ImageType);
+        Image? fitImage = null;
 
         var arraySubTextures = GenerateTextureArray(imageIndex =>
         {
@@ -278,6 +278,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             if (image.Width == dimension.Width && image.Height == dimension.Height)
                 return new(image, image.Dimension);
 
+            fitImage ??= new Image(dimension, images[0].ImageType);
             fitImage.CopyPixelsFrom(image);
             fitImage.Offset = image.Offset;
             return new(fitImage, image.Dimension);

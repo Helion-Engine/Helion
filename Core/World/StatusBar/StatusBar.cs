@@ -6,8 +6,7 @@ namespace Helion.World.StatusBar;
 
 public class PlayerStatusBar
 {
-
-    private static readonly List<string> Faces = [];
+    public static readonly List<string> Faces = [];
 
     private const int PainFaces = 5;
     private const int StraightFaces = 3;

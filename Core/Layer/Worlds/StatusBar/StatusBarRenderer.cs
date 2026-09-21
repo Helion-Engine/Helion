@@ -373,7 +373,14 @@ public class StatusBarRenderer
             for (int i = 33; i <= 95; i++)
                 textures.Add(new FakeArrayTexture($"{item.Value.Stem}0{i}"));
             textures.Add(new FakeArrayTexture($"{item.Value.Stem}{121}"));
+            textures.Add(new FakeArrayTexture($"{item.Value.Stem}{"MINUS"}"));
+            textures.Add(new FakeArrayTexture($"{item.Value.Stem}{"PRCNT"}"));
+            textures.Add(new FakeArrayTexture($"{item.Value.Stem}{"PRCN"}"));
+            textures.Add(new FakeArrayTexture($"{item.Value.Stem}{"PERCENT"}"));
         }
+
+        foreach (var face in PlayerStatusBar.Faces)
+            textures.Add(new FakeArrayTexture(face));
 
         textures.Add(new FakeArrayTexture("STFB1"));
     }
