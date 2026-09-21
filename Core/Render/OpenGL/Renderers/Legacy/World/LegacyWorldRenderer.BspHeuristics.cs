@@ -15,8 +15,6 @@ public partial class LegacyWorldRenderer
     private int m_aboveThresholdCount;
     private int m_belowThresholdCount;
     private int m_lastProcessedId;
-    private int m_adaptiveSuggestionsHitCount;
-    private bool m_loggedAdaptiveSuggestion;
 
     private bool UseBspBasedOnHeuristic(IWorld world)
     {
@@ -28,7 +26,6 @@ public partial class LegacyWorldRenderer
 
         if (m_config.Render.Mode.Value == AdaptiveRenderMode.Static || m_bspHeuristics?.Valid == false)
         {
-            CheckAdaptiveSuggest(world);
             m_bspHeuristics?.Info.UseBsp = false;
             return false;
         }
@@ -88,38 +85,6 @@ public partial class LegacyWorldRenderer
         m_bspHeuristics.Info.SegCount = m_bspHeuristics.SegCount;
         m_bspHeuristics.Info.UseBsp = shouldUseBsp;
         return m_bspHeuristics.Info.UseBsp;
-    }
-
-    private void CheckAdaptiveSuggest(IWorld world)
-    {
-        if (m_bspHeuristics == null || m_loggedAdaptiveSuggestion || world.GameTicker < 70 ||
-            m_lastProcessedId == m_bspHeuristics.LastProcessedId || !m_bspHeuristics.Valid)
-        {
-            return;
-        }
-        
-        m_lastProcessedId = m_bspHeuristics.LastProcessedId;
-
-        // Swap buffers should take most of the time if the GPU is stressed. Include WorldGeometry generation time.
-        // Don't rely on the tracked FPS average because this includes things like entity AI and automap rendering that can throw this off.
-        var renderTimeMs = m_renderProfiler.SwapBuffers.LastFrameMilliseconds + m_renderProfiler.WorldGeometry.LastFrameMilliseconds;
-        var milliseconds = m_worldGeometryWindow.AddSampleAndCalcMedian(renderTimeMs);
-        if (!m_worldGeometryWindow.IsInitialized)
-            return;
-
-        if (milliseconds < 1000 / 60.0 || (m_config.Render.MaxFPS.Value != 0 && milliseconds < 1000.0 / m_config.Render.MaxFPS.Value))
-            return;
-
-        if (m_bspHeuristics.Microseconds >= m_config.Render.Adaptive.TimeThreshold.Value * 0.7)
-            return;
-        
-        m_adaptiveSuggestionsHitCount++;
-        if (m_adaptiveSuggestionsHitCount >= 3)
-        {
-            var args = new DisplayMessageArgs("Low FPS detected. Considering switching to adaptive rendering mode. (render.mode 2)", null, null, ForAllPlayers: true);
-            world.DisplayMessage(args);
-            m_loggedAdaptiveSuggestion = true;
-        }        
     }
 
     private double AddBspTimeSample(double time)
