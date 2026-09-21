@@ -22,7 +22,7 @@ public class HudDrawBuffer
 
     private readonly DynamicArray<HudDrawBufferData> m_freeDrawBuffers = new(256);
 
-    public void Add(GLLegacyTexture texture, HudQuad quad, GLLegacyTexture? brightmapTexture = null)
+    public void Add(GLLegacyTexture texture, in HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
         texture = texture.ParentArrayTexture ?? texture;
         var hudDrawBuffer = GetOrCreate(texture, brightmapTexture);
