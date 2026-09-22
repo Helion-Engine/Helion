@@ -55,7 +55,7 @@ public partial class SpanString
         m_chars.Add(c);
     }
 
-    public void Append(int number, int pad = 0, char padChar = '0')
+    public void Append(int number, int pad = 0, char padChar = '0', int maxLength = 0)
     {
         if (number == 0)
         {
@@ -71,14 +71,16 @@ public partial class SpanString
 
         int length = m_chars.Length;
         int addCount = 0;
-        int countValue = Math.Abs(number);
+        int countValue = number == int.MinValue ? int.MaxValue : Math.Abs(number);
+        int value = countValue;
         while (countValue > 0)
         {
             addCount++;
             countValue /= 10;
         }
 
-        if (number < 0)
+        var negative = number < 0;
+        if (negative)
         {
             Append('-');
             addCount++;
@@ -92,11 +94,18 @@ public partial class SpanString
             pad--;
         }
 
+        if (maxLength > 0)
+        {
+            int digitCount = addCount - (negative ? 1 : 0);
+            if (digitCount > maxLength)
+                addCount -= digitCount - maxLength;
+        }
+
         m_chars.EnsureCapacity(length + addCount);
 
         int index = 0;
-        int value = Math.Abs(number);
-        while (value > 0)
+        int digitsToWrite = addCount - (negative ? 1 : 0);
+        while (value > 0 && index < digitsToWrite)
         {
             int digit = (value % 10);
             value /= 10;

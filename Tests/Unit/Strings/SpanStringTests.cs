@@ -77,6 +77,74 @@ public class SpanStringTests
         CompareString(str, "x0:xxx123");
     }
 
+    [Fact(DisplayName = "Number max length")]
+    public void NumberMaxLength()
+    {
+        SpanString str = new();
+        str.Append(123, maxLength: 3);
+        CompareString(str, "123");
+
+        str = new();
+        str.Append(-123, maxLength: 3);
+        CompareString(str, "-123");
+
+        str = new();
+        str.Append(1234, maxLength: 3);
+        CompareString(str, "234");
+
+        str = new();
+        str.Append(-1234, maxLength: 3);
+        CompareString(str, "-234");
+
+        str = new();
+        str.Append(12, maxLength: 5);
+        CompareString(str, "12");
+
+        str = new();
+        str.Append(987, maxLength: 1);
+        CompareString(str, "7");
+
+        str = new();
+        str.Append(-987, maxLength: 1);
+        CompareString(str, "-7");
+
+        str = new();
+        str.Append(12345, maxLength: 0);
+        CompareString(str, "12345");
+
+        str = new();
+        str.Append(-12345, maxLength: 0);
+        CompareString(str, "-12345");
+
+        str = new();
+        str.Append(12, pad: 5, padChar: '0', maxLength: 5);
+        CompareString(str, "00012");
+
+        str = new();
+        str.Append(123456, pad: 8, padChar: '0', maxLength: 4);
+        CompareString(str, "3456");
+
+        str = new();
+        str.Append(-123456, pad: 8, padChar: '0', maxLength: 4);
+        CompareString(str, "-3456");
+
+        str = new();
+        str.Append(0, maxLength: 1);
+        CompareString(str, "0");
+
+        str = new();
+        str.Append(0, maxLength: 5);
+        CompareString(str, "0");
+
+        str = new();
+        str.Append(int.MinValue, maxLength: 3);
+        CompareString(str, "-647");
+
+        str = new();
+        str.Append(int.MaxValue, maxLength: 3);
+        CompareString(str, "647");
+    }
+
     private static void CompareString(SpanString spanString, string str)
     {        
         spanString.Length.Should().Be(str.Length);

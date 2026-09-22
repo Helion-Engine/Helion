@@ -93,10 +93,10 @@ public class StatusBarRenderer
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly ConfigHud m_config;
-    private readonly List<CoordData> m_coordPartsCache = new(16);
+    private readonly DynamicArray<CoordData> m_coordPartsCache = new(16);
     private readonly SpanString m_fmtSpan = new();
     private readonly Dictionary<string, StatusBarNumberFontDef> m_fontNumberLookup = [];
-    private readonly List<RenderGlyph> m_glyphCache = new(256);
+    private readonly DynamicArray<RenderGlyph> m_glyphCache = new(256);
     private readonly Dictionary<string, StatusBarHudFontDef> m_hudFontLookup = [];
     private readonly SpanString m_lookupKeySpan = new(128);
     private readonly LookupArray<EntityDefinition> m_id24PickupTypeLookup = new();
@@ -112,7 +112,7 @@ public class StatusBarRenderer
     private float m_hOffset;
     private Vec2F m_scale = Vec2F.One;
 
-    private readonly HashSet<StatusBarLayoutDef> m_resolvedLayouts = new();
+    private readonly HashSet<StatusBarLayoutDef> m_resolvedLayouts = [];
     private Dimension m_lastWindowDimension;
     private float m_lastUserScale = -1f;
 
@@ -345,18 +345,6 @@ public class StatusBarRenderer
         m_ctx = default;
     }
 
-    internal sealed class UniqueArrayTextures
-    {
-        public DynamicArray<IArrayTexture> ArrayTextures = new(256);
-        public HashSet<string> UniqueNames = new(256);
-
-        public void Add(IArrayTexture arrayTexture)
-        {
-            if (UniqueNames.Add(arrayTexture.FetchTextureName))
-                ArrayTextures.Add(arrayTexture);
-        }
-    }
-
     private void EnsureTexturesResolved(IHudRenderContext hud, StatusBarLayoutDef layout, UniqueArrayTextures textures)
     {
         foreach (StatusBarElementWrapper t in layout.Children)
@@ -372,7 +360,7 @@ public class StatusBarRenderer
         {
             for (int i = 33; i <= 95; i++)
                 textures.Add(new FakeArrayTexture($"{item.Value.Stem}0{i}"));
-            textures.Add(new FakeArrayTexture($"{item.Value.Stem}{121}"));
+            textures.Add(new FakeArrayTexture($"{item.Value.Stem}121"));
             textures.Add(new FakeArrayTexture($"{item.Value.Stem}{"MINUS"}"));
             textures.Add(new FakeArrayTexture($"{item.Value.Stem}{"PRCNT"}"));
             textures.Add(new FakeArrayTexture($"{item.Value.Stem}{"PRCN"}"));
@@ -920,25 +908,26 @@ public class StatusBarRenderer
         string? translation,
         float alpha)
     {
-        if (text.IsEmpty) return;
+        if (text.IsEmpty)
+            return;
 
         Vec2I drawPos = pos;
         int lineStart = 0;
 
         for (int i = 0; i < text.Length; i++)
         {
-            if (text[i] != '\n') continue;
+            if (text[i] != '\n')
+                continue;
             ReadOnlySpan<char> line = text[lineStart..i];
             DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
             drawPos.Y += (int)(fontHeight * m_scale.Y);
             lineStart = i + 1;
         }
 
-        if (lineStart >= text.Length) return;
-        {
-            ReadOnlySpan<char> line = text[lineStart..];
-            DrawSingleLine(hud, line, drawPos, fontDef, alignment, translation, alpha);
-        }
+        if (lineStart >= text.Length)
+            return;
+
+        DrawSingleLine(hud, text[lineStart..], drawPos, fontDef, alignment, translation, alpha);
     }
 
     private void DrawSingleLine(IHudRenderContext hud,
@@ -990,11 +979,13 @@ public class StatusBarRenderer
         int maxHeight = 0;
 
         m_glyphCache.Clear();
+        m_glyphCache.EnsureCapacity(text.Length);
 
         var monoWidth = GetFontMonoWidth(hud, fontDef.Type, fontDef.Stem, fontDef, HudType0WidthCache, HudType1WidthCache, m_getHudFontPatch);
 
-        foreach (char originalChar in text)
+        for (int i = 0; i < text.Length; i++)
         {
+            var originalChar = text[i];
             int width;
             string patch = string.Empty;
             char c = originalChar;
@@ -1002,11 +993,12 @@ public class StatusBarRenderer
             if (c == ' ')
             {
                 string bang = GetHudFontPatch(hud, fontDef, '!');
-                width = hud.Textures.TryGet(bang, out IRenderableTextureHandle? h) ? h.Dimension.Width : 4;
+                width = hud.Textures.TryGet(bang, out var h) ? h.Dimension.Width : 4;
             }
             else
             {
-                if (char.IsLower(c)) c = char.ToUpper(c, CultureInfo.InvariantCulture);
+                if (char.IsLower(c))
+                    c = char.ToUpper(c, CultureInfo.InvariantCulture);
 
                 patch = GetHudFontPatch(hud, fontDef, c);
                 bool found = ResolveGlyph(hud, patch, out width, out int height);
@@ -1023,19 +1015,23 @@ public class StatusBarRenderer
                     }
                 }
 
-                if (found) maxHeight = Math.Max(maxHeight, height);
-                else patch = string.Empty;
+                if (found)
+                    maxHeight = MathHelper.Max(maxHeight, height);
+                else
+                    patch = string.Empty;
             }
 
             if (monoWidth > 0)
                 width = monoWidth;
 
             int scaledWidth = (int)(width * m_scale.X);
-            m_glyphCache.Add(new RenderGlyph(patch, scaledWidth, 0));
+            m_glyphCache.Data[i] = new RenderGlyph(patch, scaledWidth, 0);
             totalWidth += scaledWidth;
         }
 
-        if (m_glyphCache.Count == 0 && text.Length > 0)
+        m_glyphCache.Length = text.Length;
+
+        if (m_glyphCache.Length == 0 && text.Length > 0)
             return 0;
         if (!draw)
             return totalWidth;
@@ -1054,10 +1050,15 @@ public class StatusBarRenderer
         else if ((alignment & StatusBarAlignment.VCenter) != 0)
             drawY -= scaledMaxHeight / 2;
 
-        foreach (RenderGlyph g in m_glyphCache)
+        Vec2I drawPos = new(0, drawY);
+        for (int i = 0; i < m_glyphCache.Length; i++)
         {
+            ref var g = ref m_glyphCache.Data[i];
             if (!string.IsNullOrEmpty(g.Patch))
-                DrawSBarTexture(hud, g.Patch, null, (drawX, drawY), Align.TopLeft, alignment, translation, alpha);
+            {
+                drawPos.X = drawX;
+                DrawSBarTexture(hud, g.Patch, null, drawPos, Align.TopLeft, alignment, translation, alpha);
+            }
             drawX += g.Width;
         }
 
@@ -1194,25 +1195,10 @@ public class StatusBarRenderer
         if (!m_resolver.Evaluate(m_ctx, number))
             return;
 
-        int value = ResolveNumberValue(m_ctx.Player, number.Type, number.Param);
-
-        if (number.MaxLength > 0)
-        {
-            int maxVal = (int)Math.Pow(10, number.MaxLength) - 1;
-            int minVal = -(int)Math.Pow(10, number.MaxLength - 1) + 1;
-            if (value > maxVal) value = maxVal;
-            if (value < minVal) value = minVal;
-        }
+        var value = ResolveNumberValue(m_ctx.Player, number.Type, number.Param);
 
         if (!m_fontNumberLookup.TryGetValue(number.Font, out StatusBarNumberFontDef? fontDef))
             return;
-
-        m_fmtSpan.Clear();
-        m_fmtSpan.Append(value);
-        if (isPercent)
-            m_fmtSpan.Append('%');
-
-        ReadOnlySpan<char> text = m_fmtSpan.AsSpan();
 
         Vec2I pos = ResolvePosition(number, parentPos, widescreenOffset);
 
@@ -1222,13 +1208,22 @@ public class StatusBarRenderer
 
         m_glyphCache.Clear();
 
-        foreach (char c in text)
+        m_fmtSpan.Clear();
+        m_fmtSpan.Append(value, maxLength: number.MaxLength);
+        if (isPercent)
+            m_fmtSpan.Append('%');
+        var text = m_fmtSpan.AsSpan();
+
+        m_glyphCache.EnsureCapacity(text.Length);
+
+        for (int i = 0; i < text.Length; i++)
         {
+            var c = text[i];
             string patch = GetFontPatch(hud, fontDef, c);
             int width;
             int xOffset = 0;
 
-            if (hud.Textures.TryGet(patch, out IRenderableTextureHandle? handle) || hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites))
+            if (hud.Textures.TryGet(patch, out var handle) || hud.Textures.TryGet(patch, out handle, ResourceNamespace.Sprites))
                 width = handle.Dimension.Width;
             else
                 continue;
@@ -1237,9 +1232,11 @@ public class StatusBarRenderer
                 width = monoWidth;
 
             int scaledWidth = (int)(width * m_scale.X);
-            m_glyphCache.Add(new RenderGlyph(patch, scaledWidth, (int)(xOffset * m_scale.X), handle));
+            m_glyphCache.Data[i] = new RenderGlyph(patch, scaledWidth, (int)(xOffset * m_scale.X), handle);
             totalWidth += scaledWidth;
         }
+
+        m_glyphCache.Length = text.Length;
 
         int drawX = pos.X;
         int drawY = pos.Y;
@@ -1253,11 +1250,13 @@ public class StatusBarRenderer
         if ((number.Alignment & StatusBarAlignment.Bottom) != 0) 
             yAnchor = Align.BottomLeft;
         else if ((number.Alignment & StatusBarAlignment.VCenter) != 0) 
-            yAnchor = Align.MiddleLeft; 
+            yAnchor = Align.MiddleLeft;
 
-        foreach (RenderGlyph g in m_glyphCache)
+        Vec2I drawPos = new(0, drawY);
+        for (int i = 0; i < m_glyphCache.Length; i++)
         {
-            Vec2I drawPos = (drawX + g.Offset, drawY);
+            ref var g = ref m_glyphCache.Data[i];
+            drawPos.X = drawX + g.Offset;
             DrawSBarTexture(hud, g.Patch, g.Handle, drawPos, yAnchor, number.Alignment, number.Translation, alpha);
             drawX += g.Width;
         }
@@ -1324,16 +1323,17 @@ public class StatusBarRenderer
         m_coordPartsCache.Add(new CoordData("Z: ", (int)playerPos.Z, 0, 0));
 
         int totalHorizontalWidth = 0;
-        for (int i = 0; i < m_coordPartsCache.Count; i++)
+        for (int i = 0; i < m_coordPartsCache.Length; i++)
         {
-            CoordData data = m_coordPartsCache[i];
+            ref var data = ref m_coordPartsCache.Data[i];
             int lw = MeasureSpan(hud, data.Label.AsSpan(), "CRGREEN", fontDef, alpha);
             m_fmtSpan.Clear();
             m_fmtSpan.Append(data.Value);
             int vw = MeasureSpan(hud, m_fmtSpan.AsSpan(), comp.Translation, fontDef, alpha);
             m_coordPartsCache[i] = data with { LabelWidth = lw, ValWidth = vw };
             totalHorizontalWidth += lw + vw;
-            if (i < m_coordPartsCache.Count - 1) totalHorizontalWidth += (int)(8 * m_scale.X);
+            if (i < m_coordPartsCache.Count - 1)
+                totalHorizontalWidth += (int)(8 * m_scale.X);
         }
 
         Vec2I cursor = pos;
