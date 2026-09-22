@@ -138,6 +138,9 @@ public abstract class StatusBarBaseDef
 
     [JsonIgnore]
     public ElementBounds LastBounds { get; set; }
+
+    public virtual bool IsFont() => false;
+    public virtual string GetFont() => string.Empty;
 }
 
 public class StatusBarCanvasDef : StatusBarBaseDef { }
@@ -179,6 +182,8 @@ public class StatusBarStringDef : StatusBarBaseDef, IArrayTexture
 
     [JsonIgnore]
     public string FetchTextureName => Font;
+    public override bool IsFont() => true;
+    public override string GetFont() => Font;
 }
 
 public class StatusBarFaceDef : StatusBarBaseDef 
@@ -348,6 +353,8 @@ public class StatusBarNumberDef : StatusBarBaseDef, IArrayTexture
     public IRenderableTextureHandle? Handle { get; set; }
     [JsonIgnore]
     public string FetchTextureName => Font;
+    public override bool IsFont() => true;
+    public override string GetFont() => Font;
 }
 
 public struct StatusBarConditionDef

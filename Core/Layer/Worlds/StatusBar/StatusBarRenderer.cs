@@ -293,6 +293,8 @@ public class StatusBarRenderer
 
             if (uniqueTextures.ArrayTextures.Length > 0)
                 GLTextureArrayBuilder.BuildHud(hud.Textures, uniqueTextures.ArrayTextures);
+
+            ResolveFontSizes(hud, uniqueTextures);
         }
 
         const int Width = 320;
@@ -343,6 +345,32 @@ public class StatusBarRenderer
         hud.PopVirtualDimension();
         m_invalidateBounds = false;
         m_ctx = default;
+    }
+
+    private void ResolveFontSizes(IHudRenderContext hud, UniqueArrayTextures uniqueTextures)
+    {
+        foreach (var texture in uniqueTextures.FontItems)
+        {
+            var font = texture.GetFont();
+            if (string.IsNullOrEmpty(font))
+                continue;
+
+            const int DefaultHeight = 8;
+            if (m_hudFontLookup.TryGetValue(font, out var fontDef))
+            {
+                var zeroPatch = GetHudFontPatch(hud, fontDef, '0');
+                texture.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out var h) ? h.Dimension.Height : hud.GetFontMaxHeight(fontDef.Stem);
+            }
+            else if (m_fontNumberLookup.TryGetValue(font, out var numberFontDef))
+            {
+                var zeroPatch = GetFontPatch(hud, numberFontDef, '0');
+                texture.ResolvedHeight = hud.Textures.TryGet(zeroPatch, out var h) ? h.Dimension.Height : DefaultHeight;
+            }
+            else
+            {
+                texture.ResolvedHeight = DefaultHeight;
+            }
+        }
     }
 
     private void EnsureTexturesResolved(IHudRenderContext hud, StatusBarLayoutDef layout, UniqueArrayTextures textures)
@@ -415,6 +443,9 @@ public class StatusBarRenderer
             baseDef = wrapper.Component;
         else if (wrapper.FaceBackground != null)
             baseDef = wrapper.FaceBackground;
+
+        if (baseDef != null)
+            textures.AddBaseDef(baseDef);
 
         if (baseDef?.Children == null)
             return;

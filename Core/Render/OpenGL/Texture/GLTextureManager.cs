@@ -30,7 +30,6 @@ public enum TextureFlags
     ClampY = 2,
 }
 
-
 public readonly record struct ArrayTextureImage(Image Image, Dimension OriginalDimension);
 public delegate ArrayTextureImage GetImageFunc(int index);
 
