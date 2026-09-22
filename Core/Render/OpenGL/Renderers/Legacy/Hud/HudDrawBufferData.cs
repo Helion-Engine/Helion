@@ -5,7 +5,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
 public class HudDrawBufferData(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
 {
-    public int RenderCount;
     public GLLegacyTexture Texture = texture;
     public GLLegacyTexture? BrightmapTexture = brightmapTexture;
     public readonly DynamicArray<HudVertex> Vertices = new(128, arrayPool: true);

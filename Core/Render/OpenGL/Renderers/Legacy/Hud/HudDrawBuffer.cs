@@ -24,7 +24,6 @@ public class HudDrawBuffer
 
     public void Add(GLLegacyTexture texture, in HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
-        texture = texture.ParentArrayTexture ?? texture;
         var hudDrawBuffer = GetOrCreate(texture, brightmapTexture);
 
         var length = hudDrawBuffer.Vertices.Length;
@@ -51,7 +50,8 @@ public class HudDrawBuffer
 
     public HudDrawBufferData GetOrCreate(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        if (DrawBuffer.Empty())
+        texture = texture.ParentArrayTexture ?? texture;
+        if (DrawBuffer.Length == 0)
             return AllocateNewAndAdd(texture, brightmapTexture);
 
         var front = DrawBuffer.Data[DrawBuffer.Length - 1];

@@ -167,10 +167,10 @@ public class LegacyHudRenderer : HudRenderer
 
         m_pipeline.Bind();
 
-        for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
+        for (int i = 0; i < m_drawBuffer.DrawBuffer.Length; i++)
         {
-            var data = m_drawBuffer.DrawBuffer[i];
-            if (data.Vertices.Count == 0)
+            ref var data = ref m_drawBuffer.DrawBuffer.Data[i];
+            if (data.Vertices.Length == 0)
                 continue;
 
             UploadVerticesToVbo(data);
