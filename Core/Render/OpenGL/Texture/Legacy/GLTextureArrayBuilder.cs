@@ -44,7 +44,7 @@ public static class GLTextureArrayBuilder
 
         var totalTextures = flatTextures.Count() + wallTexturesRepeat.Count() + wallTexturesClamp.Count();
         var animated = totalTextures - buildTextures;
-        DebugLog(totalTextures, arrayTextures + animated);
+        DebugLog(TextureContext.WorldArray, totalTextures, arrayTextures + animated);
     }
 
     public static TextureBuckets BuildSprites(LegacyGLTextureManager glTextureManager, DynamicArray<SpriteDefinition> spriteDefinitions)
@@ -77,10 +77,11 @@ public static class GLTextureArrayBuilder
         const int BaseSize = 32;
         const int BucketCount = 5;
         var buckets = CreateTextureBuckets(spriteTextures, BaseSize, BucketCount);
+        var textureArrayCount = 0;
         for (int i = 0; i < buckets.Length - 1; i++)
         {
             var bucket = buckets[i];
-            BuildTextureArray(glTextureManager, bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY, bucket.Dimension, false);
+            textureArrayCount += BuildTextureArray(glTextureManager, bucket.Textures.Data.AsSpan(0, bucket.Textures.Length), TextureContext.WorldSprites, TextureFlags.ClampX | TextureFlags.ClampY, bucket.Dimension, false);
         }
 
         foreach (var spriteDefinition in spriteDefinitions)
@@ -115,6 +116,7 @@ public static class GLTextureArrayBuilder
             }
         }
 
+        DebugLog(TextureContext.WorldSprites, spriteTextures.Count, textureArrayCount);
         return new(maxIndex, buckets);
     }
 
@@ -137,7 +139,7 @@ public static class GLTextureArrayBuilder
             }
         }
 
-        BuildTextureArrayFromTextures(renderTextureManager, textures, TextureContext.Hud, TextureFlags.ClampX | TextureFlags.ClampY, true);
+        var textureArrayCount = BuildTextureArrayFromTextures(renderTextureManager, textures, TextureContext.Hud, TextureFlags.ClampX | TextureFlags.ClampY, true);
 
         foreach (var texture in textures)
         {
@@ -150,12 +152,14 @@ public static class GLTextureArrayBuilder
                 renderTextureManager.RegisterTexture(findArrayTexture.FetchTextureName, handle, ResourceNamespace.Undefined);
             }
         }
+
+        DebugLog(TextureContext.Hud, textures.Length, textureArrayCount);
     }
 
     [Conditional("DEBUG")]
-    private static void DebugLog(int totalTextures, int compressed)
+    private static void DebugLog(TextureContext textureContext, int totalTextures, int compressed)
     {
-        HelionLog.Info($"Compressed textures {totalTextures} -> {compressed}");
+        HelionLog.Info($"Compressed {textureContext} textures {totalTextures} -> {compressed}");
     }
 
     private static int BuildTextureArrayFromTextures(IRendererTextureManager renderTextureManager, DynamicArray<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, bool addToTextureTracker = false)
@@ -238,7 +242,7 @@ public static class GLTextureArrayBuilder
         }
 
         var arrayTexture = textureManager.CreateTextureArray(textures, textureContext, textureFlags, dimension, addToTextureTracker);
-        return arrayTexture ? 0 : 1;
+        return arrayTexture ? 1 : 0;
     }
 
     private static TextureBucket[] CreateTextureBuckets(DynamicArray<Resources.Texture> textures, int baseSize, int bucketCount)
