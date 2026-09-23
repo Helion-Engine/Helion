@@ -22,6 +22,10 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
     [OptionMenu(OptionSectionType.Audio, "Sound Volume", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
     public readonly ConfigValue<double> SoundVolume = new(1.0, Clamp(0, 2.0));
 
+    [ConfigInfo("Play sound effect when player discovers a secret.")]
+    [OptionMenu(OptionSectionType.Audio, "Enable Secret Sound")]
+    public readonly ConfigValue<bool> EnableSecretSound = new(true);
+
     [ConfigInfo("Enables sound velocity.")]
     [OptionMenu(OptionSectionType.Audio, "Sound Velocity", spacer: true)]
     public readonly ConfigValue<bool> Velocity = new(false);
