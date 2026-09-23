@@ -98,7 +98,7 @@ public partial class Renderer : IDisposable
 
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, renderProfiler);
-        m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache, renderProfiler);
+        m_hudRenderer = new LegacyHudRenderer(config, Textures, renderProfiler);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);

@@ -237,8 +237,8 @@ public partial class GeometryRenderer : IDisposable
         {
             if (!world.SameAsPreviousMap && loadTextureCounts != null)
             {
-                var arrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_glTextureManager);
-                arrayBuilder.BuildLevel(loadTextureCounts.FlatTextures, loadTextureCounts.WallTexturesRepeat, loadTextureCounts.WallTexturesClamp);
+                GLTextureArrayBuilder.BuildLevel(m_archiveCollection.TextureManager, m_glTextureManager, loadTextureCounts.FlatTextures, 
+                    loadTextureCounts.WallTexturesRepeat, loadTextureCounts.WallTexturesClamp);
             }
 
             Portals.UpdateTo(world);

@@ -126,8 +126,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (!m_spritesCached)
         {
-            var textureArrayBuilder = new GLTextureArrayBuilder(m_archiveCollection.TextureManager, m_textureManager);
-            SpriteTextureBuckets = textureArrayBuilder.BuildSprites(m_archiveCollection.TextureManager.SpriteDefinitions);
+            SpriteTextureBuckets = GLTextureArrayBuilder.BuildSprites(m_textureManager, m_archiveCollection.TextureManager.SpriteDefinitions);
             m_spritesCached = true;
         }
 

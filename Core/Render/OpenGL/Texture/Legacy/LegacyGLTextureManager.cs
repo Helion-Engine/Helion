@@ -227,7 +227,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     {
         var textures = new GLLegacyTexture[imageLength];
         int textureId = GL.GenTexture();
-        arrayTexture = new GLLegacyTexture(textureId, $"Texture Array Length={imageLength} {flags}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0,
+        arrayTexture = new GLLegacyTexture(textureId, $"Texture Array {textureContext} {dimension} Length={imageLength}", dimension, default, resourceNamespace, TextureTarget.Texture2DArray, 0, 0, 0,
             textureContext: textureContext);
         var parentArrayTexture = arrayTexture;
         UploadAndSetParameters3D(arrayTexture, getImage, imageLength, arrayTexture.Name, resourceNamespace, flags, dimension, (imageIndex, image, imageDimension) =>

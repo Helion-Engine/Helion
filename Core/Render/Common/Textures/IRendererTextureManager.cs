@@ -1,8 +1,11 @@
+using Helion.Geometry;
+using Helion.Graphics;
+using Helion.Render.OpenGL.Texture;
+using Helion.Resources;
+using Helion.Resources.Definitions.Zdoom;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Resources;
-using Helion.Resources.Definitions.Zdoom;
 
 namespace Helion.Render.Common.Textures;
 
@@ -22,6 +25,8 @@ public interface IRendererTextureManager : IDisposable
     {
         return TryGet(name, out _, specificNamespace);
     }
+
+    bool TryGetImage(string name, [NotNullWhen(true)] out Image? image, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1, BrightmapDefinition? brightmap = null);
 
     /// <summary>
     /// Tries to get a handle for an image.
@@ -59,4 +64,8 @@ public interface IRendererTextureManager : IDisposable
     /// <param name="name">Name of the texture</param>
     /// <param name="resourceNamespace">Namespace for the texture</param>
     void RemoveTexture(string name, ResourceNamespace resourceNamespace);
+
+    void RegisterTexture(string name, IRenderableTextureHandle handle, ResourceNamespace resourceNamespace);
+
+    bool CreateTextureArray(Span<Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker);
 }

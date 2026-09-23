@@ -31,6 +31,9 @@ public readonly struct HudVertex
     [VertexAttribute("hasFuzz")]
     public readonly float DrawFuzz;
 
+    [VertexAttribute("textureIndex")]
+    public readonly float TextureIndex;
+
     [VertexAttribute("drawPalette", required: false)]
     public readonly float DrawPalette;
 
@@ -38,7 +41,7 @@ public readonly struct HudVertex
     public readonly float ColorMapIndex;
 
     public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawColorMap, 
-        bool drawFuzz, bool drawPalette, int colorMapIndex)
+        bool drawFuzz, bool drawPalette, int colorMapIndex, int textureIndex)
     {
         X = x;
         Y = y;
@@ -54,5 +57,6 @@ public readonly struct HudVertex
         DrawFuzz = drawFuzz ? 1.0f : 0.0f;
         DrawPalette = drawPalette ? 1.0f : 0.0f;
         ColorMapIndex = colorMapIndex;
+        TextureIndex = textureIndex;
     }
 }

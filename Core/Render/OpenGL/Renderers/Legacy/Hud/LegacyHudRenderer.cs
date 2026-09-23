@@ -29,14 +29,14 @@ public class LegacyHudRenderer : HudRenderer
     private readonly RenderProfiler m_renderProfiler;
     private float DrawDepth = 1.0f;
 
-    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, DataCache dataCache, RenderProfiler renderProfiler)
+    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderProfiler renderProfiler)
     {
         m_config = config;
         m_textureManager = textureManager;
         m_renderProfiler = renderProfiler;
         m_program = new();
         m_pipeline = new(m_program, new StreamVertexBuffer<HudVertex>("Hud"), "Hud");
-        m_drawBuffer = new(dataCache);
+        m_drawBuffer = new();
     }
 
     ~LegacyHudRenderer()
@@ -138,7 +138,7 @@ public class LegacyHudRenderer : HudRenderer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private HudVertex MakeVertex(float x, float y, float u, float v, in RenderableGlyph glyph, float alpha, bool drawPalette)
     {
-        return new(x, y, DrawDepth, u, v, glyph.Color.R, glyph.Color.G, glyph.Color.B, glyph.Color.A, alpha, false, false, drawPalette, 0);
+        return new(x, y, DrawDepth, u, v, glyph.Color.R, glyph.Color.G, glyph.Color.B, glyph.Color.A, alpha, false, false, drawPalette, 0, 0);
     }
 
     public override void Render(Rectangle viewport, Dimension windowDimension, Dimension virtualDimension, ShaderUniforms uniforms)
@@ -167,9 +167,12 @@ public class LegacyHudRenderer : HudRenderer
 
         m_pipeline.Bind();
 
-        for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
+        for (int i = 0; i < m_drawBuffer.DrawBuffer.Length; i++)
         {
-            HudDrawBufferData data = m_drawBuffer.DrawBuffer[i];
+            ref var data = ref m_drawBuffer.DrawBuffer.Data[i];
+            if (data.Vertices.Length == 0)
+                continue;
+
             UploadVerticesToVbo(data);
 
             GL.ActiveTexture(BindTextures.BoundTexture);
@@ -264,26 +267,26 @@ public class LegacyHudRenderer : HudRenderer
             drawArea.Left, drawArea.Top, DrawDepth, 
             u0, v0, 
             multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
 
         var topRight = new HudVertex(
             drawArea.Right, drawArea.Top, DrawDepth, 
             u1, v0, 
             multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
 
         var bottomLeft = new HudVertex(
             drawArea.Left, drawArea.Bottom, DrawDepth, 
             u0, v1, 
             multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
 
         var bottomRight = new HudVertex(
-            drawArea.Right, drawArea.Bottom, DrawDepth, 
-            u1, v1, 
-            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, 
-            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
-        
+            drawArea.Right, drawArea.Bottom, DrawDepth,
+            u1, v1,
+            multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A,
+            alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex, texture.ArrayIndex);
+
         var quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
         m_drawBuffer.Add(texture, quad, brightmapTexture);
 

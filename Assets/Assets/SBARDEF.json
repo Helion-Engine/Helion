@@ -2666,25 +2666,6 @@
                                   },
                                   {
                                     "graphic": {
-                                      "x": 0,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 1,
-                                          "param": 0,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM1"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
                                       "x": 6,
                                       "y": 0,
                                       "alignment": 16,
@@ -2705,25 +2686,6 @@
                                       ],
                                       "children": [],
                                       "patch": "ETS3NUM2"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": 6,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 8,
-                                          "param": 2,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM2"
                                     }
                                   },
                                   {
@@ -2752,25 +2714,6 @@
                                   },
                                   {
                                     "graphic": {
-                                      "x": 12,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 8,
-                                          "param": 3,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM3"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
                                       "x": 18,
                                       "y": 0,
                                       "alignment": 16,
@@ -2791,25 +2734,6 @@
                                       ],
                                       "children": [],
                                       "patch": "ETS3NUM4"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": 18,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 8,
-                                          "param": 4,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM4"
                                     }
                                   },
                                   {
@@ -2838,25 +2762,6 @@
                                   },
                                   {
                                     "graphic": {
-                                      "x": 24,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 8,
-                                          "param": 5,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM5"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
                                       "x": 30,
                                       "y": 0,
                                       "alignment": 16,
@@ -2881,25 +2786,6 @@
                                   },
                                   {
                                     "graphic": {
-                                      "x": 30,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 8,
-                                          "param": 6,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM6"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
                                       "x": 36,
                                       "y": 0,
                                       "alignment": 16,
@@ -2920,25 +2806,6 @@
                                       ],
                                       "children": [],
                                       "patch": "ETS3NUM7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": 36,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 8,
-                                          "param": 7,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM7"
                                     }
                                   },
                                   {
@@ -2972,30 +2839,6 @@
                                   },
                                   {
                                     "graphic": {
-                                      "x": 42,
-                                      "y": 0,
-                                      "alignment": 16,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 1,
-                                          "param": 7,
-                                          "param2": 0
-                                        },
-                                        {
-                                          "condition": 6,
-                                          "param": 8,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETS2NUM8"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
                                       "x": 48,
                                       "y": 0,
                                       "alignment": 16,
@@ -3021,6 +2864,163 @@
                                       ],
                                       "children": [],
                                       "patch": "ETS3NUM9"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 0,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 1,
+                                          "param": 0,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM1"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 6,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 8,
+                                          "param": 2,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM2"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 12,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 8,
+                                          "param": 3,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM3"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 18,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 8,
+                                          "param": 4,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM4"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 24,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 8,
+                                          "param": 5,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM5"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 30,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 8,
+                                          "param": 6,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM6"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 36,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 8,
+                                          "param": 7,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM7"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": 42,
+                                      "y": 0,
+                                      "alignment": 16,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 1,
+                                          "param": 7,
+                                          "param2": 0
+                                        },
+                                        {
+                                          "condition": 6,
+                                          "param": 8,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETS2NUM8"
                                     }
                                   },
                                   {
@@ -3389,6 +3389,110 @@
                               }
                             },
                             {
+                              "graphic": {
+                                "x": -80,
+                                "y": 1,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": -60,
+                                "y": 1,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": -80,
+                                "y": 8,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": -60,
+                                "y": 8,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": -80,
+                                "y": 15,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": -60,
+                                "y": 15,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": -80,
+                                "y": 22,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
+                              "graphic": {
+                                "x": -60,
+                                "y": 22,
+                                "alignment": 32,
+                                "tranmap": null,
+                                "translation": null,
+                                "translucency": false,
+                                "conditions": [],
+                                "children": [],
+                                "patch": "PROGBAR7"
+                              }
+                            },
+                            {
                               "canvas": {
                                 "x": 0,
                                 "y": 0,
@@ -3398,32 +3502,6 @@
                                 "translucency": false,
                                 "conditions": [],
                                 "children": [
-                                  {
-                                    "graphic": {
-                                      "x": -80,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -60,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
                                   {
                                     "graphic": {
                                       "x": -80,
@@ -4771,76 +4849,6 @@
                                     }
                                   },
                                   {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "ETM3PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 37,
-                                          "param": 100,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM6PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 5,
-                                          "param": 0,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM2PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 36,
-                                          "param": 1,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM7PRCN"
-                                    }
-                                  },
-                                  {
                                     "number": {
                                       "x": 0,
                                       "y": 0,
@@ -4920,6 +4928,76 @@
                                       "type": 5,
                                       "param": 0,
                                       "maxlength": 3
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [],
+                                      "children": [],
+                                      "patch": "ETM3PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 37,
+                                          "param": 100,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM6PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 5,
+                                          "param": 0,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM2PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 36,
+                                          "param": 1,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM7PRCN"
                                     }
                                   }
                                 ]
@@ -4944,32 +5022,6 @@
                                       "tranmap": null,
                                       "translation": null,
                                       "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -60,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -80,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
                                       "conditions": [
                                         {
                                           "condition": 35,
@@ -6309,76 +6361,6 @@
                                     }
                                   },
                                   {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "ETM3PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 37,
-                                          "param": 100,
-                                          "param2": 1
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM6PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 5,
-                                          "param": 1,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM2PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 36,
-                                          "param": 1,
-                                          "param2": 1
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM7PRCN"
-                                    }
-                                  },
-                                  {
                                     "number": {
                                       "x": 0,
                                       "y": 0,
@@ -6458,6 +6440,76 @@
                                       "type": 5,
                                       "param": 1,
                                       "maxlength": 3
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [],
+                                      "children": [],
+                                      "patch": "ETM3PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 37,
+                                          "param": 100,
+                                          "param2": 1
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM6PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 5,
+                                          "param": 1,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM2PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 36,
+                                          "param": 1,
+                                          "param2": 1
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM7PRCN"
                                     }
                                   }
                                 ]
@@ -6482,32 +6534,6 @@
                                       "tranmap": null,
                                       "translation": null,
                                       "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -60,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -80,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
                                       "conditions": [
                                         {
                                           "condition": 35,
@@ -7847,76 +7873,6 @@
                                     }
                                   },
                                   {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "ETM3PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 37,
-                                          "param": 100,
-                                          "param2": 3
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM6PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 5,
-                                          "param": 3,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM2PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 36,
-                                          "param": 1,
-                                          "param2": 3
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM7PRCN"
-                                    }
-                                  },
-                                  {
                                     "number": {
                                       "x": 0,
                                       "y": 0,
@@ -7996,6 +7952,76 @@
                                       "type": 5,
                                       "param": 3,
                                       "maxlength": 3
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [],
+                                      "children": [],
+                                      "patch": "ETM3PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 37,
+                                          "param": 100,
+                                          "param2": 3
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM6PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 5,
+                                          "param": 3,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM2PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 36,
+                                          "param": 1,
+                                          "param2": 3
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM7PRCN"
                                     }
                                   }
                                 ]
@@ -8020,32 +8046,6 @@
                                       "tranmap": null,
                                       "translation": null,
                                       "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -60,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "PROGBAR7"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -80,
-                                      "y": 1,
-                                      "alignment": 32,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
                                       "conditions": [
                                         {
                                           "condition": 35,
@@ -9385,76 +9385,6 @@
                                     }
                                   },
                                   {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [],
-                                      "children": [],
-                                      "patch": "ETM3PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 37,
-                                          "param": 100,
-                                          "param2": 2
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM6PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 5,
-                                          "param": 2,
-                                          "param2": 0
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM2PRCN"
-                                    }
-                                  },
-                                  {
-                                    "graphic": {
-                                      "x": -17,
-                                      "y": 1,
-                                      "alignment": 34,
-                                      "tranmap": null,
-                                      "translation": null,
-                                      "translucency": false,
-                                      "conditions": [
-                                        {
-                                          "condition": 36,
-                                          "param": 1,
-                                          "param2": 2
-                                        }
-                                      ],
-                                      "children": [],
-                                      "patch": "ETM7PRCN"
-                                    }
-                                  },
-                                  {
                                     "number": {
                                       "x": 0,
                                       "y": 0,
@@ -9534,6 +9464,76 @@
                                       "type": 5,
                                       "param": 2,
                                       "maxlength": 3
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [],
+                                      "children": [],
+                                      "patch": "ETM3PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 37,
+                                          "param": 100,
+                                          "param2": 2
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM6PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 5,
+                                          "param": 2,
+                                          "param2": 0
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM2PRCN"
+                                    }
+                                  },
+                                  {
+                                    "graphic": {
+                                      "x": -17,
+                                      "y": 1,
+                                      "alignment": 34,
+                                      "tranmap": null,
+                                      "translation": null,
+                                      "translucency": false,
+                                      "conditions": [
+                                        {
+                                          "condition": 36,
+                                          "param": 1,
+                                          "param2": 2
+                                        }
+                                      ],
+                                      "children": [],
+                                      "patch": "ETM7PRCN"
                                     }
                                   }
                                 ]
