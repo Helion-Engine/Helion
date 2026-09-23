@@ -10,6 +10,7 @@ public class GLLegacyTexture : GLTexture
     public TextureFlags Flags;
     public int ArrayIndex;
     public bool IsArray => ParentArrayTexture != null;
+    public bool IsParentArray;
     public GLLegacyTexture? ParentArrayTexture;
 
     public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 

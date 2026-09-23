@@ -242,6 +242,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
             textures[imageIndex] = texture;
         });
 
+        arrayTexture.IsParentArray = true;
         return textures;
     }
 

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util.Container;
-using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
@@ -16,15 +14,13 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
 {
     private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new(2048);
     private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new(2048);
-    private readonly RenderProgram m_program;
     private readonly RenderDataPool<TVertex> m_renderDataPool;
     private readonly Action? m_onDraw;
     private int m_renderCount;
     private bool m_disposed;
     
-    public RenderDataCollection(RenderProgram program, RenderDataPool<TVertex> renderDataPool, Action? onDraw = null)
+    public RenderDataCollection(RenderDataPool<TVertex> renderDataPool, Action? onDraw = null)
     {
-        m_program = program;
         m_renderDataPool = renderDataPool;
         m_onDraw = onDraw;
     }

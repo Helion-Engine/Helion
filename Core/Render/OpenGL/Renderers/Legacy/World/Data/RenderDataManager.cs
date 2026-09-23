@@ -21,20 +21,28 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
         RenderDataStyle.ColorAdd
     ];
 
-    private readonly RenderDataCollection<TVertex>[] m_renderDataStyles;
+    private readonly RenderDataCollection<TVertex>[][] m_renderData;
     private readonly RenderData<TVertex> m_healthBarData;
-    private readonly Action? m_onDraw;
     private bool m_disposed;
 
-    public RenderDataManager(RenderProgram program, GLLegacyTexture healthBarTexture, RenderDataPool<TVertex> renderDataPool, Action? onDraw = null)
+    public RenderDataManager(RenderProgram program, GLLegacyTexture healthBarTexture, RenderDataPool<TVertex> renderDataPoolArray, RenderDataPool<TVertex> renderDataPoolOverflow, Action? onDraw = null)
     {
         Assert.Precondition(RenderStyleLookup.Length == (int)RenderStyle.Count, "Render style lookup size mismatch");
-        m_renderDataStyles = new RenderDataCollection<TVertex>[(int)RenderDataStyle.Count];
-        for (int i = 0; i < m_renderDataStyles.Length; i++)
-            m_renderDataStyles[i] = new(program, renderDataPool, onDraw);
 
-        m_healthBarData = new(program, healthBarTexture);
-        m_onDraw = onDraw;
+        m_renderData = new RenderDataCollection<TVertex>[2][];
+
+        m_renderData[0] = CreateRenderDataStyleArray(renderDataPoolOverflow, onDraw);
+        m_renderData[1] = CreateRenderDataStyleArray(renderDataPoolArray, onDraw);
+
+        m_healthBarData = new(program, 8192, healthBarTexture);
+    }
+
+    private static RenderDataCollection<TVertex>[] CreateRenderDataStyleArray(RenderDataPool<TVertex> renderDataPool, Action? onDraw)
+    {
+        var renderDataStylesArray = new RenderDataCollection<TVertex>[(int)RenderDataStyle.Count];
+        for (int i = 0; i < renderDataStylesArray.Length; i++)
+            renderDataStylesArray[i] = new(renderDataPool, onDraw);
+        return renderDataStylesArray;
     }
 
     ~RenderDataManager()
@@ -43,12 +51,16 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     }
 
     public bool HasDataToRenderByStyle(RenderDataStyle style) =>
-        m_renderDataStyles[(int)style].HasDataToRender();
+        m_renderData[0][(int)style].HasDataToRender() || m_renderData[1][(int)style].HasDataToRender();
 
     public void Clear()
     {
-        for (int i = 0; i < m_renderDataStyles.Length; i++)
-            m_renderDataStyles[i].Clear();
+        for (int i = 0; i < m_renderData.Length; i++)
+        {
+            var array = m_renderData[i];
+            for (int j = 0; j < array.Length; j++)
+                array[j].Clear();
+        }
         m_healthBarData.Clear();
     }
 
@@ -57,19 +69,32 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     public void RenderHealthBars() =>
         m_healthBarData.Draw();
 
-    public RenderData<TVertex> GetByRenderStyle(RenderStyle style, GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null) =>
-         m_renderDataStyles[(int)RenderStyleLookup[(int)style]].Get(texture, brightmapTexture);
+    public unsafe RenderData<TVertex> GetByRenderStyle(RenderStyle style, GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
+    {
+        var isParentArray = texture.IsParentArray;
+        int index = *(int*)&isParentArray;
+        var array = m_renderData[index];
+        return array[(int)RenderStyleLookup[(int)style]].Get(texture, brightmapTexture);
+    }
 
-    public void RenderByRenderStyle(RenderDataStyle style) =>
-        m_renderDataStyles[(int)style].Render();
+
+    public void RenderByRenderStyle(RenderDataStyle style)
+    {
+        m_renderData[0][(int)style].Render();
+        m_renderData[1][(int)style].Render();
+    }
 
     protected virtual void Dispose(bool disposing)
     {
         if (m_disposed)
             return;
 
-        for (int i = 0; i < m_renderDataStyles.Length; i++)
-            m_renderDataStyles[i].Dispose();
+        for (int i = 0; i < m_renderData.Length; i++)
+        {
+            var array = m_renderData[i];
+            for (int j = 0; j < array.Length; j++)
+                array[j].Dispose();
+        }
 
         m_disposed = true;
     }
