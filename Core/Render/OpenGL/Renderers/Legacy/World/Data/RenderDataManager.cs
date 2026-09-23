@@ -71,10 +71,9 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     public void RenderHealthBars() =>
         m_healthBarData.Draw();
 
-    public unsafe RenderData<TVertex> GetByRenderStyle(RenderStyle style, GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
+    public RenderData<TVertex> GetByRenderStyle(RenderStyle style, GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        var isParentArray = texture.IsParentArray;
-        int index = *(int*)&isParentArray;
+        var index = texture.IsParentArray ? 1 : 0;
         var array = m_renderData[index];
         return array[(int)RenderStyleLookup[(int)style]].Get(texture, brightmapTexture);
     }
