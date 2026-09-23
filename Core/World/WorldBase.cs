@@ -1256,9 +1256,13 @@ public abstract partial class WorldBase : IWorld
     private void PlayerSecret(Player player)
     {
         DisplayMessage(player, null, "$SECRETMESSAGE");
-        SoundManager.PlayStaticSound("misc/secret");
         LevelStats.SecretCount++;
         player.PlayerStats.SecretCount++;
+
+        if (Config.Audio.EnableSecretSound)
+        {
+            SoundManager.PlayStaticSound("misc/secret");
+        }
     }
 
     public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
