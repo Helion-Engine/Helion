@@ -27,7 +27,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     const int MaxBarWidth = 80;
     const int MinHealth = 20;
     const int MaxHealth = 4000;
-    const int RenderPoolSize = 1024;
+    const int RenderPoolSize = 512;
 
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;

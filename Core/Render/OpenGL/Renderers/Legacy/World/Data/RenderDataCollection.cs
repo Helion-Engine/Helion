@@ -5,6 +5,14 @@ using Helion.Util.Container;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
+public enum RenderDataCollectionMode
+{
+    // The RenderData is pinned to the texture. Get will always return the same RenderData for requested texture.
+    Pinned,
+    // The RenderData is recycled when cleared. Any Get will return the next available RenderData. This keeps the list smaller for varying textures.
+    Recycle
+}
+
 /// <summary>
 /// A collection of render data for specific textures. This exists because we want
 /// to track vertices for alpha and non-alpha, but keep them in separate lists.
@@ -12,16 +20,18 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 /// </summary>
 public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
-    private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new(2048);
+    private readonly LookupArray<RenderData<TVertex>?> m_allRenderData = new(2048);
     private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new(2048);
     private readonly RenderDataPool<TVertex> m_renderDataPool;
+    private readonly RenderDataCollectionMode m_mode;
     private readonly Action? m_onDraw;
     private int m_renderCount;
     private bool m_disposed;
     
-    public RenderDataCollection(RenderDataPool<TVertex> renderDataPool, Action? onDraw = null)
+    public RenderDataCollection(RenderDataPool<TVertex> renderDataPool, RenderDataCollectionMode mode, Action? onDraw = null)
     {
         m_renderDataPool = renderDataPool;
+        m_mode = mode;
         m_onDraw = onDraw;
     }
 
@@ -35,9 +45,17 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
     public void Clear()
     {
         for (int i = 0; i < m_dataToRender.Length; i++)
-            m_dataToRender[i].Clear();
+        {
+            var data = m_dataToRender.Data[i];
+            data.Clear();
+            if (m_mode == RenderDataCollectionMode.Recycle)
+            {
+                m_allRenderData.Set(data.Texture.TextureId, null);
+                m_renderDataPool.Return(data);
+            }
+        }
+
         m_dataToRender.Clear();
-        
         m_renderCount++;
     }
 
@@ -45,14 +63,18 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
     
     public RenderData<TVertex> Get(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        m_allRenderData.EnsureCapacity(texture.TextureId + 1);
-        RenderData<TVertex>? data = m_allRenderData[texture.TextureId];
-        
-        if (data == null)
+        if (m_mode == RenderDataCollectionMode.Pinned)
+            return GetStatic(texture, brightmapTexture);
+
+        return GetDynamic(texture, brightmapTexture);
+    }
+
+    private RenderData<TVertex> GetDynamic(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture)
+    {
+        if (!m_allRenderData.TryGetValue(texture.TextureId, out var data))
         {
             data = m_renderDataPool.Get(texture, brightmapTexture);
-            data.RenderCount = m_renderCount - 1;
-            m_allRenderData[texture.TextureId] = data;
+            m_allRenderData.Set(texture.TextureId, data);
         }
 
         if (data.RenderCount != m_renderCount)
@@ -63,7 +85,25 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
 
         return data;
     }
-    
+
+    private RenderData<TVertex> GetStatic(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture)
+    {
+        if (!m_allRenderData.TryGetValue(texture.TextureId, out var data))
+        {
+            data = m_renderDataPool.Get(texture, brightmapTexture);
+            data.RenderCount = m_renderCount - 1;
+            m_allRenderData.Set(texture.TextureId, data);
+        }
+
+        if (data.RenderCount != m_renderCount)
+        {
+            m_dataToRender.Add(data);
+            data.RenderCount = m_renderCount;
+        }
+
+        return data;
+    }
+
     public void Render()
     {
         if (m_dataToRender.Length == 0)
@@ -81,9 +121,10 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         if (m_disposed)
             return;
 
-        for (int i = 0; i < m_allRenderData.Length; i++)
-            m_allRenderData[i]?.Dispose();
-        m_allRenderData.Clear();
+        var renderDataItems = m_allRenderData.GetData();
+        for (int i = 0; i < renderDataItems.Length; i++)
+            renderDataItems[i]?.Dispose();
+        m_allRenderData.SetAll(null);
 
         m_disposed = true;
     }

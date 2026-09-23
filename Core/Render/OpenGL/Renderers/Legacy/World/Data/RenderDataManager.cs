@@ -31,17 +31,19 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
 
         m_renderData = new RenderDataCollection<TVertex>[2][];
 
-        m_renderData[0] = CreateRenderDataStyleArray(renderDataPoolOverflow, onDraw);
-        m_renderData[1] = CreateRenderDataStyleArray(renderDataPoolArray, onDraw);
+        // The overflow pool will use dynamic lookups that will be released on clear.
+        // The pool used for texture arrays will be locked to their texture id since they are the small number of render buckets.
+        m_renderData[0] = CreateRenderDataStyleArray(RenderDataCollectionMode.Recycle, renderDataPoolOverflow, onDraw);
+        m_renderData[1] = CreateRenderDataStyleArray(RenderDataCollectionMode.Pinned, renderDataPoolArray, onDraw);
 
         m_healthBarData = new(program, 8192, healthBarTexture);
     }
 
-    private static RenderDataCollection<TVertex>[] CreateRenderDataStyleArray(RenderDataPool<TVertex> renderDataPool, Action? onDraw)
+    private static RenderDataCollection<TVertex>[] CreateRenderDataStyleArray(RenderDataCollectionMode mode, RenderDataPool<TVertex> renderDataPool, Action? onDraw)
     {
         var renderDataStylesArray = new RenderDataCollection<TVertex>[(int)RenderDataStyle.Count];
         for (int i = 0; i < renderDataStylesArray.Length; i++)
-            renderDataStylesArray[i] = new(renderDataPool, onDraw);
+            renderDataStylesArray[i] = new(renderDataPool, mode, onDraw);
         return renderDataStylesArray;
     }
 
@@ -76,7 +78,6 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
         var array = m_renderData[index];
         return array[(int)RenderStyleLookup[(int)style]].Get(texture, brightmapTexture);
     }
-
 
     public void RenderByRenderStyle(RenderDataStyle style)
     {

@@ -33,6 +33,14 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
             m_entityRenderData.AddUnsafe(new RenderData<TVertex>(m_program, VboCapacity));
     }
 
+    public void Return(RenderData<TVertex> data)
+    {
+        data.Texture = null!;
+        data.BrightMapTexture = null!;
+        m_entityRenderData.Add(data);
+        UseCount--;
+    }
+
     public RenderData<TVertex> Get(GLLegacyTexture texture, GLLegacyTexture? brightMapTexture = null)
     {
         if (m_entityRenderData.Length > 0)

@@ -31,4 +31,6 @@ public class LookupArray<T>(int initialCapacity = 32)
         for (int i = 0; i < m_items.Data.Length; i++)
             m_items[i] = value;
     }
+
+    public T?[] GetData() => m_items.Data;
 }
