@@ -1,5 +1,6 @@
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.StatusBar;
+using Helion.Strings;
 using Helion.World.Entities.Players;
 
 namespace Helion.World.StatusBar;
@@ -13,8 +14,7 @@ public readonly record struct StatusBarContext(
     bool Widescreen,
     bool IsCompact,
     int Fps,
-    string? ConsoleMessage,
-    bool IsMessageCentered,
+    SpanString? Message,
     bool HasBackPack,
     bool HasTicks
 );
