@@ -13,12 +13,14 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
     private readonly RenderProgram m_program;
     private readonly DynamicArray<RenderData<TVertex>> m_entityRenderData;
 
-    public int PoolSize { get; set; }
-    public int UseCount { get; set; }
+    public int PoolSize { get; }
+    public int VboCapacity { get; }
+    public int UseCount { get; private set; }
 
-    public RenderDataPool(RenderProgram program, int poolSize)
+    public RenderDataPool(RenderProgram program, int poolSize, int vboCapacity)
     {
         PoolSize = poolSize;
+        VboCapacity = vboCapacity;
         m_program = program;
         m_entityRenderData = new(poolSize);
         RefillPool(PoolSize);
@@ -28,7 +30,15 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
     {
         size = Math.Min(size, PoolSize);
         for (int i = m_entityRenderData.Length; i < size; i++)
-            m_entityRenderData.AddUnsafe(new RenderData<TVertex>(m_program));
+            m_entityRenderData.AddUnsafe(new RenderData<TVertex>(m_program, VboCapacity));
+    }
+
+    public void Return(RenderData<TVertex> data)
+    {
+        data.Texture = null!;
+        data.BrightMapTexture = null!;
+        m_entityRenderData.Add(data);
+        UseCount--;
     }
 
     public RenderData<TVertex> Get(GLLegacyTexture texture, GLLegacyTexture? brightMapTexture = null)
@@ -43,7 +53,7 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
 
         UseCount++;
         LogExhaustion();
-        return new RenderData<TVertex>(m_program, texture, brightMapTexture);
+        return new RenderData<TVertex>(m_program, VboCapacity, texture, brightMapTexture);
     }
 
     [Conditional("DEBUG")]

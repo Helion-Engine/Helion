@@ -27,7 +27,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     const int MaxBarWidth = 80;
     const int MinHealth = 20;
     const int MaxHealth = 4000;
-    const int RenderPoolSize = 2048;
+    const int RenderPoolSize = 512;
 
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -40,7 +40,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly RenderDataPool<EntityVertex> m_renderDataPool;
+    private readonly RenderDataPool<EntityVertex> m_renderDataPoolArray;
+    private readonly RenderDataPool<EntityVertex> m_renderDataPoolOverflow;
     private readonly RenderProfiler m_renderProfiler;
     private readonly bool m_vanillaRender;
     private Vec2F m_viewRightNormal;
@@ -62,8 +63,13 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_textureManager = textureManager;
         m_archiveCollection = archiveCollection;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
-        m_renderDataPool = new(m_program, RenderPoolSize);
-        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPool, OnDraw);
+
+        // Most things will be in the 5 texture array buckets. Anything that falls outside at runtime will end up in the overflow pool.
+        // These come from sprites using colormaps in true color mode that need to be regenerated. (Blood colors, dehacked frames specifying a color map)
+        m_renderDataPoolArray = new(m_program, 64, 8192);
+        m_renderDataPoolOverflow = new(m_program, RenderPoolSize, 128);
+
+        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPoolArray, m_renderDataPoolOverflow, OnDraw);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
@@ -97,7 +103,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     public void UpdateTo(IWorld world)
     {
         m_lastViewerEntityId = -1;
-        m_renderDataPool.RefillPool(RenderPoolSize / 4);
+        m_renderDataPoolOverflow.RefillPool(RenderPoolSize / 4);
     }
     
     public void Clear(IWorld world)

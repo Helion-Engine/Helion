@@ -43,7 +43,7 @@ public class DynamicVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.DynamicDraw;
 
-    public DynamicVertexBuffer(string label) : base(label)
+    public DynamicVertexBuffer(string label, int capacity = DefaultCapacity) : base(label, capacity)
     {
     }
 }
