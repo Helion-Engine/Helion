@@ -45,3 +45,4 @@
 - Make RNG method persist in config.
 - Update ZMusic library
 - Add MD5 to loaded files in console, always log save file differences when loading incompatible saves.
+- Don't clear messages when drawing center HUD message.

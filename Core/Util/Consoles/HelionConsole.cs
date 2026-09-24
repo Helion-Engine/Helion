@@ -166,10 +166,10 @@ public class HelionConsole : Target
         if (message.Length == 0)
             return;
 
+        var lastMsg = GetFirstMessage();
         var currentNanos = Ticker.NanoTime();
-        if (!isCentered && Messages.First != null)
+        if (!isCentered && lastMsg != null)
         {
-            ConsoleMessage lastMsg = Messages.First.Value;
             if (!lastMsg.IsCentered && lastMsg.Message == message)
             {
                 long timeSinceMessage = currentNanos - lastMsg.TimeNanos;
@@ -190,6 +190,14 @@ public class HelionConsole : Target
             Messages.AddFirst(node);
             RemoveExcessMessagesIfAny();
         }
+    }
+
+    private ConsoleMessage? GetFirstMessage()
+    {
+        var node = Messages.First;
+        while (node != null && node.Value.IsCentered)
+            node = node.Next;
+        return node?.Value;
     }
 
     /// <summary>

@@ -154,14 +154,10 @@ public partial class WorldLayer
             }
 
             if (hasCenteredMessage)
-            {
                 DrawCenterMessages(hud);
-            }
-            else if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
-            {
+            
+            if ((sbarCoverage & StatusBarCoverage.Messages) == 0)
                 DrawRecentConsoleMessages(hud);
-                DrawCenterMessages(hud);
-            }
             
             DrawPause(hud);
 
