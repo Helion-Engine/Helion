@@ -873,14 +873,8 @@ public class StatusBarRenderer
                 RenderLines(hud, m_fmtSpan.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.Message:
-                string msg = m_ctx.ConsoleMessage ?? string.Empty;
-                if (m_ctx.IsMessageCentered)
-                {
-                    pos = new Vec2I(160, 66);
-                    alignment = StatusBarAlignment.HCenter;
-                }
-
-                RenderLines(hud, msg.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
+                if (m_ctx.Message != null)
+                    RenderLines(hud, m_ctx.Message.AsSpan(), pos, fontDef, fontHeight, alignment, comp.Translation, alpha);
                 break;
             case StatusBarComponentType.AnnounceLevelTitle:
                 double duration = comp.Duration > 0 ? comp.Duration : 2.5;

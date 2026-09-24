@@ -166,7 +166,7 @@ public class HelionConsole : Target
         if (message.Length == 0)
             return;
 
-        var lastMsg = GetFirstMessage();
+        var lastMsg = GetFirstMessageNotCentered();
         var currentNanos = Ticker.NanoTime();
         if (!isCentered && lastMsg != null)
         {
@@ -192,12 +192,15 @@ public class HelionConsole : Target
         }
     }
 
-    private ConsoleMessage? GetFirstMessage()
+    public ConsoleMessage? GetFirstMessageNotCentered()
     {
-        var node = Messages.First;
-        while (node != null && node.Value.IsCentered)
-            node = node.Next;
-        return node?.Value;
+        lock (Messages)
+        {
+            var node = Messages.First;
+            while (node != null && node.Value.IsCentered)
+                node = node.Next;
+            return node?.Value;
+        }
     }
 
     /// <summary>

@@ -77,6 +77,7 @@ public partial class WorldLayer
     private readonly SpanString m_fpsMaxString = new();
     private readonly SpanString m_timeString = new();
     private readonly SpanString m_renderMessageSpan = new(128);
+    private readonly SpanString m_hudMessageSpan = new(128);
     private readonly SpanString m_bspString = new();
 
     private readonly RenderableString m_renderFpsString;
@@ -486,34 +487,25 @@ public partial class WorldLayer
         bool isCompact = hud.WindowDimension.AspectRatio < 4.0f / 3.0f;
         int fps = (int)Math.Round(m_fpsTracker.AverageFramesPerSecond);
 
-        string? consoleMsg = null;
-        bool isCentered = false; 
-
-        lock (m_console.Messages)
+        SpanString? consoleMsg = null;
+        var msg = m_console.GetFirstMessageNotCentered();
+        if (msg != null && Ticker.NanoTime() - msg.TimeNanos < Constants.MaxMessageVisibleTimeNanos)
         {
-            if (m_console.Messages.First != null)
+            if (msg.StackCount > 1)
             {
-                var msg = m_console.Messages.First.Value;
-                if (Ticker.NanoTime() - msg.TimeNanos < Constants.MaxMessageVisibleTimeNanos)
-                {
-                    isCentered = msg.IsCentered;
-
-                    if (!isCentered)
-                    {
-                        if (msg.StackCount > 1)
-                        {
-                            var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
-                            var span = GetRenderMessageWithCount(worldMsg);
-                            consoleMsg = span.ToString(); 
-                        }
-                        else consoleMsg = msg.Message;
-                    }
-                }
+                var worldMsg = new WorldMessage(msg.Message, 1.0f, msg.StackCount);
+                consoleMsg = GetRenderMessageWithCount(worldMsg, m_hudMessageSpan);
+            }
+            else
+            {
+                m_hudMessageSpan.Clear();
+                m_hudMessageSpan.Append(msg.Message);
+                consoleMsg = m_hudMessageSpan;
             }
         }
 
         var context = new StatusBarContext(World, Player, World.MapInfo, activeLayout, automapVisible, isWidescreen, isCompact, fps,
-            consoleMsg, isCentered, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName), HasTicks);
+            consoleMsg, Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName), HasTicks);
         m_statusBarRenderer.Draw(hud, activeLayout, context, m_hudPaddingX);
     }
     
@@ -864,7 +856,7 @@ public partial class WorldLayer
                 var renderMessageLength = msg.Message.Length;
                 if (msg.MessageCount > 1)
                 {
-                    var renderMessage = GetRenderMessageWithCount(msg);
+                    var renderMessage = GetRenderMessageWithCount(msg, m_renderMessageSpan);
                     StringBuffer.Clear(m_renderMessageBufferString);
                     m_renderMessageBufferString = StringBuffer.Append(m_renderMessageBufferString, renderMessage.AsSpan());
                     renderMessageString = m_renderMessageBufferString;
@@ -885,14 +877,14 @@ public partial class WorldLayer
         }
     }
 
-    private SpanString GetRenderMessageWithCount(WorldMessage msg)
+    private static SpanString GetRenderMessageWithCount(WorldMessage msg, SpanString spanString)
     {
-        m_renderMessageSpan.Clear();
-        m_renderMessageSpan.Append(msg.Message);
-        m_renderMessageSpan.Append(" (x");
-        m_renderMessageSpan.Append(msg.MessageCount);
-        m_renderMessageSpan.Append(')');
-        return m_renderMessageSpan;
+        spanString.Clear();
+        spanString.Append(msg.Message);
+        spanString.Append(" (x");
+        spanString.Append(msg.MessageCount);
+        spanString.Append(')');
+        return spanString;
     }
 
     private void DrawCenterMessages(IHudRenderContext hud)
