@@ -6,13 +6,20 @@ using Helion.World.Impl.SinglePlayer;
 
 namespace BenchmarkSuite;
 
-public class MoveEnemy
+public class EntityOnEntityCollision
 {
     private readonly SinglePlayerWorld World;
 
-    public MoveEnemy()
+    public EntityOnEntityCollision()
     {
-        World = WorldAllocator.LoadMap("Resources/testmove.zip", "testmove.wad", "MAP01", Guid.NewGuid().ToString(), (world) => { });
+        World = WorldAllocator.LoadMap("Resources/1024enemies.zip", "1024enemies.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
+        {
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+            {
+                entity.SetTarget(world.Player);
+                entity.SetMoveDirection(Entity.MoveDir.South);
+            }
+        });
     }
 
     [Benchmark]
@@ -22,8 +29,6 @@ public class MoveEnemy
         {
             for (var entity = World.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                entity.SetTarget(World.Player);
-                entity.SetMoveDirection(Entity.MoveDir.South);
                 entity.SetNewChaseDirection();
             }
         }
