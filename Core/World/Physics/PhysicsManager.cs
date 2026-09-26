@@ -2187,7 +2187,7 @@ doneLinkToSectors:
         entity.Position.Z = entity.Position.Z + entity.Velocity.Z + floatZ;
 
         // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
-        ClampBetweenFloorAndCeiling(entity, null, smoothZ: true, entity.MoveLinked);
+        ClampBetweenFloorAndCeiling(entity, null, smoothZ: true, entity.MoveLinked || floatZ > 0);
 
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
