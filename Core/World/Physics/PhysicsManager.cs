@@ -227,6 +227,12 @@ public sealed partial class PhysicsManager
                 var entity = m_sectorMoveEntities[i];
                 var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
                 m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
+            }
+
+            for (int i = 0; i < m_sectorMoveEntities.Length; i++)
+            {
+                var entity = m_sectorMoveEntities[i];
+                ref var sectorMoveEntityData = ref m_sectorMoveEntitiesData.Data[i];
 
                 var prevVelocityZ = entity.Velocity.Z;
                 var entityShouldStick = startZ > destZ && entity.OnGround &&
@@ -340,7 +346,7 @@ public sealed partial class PhysicsManager
                         if (sector.Sector3D == null || ValidateCrush3D(sectorPlane, moveType, entity, thingTopZ))
                             m_crushEntities.Add(entity);
                     }
-                    else if (CheckSectorMoveBlock(entity, moveType, entityMoveData.SaveZ))
+                    else if (CheckSectorMoveBlock(entity, moveType, speed, entityMoveData.SaveZ))
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -662,13 +668,12 @@ public sealed partial class PhysicsManager
     private static bool SpeedShouldStickToFloor(double speed) =>
         -speed <= SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
-    private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType, double saveZ)
+    private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType, double speed, double saveZ)
     {
-        // If the entity was pushed up by a floor and changed it's z pos then this floor is blocked
-        if (moveType == SectorPlaneFace.Ceiling || saveZ != entity.Position.Z)
+        if (moveType == SectorPlaneFace.Ceiling)
             return true;
 
-        return false;
+        return moveType == SectorPlaneFace.Floor && entity.Position.Z != saveZ;
     }
 
     private void CrushEntities(DynamicArray<Entity> crushEntities, Sector sector, in CrushData crush)
@@ -745,7 +750,7 @@ public sealed partial class PhysicsManager
         if (lowCeilEntity == null)
             return;
 
-        if (lowCeilEntity.Flags.ActLikeBridge())
+        if (lowCeilEntity.Flags.ActLikeBridge() || lowCeilEntity.Flags.SpawnCeiling())
             return;
 
         lowCeilEntity.Position.Z = pusher.Position.Z + pusher.Height;
@@ -1178,10 +1183,15 @@ public sealed partial class PhysicsManager
         else
             entity.HighestFloorObject = highestFloor;
 
-        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z + lowestCeilingEntity.Height < lowestCeiling.Ceiling.Z)
+        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z < lowestCeiling.Ceiling.Z)
+        {
             entity.SetLowestCeilingEntity(lowestCeilingEntity);
+        }
         else
+        {
             entity.LowestCeilingObject = lowestCeiling;
+            entity.LowestCeilingZ = lowestCeiling.Ceiling.Z;
+        }
     }
 
     public void SetLightSector3D(Entity entity)
