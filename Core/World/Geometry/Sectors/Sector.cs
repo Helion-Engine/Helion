@@ -702,7 +702,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
             if (sector3D.WallHeights.TopZ - entityMin > lightHeight)
             {
-                if (entityMin < sector3D.WallHeights.TopZ && sector3D.WallHeights.BottomZ < entityMax)
+                if (entityMin < sector3D.WallHeights.TopZ && sector3D.WallHeights.BottomZ <= entityMax)
                 {
                     lightSector3D = sector3D.LightBottom;
                     setBetween = true;
