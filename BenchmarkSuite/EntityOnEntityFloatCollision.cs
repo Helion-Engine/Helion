@@ -7,14 +7,14 @@ using System.Collections.Generic;
 
 namespace BenchmarkSuite;
 
-public class EntityMoveGeneral
+public class EntityOnEntityFloatCollision
 {
     private readonly SinglePlayerWorld World;
     private readonly List<Entity> Monsters = new(8192);
 
-    public EntityMoveGeneral()
+    public EntityOnEntityFloatCollision()
     {
-        World = WorldAllocator.LoadMap("Resources/idumea.zip", "idumea.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
+        World = WorldAllocator.LoadMap("Resources/floatmove.zip", "floatmove.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
         {
             for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
@@ -31,8 +31,10 @@ public class EntityMoveGeneral
     [Benchmark]
     public void SetNewChaseDirection()
     {
+        var player = World.Player;
         for (int i = 0; i < 50; i++)
         {
+            player.Position.Z += i * 16;
             foreach (var entity in Monsters)
                 entity.SetNewChaseDirection();
         }

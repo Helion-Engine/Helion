@@ -23,7 +23,7 @@ public class EntityOnEntityCollision
     }
 
     [Benchmark]
-    public void MoveEnemies()
+    public void SetNewChaseDirection()
     {
         for (int i = 0; i < 100; i++)
         {
