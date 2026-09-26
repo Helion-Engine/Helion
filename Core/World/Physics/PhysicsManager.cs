@@ -1230,7 +1230,7 @@ public sealed partial class PhysicsManager
             intersectTopZ = intersectEntity.GetMissileClipHeight(true);
         var above = entity.PrevPosition.Z >= intersectTopZ;
         // The SectorMovement3D check is just to support 3D crushing ceilings because their Z pos + height will not be less than the ceiling.
-        var below = entity.SectorMovement3D && intersectEntity.Sector3D != null ? entity.PrevPosition.Z < intersectEntity.PrevPosition.Z : entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
+        var below = entity.SectorMovement3D && intersectEntity.Sector3D != null ? entity.Position.Z < intersectEntity.Position.Z : entity.PrevPosition.Z + entity.Height * 0.5 < intersectEntity.PrevPosition.Z;
         var clipped = false;
         var addedOnEntity = false;
         if (above && entity.Position.Z < intersectTopZ)
