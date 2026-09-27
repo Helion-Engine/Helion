@@ -73,8 +73,8 @@ public class LineOpening
         FloorZ = topZ;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
-        CeilingSector = null;
-        FloorSector = null;
+        CeilingSector = tryMove.LowestCeiling;
+        FloorSector = tryMove.HighestFloor;
         HasDropOff3D = false;
     }
 
@@ -84,8 +84,8 @@ public class LineOpening
         FloorZ = tryMove.HighestValidStepFloorZ;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
-        CeilingSector = null;
-        FloorSector = null;
+        CeilingSector = tryMove.LowestCeiling;
+        FloorSector = tryMove.HighestFloor;
         HasDropOff3D = false;
     }
 
