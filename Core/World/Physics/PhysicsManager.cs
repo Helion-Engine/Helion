@@ -1092,7 +1092,7 @@ public sealed partial class PhysicsManager
 
         entity.SetOnEntity(null);
 
-        GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, tryMove, out Sector highestFloor, out Sector lowestCeiling, 
+        GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, tryMove, out var highestFloor, out var lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
 
         if (WorldStatic.InfinitelyTallThings)
@@ -1179,9 +1179,14 @@ public sealed partial class PhysicsManager
 
         // Make checks inclusive to prioritize entity over sector. Otherwise this can cause issues with monsters on 3d bridges/midtex lines dropping of when they shouldn't.
         if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height >= highestFloor.Floor.Z)
+        {
             entity.SetHighestFloorEntity(highestFloorEntity);
+        }
         else
+        {
             entity.HighestFloorObject = highestFloor;
+            entity.HighestFloorZ = highestFloor.Floor.Z;
+        }
 
         if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z < lowestCeiling.Ceiling.Z)
         {
@@ -1608,8 +1613,6 @@ doneLinkToSectors:
             return false;
 
         tryMove.Success = true;
-        tryMove.LowestCeiling = entity.Sector;
-        tryMove.HighestFloor = entity.Sector;
         tryMove.Subsector = null;
         tryMove.IntersectEntities2D.Length = 0;
         tryMove.IntersectSpecialLines.Length = 0;
@@ -1626,6 +1629,8 @@ doneLinkToSectors:
         var sector = tryMove.Subsector.Sector;
         tryMove.HighestFloorZ = sector.Floor.Z;
         tryMove.LowestCeilingZ = sector.Ceiling.Z;
+        tryMove.LowestCeiling = sector;
+        tryMove.HighestFloor = sector;
         tryMove.DropOffZ = sector.Floor.Z;
         tryMove.HighestValidStepFloorZ = tryMove.HighestFloorZ;
 
