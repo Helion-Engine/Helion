@@ -9,10 +9,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  buildRelease:
-
+  buildNightly:
     runs-on: ubuntu-22.04
-
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
