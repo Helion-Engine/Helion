@@ -346,7 +346,7 @@ public sealed partial class PhysicsManager
                         if (sector.Sector3D == null || ValidateCrush3D(sectorPlane, moveType, entity, thingTopZ))
                             m_crushEntities.Add(entity);
                     }
-                    else if (CheckSectorMoveBlock(entity, moveType, speed, entityMoveData.SaveZ))
+                    else if (CheckSectorMoveBlock(entity, moveType, entityMoveData.SaveZ))
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -668,7 +668,7 @@ public sealed partial class PhysicsManager
     private static bool SpeedShouldStickToFloor(double speed) =>
         -speed <= SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
-    private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType, double speed, double saveZ)
+    private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType, double saveZ)
     {
         if (moveType == SectorPlaneFace.Ceiling)
             return true;
