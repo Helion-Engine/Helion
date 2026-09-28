@@ -16,11 +16,8 @@ public class EntityMoveGeneral
     {
         World = WorldAllocator.LoadMap("Resources/idumea.zip", "idumea.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
         {
-            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+            foreach (var entity in world.GetMonstersNoCloset())
             {
-                if (!entity.Flags.CountKill() || (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0)
-                    continue;
-
                 entity.SetTarget(world.Player);
                 entity.SetMoveDirection(Entity.MoveDir.South);
                 Monsters.Add(entity);

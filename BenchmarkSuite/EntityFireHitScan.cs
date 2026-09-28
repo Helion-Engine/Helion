@@ -19,18 +19,15 @@ public class EntityFireHitScan
         World = WorldAllocator.LoadMap("Resources/idumea.zip", "idumea.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
         {
             var player = world.Player;
-            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
-            {
-                if (entity.Flags.CountKill())
-                    Data.Add(new(entity, entity.Position.Angle(player.Position)));
-            }
+            foreach (var entity in world.GetMonstersNoCloset())
+                Data.Add(new(entity, entity.Position.Angle(player.Position)));
         });
     }
 
     [Benchmark]
     public void FireHitScan()
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 10; i++)
         {
             foreach (var data in Data)
                 World.FireHitscan(data.Entity, data.Angle, 0, 8192, damage: 0);

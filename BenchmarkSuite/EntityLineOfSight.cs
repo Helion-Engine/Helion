@@ -16,11 +16,7 @@ public class EntityLineOfSight
     {
         World = WorldAllocator.LoadMap("Resources/idumea.zip", "idumea.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
         {
-            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
-            {
-                if (entity.Flags.CountKill())
-                    Monsters.Add(entity);
-            }
+            Monsters.AddRange(world.GetMonstersNoCloset());
         });
     }
 
