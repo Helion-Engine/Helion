@@ -1765,7 +1765,7 @@ doneLinkToSectors:
 
         if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
         {
-            if (entity.Flags.Float())
+            if (entity.Flags.Float() && tryMove.LowestCeilingZ > entity.Position.Z + entity.Height)
             {
                 // Other entities can set LowestCeilingZ that would prevent to float when hitting a blocking line.
                 // Use the actual sector ceiling z for the can float check.

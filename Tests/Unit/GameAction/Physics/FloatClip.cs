@@ -65,4 +65,22 @@ public class FloatClip
         caco.Position.Z.Should().Be(76);
         pain.Position.Z.Should().Be(0);
     }
+
+    [Fact(DisplayName = "CanFloat is false when entity is directly over")]
+    public void FloatBlockedByOverEntity()
+    {
+        var caco = GameActions.GetEntity(World, "Cacodemon");
+        var pain = GameActions.GetEntity(World, "PainElemental");
+
+        caco.Position.Z.Should().Be(pain.Position.Z + pain.Height);
+
+        var move = World.PhysicsManager.TryMoveXY(pain, pain.Position.X + 8, 0);
+        move.CanFloat.Should().BeFalse();
+
+        GameActions.SetEntityPosition(World, caco, caco.Position.XY.To3D(caco.Position.Z + 8));
+        caco.Position.Z.Should().NotBe(pain.Position.Z + pain.Height);
+
+        move = World.PhysicsManager.TryMoveXY(pain, pain.Position.X + 8, 0);
+        move.CanFloat.Should().BeTrue();
+    }
 }
