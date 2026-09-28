@@ -438,7 +438,8 @@ public partial class Entity
 
     public double GetEnemyFloatMove()
     {
-        if (IsPlayer || IsDead() || !Flags.Float() || Flags.Skullfly() || Flags.InFloat() || OnGround)
+        // Float enemies wouldn't move when on the ground but ignore when on top of another entity.
+        if (IsPlayer || IsDead() || !Flags.Float() || Flags.Skullfly() || Flags.InFloat() || (OnGround && OnEntity() == null))
             return 0.0;
 
         var target = Target();
