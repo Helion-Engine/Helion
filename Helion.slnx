@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="BenchmarkSuite/BenchmarkSuite.csproj" Id="67aef0ec-2a03-418e-b652-620e2b6b281b" />
   <Project Path="Client/Client.csproj">
     <BuildDependency Project="Core/Core.csproj" />
   </Project>
