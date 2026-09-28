@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
+using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
@@ -14,7 +15,7 @@ public class FloatClip
 
     public FloatClip()
     {
-        World = WorldAllocator.LoadMap("Resources/floatclip.zip", "floatclip.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/floatclip.zip", "floatclip.wad", "MAP01", GetType().Name, (world) => { world.SetRandom(new NoRandom()); }, IWadType.Doom2, cacheWorld: false);
     }
 
     [Fact(DisplayName = "Touching float enemies float up")]
@@ -62,7 +63,7 @@ public class FloatClip
         GameActions.PlayerFirePistol(World, Player);
         GameActions.TickWorld(World, 35);
 
-        caco.Position.Z.Should().Be(76);
+        caco.Position.Z.Should().Be(0);
         pain.Position.Z.Should().Be(0);
     }
 
@@ -75,12 +76,29 @@ public class FloatClip
         caco.Position.Z.Should().Be(pain.Position.Z + pain.Height);
 
         var move = World.PhysicsManager.TryMoveXY(pain, pain.Position.X + 8, 0);
+        move.Success.Should().BeFalse();
         move.CanFloat.Should().BeFalse();
 
         GameActions.SetEntityPosition(World, caco, caco.Position.XY.To3D(caco.Position.Z + 8));
         caco.Position.Z.Should().NotBe(pain.Position.Z + pain.Height);
 
         move = World.PhysicsManager.TryMoveXY(pain, pain.Position.X + 8, 0);
+        move.Success.Should().BeFalse();
         move.CanFloat.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "CanFloat is false hitting other entity")]
+    public void FloatBlockedWhenHittingEntity()
+    {
+        var caco = GameActions.GetEntity(World, "Cacodemon");
+        var pain = GameActions.GetEntity(World, "PainElemental");
+
+        GameActions.SetEntityPosition(World, caco, (32, -160, 0));
+        GameActions.SetEntityPosition(World, pain, (32, -96, 0));
+
+        var move = World.PhysicsManager.TryMoveXY(caco, caco.Position.X, caco.Position.Y + 8);
+        caco.BlockingEntity.Should().Be(pain);
+        move.Success.Should().BeFalse();
+        move.CanFloat.Should().BeFalse();
     }
 }

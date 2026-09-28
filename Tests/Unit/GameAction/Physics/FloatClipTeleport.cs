@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
+using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
@@ -16,7 +17,7 @@ public class FloatClipTeleport
 
     public FloatClipTeleport()
     {
-        World = WorldAllocator.LoadMap("Resources/floatclipteleport.zip", "floatclipteleport.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/floatclipteleport.zip", "floatclipteleport.wad", "MAP01", GetType().Name, (world) => { world.SetRandom(new NoRandom()); }, IWadType.Doom2, cacheWorld: false);
     }
 
     [Fact(DisplayName = "Float enemies teleport into box and float out")]
