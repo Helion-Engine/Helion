@@ -227,6 +227,12 @@ public sealed partial class PhysicsManager
                 var entity = m_sectorMoveEntities[i];
                 var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
                 m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
+            }
+
+            for (int i = 0; i < m_sectorMoveEntities.Length; i++)
+            {
+                var entity = m_sectorMoveEntities[i];
+                ref var sectorMoveEntityData = ref m_sectorMoveEntitiesData.Data[i];
 
                 var prevVelocityZ = entity.Velocity.Z;
                 var entityShouldStick = startZ > destZ && entity.OnGround &&
@@ -340,7 +346,7 @@ public sealed partial class PhysicsManager
                         if (sector.Sector3D == null || ValidateCrush3D(sectorPlane, moveType, entity, thingTopZ))
                             m_crushEntities.Add(entity);
                     }
-                    else if (CheckSectorMoveBlock(entity, moveType, entityMoveData.SaveZ))
+                    else if (CheckSectorMoveBlock(entity, moveType, speed, entityMoveData.SaveZ))
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -662,13 +668,12 @@ public sealed partial class PhysicsManager
     private static bool SpeedShouldStickToFloor(double speed) =>
         -speed <= SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
-    private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType, double saveZ)
+    private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType, double speed, double saveZ)
     {
-        // If the entity was pushed up by a floor and changed it's z pos then this floor is blocked
-        if (moveType == SectorPlaneFace.Ceiling || saveZ != entity.Position.Z)
+        if (moveType == SectorPlaneFace.Ceiling)
             return true;
 
-        return false;
+        return moveType == SectorPlaneFace.Floor && entity.Position.Z != saveZ;
     }
 
     private void CrushEntities(DynamicArray<Entity> crushEntities, Sector sector, in CrushData crush)
@@ -745,7 +750,7 @@ public sealed partial class PhysicsManager
         if (lowCeilEntity == null)
             return;
 
-        if (lowCeilEntity.Flags.ActLikeBridge())
+        if (lowCeilEntity.Flags.ActLikeBridge() || lowCeilEntity.Flags.SpawnCeiling())
             return;
 
         lowCeilEntity.Position.Z = pusher.Position.Z + pusher.Height;
@@ -1087,7 +1092,7 @@ public sealed partial class PhysicsManager
 
         entity.SetOnEntity(null);
 
-        GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, tryMove, out Sector highestFloor, out Sector lowestCeiling, 
+        GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, tryMove, out var highestFloor, out var lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
 
         if (WorldStatic.InfinitelyTallThings)
@@ -1174,14 +1179,24 @@ public sealed partial class PhysicsManager
 
         // Make checks inclusive to prioritize entity over sector. Otherwise this can cause issues with monsters on 3d bridges/midtex lines dropping of when they shouldn't.
         if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height >= highestFloor.Floor.Z)
+        {
             entity.SetHighestFloorEntity(highestFloorEntity);
+        }
         else
+        {
             entity.HighestFloorObject = highestFloor;
+            entity.HighestFloorZ = highestFloor.Floor.Z;
+        }
 
-        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z + lowestCeilingEntity.Height < lowestCeiling.Ceiling.Z)
+        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z < lowestCeiling.Ceiling.Z)
+        {
             entity.SetLowestCeilingEntity(lowestCeilingEntity);
+        }
         else
+        {
             entity.LowestCeilingObject = lowestCeiling;
+            entity.LowestCeilingZ = lowestCeiling.Ceiling.Z;
+        }
     }
 
     public void SetLightSector3D(Entity entity)
@@ -1230,7 +1245,7 @@ public sealed partial class PhysicsManager
             intersectTopZ = intersectEntity.GetMissileClipHeight(true);
         var above = entity.PrevPosition.Z >= intersectTopZ;
         // The SectorMovement3D check is just to support 3D crushing ceilings because their Z pos + height will not be less than the ceiling.
-        var below = entity.SectorMovement3D && intersectEntity.Sector3D != null ? entity.PrevPosition.Z < intersectEntity.PrevPosition.Z : entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
+        var below = entity.SectorMovement3D && intersectEntity.Sector3D != null ? entity.Position.Z < intersectEntity.Position.Z : entity.PrevPosition.Z + entity.Height * 0.5 < intersectEntity.PrevPosition.Z;
         var clipped = false;
         var addedOnEntity = false;
         if (above && entity.Position.Z < intersectTopZ)
@@ -1598,8 +1613,6 @@ doneLinkToSectors:
             return false;
 
         tryMove.Success = true;
-        tryMove.LowestCeiling = entity.Sector;
-        tryMove.HighestFloor = entity.Sector;
         tryMove.Subsector = null;
         tryMove.IntersectEntities2D.Length = 0;
         tryMove.IntersectSpecialLines.Length = 0;
@@ -1616,6 +1629,8 @@ doneLinkToSectors:
         var sector = tryMove.Subsector.Sector;
         tryMove.HighestFloorZ = sector.Floor.Z;
         tryMove.LowestCeilingZ = sector.Ceiling.Z;
+        tryMove.LowestCeiling = sector;
+        tryMove.HighestFloor = sector;
         tryMove.DropOffZ = sector.Floor.Z;
         tryMove.HighestValidStepFloorZ = tryMove.HighestFloorZ;
 
@@ -1750,6 +1765,15 @@ doneLinkToSectors:
 
         if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
         {
+            if (entity.Flags.Float() && entity.BlockingEntity == null && tryMove.LowestCeilingZ > entity.Position.Z + entity.Height)
+            {
+                // Other entities can set LowestCeilingZ that would prevent to float when hitting a blocking line.
+                // Use the actual sector ceiling z for the can float check.
+                var ceilingZ = entity.LowestCeilingSector.Ceiling.Z;
+                var floorZ = entity.HighestFloorSector.Floor.Z;
+                tryMove.CanFloat = ceilingZ - floorZ >= entity.Height;
+            }
+
             tryMove.Subsector = null;
             tryMove.Success = false;
             return false;
@@ -2187,7 +2211,7 @@ doneLinkToSectors:
         entity.Position.Z = entity.Position.Z + entity.Velocity.Z + floatZ;
 
         // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
-        ClampBetweenFloorAndCeiling(entity, null, smoothZ: true, entity.MoveLinked);
+        ClampBetweenFloorAndCeiling(entity, null, smoothZ: true, entity.MoveLinked || floatZ > 0);
 
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
