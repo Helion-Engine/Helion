@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
@@ -13,6 +9,10 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Blockmap;
 
@@ -43,6 +43,8 @@ public class BlockMap
     public int Height;
     public int TotalBlocks;
 
+    public int DimensionShift;
+
     public Box2D Bounds;
     public Vec2D Origin;
 
@@ -58,6 +60,8 @@ public class BlockMap
 
     public BlockMap(IList<Line> lines, int blockDimension)
     {
+        blockDimension = NextPowerOfTwo(blockDimension);
+
         BlockLines = new BlockLine[lines.Count];
         Bounds = FindMapBoundingBox(lines) ?? new Box2D(Vec2D.Zero, Vec2D.One);
         Dimension = blockDimension;
@@ -66,6 +70,7 @@ public class BlockMap
         Bounds = dimensions.Bounds;
         Width = dimensions.Width;
         Height = dimensions.Height;
+        DimensionShift = (int)Math.Log2(blockDimension);
 
         Origin = Bounds.Min;
         TotalBlocks = Width * Height;
@@ -79,8 +84,19 @@ public class BlockMap
         AddLinesToBlocks(lines);
     }
 
+    private static int NextPowerOfTwo(int value)
+    {
+        int result = 1;
+        while (result < value)
+            result <<= 1;
+        return result;
+    }
+
+
     public BlockMap(Box2D bounds, int blockDimension)
     {
+        blockDimension = NextPowerOfTwo(blockDimension);
+
         BlockLines = [];
         Bounds = bounds;
         Dimension = blockDimension;
@@ -89,6 +105,7 @@ public class BlockMap
         Bounds = dimensions.Bounds;
         Width = dimensions.Width;
         Height = dimensions.Height;
+        DimensionShift = (int)Math.Log2(blockDimension);
 
         Origin = Bounds.Min;
         TotalBlocks = Width * Height;
@@ -162,8 +179,9 @@ public class BlockMap
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetBlockIndex(Vec3D position)
     {
-        int x = (int)((position.X - Origin.X) / Dimension);
-        int y = (int)((position.Y - Origin.Y) / Dimension);
+        int x = ((int)(position.X - Origin.X)) >> DimensionShift;
+        int y = ((int)(position.Y - Origin.Y)) >> DimensionShift;
+
         int index = y * Width + x;
         if (index < 0 || index >= TotalBlocks)
             return -1;
@@ -174,8 +192,8 @@ public class BlockMap
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetBlockIndex(double xPos, double yPos)
     {
-        int x = (int)((xPos - Origin.X) / Dimension);
-        int y = (int)((yPos - Origin.Y) / Dimension);
+        int x = ((int)(xPos - Origin.X)) >> DimensionShift;
+        int y = ((int)(yPos - Origin.Y)) >> DimensionShift;
         int index = y * Width + x;
         if (index < 0 || index >= TotalBlocks)
             return -1;
@@ -191,10 +209,10 @@ public class BlockMap
         var boxMaxX = entity.Position.X + entity.Radius;
         var boxMinY = entity.Position.Y - entity.Radius;
         var boxMaxY = entity.Position.Y + entity.Radius;
-        var blockStartX = (short)Math.Max(0, (int)((boxMinX - Origin.X) / Dimension));
-        var blockStartY = (short)Math.Max(0, (int)((boxMinY - Origin.Y) / Dimension));
-        var blockEndX = (short)Math.Min((int)((boxMaxX - Origin.X) / Dimension), Width - 1);
-        var blockEndY = (short)Math.Min((int)((boxMaxY - Origin.Y) / Dimension), Height - 1);
+        var blockStartX = (short)Math.Max(0, ((int)(boxMinX - Origin.X) >> DimensionShift));
+        var blockStartY = (short)Math.Max(0, ((int)(boxMinY - Origin.Y) >> DimensionShift));
+        var blockEndX = (short)Math.Min(((int)(boxMaxX - Origin.X) >> DimensionShift), Width - 1);
+        var blockEndY = (short)Math.Min(((int)(boxMaxY - Origin.Y) >> DimensionShift), Height - 1);
 
         // If the block range matches then the entity will link to the same blocks.
         // The block stores entities by id in an array so this saves the array copy to remove the index.
@@ -377,29 +395,29 @@ public class BlockMap
 
     public BlockmapBoxIteration CreateBoxIteration(in Box2D box)
     {
-        int startX = (int)((box.Min.X - Origin.X) / Dimension);
-        int startY = (int)((box.Min.Y - Origin.Y) / Dimension);
-        int endX = (int)((box.Max.X - Origin.X) / Dimension);
-        int endY = (int)((box.Max.Y - Origin.Y) / Dimension);
-        return new(Math.Max(0, startX), Math.Max(0, startY), Math.Min(Width - 1, endX), Math.Min(Height - 1, endY), Width);
+        int startX = ((int)(box.Min.X - Origin.X) >> DimensionShift);
+        int startY = ((int)(box.Min.Y - Origin.Y) >> DimensionShift);
+        int endX = ((int)(box.Max.X - Origin.X) >> DimensionShift);
+        int endY = ((int)(box.Max.Y - Origin.Y) >> DimensionShift);
+        return new(MathHelper.Max(0, startX), MathHelper.Max(0, startY), MathHelper.Min(Width - 1, endX), MathHelper.Min(Height - 1, endY), Width);
     }
 
     public BlockmapBoxIteration CreateBoxIteration(double x, double y, double radius)
     {
-        int startX = (int)((x - radius - Origin.X) / Dimension);
-        int startY = (int)((y - radius - Origin.Y) / Dimension);
-        int endX = (int)((x + radius - Origin.X) / Dimension);
-        int endY = (int)((y + radius - Origin.Y) / Dimension);
-        return new(Math.Max(0, startX), Math.Max(0, startY), Math.Min(Width - 1, endX), Math.Min(Height - 1, endY), Width);
+        int startX = ((int)(x - radius - Origin.X) >> DimensionShift);
+        int startY = ((int)(y - radius - Origin.Y) >> DimensionShift);
+        int endX = ((int)(x + radius - Origin.X) >> DimensionShift);
+        int endY = ((int)(y + radius - Origin.Y) >> DimensionShift);
+        return new(MathHelper.Max(0, startX), MathHelper.Max(0, startY), MathHelper.Min(Width - 1, endX), MathHelper.Min(Height - 1, endY), Width);
     }
 
     public BlockmapBoxIteration CreateBoxIteration(double minX, double minY, double maxX, double maxY)
     {
-        int startX = (int)((minX - Origin.X) / Dimension);
-        int startY = (int)((minY - Origin.Y) / Dimension);
-        int endX = (int)((maxX - Origin.X) / Dimension);
-        int endY = (int)((maxY - Origin.Y) / Dimension);
-        return new(Math.Max(0, startX), Math.Max(0, startY), Math.Min(Width - 1, endX), Math.Min(Height - 1, endY), Width);
+        int startX = ((int)(minX - Origin.X) >> DimensionShift);
+        int startY = ((int)(minY - Origin.Y) >> DimensionShift);
+        int endX = ((int)(maxX - Origin.X) >> DimensionShift);
+        int endY = ((int)(maxY - Origin.Y) >> DimensionShift);
+        return new(MathHelper.Max(0, startX), MathHelper.Max(0, startY), MathHelper.Min(Width - 1, endX), MathHelper.Min(Height - 1, endY), Width);
     }
 
     internal int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + (coordinate.Y * Width);

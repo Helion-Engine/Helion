@@ -1647,10 +1647,10 @@ doneLinkToSectors:
         var boxMaxX = x + entity.Radius;
         var boxMinY = y - entity.Radius;
         var boxMaxY = y + entity.Radius;
-        int blockStartX = MathHelper.Max(0, (int)((boxMinX - m_blockmap.Bounds.Min.X) / m_blockmap.Dimension));
-        int blockStartY = MathHelper.Max(0, (int)((boxMinY - m_blockmap.Bounds.Min.Y) / m_blockmap.Dimension));
-        int blockEndX = MathHelper.Min((int)((boxMaxX - m_blockmap.Bounds.Min.X) / m_blockmap.Dimension), m_blockmap.Width - 1);
-        int blockEndY = MathHelper.Min((int)((boxMaxY - m_blockmap.Bounds.Min.Y) / m_blockmap.Dimension), m_blockmap.Height - 1);
+        int blockStartX = MathHelper.Max(0, ((int)(boxMinX - m_blockmap.Bounds.Min.X) >> m_blockmap.DimensionShift));
+        int blockStartY = MathHelper.Max(0, ((int)(boxMinY - m_blockmap.Bounds.Min.Y) >> m_blockmap.DimensionShift));
+        int blockEndX = MathHelper.Min(((int)(boxMaxX - m_blockmap.Bounds.Min.X) >> m_blockmap.DimensionShift), m_blockmap.Width - 1);
+        int blockEndY = MathHelper.Min(((int)(boxMaxY - m_blockmap.Bounds.Min.Y) >> m_blockmap.DimensionShift), m_blockmap.Height - 1);
         int intersectSectorLength = 0;
 
         for (int by = blockStartY; by <= blockEndY; by++)
@@ -1662,6 +1662,9 @@ doneLinkToSectors:
                 {
                     ref var blockEntities = ref m_blockmap.Entities[index];
                     var entityIndices = blockEntities.EntityIndices;
+
+                    tryMove.IntersectEntities2D.EnsureCapacity(tryMove.IntersectEntities2D.Length + blockEntities.EntityIndicesLength);
+
                     for (int i = blockEntities.EntityIndicesLength - 1; i >= 0; i--)
                     {
                         nextEntity = m_dataCache.Entities[entityIndices[i]];
@@ -1681,7 +1684,7 @@ doneLinkToSectors:
                             continue;
 
                         tryMove.HasTouchy = tryMove.HasTouchy || nextEntity.Flags.Touchy();
-                        tryMove.IntersectEntities2D.Add(nextEntity);
+                        tryMove.IntersectEntities2D.AddUnsafe(nextEntity);
                         bool overlapsZ = isMissile ?
                             entity.OverlapsMissileClipZ(nextEntity, WorldStatic.MissileClip) : entity.OverlapsZ(nextEntity);
 
