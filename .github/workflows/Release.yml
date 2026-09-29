@@ -9,7 +9,7 @@
 # 4.  Create a new tag, e.g. `git tag 0.9.5.0`
 # 5.  Push the new tag, e.g. `git push origin 0.9.5.0`
 
-name: Make .NET Release
+name: Make Tagged Release
 
 on:
   push:
@@ -17,114 +17,79 @@ on:
     - '*'
 
 jobs:
-  buildReleaseLinux:
+  buildRelease:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            rid: linux-x64
+            prereqs: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf fuse file
+          - os: windows-2025-vs2026
+            rid: win-x64
+            prereqs: echo "Hi"
+          - os: macos-15
+            rid: osx-arm64
+            prereqs: brew install libsndfile mpg123
+            
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with: 
+          dotnet-version: 10.0.x
+      - name: Install Prerequisites
+        run: ${{ matrix.prereqs }}
+
+      - name: Make Output Directory
+        run: mkdir -p output
+        
+      - name: Publish Self-Contained
+        run: dotnet publish -c Release -r ${{ matrix.rid }} -p:SelfContainedRelease=true
+        working-directory: Client
+      
+      - name: Publish AOT
+        run: dotnet publish -c Release -r ${{ matrix.rid }} -p:AOT=true
+        working-directory: Client
+
+      - name: Zip Build Artifacts (non-Windows)
+        if: ${{ matrix.rid != 'win-x64' }}
+        run: |
+          cd Publish/${{ matrix.rid }}_SelfContained
+          zip -r ../../output/Helion-${{ github.ref_name }}-${{ matrix.rid }}_SelfContained.zip *
+          cd ../${{ matrix.rid }}_AOT
+          zip -r ../../output/Helion-${{ github.ref_name }}-${{ matrix.rid }}_AOT.zip *
+
+      - name: Zip Build Artifacts (Windows)
+        if: ${{ matrix.rid == 'win-x64' }}
+        run: |
+          Compress-Archive -Path .\Publish\win-x64_SelfContained\* -DestinationPath output\Helion-${{ github.ref_name }}-win-x64_SelfContained.zip
+          Compress-Archive -Path .\Publish\win-x64_AOT\* -DestinationPath output\Helion-${{ github.ref_name }}-win-x64_AOT.zip
+      
+      - name: Make Additional packages (Linux)
+        if: ${{ matrix.rid == 'linux-x64' }}
+        run: |
+          Scripts/buildAndPackageAppImage.sh
+          mv Helion.AppImage output/Helion-${{ github.ref_name }}.AppImage
+        
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{matrix.rid}}
+          path: output
+          
+  PublishRelease:
     runs-on: ubuntu-22.04
-
+    needs: buildRelease
     steps:
-    - uses: actions/checkout@v7
-    - name: Install Linux prereqs
-      run: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf fuse file
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: 10.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-      
-    - name: Dotnet Publish Linux
-      run: dotnet publish -c Release -r linux-x64 Client/Client.csproj -p:SelfContainedRelease=true
-    - name: Dotnet Publish Linux AOT
-      run: dotnet publish -c Release -r linux-x64 Client/Client.csproj -p:AOT=true
-      
-    - name: Zip Linux Self-Contained
-      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_SelfContained.zip *
-      working-directory: Publish/linux-x64_SelfContained
-    - name: Zip Linux AOT
-      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_AOT.zip *
-      working-directory: Publish/linux-x64_AOT
-      
-    - name: Make Linux AppImage
-      run: Scripts/buildAndPackageAppImage.sh
-    
-    - name: Make Linux DEB
-      run: Scripts/buildAndPackageDeb.sh ${{ github.ref_name }}
-      
-    - name: Make Release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "*.zip,Helion.AppImage,Helion*.deb"
-        bodyFile: "RELEASENOTES.md"
-  
-  buildReleaseWindows:
-    runs-on: windows-2025-vs2026
-    needs: buildReleaseLinux
-
-    steps:
-    - uses: actions/checkout@v7
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: 10.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-      
-    - name: Dotnet Publish Windows
-      run: dotnet publish -c Release -r win-x64 Client/Client.csproj -p:SelfContainedRelease=true
-    - name: Dotnet Publish Windows AOT
-      run: dotnet publish -c Release -r win-x64 Client/Client.csproj -p:AOT=true
-      
-    - name: Zip Windows Self-Contained
-      run: Compress-Archive -Path .\Publish\win-x64_SelfContained\* -DestinationPath .\Helion-${{ github.ref_name }}-win-x64_SelfContained.zip
-    - name: Zip Windows AOT
-      run: Compress-Archive -Path .\Publish\win-x64_AOT\* -DestinationPath .\Helion-${{ github.ref_name }}-win-x64_AOT.zip
-
-    - name: Add binaries to release (Windows)
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: '*.zip'
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
-
-  buildReleaseMac:
-    runs-on: macos-latest
-    needs: buildReleaseLinux
-
-    steps:
-    - uses: actions/checkout@v7
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: 10.0.x
-    - name: Install MacOS prereqs
-      run: brew install libsndfile mpg123
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-      
-    - name: Dotnet Publish MacOS
-      run: dotnet publish -c Release -r osx-arm64 Client/Client.csproj -p:SelfContainedRelease=true
-    - name: Dotnet Publish MacOS AOT
-      run: dotnet publish -c Release -r osx-arm64 Client/Client.csproj -p:AOT=true
-      
-    - name: Zip MacOS Self-Contained
-      run: zip -r ../../Helion-${{ github.ref_name }}-osx-arm64_SelfContained.zip *
-      working-directory: Publish/osx-arm64_SelfContained
-    - name: Zip MacOS AOT
-      run: zip -r ../../Helion-${{ github.ref_name }}-osx-arm64_AOT.zip *
-      working-directory: Publish/osx-arm64_AOT
-
-    - name: Add binaries to release (MacOS)
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: '*.zip'
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+      - uses: actions/checkout@v7
+      - name: Get Build Artifacts
+        uses: actions/download-artifact@v8
+        with: 
+          path: output
+          merge-multiple: true
+      - name: Publish Release
+        uses: ncipollo/release-action@v1
+        with:
+            artifacts: "output/*"
+            bodyFile: "RELEASENOTES.md"
