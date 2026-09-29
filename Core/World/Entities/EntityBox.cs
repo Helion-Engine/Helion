@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Models;
@@ -99,6 +100,7 @@ public partial class Entity
         Position.Z + Height > other.Position.Z && 
         Position.Z < other.Position.Z + other.Height;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool OverlapsZ(Entity other, double otherHeight) =>
         Position.Z + Height > other.Position.Z &&
         Position.Z < other.Position.Z + otherHeight;
@@ -107,6 +109,7 @@ public partial class Entity
         Position.Z + Height > bottomZ &&
         Position.Z < topZ;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool OverlapsMissileClipZ(Entity other, bool missileClipCompat) =>
         OverlapsZ(other, other.GetMissileClipHeight(missileClipCompat));
 

@@ -909,21 +909,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public bool CanBlockEntity(Entity other)
     {
-        if (this == other || Owner() == other || other.Flags.NoClip())
+        if (this == other || Owner() == other || other.Flags.NoClip() || Flags.Ripper())
             return false;
 
-        if (Flags.Ripper())
-            return false;
-
-        if (Flags.Missile())
-        {
-            if (!other.Flags.Shootable() && !other.Flags.Solid())
-                return false;
-
-            return true;
-        }
-
-        return other.Flags.Solid();
+        return Flags.Missile() ? other.Flags.Shootable() || other.Flags.Solid() :
+            other.Flags.Solid();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
