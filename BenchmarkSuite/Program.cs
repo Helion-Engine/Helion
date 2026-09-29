@@ -2,7 +2,7 @@ using BenchmarkDotNet.Running;
 
 namespace BenchmarkSuite;
 
-internal class Program
+internal sealed class Program
 {
     static void Main(string[] args)
     {
