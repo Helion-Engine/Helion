@@ -1023,7 +1023,6 @@ public sealed partial class PhysicsManager
                 SetBlockingCeiling(entity);
         }
 
-        bool clippedFloor = entity.Position.Z <= highestFloor;
         if (entity.Position.Z <= highestFloor && highestFloor < short.MaxValue)
         {
             var highestEntity = entity.HighestFloorEntity();
@@ -1036,10 +1035,19 @@ public sealed partial class PhysicsManager
             for (int i = m_onEntities.Length - 1; i >= 0; i--)
                 m_onEntities[i].SetOverEntity(entity);
 
-            if (clippedFloor)
-                SetBlockingFloor(entity);
+            SetBlockingFloor(entity);
 
-            SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ && prevHighestFloorZ != entity.HighestFloorZ);
+            // Additionally check to smooth camera when stepping up to an entity
+            if (entity.PlayerObj != null && smoothZ && prevHighestFloorZ != entity.HighestFloorZ)
+                entity.PlayerObj.SetAndSmoothZ(highestFloor);
+            else
+                entity.Position.Z = highestFloor;
+
+            // For now we remove any negative velocity. If upward velocity is
+            // reset to zero then the jump we apply to players is lost and they
+            // can never jump. Maybe we want to fix this in the future by doing
+            // application of jumping after the XY movement instead of before?
+            entity.Velocity.Z = MathHelper.Max(0, entity.Velocity.Z);
         }
 
         if (prevOnEntity != null && prevOnEntity != entity.OnEntity())
