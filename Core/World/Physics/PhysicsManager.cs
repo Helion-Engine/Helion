@@ -1673,14 +1673,11 @@ doneLinkToSectors:
 
                         nextEntity.BlockmapCount = checkCounter;
 
-                        if ((nextEntity.Flags.Flags1 & PositionValidFlags1) == 0 && (nextEntity.Flags.Flags2 & PositionValidFlags2) == 0)
+                        if (entity == nextEntity || ((nextEntity.Flags.Flags1 & PositionValidFlags1) == 0 && (nextEntity.Flags.Flags2 & PositionValidFlags2) == 0))
                             continue;
 
                         var blockDist = nextEntity.Radius + entity.Radius;
-                        if (Math.Abs(nextEntity.Position.X - x) >= blockDist || Math.Abs(nextEntity.Position.Y - y) >= blockDist)
-                            continue;
-
-                        if (entity == nextEntity)
+                        if (Math.Abs(nextEntity.Position.X - x) >= blockDist | Math.Abs(nextEntity.Position.Y - y) >= blockDist)
                             continue;
 
                         tryMove.HasTouchy = tryMove.HasTouchy || nextEntity.Flags.Touchy();
