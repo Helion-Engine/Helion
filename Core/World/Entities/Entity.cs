@@ -139,6 +139,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new(arrayPool: true);
     public readonly DynamicArray<int> IntersectMidTexLines = new();
@@ -928,23 +929,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldApplyGravity()
     {
-        if (Flags.NoGravity())
-            return false;
-
-        if (WaterSubmersionLevel >= SubmersionLevel.MoreThanHalf && HasMovementZ)
-            return false;
-
-        return !OnGround;
+        return
+            !Flags.NoGravity() &&
+            !(WaterSubmersionLevel >= SubmersionLevel.MoreThanHalf && HasMovementZ) &&
+            !OnGround;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldApplyFriction()
     {
-        if (Flags.NoFriction() || Flags.Missile() || Flags.Skullfly())
-            return false;
-
         // Need to apply friction for player fly
-        return OnGround || Flags.Fly() || WaterSubmersionLevel > SubmersionLevel.None;
+        return
+            !Flags.NoFriction() &&
+            !Flags.Missile() &&
+            !Flags.Skullfly() &&
+            (OnGround || Flags.Fly() || WaterSubmersionLevel > SubmersionLevel.None);
     }
 
     /// <summary>
