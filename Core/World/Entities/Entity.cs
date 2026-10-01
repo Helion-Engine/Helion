@@ -28,6 +28,11 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities;
 
+public struct IntersectSectorNode(Sector sector, LinkableNode<Entity> node)
+{
+    public Sector Sector = sector;
+    public LinkableNode<Entity> Node = node;
+}
 
 /// <summary>
 /// An actor in a world.
@@ -104,7 +109,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public IFloorCeilingAnchor LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public DynamicArray<Sector> IntersectSectors = new(arrayPool: true);
+    public DynamicArray<IntersectSectorNode> IntersectSectors = new(16, arrayPool: true);
     public int Id;
     public int ThingId { get; private set; }
     // Index in Blockmap.BlockLines
@@ -141,7 +146,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
-    public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new(arrayPool: true);
     public readonly DynamicArray<int> IntersectMidTexLines = new();
     public LinkableNode<Entity>? ThingIdNode;
     public bool IsDisposed;
@@ -483,12 +487,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     /// </remarks>
     public void UnlinkFromWorld(bool unlinkBlockmapBlocks = true)
     {
-        for (int i = SectorNodes.Length - 1; i >= 0; i--)
+        for (int i = IntersectSectors.Length - 1; i >= 0; i--)
         {
-            SectorNodes[i].Unlink();
-            SectorNodes.Data[i] = null!;
+            IntersectSectors.Data[i].Node.Unlink();
+            IntersectSectors.Data[i].Node = null!;
         }
-        SectorNodes.Clear();
+        IntersectSectors.Clear();
 
         if (unlinkBlockmapBlocks)
             UnlinkBlockMapBlocks();
@@ -499,7 +503,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             RenderBlock = -1;
         }
 
-        IntersectSectors.Clear();
         IntersectMidTexLines.Clear();
         BlockingBlockLineIndex = -1;
         BlockingEntity = null;
@@ -1238,7 +1241,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         FrameState.SetFrameIndex(this, Constants.NullFrameIndex);
 
-        SectorNodes.Clear();
         IntersectSectors.Clear();
         IntersectMidTexLines.Clear();
 

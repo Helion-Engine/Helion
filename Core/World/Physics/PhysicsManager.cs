@@ -600,7 +600,7 @@ public sealed partial class PhysicsManager
     private static bool EntityHasMovementSector(Entity entity, Sector sector)
     {
         for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
-            if (entity.IntersectSectors[i] == sector)
+            if (entity.IntersectSectors[i].Sector == sector)
                 return true;
 
         return false;
@@ -993,7 +993,7 @@ public sealed partial class PhysicsManager
         entity.Velocity.Z = MathHelper.Max(0, entity.Velocity.Z);
     }
 
-    private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector>? intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
+    private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<IntersectSectorNode>? intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
         TryMoveData ? tryMove = null)
     {
         Invariant(intersectSectors == null || ReferenceEquals(entity.IntersectSectors, intersectSectors), $"Intersect sectors not owned by entity.");
@@ -1093,7 +1093,7 @@ public sealed partial class PhysicsManager
             entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
     }
 
-    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector>? intersectSectors, bool clampToLinkedSectors, TryMoveData? tryMove)
+    private void SetEntityBoundsZ(Entity entity, DynamicArray<IntersectSectorNode>? intersectSectors, bool clampToLinkedSectors, TryMoveData? tryMove)
     {
         Entity? highestFloorEntity = null;
         Entity? lowestCeilingEntity = null;
@@ -1149,7 +1149,7 @@ public sealed partial class PhysicsManager
                 if (WorldStatic.Sector3D)
                 {
                     for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
-                        CanPassTraverseSector3D(entity.IntersectSectors.Data[i]);
+                        CanPassTraverseSector3D(entity.IntersectSectors.Data[i].Sector);
                 }
             }
             else
@@ -1329,7 +1329,7 @@ public sealed partial class PhysicsManager
         return !m_canPassData.Entity.Flags.ActLikeBridge() && entity.Flags.ActLikeBridge();
     }
 
-    private static void GetEntityClampValues(Entity entity, DynamicArray<Sector>? intersectSectors,
+    private static void GetEntityClampValues(Entity entity, DynamicArray<IntersectSectorNode>? intersectSectors,
         bool clampToLinkedSectors, TryMoveData? tryMove, out Sector highestFloor, out Sector lowestCeiling, out double highestFloorZ, out double lowestCeilZ)
     {
         if (!clampToLinkedSectors)
@@ -1365,8 +1365,8 @@ public sealed partial class PhysicsManager
         lowestCeilZ = lowestCeiling.Ceiling.Z;
         for (int i = intersectSectors.Length - 1; i >= 0; i--)
         {
-            Sector sector = intersectSectors[i];
-            double floorZ = sector.Floor.Z;
+            var sector = intersectSectors[i].Sector;
+            var floorZ = sector.Floor.Z;
 
             if (floorZ < short.MinValue)
             {
@@ -1391,7 +1391,7 @@ public sealed partial class PhysicsManager
 
     private void LinkToSectors(Entity entity, TryMoveData? tryMove)
     {
-        Precondition(entity.SectorNodes.Length == 0, "Forgot to unlink entity from blockmap");
+        Precondition(entity.IntersectSectors.Length == 0, "Forgot to unlink entity from blockmap");
         int checkCounter = ++WorldStatic.CheckCounter;
         Subsector centerSubsector;
         if (tryMove != null && tryMove.Subsector != null && tryMove.Success)
@@ -1403,21 +1403,14 @@ public sealed partial class PhysicsManager
         centerSector.CheckCount = checkCounter;
         if (tryMove != null)
         {
-            int intersectSectorLength = 0;
-            entity.IntersectSectors.EnsureCapacity(tryMove.IntersectSectors.Length);
-            entity.SectorNodes.EnsureCapacity(tryMove.IntersectSectors.Length);
             for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
             {
                 var sector = tryMove.IntersectSectors.Data[i];
                 if (sector.CheckCount == checkCounter)
                     continue;
                 sector.CheckCount = checkCounter;
-                entity.IntersectSectors.Data[intersectSectorLength] = sector;
-                entity.SectorNodes.Data[intersectSectorLength++] = sector.Link(entity);
+                entity.IntersectSectors.Add(new IntersectSectorNode(sector, sector.Link(entity)));
             }
-
-            entity.IntersectSectors.Length = intersectSectorLength;
-            entity.SectorNodes.Length = intersectSectorLength;
 
             entity.IntersectMidTexLines.AddRange(tryMove.IntersectMidTexLines);
         }
@@ -1455,16 +1448,14 @@ public sealed partial class PhysicsManager
                             {
                                 Sector sector = line.FrontSector;
                                 sector.CheckCount = checkCounter;
-                                entity.IntersectSectors.Add(sector);
-                                entity.SectorNodes.Add(sector.Link(entity));
+                                entity.IntersectSectors.Add(new IntersectSectorNode(sector, sector.Link(entity)));
                             }
 
                             if (line.BackSector != null && line.BackSector!.CheckCount != checkCounter)
                             {
                                 Sector sector = line.BackSector!;
                                 sector.CheckCount = checkCounter;
-                                entity.IntersectSectors.Add(sector);
-                                entity.SectorNodes.Add(sector.Link(entity));
+                                entity.IntersectSectors.Add(new IntersectSectorNode(sector, sector.Link(entity)));
                             }
                         }                        
                     }
@@ -1474,8 +1465,7 @@ public sealed partial class PhysicsManager
 doneLinkToSectors:
         entity.SubsectorId = centerSubsector.Id;
         entity.Sector = centerSector;
-        entity.IntersectSectors.Add(centerSector);
-        entity.SectorNodes.Add(centerSector.Link(entity));
+        entity.IntersectSectors.Add(new IntersectSectorNode(centerSector, centerSector.Link(entity)));
     }
 
     public TryMoveData TryMoveXY(Entity entity, double x, double y, Action<Entity, TryMoveData>? onMoveTo = null)
@@ -1715,6 +1705,8 @@ doneLinkToSectors:
                 ref var block = ref m_blockmap.Lines[index];
                 tryMove.IntersectSectors.EnsureCapacity(intersectSectorLength + block.BlockLineCount * 2);
 
+                Sector? lastSector = null;
+
                 int count = block.BlockLineIndex + block.BlockLineCount;
                 for (int i = block.BlockLineIndex; i < count; i++)
                 {
@@ -1747,10 +1739,15 @@ doneLinkToSectors:
                                 tryMove.IntersectSpecialLines.Add(blockLine.LineId);
                         }
 
-                        tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine.FrontSector;
-                        if (blockLine.BackSector != null && blockLine.BackSector != blockLine.FrontSector)
+                        if (lastSector != blockLine.FrontSector)
+                        {
+                            lastSector = blockLine.FrontSector;
+                            tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine.FrontSector;
+                        }
+
+                        if (blockLine.BackSector != null && blockLine.BackSector != lastSector && blockLine.BackSector != blockLine.FrontSector)
                             tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine.BackSector!;
-                    }                    
+                    }
                 }
             }
         }
@@ -2181,7 +2178,7 @@ doneLinkToSectors:
         double lowestFriction = double.MaxValue;
         for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
         {
-            Sector sector = entity.IntersectSectors[i];
+            var sector = entity.IntersectSectors[i].Sector;
             if (entity.Position.Z != sector.ToFloorZ(entity.Position))
                 continue;
 

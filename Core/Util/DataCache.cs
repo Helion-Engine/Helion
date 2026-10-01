@@ -80,7 +80,7 @@ public class DataCache
             Entity? entity = Entities[m_entities[i]];
             if (entity == null!)
                 continue;
-            entity.IntersectSectors.FlushReferences();
+            entity.IntersectSectors.FlushStruct();
         }
 
         for (int i = 0; i < m_entityLists.Capacity; i++)

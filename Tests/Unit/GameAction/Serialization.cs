@@ -323,7 +323,7 @@ public class Serialization : IDisposable
 
             entity.IntersectSectors.Length.Should().Be(newEntity.IntersectSectors.Length);
             for (int i = 0; i < entity.IntersectSectors.Length; i++)
-                entity.IntersectSectors[i].Id.Should().Be(newEntity.IntersectSectors[i].Id);
+                entity.IntersectSectors[i].Sector.Id.Should().Be(newEntity.IntersectSectors[i].Sector.Id);
 
             entity.Target()?.Id.Should().Be(newEntity.Target()?.Id);
             entity.Tracer()?.Id.Should().Be(newEntity.Tracer()?.Id);

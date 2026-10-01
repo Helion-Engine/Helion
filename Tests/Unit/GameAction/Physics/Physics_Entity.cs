@@ -389,7 +389,7 @@ namespace Helion.Tests.Unit.GameAction
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             var blocks = (monster.BlockRange.EndX - monster.BlockRange.StartX) + (monster.BlockRange.EndY - monster.BlockRange.StartY);
             blocks.Should().Be(0);
-            monster.SectorNodes.Length.Should().Be(1);
+            monster.IntersectSectors.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
 
             GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
@@ -422,7 +422,7 @@ namespace Helion.Tests.Unit.GameAction
             });
             entities.Count.Should().Be(0);
 
-            monster.SectorNodes.Length.Should().Be(1);
+            monster.IntersectSectors.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
 
             GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
