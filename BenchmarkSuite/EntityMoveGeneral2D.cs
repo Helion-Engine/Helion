@@ -7,12 +7,12 @@ using System.Collections.Generic;
 
 namespace BenchmarkSuite;
 
-public class EntityMoveGeneral
+public class EntityMoveGeneral2D
 {
     private readonly SinglePlayerWorld World;
     private readonly List<Entity> Monsters = new(8192);
 
-    public EntityMoveGeneral()
+    public EntityMoveGeneral2D()
     {
         World = WorldAllocator.LoadMap("Resources/idumea.zip", "idumea.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
         {
