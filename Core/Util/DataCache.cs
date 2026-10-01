@@ -77,10 +77,12 @@ public class DataCache
     {
         for (int i = 0; i < m_entities.Capacity; i++)
         {
-            Entity? entity = Entities[m_entities[i]];
+            var entity = Entities[m_entities[i]];
             if (entity == null!)
                 continue;
-            entity.IntersectSectors.FlushStruct();
+
+            for (int j = 0; j < entity.IntersectSectors.Length; j++)
+                entity.IntersectSectors.Data[j].Sector = null!;
         }
 
         for (int i = 0; i < m_entityLists.Capacity; i++)
