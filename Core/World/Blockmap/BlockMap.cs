@@ -434,67 +434,90 @@ public struct BlockmapBoxIteration(int blockStartX, int blockStartY, int blockEn
 
 public ref struct BlockmapSegIterator
 {
-    private readonly int m_totalBlocks;
-    private readonly int m_numBlocks = 1;
-    private readonly int m_verticalStep;
-    private readonly int m_horizontalStep;
+    private int m_totalBlocks;
+    private int m_numBlocks;
+    private int m_verticalStep;
+    private int m_horizontalStep;
     private int m_blockIndex;
     private int m_blocksVisited;
+
     private double m_error;
     private double m_absDeltaX;
     private double m_absDeltaY;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int FastFloor(double x)
+    {
+        int i = (int)x;
+        return (x < i) ? (i - 1) : i;
+    }
+
     internal BlockmapSegIterator(BlockMap grid, in Seg2D seg)
     {
+        var width = grid.Width;
         m_totalBlocks = grid.TotalBlocks;
 
-        var blockUnitStartX = (seg.Start.X - grid.Origin.X) / grid.Dimension;
-        var blockUnitStartY = (seg.Start.Y - grid.Origin.Y) / grid.Dimension;
-        var blockUnitEndX = (seg.End.X - grid.Origin.X) / grid.Dimension;
-        var blockUnitEndY = (seg.End.Y - grid.Origin.Y) / grid.Dimension;
+        var startX = (seg.Start.X - grid.Origin.X) / grid.Dimension;
+        var startY = (seg.Start.Y - grid.Origin.Y) / grid.Dimension;
+        var endX = (seg.End.X - grid.Origin.X) / grid.Dimension;
+        var endY = (seg.End.Y - grid.Origin.Y) / grid.Dimension;
 
-        var startingBlockX = (int)blockUnitStartX;
-        var startingBlockY = (int)blockUnitStartY;
-        m_absDeltaX = Math.Abs(blockUnitEndX - blockUnitStartX);
-        m_absDeltaY = Math.Abs(blockUnitEndY - blockUnitStartY);
-        m_blockIndex = startingBlockX + (startingBlockY * grid.Width);
+        var startXi = (int)startX;
+        var startYi = (int)startY;
 
-        if (MathHelper.IsZero(m_absDeltaX))
+        var deltaX = endX - startX;
+        var deltaY = endY - startY;
+
+        var absDeltaX = deltaX >= 0 ? deltaX : -deltaX;
+        var absDeltaY = deltaY >= 0 ? deltaY : -deltaY;
+
+        m_absDeltaX = absDeltaX;
+        m_absDeltaY = absDeltaY;
+
+        m_blockIndex = startXi + startYi * width;
+        m_numBlocks = 1;
+
+        var noHorizontal = deltaX == 0.0;
+        var noVertical = deltaY == 0.0;
+
+        var floorStartX = FastFloor(startX);
+        var floorEndX = FastFloor(endX);
+        var floorStartY = FastFloor(startY);
+        var floorEndY = FastFloor(endY);
+
+        if (noHorizontal)
         {
+            m_horizontalStep = 0;
             m_error = double.MaxValue;
         }
-        else if (blockUnitEndX > blockUnitStartX)
-        {
-            m_horizontalStep = 1;
-            m_numBlocks += (int)Math.Floor(blockUnitEndX) - startingBlockX;
-            m_error = (Math.Floor(blockUnitStartX) + 1 - blockUnitStartX) * m_absDeltaY;
-        }
         else
         {
-            m_horizontalStep = -1;
-            m_numBlocks += startingBlockX - (int)Math.Floor(blockUnitEndX);
-            m_error = (blockUnitStartX - Math.Floor(blockUnitStartX)) * m_absDeltaY;
+            bool stepRight = deltaX > 0.0;
+            m_horizontalStep = stepRight ? 1 : -1;
+
+            m_numBlocks += stepRight ? (floorEndX - startXi)
+                : (startXi - floorEndX);
+
+            m_error = stepRight ? (floorStartX + 1 - startX) * absDeltaY
+                : (startX - floorStartX) * absDeltaY;
         }
 
-        if (MathHelper.IsZero(m_absDeltaY))
+        if (noVertical)
         {
+            m_verticalStep = 0;
             m_error = double.MinValue;
         }
-        else if (blockUnitEndY > blockUnitStartY)
-        {
-            m_verticalStep = grid.Width;
-            m_numBlocks += (int)Math.Floor(blockUnitEndY) - startingBlockY;
-            m_error -= (Math.Floor(blockUnitStartY) + 1 - blockUnitStartY) * m_absDeltaX;
-        }
         else
         {
-            m_verticalStep = -grid.Width;
-            m_numBlocks += startingBlockY - (int)Math.Floor(blockUnitEndY);
-            m_error -= (blockUnitStartY - Math.Floor(blockUnitStartY)) * m_absDeltaX;
-        }
+            bool stepUp = deltaY > 0.0;
+            m_verticalStep = stepUp ? width : -width;
 
-        if (m_numBlocks > grid.TotalBlocks)
-            m_numBlocks = grid.TotalBlocks;
+            m_numBlocks += stepUp ? (floorEndY - startYi)
+                : (startYi - floorEndY);
+
+            m_error -= stepUp ? (floorStartY + 1 - startY) * absDeltaX
+                : (startY - floorStartY) * absDeltaX;
+        }
     }
 
     public int NextIndex()
