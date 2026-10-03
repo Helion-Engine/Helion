@@ -1,5 +1,3 @@
-# 1.1.0.0 (Pre-release)
-
 ## Features:
 - Add adaptive rendering option. Automatically swaps between BSP and static rendering when beneficial. Largely beneficial for slower integrated GPUs.
 - Add Radsuit intensity.
