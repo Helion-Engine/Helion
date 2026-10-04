@@ -978,21 +978,6 @@ public sealed partial class PhysicsManager
         testOpening.Set(front, back);
     }
 
-    private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
-    {
-        // Additionally check to smooth camera when stepping up to an entity
-        if (entity.PlayerObj != null && smoothZ)
-            entity.PlayerObj.SetAndSmoothZ(floorZ);
-        else
-            entity.Position.Z = floorZ;
-
-        // For now we remove any negative velocity. If upward velocity is
-        // reset to zero then the jump we apply to players is lost and they
-        // can never jump. Maybe we want to fix this in the future by doing
-        // application of jumping after the XY movement instead of before?
-        entity.Velocity.Z = MathHelper.Max(0, entity.Velocity.Z);
-    }
-
     private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<IntersectSectorNode>? intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
         TryMoveData ? tryMove = null)
     {
