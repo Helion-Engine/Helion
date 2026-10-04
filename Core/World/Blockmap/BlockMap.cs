@@ -92,7 +92,6 @@ public class BlockMap
         return result;
     }
 
-
     public BlockMap(Box2D bounds, int blockDimension)
     {
         blockDimension = NextPowerOfTwo(blockDimension);
