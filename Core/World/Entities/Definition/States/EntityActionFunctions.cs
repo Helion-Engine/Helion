@@ -2639,7 +2639,7 @@ public static class EntityActionFunctions
         // TODO
     }
 
-    private static void A_TroopAttack(Entity entity)
+    public static void A_TroopAttack(Entity entity)
     {
         var target = entity.Target();
         if (target == null)

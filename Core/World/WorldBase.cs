@@ -1014,13 +1014,13 @@ public abstract partial class WorldBase : IWorld
 
     public void Link(Entity entity)
     {
-        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
+        Precondition(entity.IntersectSectors.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, false);
     }
 
     public void LinkClamped(Entity entity)
     {
-        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
+        Precondition(entity.IntersectSectors.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, true);
     }
 

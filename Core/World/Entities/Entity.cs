@@ -28,6 +28,11 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities;
 
+public struct IntersectSectorNode(Sector sector, LinkableNode<Entity> node)
+{
+    public Sector Sector = sector;
+    public LinkableNode<Entity> Node = node;
+}
 
 /// <summary>
 /// An actor in a world.
@@ -104,7 +109,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public IFloorCeilingAnchor LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public DynamicArray<Sector> IntersectSectors = new(arrayPool: true);
+    public DynamicArray<IntersectSectorNode> IntersectSectors = new(16, arrayPool: true);
     public int Id;
     public int ThingId { get; private set; }
     // Index in Blockmap.BlockLines
@@ -139,8 +144,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
-    public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new(arrayPool: true);
     public readonly DynamicArray<int> IntersectMidTexLines = new();
     public LinkableNode<Entity>? ThingIdNode;
     public bool IsDisposed;
@@ -482,12 +487,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     /// </remarks>
     public void UnlinkFromWorld(bool unlinkBlockmapBlocks = true)
     {
-        for (int i = SectorNodes.Length - 1; i >= 0; i--)
+        for (int i = IntersectSectors.Length - 1; i >= 0; i--)
         {
-            SectorNodes[i].Unlink();
-            SectorNodes.Data[i] = null!;
+            IntersectSectors.Data[i].Node.Unlink();
+            IntersectSectors.Data[i].Node = null!;
         }
-        SectorNodes.Clear();
+        IntersectSectors.Clear();
 
         if (unlinkBlockmapBlocks)
             UnlinkBlockMapBlocks();
@@ -498,7 +503,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
             RenderBlock = -1;
         }
 
-        IntersectSectors.Clear();
         IntersectMidTexLines.Clear();
         BlockingBlockLineIndex = -1;
         BlockingEntity = null;
@@ -909,21 +913,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public bool CanBlockEntity(Entity other)
     {
-        if (this == other || Owner() == other || other.Flags.NoClip())
+        if (this == other || Owner() == other || other.Flags.NoClip() || Flags.Ripper())
             return false;
 
-        if (Flags.Ripper())
-            return false;
-
-        if (Flags.Missile())
-        {
-            if (!other.Flags.Shootable() && !other.Flags.Solid())
-                return false;
-
-            return true;
-        }
-
-        return other.Flags.Solid();
+        return Flags.Missile() ? other.Flags.Shootable() || other.Flags.Solid() :
+            other.Flags.Solid();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -938,23 +932,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldApplyGravity()
     {
-        if (Flags.NoGravity())
-            return false;
-
-        if (WaterSubmersionLevel >= SubmersionLevel.MoreThanHalf && HasMovementZ)
-            return false;
-
-        return !OnGround;
+        return
+            !Flags.NoGravity() &&
+            !(WaterSubmersionLevel >= SubmersionLevel.MoreThanHalf && HasMovementZ) &&
+            !OnGround;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldApplyFriction()
     {
-        if (Flags.NoFriction() || Flags.Missile() || Flags.Skullfly())
-            return false;
-
         // Need to apply friction for player fly
-        return OnGround || Flags.Fly() || WaterSubmersionLevel > SubmersionLevel.None;
+        return
+            !Flags.NoFriction() &&
+            !Flags.Missile() &&
+            !Flags.Skullfly() &&
+            (OnGround || Flags.Fly() || WaterSubmersionLevel > SubmersionLevel.None);
     }
 
     /// <summary>
@@ -1249,7 +1241,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
         FrameState.SetFrameIndex(this, Constants.NullFrameIndex);
 
-        SectorNodes.Clear();
         IntersectSectors.Clear();
         IntersectMidTexLines.Clear();
 

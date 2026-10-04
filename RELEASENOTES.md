@@ -7,4 +7,4 @@
 
 
 ## Misc:
-
+- General blockmap traversal improvements.
