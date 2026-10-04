@@ -1630,10 +1630,10 @@ doneLinkToSectors:
         var boxMaxX = x + entity.Radius;
         var boxMinY = y - entity.Radius;
         var boxMaxY = y + entity.Radius;
-        int blockStartX = MathHelper.Max(0, ((int)(boxMinX - m_blockmap.Bounds.Min.X) >> m_blockmap.DimensionShift));
-        int blockStartY = MathHelper.Max(0, ((int)(boxMinY - m_blockmap.Bounds.Min.Y) >> m_blockmap.DimensionShift));
-        int blockEndX = MathHelper.Min(((int)(boxMaxX - m_blockmap.Bounds.Min.X) >> m_blockmap.DimensionShift), m_blockmap.Width - 1);
-        int blockEndY = MathHelper.Min(((int)(boxMaxY - m_blockmap.Bounds.Min.Y) >> m_blockmap.DimensionShift), m_blockmap.Height - 1);
+        int blockStartX = MathHelper.Max(0, (int)(boxMinX - m_blockmap.Bounds.Min.X) >> m_blockmap.DimensionShift);
+        int blockStartY = MathHelper.Max(0, (int)(boxMinY - m_blockmap.Bounds.Min.Y) >> m_blockmap.DimensionShift);
+        int blockEndX = MathHelper.Min((int)(boxMaxX - m_blockmap.Bounds.Min.X) >> m_blockmap.DimensionShift, m_blockmap.Width - 1);
+        int blockEndY = MathHelper.Min((int)(boxMaxY - m_blockmap.Bounds.Min.Y) >> m_blockmap.DimensionShift, m_blockmap.Height - 1);
         int intersectSectorLength = 0;
 
         for (int by = blockStartY; by <= blockEndY; by++)

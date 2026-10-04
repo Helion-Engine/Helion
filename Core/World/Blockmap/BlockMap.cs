@@ -208,10 +208,10 @@ public class BlockMap
         var boxMaxX = entity.Position.X + entity.Radius;
         var boxMinY = entity.Position.Y - entity.Radius;
         var boxMaxY = entity.Position.Y + entity.Radius;
-        var blockStartX = (short)Math.Max(0, ((int)(boxMinX - Origin.X) >> DimensionShift));
-        var blockStartY = (short)Math.Max(0, ((int)(boxMinY - Origin.Y) >> DimensionShift));
-        var blockEndX = (short)Math.Min(((int)(boxMaxX - Origin.X) >> DimensionShift), Width - 1);
-        var blockEndY = (short)Math.Min(((int)(boxMaxY - Origin.Y) >> DimensionShift), Height - 1);
+        var blockStartX = (short)Math.Max(0, (int)(boxMinX - Origin.X) >> DimensionShift);
+        var blockStartY = (short)Math.Max(0, (int)(boxMinY - Origin.Y) >> DimensionShift);
+        var blockEndX = (short)Math.Min((int)(boxMaxX - Origin.X) >> DimensionShift, Width - 1);
+        var blockEndY = (short)Math.Min((int)(boxMaxY - Origin.Y) >> DimensionShift, Height - 1);
 
         // If the block range matches then the entity will link to the same blocks.
         // The block stores entities by id in an array so this saves the array copy to remove the index.
@@ -394,28 +394,28 @@ public class BlockMap
 
     public BlockmapBoxIteration CreateBoxIteration(in Box2D box)
     {
-        int startX = ((int)(box.Min.X - Origin.X) >> DimensionShift);
-        int startY = ((int)(box.Min.Y - Origin.Y) >> DimensionShift);
-        int endX = ((int)(box.Max.X - Origin.X) >> DimensionShift);
-        int endY = ((int)(box.Max.Y - Origin.Y) >> DimensionShift);
+        int startX = (int)(box.Min.X - Origin.X) >> DimensionShift;
+        int startY = (int)(box.Min.Y - Origin.Y) >> DimensionShift;
+        int endX = (int)(box.Max.X - Origin.X) >> DimensionShift;
+        int endY = (int)(box.Max.Y - Origin.Y) >> DimensionShift;
         return new(MathHelper.Max(0, startX), MathHelper.Max(0, startY), MathHelper.Min(Width - 1, endX), MathHelper.Min(Height - 1, endY), Width);
     }
 
     public BlockmapBoxIteration CreateBoxIteration(double x, double y, double radius)
     {
-        int startX = ((int)(x - radius - Origin.X) >> DimensionShift);
-        int startY = ((int)(y - radius - Origin.Y) >> DimensionShift);
-        int endX = ((int)(x + radius - Origin.X) >> DimensionShift);
-        int endY = ((int)(y + radius - Origin.Y) >> DimensionShift);
+        int startX = (int)(x - radius - Origin.X) >> DimensionShift;
+        int startY = (int)(y - radius - Origin.Y) >> DimensionShift;
+        int endX = (int)(x + radius - Origin.X) >> DimensionShift;
+        int endY = (int)(y + radius - Origin.Y) >> DimensionShift;
         return new(MathHelper.Max(0, startX), MathHelper.Max(0, startY), MathHelper.Min(Width - 1, endX), MathHelper.Min(Height - 1, endY), Width);
     }
 
     public BlockmapBoxIteration CreateBoxIteration(double minX, double minY, double maxX, double maxY)
     {
-        int startX = ((int)(minX - Origin.X) >> DimensionShift);
-        int startY = ((int)(minY - Origin.Y) >> DimensionShift);
-        int endX = ((int)(maxX - Origin.X) >> DimensionShift);
-        int endY = ((int)(maxY - Origin.Y) >> DimensionShift);
+        int startX = (int)(minX - Origin.X) >> DimensionShift;
+        int startY = (int)(minY - Origin.Y) >> DimensionShift;
+        int endX = (int)(maxX - Origin.X) >> DimensionShift;
+        int endY = (int)(maxY - Origin.Y) >> DimensionShift;
         return new(MathHelper.Max(0, startX), MathHelper.Max(0, startY), MathHelper.Min(Width - 1, endX), MathHelper.Min(Height - 1, endY), Width);
     }
 
