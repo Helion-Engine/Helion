@@ -224,6 +224,9 @@ public abstract partial class WorldBase : IWorld
     private LineOfSightEnemyData m_lineOfSightEnemyData;
     private readonly Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
 
+    private SightTraverseData m_sightTraverse;
+    private readonly BlockmapTraverseAction m_testSightBlockAction;
+
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null, bool sameAsPreviousMap = false, bool reuse = true)
@@ -281,6 +284,7 @@ public abstract partial class WorldBase : IWorld
         m_healChaseAction = HandleHealChase;
         m_setNewTracerTargetAction = HandleSetNewTracerTarget;
         m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
+        m_testSightBlockAction = TestSightBlock;
 
         m_teleportFogDef = EntityManager.DefinitionComposer.GetByName("TeleportFog");
 
