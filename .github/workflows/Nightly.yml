@@ -10,38 +10,80 @@ on:
 
 jobs:
   buildNightly:
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            rid: linux-x64
+            prereqs: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf fuse file
+          - os: windows-2025-vs2026
+            rid: win-x64
+            prereqs: echo "Hi"
+          - os: macos-15
+            rid: osx-arm64
+            prereqs: brew install libsndfile mpg123
+
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Dotnet Publish Linux Self-Contained
-      run: dotnet publish -c Release -r linux-x64 -p:SelfContainedRelease=true Client/Client.csproj
-    - name: Dotnet Publish Windows Self-Contained
-      run: dotnet publish -c Release -r win-x64 -p:SelfContainedRelease=true Client/Client.csproj
-    - name: Dotnet Publish MacOS Self-Contained
-      run: dotnet publish -c Release -r osx-arm64 -p:SelfContainedRelease=true Client/Client.csproj
-    - name: Install zip
-      uses: montudor/action-zip@v1
-    - name: Zip Linux Self-Contained
-      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_SelfContained.zip *
-      working-directory: Publish/linux-x64_SelfContained
-    - name: Zip Windows Self-Contained
-      run: zip -r ../../Helion-${{ github.ref_name }}-win-x64_SelfContained.zip *
-      working-directory: Publish/win-x64_SelfContained
-    - name: Zip MacOS Self-Contained
-      run: zip -r ../../Helion-${{ github.ref_name }}-osx-arm64_SelfContained.zip *
-      working-directory: Publish/osx-arm64_SelfContained
-    - name: Update nightly release
-      uses: pyTooling/Actions/releaser@r0
-      with:
-        tag: nightly
-        rm: true
-        token: ${{ secrets.GITHUB_TOKEN }}
-        files: '*.zip'
+      - uses: actions/checkout@v7
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Install Prerequisites
+        run: ${{ matrix.prereqs }}
+
+      - name: Make Output Directory
+        run: mkdir -p output
+
+      - name: Publish Self-Contained
+        run: dotnet publish -c Release -r ${{ matrix.rid }} -p:SelfContainedRelease=true
+        working-directory: Client
+
+      - name: Publish AOT
+        run: dotnet publish -c Release -r ${{ matrix.rid }} -p:AOT=true
+        working-directory: Client
+
+      - name: Zip Build Artifacts (non-Windows)
+        if: ${{ matrix.rid != 'win-x64' }}
+        run: |
+          cd Publish/${{ matrix.rid }}_SelfContained
+          zip -r ../../output/Helion-${{ github.ref_name }}-${{ matrix.rid }}_SelfContained.zip *
+          cd ../${{ matrix.rid }}_AOT
+          zip -r ../../output/Helion-${{ github.ref_name }}-${{ matrix.rid }}_AOT.zip *
+
+      - name: Zip Build Artifacts (Windows)
+        if: ${{ matrix.rid == 'win-x64' }}
+        run: |
+          Compress-Archive -Path .\Publish\win-x64_SelfContained\* -DestinationPath output\Helion-${{ github.ref_name }}-win-x64_SelfContained.zip
+          Compress-Archive -Path .\Publish\win-x64_AOT\* -DestinationPath output\Helion-${{ github.ref_name }}-win-x64_AOT.zip
+
+      - name: Make Additional packages (Linux)
+        if: ${{ matrix.rid == 'linux-x64' }}
+        run: |
+          Scripts/buildAndPackageAppImage.sh
+          mv Helion.AppImage output/Helion-${{ github.ref_name }}.AppImage
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{matrix.rid}}
+          path: output
+
+  publishNightly:
+    runs-on: ubuntu-22.04
+    needs: buildNightly
+    steps:
+      - uses: actions/checkout@v7
+      - name: Get Build Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: output
+          merge-multiple: true
+      - name: Update nightly release
+        uses: pyTooling/Actions/releaser@r0
+        with:
+            tag: nightly
+            rm: true
+            token: ${{ secrets.GITHUB_TOKEN }}
+            files: 'output/*'
