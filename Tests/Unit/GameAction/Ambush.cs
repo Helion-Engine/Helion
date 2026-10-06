@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
+using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
@@ -14,7 +15,7 @@ public class Ambush
 
     public Ambush()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, (world) => { world.SetRandom(new NoRandom()); }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "Ambush flag clears on A_FaceTarget")]
