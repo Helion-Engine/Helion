@@ -1075,6 +1075,7 @@ public static class EntityActionFunctions
         if (target == null)
             return;
 
+        entity.Flags.ClearAmbush();
         entity.AngleRadians = entity.Position.Angle(target.Position);
         if (target.Flags.Shadow())
             entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
