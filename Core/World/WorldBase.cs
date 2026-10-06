@@ -75,7 +75,6 @@ namespace Helion.World;
 public abstract partial class WorldBase : IWorld
 {
     const int BspBlockDimension = 16;
-    public const int DefaultLineOfSightDistance = 1024;
     // Min/max tangent of 80 degrees
     private const double MaxPitch = 5.67128;
     private const double MinPitch = -5.67128;
@@ -201,7 +200,6 @@ public abstract partial class WorldBase : IWorld
     private readonly bool m_sectorReturnStop;
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
-    private int m_losDistance = DefaultLineOfSightDistance;
     private string m_activeMusic = string.Empty;
     private bool m_explosionTraverseLines;
     private Sector? m_lastSector3D;
@@ -2727,8 +2725,6 @@ public abstract partial class WorldBase : IWorld
 
         return true;
     }
-
-    public void SetLineOfSightDistance(int length) => m_losDistance = length;
 
     public virtual bool CheckLineOfSight(Entity from, Entity to)
     {
