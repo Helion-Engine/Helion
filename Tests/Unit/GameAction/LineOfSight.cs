@@ -241,7 +241,7 @@ public class LineOfSight
         World.GetLineOfSightPlayer(SightThing4, false).Should().Be(Player);
     }
 
-    [Fact(DisplayName = "Line of sight not obstructed by multiple ledges lower (los long check)")]
+    [Fact(DisplayName = "Line of sight not obstructed by multiple ledges lower")]
     public void LineOfSightComplexLongCheckLower()
     {
         GameActions.SetEntityPosition(World, Player, new Vec2D(2496, 352));
@@ -249,7 +249,7 @@ public class LineOfSight
         World.GetLineOfSightPlayer(sightThing, false).Should().Be(Player);
     }
 
-    [Fact(DisplayName = "Line of sight obstructed by multiple ledges lower (los long check)")]
+    [Fact(DisplayName = "Line of sight obstructed by multiple ledges lower")]
     public void LineOfSightObstructedComplexLongCheckLower()
     {
         GameActions.SetEntityPosition(World, Player, new Vec2D(2208, 384));
@@ -258,11 +258,30 @@ public class LineOfSight
         World.GetLineOfSightPlayer(sightThing, false).Should().BeNull();
     }
 
-    [Fact(DisplayName = "Line of sight not obstructed by multiple ledges higher (los long check)")]
+    [Fact(DisplayName = "Line of sight not obstructed by multiple ledges higher")]
     public void LineOfSightComplexLongCheckHigher()
     {
         GameActions.SetEntityPosition(World, Player, new Vec2D(2472, 1408));
         var sightThing = GameActions.GetEntity(World, 7);
         World.GetLineOfSightPlayer(sightThing, false).Should().Be(Player);
+    }
+
+    [Fact(DisplayName = "Line of sight not obstructed with different angles")]
+    public void LineOfSightAngleCheck()
+    {
+        var sector = GameActions.GetSector(World, 4);
+        sector.Floor.Z = 128;
+
+        SightThing.AngleRadians = GameActions.GetAngle(Bearing.North);
+
+        GameActions.SetEntityPosition(World, Player, new Vec2D(512, -36));
+        GameActions.SetEntityPosition(World, SightThing, new Vec2D(160, -224));
+        World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
+
+        GameActions.SetEntityPosition(World, Player, new Vec2D(258, -36));
+        GameActions.SetEntityPosition(World, SightThing, new Vec2D(608, -224));
+        World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
+
+        sector.Floor.Z = 256;
     }
 }
