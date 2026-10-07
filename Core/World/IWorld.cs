@@ -120,6 +120,7 @@ public interface IWorld : IDisposable
     MapType MapType { get; }
     ACS.WorldExecutor AcsExecutor { get; }
     byte[]? Behavior { get; }
+    Entity TestClampEntity { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);

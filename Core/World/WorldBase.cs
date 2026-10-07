@@ -170,6 +170,7 @@ public abstract partial class WorldBase : IWorld
 
     public WorldExecutor AcsExecutor { get; private set; }
     public byte[]? Behavior => m_map.Behavior;
+    public Entity TestClampEntity { get; private set; }
 
     public bool HasDehacked;
 
@@ -294,6 +295,13 @@ public abstract partial class WorldBase : IWorld
 
         m_checkRadiusEntity = new Entity();
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
+
+        TestClampEntity = new();
+        TestClampEntity.Set(0, 0, 0, new EntityDefinition(0, "TEST_CLAMP", null, []), default, 0, Sectors[0], this, default);
+
+        TestClampEntity.Flags.SetNoBlockmap();
+        TestClampEntity.Flags.SetNoSector();
+        TestClampEntity.Flags.ClearSolid();
 
         AcsExecutor = GlobalData.GetOrCreateAcsExecutor(this, worldModel != null && !sameAsPreviousMap);
         LoadAcsHubMap(map, 0);

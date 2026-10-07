@@ -27,7 +27,6 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
-using Helion.World.Special.Specials;
 using Helion.World.StatusBar;
 using NLog;
 using System;
@@ -130,8 +129,6 @@ public class Player : Entity
     public override int ProjectileKickBack => Weapon == null ? WorldStatic.World.GameInfo.DefKickBack : Weapon.KickBack;
     public virtual bool IsCamera => false;
 
-    private Entity m_dummyEntity;
-
     public virtual bool DrawFullBright()
     {
         if (WorldStatic.World.Config.Render.Fullbright)
@@ -166,14 +163,11 @@ public class Player : Entity
     {
         Inventory = null!;
         StatusBar = null!;
-        m_dummyEntity = null!;
     }
 
     public void Set(int index, int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world, int playerNumber)
     {
-        SetDummyEntity(world);
-
         Precondition(playerNumber >= 0, "Player number should not be negative");
         base.Set(index, id, thingId, definition, position, angleRadians, sector, world, default);
 
@@ -194,17 +188,6 @@ public class Player : Entity
         SetPlayerInfo();
         SetupEvents();
         ResetAirSupply(false);
-    }
-
-    // TODO we really only need one instance
-    private void SetDummyEntity(IWorld world)
-    {
-        m_dummyEntity = new();
-        m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, world.Sectors[0], world, default);
-
-        m_dummyEntity.Flags.SetNoBlockmap();
-        m_dummyEntity.Flags.SetNoSector();
-        m_dummyEntity.Flags.ClearSolid();
     }
 
     public void Set(int index, PlayerModel playerModel, Dictionary<int, EntityModelPair> entities, EntityDefinition definition, IWorld world)
@@ -627,16 +610,15 @@ public class Player : Entity
 
         if (hitSector == null && hitPlane3D == null)
         {
-            m_dummyEntity.Radius = Radius;
-            m_dummyEntity.Height = Height;
-            m_dummyEntity.Position = position;
-            m_dummyEntity.PrevPosition = position;
+            var testEntity = World.TestClampEntity;
+            testEntity.Radius = Radius;
+            testEntity.Height = Height;
+            testEntity.Position = position;
+            testEntity.PrevPosition = position;
 
-            World.Link(m_dummyEntity);
-
-            position.Z = Math.Clamp(position.Z, m_dummyEntity.HighestFloorZ, m_dummyEntity.LowestCeilingZ - CeilingOffset);
-
-            m_dummyEntity.UnlinkFromWorld();
+            World.Link(testEntity);
+            position.Z = Math.Clamp(position.Z, testEntity.HighestFloorZ, testEntity.LowestCeilingZ - CeilingOffset);
+            testEntity.UnlinkFromWorld();
         }
 
         return position;
