@@ -648,7 +648,7 @@ public class Player : Entity
         var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
 
-        if (World.Config.Game.ChaseCamera.Value && !World.IsFreeCamMode)
+        if ((World.Config.Game.ChaseCamera.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode)
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
             prevPos = CalculateChaseCamPos(prevPos, PrevAngle, m_prevPitch);
