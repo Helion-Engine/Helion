@@ -283,7 +283,8 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     void RenderEntity(IWorld world, Entity entity, int renderIndex)
     {
-        if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible() || entity.Flags.NoSector() || entity == m_viewerEntity || entity.Properties.RenderStyle == RenderStyle.None)
+        //entity == m_viewerEntity
+        if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible() || entity.Flags.NoSector() || entity.Properties.RenderStyle == RenderStyle.None)
             return;
 
         if (m_renderData.OccludePos.HasValue)

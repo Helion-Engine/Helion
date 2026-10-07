@@ -130,6 +130,8 @@ public class Player : Entity
     public override int ProjectileKickBack => Weapon == null ? WorldStatic.World.GameInfo.DefKickBack : Weapon.KickBack;
     public virtual bool IsCamera => false;
 
+    private Entity m_dummyEntity;
+
     public virtual bool DrawFullBright()
     {
         if (WorldStatic.World.Config.Render.Fullbright)
@@ -164,11 +166,14 @@ public class Player : Entity
     {
         Inventory = null!;
         StatusBar = null!;
+        m_dummyEntity = null!;
     }
 
     public void Set(int index, int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world, int playerNumber)
     {
+        SetDummyEntity(world);
+
         Precondition(playerNumber >= 0, "Player number should not be negative");
         base.Set(index, id, thingId, definition, position, angleRadians, sector, world, default);
 
@@ -189,6 +194,17 @@ public class Player : Entity
         SetPlayerInfo();
         SetupEvents();
         ResetAirSupply(false);
+    }
+
+    // TODO we really only need one instance
+    private void SetDummyEntity(IWorld world)
+    {
+        m_dummyEntity = new();
+        m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, world.Sectors[0], world, default);
+
+        m_dummyEntity.Flags.SetNoBlockmap();
+        m_dummyEntity.Flags.SetNoSector();
+        m_dummyEntity.Flags.ClearSolid();
     }
 
     public void Set(int index, PlayerModel playerModel, Dictionary<int, EntityModelPair> entities, EntityDefinition definition, IWorld world)
@@ -566,10 +582,80 @@ public class Player : Entity
     private Vec3D m_quake;
     private int m_lastQuakeTick;
 
+    const double ChaseDistance = 90;
+    const double ChaseHeight = 8;
+
+    private static Vec3D CalculateChaseCamPos(Vec3D position, double angle, double pitch)
+    {
+        var unit = Vec3D.UnitSphere(angle, pitch) * ChaseDistance;
+        position -= unit;
+        position.Z += ChaseHeight;
+
+        return position;
+    }
+
+    private Vec3D ClampCameraPos(Vec3D originalPos, Vec3D position)
+    {
+        var intersect = Vec3D.Zero;
+        var tanPitch = Math.Tan(PitchRadians);
+        var bi = World.FireHitScan(this, originalPos, position, AngleRadians, PitchRadians, originalPos.Distance(position), 0, 
+            HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
+
+        if (bi.HasValue && bi.Value.GetIndex(out _) == Physics.Blockmap.IntersectType.Line)
+        {
+            var unit = Vec3D.UnitSphere(AngleRadians, PitchRadians) * 4;
+            position.X = intersect.X + unit.X;
+            position.Y = intersect.Y + unit.Y;
+        }
+
+        const double CeilingOffset = 4;
+        if (hitPlane3D != null)
+        {
+            if (hitPlane3D.Facing == SectorPlaneFace.Floor)
+                position.Z = Math.Min(hitPlane3D.Z - CeilingOffset, position.Z);
+            else
+                position.Z = Math.Min(hitPlane3D.Z, position.Z);
+        }
+        if (hitSector != null)
+        {
+            position.Z = Math.Clamp(position.Z, hitSector.Floor.Z, hitSector.Ceiling.Z - CeilingOffset);
+        }
+        else
+        {
+            position.Z = Math.Clamp(position.Z, HighestFloorZ, LowestCeilingZ - CeilingOffset);
+        }
+
+        if (hitSector == null && hitPlane3D == null)
+        {
+            m_dummyEntity.Radius = Radius;
+            m_dummyEntity.Height = Height;
+            m_dummyEntity.Position = position;
+            m_dummyEntity.PrevPosition = position;
+
+            World.Link(m_dummyEntity);
+
+            position.Z = Math.Clamp(position.Z, m_dummyEntity.HighestFloorZ, m_dummyEntity.LowestCeilingZ - CeilingOffset);
+
+            m_dummyEntity.UnlinkFromWorld();
+        }
+
+        return position;
+    }
+
     public OldCamera GetCamera(double t, CameraOptions options = CameraOptions.Default)
     {
-        var currentPos = GetViewPosition();
+        var originalPos = GetViewPosition();
+        var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
+
+        if (true)
+        {
+            originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
+            prevPos = CalculateChaseCamPos(prevPos, PrevAngle, m_prevPitch);
+            originalPos = ClampCameraPos(GetViewPosition(), originalPos);
+            prevPos = ClampCameraPos(GetPrevViewPosition(), prevPos);
+            currentPos = originalPos;
+        }
 
         if ((options & CameraOptions.EarthQuake) != 0)
             currentPos += UpdateQuake(t);
@@ -611,13 +697,13 @@ public class Player : Entity
 
             float yaw = (float)(prev + t * (current - prev));
             float pitch = (float)(m_prevPitch + t * (playerPitch - m_prevPitch));
-            m_camera.Set(position.Float, GetViewPosition().Float, yaw, pitch);
+            m_camera.Set(position.Float, originalPos.Float, yaw, pitch);
         }
         else
         {
             float yaw = (float)MathHelper.GetPositiveAngle(playerAngle);
             float pitch = (float)(playerPitch);
-            m_camera.Set(position.Float, GetViewPosition().Float, yaw, pitch);
+            m_camera.Set(position.Float, originalPos.Float, yaw, pitch);
         }
 
         return m_camera;
