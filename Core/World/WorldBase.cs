@@ -2754,7 +2754,7 @@ public abstract partial class WorldBase : IWorld
         var intersections = WorldStatic.Intersections;
         intersections.Clear();
 
-        m_sightTraverse.Init(sightPos, endSightPos, seg.Length(), from, normalSolid);
+        m_sightTraverse.Init(sightPos, endSightPos, seg.Length(), from, to, normalSolid);
 
         if (WorldStatic.Sector3D)
         {
@@ -2781,6 +2781,7 @@ public abstract partial class WorldBase : IWorld
 
             intersections.Clear();
             var saveSector = from.Sector;
+            from.Sector = ToSubsector(segStart.X, segStart.Y).Sector;
             m_sightTraverse.Result = true;
             BlockmapTraverser.SightTraverse(seg, intersections, m_testSightBlockAction, out hitOneSidedLine);
             from.Sector = saveSector;
