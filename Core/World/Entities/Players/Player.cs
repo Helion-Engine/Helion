@@ -581,8 +581,12 @@ public class Player : Entity
     {
         var intersect = Vec3D.Zero;
         var tanPitch = Math.Tan(PitchRadians);
-        var bi = World.FireHitScan(this, originalPos, position, AngleRadians, PitchRadians, originalPos.Distance(position), Constants.HitscanTestDamage, 
+
+        var bi = World.FireHitScan(this, originalPos, position, AngleRadians, PitchRadians, originalPos.XY.Distance(position.XY), Constants.HitscanTestDamage,
             HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
+
+        if (!bi.HasValue && hitSector == null && hitPlane3D == null)
+            return position;
 
         if (bi.HasValue && bi.Value.GetIndex(out _) == Physics.Blockmap.IntersectType.Line)
         {
