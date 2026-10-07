@@ -44,8 +44,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly RenderDataPool<EntityVertex> m_renderDataPoolOverflow;
     private readonly RenderProfiler m_renderProfiler;
     private readonly bool m_vanillaRender;
-    private Vec2F m_viewRightNormal;
-    private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
@@ -55,7 +53,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
-    private int m_lastViewerEntityId;
 
     public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection, RenderProfiler renderProfiler)
     {
@@ -102,7 +99,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     public void UpdateTo(IWorld world)
     {
-        m_lastViewerEntityId = -1;
         m_renderDataPoolOverflow.RefillPool(RenderPoolSize / 4);
     }
     
@@ -356,21 +352,9 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private static int ScaleHealthBarWidth(int health) =>
         (int)((MaxBarWidth - MinBarWidth) * (Math.Sqrt(health - MinHealth) / Math.Sqrt(MaxHealth - MinHealth)));
 
-    public void Start(RenderInfo renderInfo)
-    {
-        m_transferHeightView = renderInfo.TransferHeightView;
-        m_prevViewRightNormal = m_viewRightNormal;
-        m_viewRightNormal = renderInfo.Camera.Direction.XY.RotateRight90().Unit();
-        if (m_lastViewerEntityId != renderInfo.ViewerEntity.Id)
-            m_prevViewRightNormal = m_viewRightNormal;
-
-        m_program.ViewRightNormal(m_viewRightNormal);
-        m_program.PrevViewRightNormal(m_prevViewRightNormal);
-        m_lastViewerEntityId = renderInfo.ViewerEntity.Id;
-    }
-
     private void SetUniforms(EntityProgram program, RenderInfo renderInfo)
     {
+        m_transferHeightView = renderInfo.TransferHeightView;
         program.BoundTexture(BindTextures.BoundTexture);
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.ColormapTexture(BindTextures.Colormap);
@@ -383,8 +367,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
         program.FuzzFrac(renderInfo.Uniforms.TimeFrac);
         program.TimeFrac(renderInfo.TickFraction);
-        program.ViewRightNormal(m_viewRightNormal);
-        program.PrevViewRightNormal(m_prevViewRightNormal);
+        if (!m_config.Developer.Render.Lock.Value)
+            program.ViewRightNormal(renderInfo.Camera.Direction.XY.RotateRight90().Unit());
         program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
         program.ColorMix(renderInfo.Uniforms.ColorMix.Global);
         program.FuzzDiv(renderInfo.Uniforms.FuzzDiv);

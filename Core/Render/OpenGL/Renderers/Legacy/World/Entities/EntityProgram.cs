@@ -9,7 +9,6 @@ public class EntityProgram : RenderProgramBase
 {
     private readonly int m_fuzzFracLocation;
     private readonly int m_viewRightNormalLocation;
-    private readonly int m_prevViewRightNormalLocation;
     private readonly int m_fuzzDivLocation;
     private readonly int m_maxDistanceLocation;
     private readonly int m_fadeDistanceLocation;
@@ -26,7 +25,6 @@ public class EntityProgram : RenderProgramBase
     {
         m_fuzzFracLocation = Uniforms.GetLocation("fuzzFrac");
         m_viewRightNormalLocation = Uniforms.GetLocation("viewRightNormal");
-        m_prevViewRightNormalLocation = Uniforms.GetLocation("prevViewRightNormal");
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
         m_maxDistanceLocation = Uniforms.GetLocation("maxDistanceSquared");
         m_fadeDistanceLocation = Uniforms.GetLocation("fadeDistance");
@@ -46,7 +44,6 @@ public class EntityProgram : RenderProgramBase
     public void LineHeightsTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_lineHeightsTextureLocation);
     public void FuzzFrac(float frac) => ProgramUniforms.Set(frac, m_fuzzFracLocation);
     public void ViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_viewRightNormalLocation);
-    public void PrevViewRightNormal(Vec2F viewRightNormal) => ProgramUniforms.Set(viewRightNormal, m_prevViewRightNormalLocation);
     public void FuzzDiv(float div) => ProgramUniforms.Set(div, m_fuzzDivLocation);
     public void MaxDistanceSquared(float value) => ProgramUniforms.Set(value, m_maxDistanceLocation);
     public void FadeDistance(float value) => ProgramUniforms.Set(value, m_fadeDistanceLocation);
@@ -93,7 +90,6 @@ public class EntityProgram : RenderProgramBase
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
-        uniform vec2 prevViewRightNormal;
         uniform vec3 viewPos;
         uniform float timeFrac;
         uniform int useSectorColor;
@@ -135,7 +131,7 @@ public class EntityProgram : RenderProgramBase
             
             ${SectorColorMapVertexFunction}
 
-            vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
+            vec3 posMoveDir = vec3(viewRightNormal, 0);
             vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOption, 0);
             vec3 interpolatedPos = mix(prevPos, pos, timeFrac);
 
