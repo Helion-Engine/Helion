@@ -587,8 +587,8 @@ public class Player : Entity
 
     private static Vec3D CalculateChaseCamPos(Vec3D position, double angle, double pitch)
     {
-        var unit = Vec3D.UnitSphere(angle, pitch) * ChaseDistance;
-        position -= unit;
+        var unitBack = Vec3D.UnitSphere(angle, pitch) * ChaseDistance;
+        position -= unitBack;
         position.Z += ChaseHeight;
 
         return position;
@@ -648,7 +648,7 @@ public class Player : Entity
         var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
 
-        if (World.Config.Game.ChaseCamera.Value)
+        if (World.Config.Game.ChaseCamera.Value && !World.IsFreeCamMode)
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
             prevPos = CalculateChaseCamPos(prevPos, PrevAngle, m_prevPitch);
