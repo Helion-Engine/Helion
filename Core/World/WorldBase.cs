@@ -3496,8 +3496,8 @@ public abstract partial class WorldBase : IWorld
     }
 
     private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double segLength,
-           bool normalSolid, SolidContext context, bool init,
-           ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity, out bool crossedLine, out bool onLine)
+        bool normalSolid, SolidContext context, bool init,
+        ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity, out bool crossedLine, out bool onLine)
     {
         pitch = 0.0;
         entity = null;
