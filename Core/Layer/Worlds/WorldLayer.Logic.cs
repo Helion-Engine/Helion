@@ -149,7 +149,7 @@ public partial class WorldLayer
 
     private TickCommand GetTickCommand()
     {
-        if (World.IsChaseCamMode)
+        if (World.IsFreeCamMode)
             return m_chaseCamTickCommand;
         return m_tickCommand;
     }
@@ -172,13 +172,13 @@ public partial class WorldLayer
 
     private bool NextTickCommand()
     {
-        if (World.Paused || World.WorldState != WorldState.Normal || World.IsChaseCamMode)
+        if (World.Paused || World.WorldState != WorldState.Normal || World.IsFreeCamMode)
         {
             if (AnyLayerObscuring)
                 return false;
 
             World.SetTickCommand(World.GetCameraPlayer(), GetTickCommand());
-            if (!World.IsChaseCamMode)
+            if (!World.IsFreeCamMode)
                 return false;
         }
 

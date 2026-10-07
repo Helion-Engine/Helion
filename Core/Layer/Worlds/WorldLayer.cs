@@ -78,7 +78,7 @@ public partial class WorldLayer : IGameLayerParent
     private bool m_resetInterpolation;
 
     private Player Player => World.Player;
-    public bool ShouldFocus => !World.Paused || (World.IsChaseCamMode && !AnyLayerObscuring);
+    public bool ShouldFocus => !World.Paused || (World.IsFreeCamMode && !AnyLayerObscuring);
     private readonly Font DefaultFont;
 
     private static StatusBarRenderer? StatusBarRenderer;

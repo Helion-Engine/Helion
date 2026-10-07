@@ -598,7 +598,7 @@ public class Player : Entity
     {
         var intersect = Vec3D.Zero;
         var tanPitch = Math.Tan(PitchRadians);
-        var bi = World.FireHitScan(this, originalPos, position, AngleRadians, PitchRadians, originalPos.Distance(position), 0, 
+        var bi = World.FireHitScan(this, originalPos, position, AngleRadians, PitchRadians, originalPos.Distance(position), Constants.HitscanTestDamage, 
             HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
 
         if (bi.HasValue && bi.Value.GetIndex(out _) == Physics.Blockmap.IntersectType.Line)
@@ -648,7 +648,7 @@ public class Player : Entity
         var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
 
-        if (true)
+        if (World.Config.Game.ChaseCamera.Value)
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
             prevPos = CalculateChaseCamPos(prevPos, PrevAngle, m_prevPitch);
@@ -670,7 +670,7 @@ public class Player : Entity
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
-        if (!m_strafeCommand && !WorldStatic.World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
+        if (!m_strafeCommand && !WorldStatic.World.Config.ShouldInterpolateMouse() && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
             playerPitch = MathHelper.Clamp(playerPitch + ViewPitchRadians, -MaxPitch, MaxPitch);
@@ -942,7 +942,7 @@ public class Player : Entity
         if (IsMaxFpsTickRate())
             return false;
 
-        if (WorldStatic.World.Config.Mouse.Interpolate)
+        if (WorldStatic.World.Config.ShouldInterpolateMouse())
             return true;
 
         return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead() || WorldStatic.World.PlayingDemo;

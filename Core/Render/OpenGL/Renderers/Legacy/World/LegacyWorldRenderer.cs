@@ -16,6 +16,7 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Entities;
@@ -69,6 +70,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private bool m_postProcessingEffects;
     private bool m_lastUseBsp;
     private bool m_spritesCached;
+    private bool m_chaseCam;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
@@ -283,8 +285,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     void RenderEntity(IWorld world, Entity entity, int renderIndex)
     {
-        //entity == m_viewerEntity
-        if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible() || entity.Flags.NoSector() || entity.Properties.RenderStyle == RenderStyle.None)
+        if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible() || entity.Flags.NoSector() || (!m_chaseCam && entity == m_viewerEntity) || entity.Properties.RenderStyle == RenderStyle.None)
             return;
 
         if (m_renderData.OccludePos.HasValue)
@@ -313,6 +314,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_lastRenderStatic = m_renderStatic;
         m_renderStatic = m_config.Render.Mode.Value != AdaptiveRenderMode.Bsp && renderInfo.TransferHeightView == TransferHeightView.Middle && !m_lastUseBsp;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
+        m_chaseCam = m_config.Game.ChaseCamera.Value;
 
         if (renderInfo.TransferHeightView == TransferHeightView.Middle)
         {

@@ -74,13 +74,13 @@ public partial class Client
         m_takeScreenshot = true;
     }
 
-    [ConsoleCommand("chasecam", "Toggles chase camera mode")]
-    private void ToggleChaseCam(ConsoleCommandEventArgs args)
+    [ConsoleCommand("freecam", "Toggles free camera mode")]
+    private void ToggleFreeCam(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_layerManager.WorldLayer.World.ToggleChaseCameraMode();
+        m_layerManager.WorldLayer.World.ToggleFreeCamMode();
     }
 
     [ConsoleCommand("markspecials", "Toggles mark specials")]

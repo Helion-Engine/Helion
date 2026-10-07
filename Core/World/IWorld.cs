@@ -109,7 +109,7 @@ public interface IWorld : IDisposable
     DataCache DataCache { get; }
     Player Player { get; }
     bool IsFastMonsters { get; }
-    bool IsChaseCamMode { get; }
+    bool IsFreeCamMode { get; }
     bool DrawHud { get; }
     bool AnyLayerObscuring { get; set; }
     bool IsDisposed { get; }
@@ -210,7 +210,7 @@ public interface IWorld : IDisposable
     void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags);
     void SetLineBlockFlags(Line line, in LineBlockFlags flags);
     void SetLineSpecial(Line line, ZDoomLineSpecialType type, in SpecialArgs args);
-    void ToggleChaseCameraMode();
+    void ToggleFreeCamMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
     void EntityTeleported(Entity entity);

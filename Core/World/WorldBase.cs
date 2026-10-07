@@ -152,7 +152,7 @@ public abstract partial class WorldBase : IWorld
     public abstract Player Player { get; protected set; }
     public List<IMonsterCounterSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
-    public virtual bool IsChaseCamMode => false;
+    public virtual bool IsFreeCamMode => false;
     public bool DrawHud { get; protected set; } = true;
     public bool AnyLayerObscuring { get; set; }
     public bool IsDisposed { get; private set; }
@@ -4677,7 +4677,7 @@ public abstract partial class WorldBase : IWorld
     private bool EntityActivatedSpecial(in EntityActivateSpecial args) =>
         SpecialManager.TryAddActivatedLineSpecial(args);
 
-    public virtual void ToggleChaseCameraMode()
+    public virtual void ToggleFreeCamMode()
     {
     }
 

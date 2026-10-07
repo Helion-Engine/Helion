@@ -46,7 +46,7 @@ public class SinglePlayerWorld : WorldBase
     public override WorldType WorldType => m_worldType;
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;
-    public override bool IsChaseCamMode => m_chaseCamMode;
+    public override bool IsFreeCamMode => m_chaseCamMode;
     public override Player GetCameraPlayer()
     {
         if (m_chaseCamMode)
@@ -477,7 +477,7 @@ public class SinglePlayerWorld : WorldBase
         return success;
     }
 
-    public override void ToggleChaseCameraMode()
+    public override void ToggleFreeCamMode()
     {
         m_chaseCamMode = !m_chaseCamMode;
         if (m_chaseCamMode)
@@ -565,7 +565,7 @@ public class SinglePlayerWorld : WorldBase
 
             player.AddToYaw(moveDelta.X, true);
 
-            if ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
+            if ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsFreeCamMode)
             {
                 float factorY = Config.Mouse.InvertY ? -1 : 1;
                 player.AddToPitch(moveDelta.Y * factorY, true);
@@ -587,7 +587,7 @@ public class SinglePlayerWorld : WorldBase
             double slowFastFactor = 0.0;
 
             bool hasYaw = input.Manager.AnalogAdapter.TryGetGyroAbsolute((GyroAxis)(int)Config.Controller.GyroAimTurnAxis.Value, out double yaw);
-            bool hasPitch = ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
+            bool hasPitch = ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsFreeCamMode)
                 && input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out pitch);
 
             if (hasYaw)

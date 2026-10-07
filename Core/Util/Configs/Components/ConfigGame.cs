@@ -136,6 +136,10 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Discord Integration", spacer: true)]
     public readonly ConfigValue<bool> DiscordIntegration = new(true);
 
+    [ConfigInfo("Chase camera mode.")]
+    [OptionMenu(OptionSectionType.General, "Chase Camera", spacer: true)]
+    public readonly ConfigValue<bool> ChaseCamera = new(false);
+
     // Non-menu items
     [ConfigInfo("Write stats to levelstat.txt.", save: false)]
     public readonly ConfigValue<bool> LevelStat = new(false);
