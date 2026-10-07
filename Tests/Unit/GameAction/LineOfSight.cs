@@ -138,6 +138,35 @@ public class LineOfSight
         World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
     }
 
+    [Fact(DisplayName = "Line of sight to height")]
+    public void LineOfSightLedgeToHeight()
+    {
+        GameActions.SetEntityPosition(World, SightThing, new Vec2D(384, -32));
+        GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320));
+        SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
+
+        var height = SightThing.Height;
+        SightThing.Height = 128;
+        World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
+        SightThing.Height = height;
+        World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+
+        // Changing the from height doesn't matter, the ledge is still in the way
+        GameActions.SetEntityPosition(World, SightThing, new Vec2D(384, -320));
+        GameActions.SetEntityPosition(World, Player, new Vec2D(384, -32));
+        SightThing.AngleRadians = GameActions.GetAngle(Bearing.North);
+        SightThing.Height = 96;
+        World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+        SightThing.Height = height;
+        World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+
+        // Changing the player height allows for the player to be seen over the ledge
+        var playerHeight = Player.Height;
+        Player.Height = 96;
+        World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
+        Player.Height = playerHeight;
+    }
+
     [Fact(DisplayName = "Out of sight but in melee distance")]
     public void InMeleeDistance()
     {
