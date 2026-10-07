@@ -11,6 +11,8 @@ using System;
 
 namespace Helion.World.Physics.Blockmap;
 
+public delegate bool BlockmapTraverseAction(DynamicArray<BlockmapIntersect> intersections);
+
 public class BlockmapTraverser(IWorld world, BlockMap blockmap)
 {
     public BlockMap Blockmap = blockmap;
@@ -52,13 +54,12 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
         }
     }
 
-    public void SightTraverse(in Seg2D seg, in Seg2D traverseSeg, DynamicArray<BlockmapIntersect> intersections, out bool hitOneSidedLine)
+    public void SightTraverse(in Seg2D seg, DynamicArray<BlockmapIntersect> intersections, BlockmapTraverseAction action, out bool hitOneSidedLine)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         hitOneSidedLine = false;
         int length = 0;
-        var it = new BlockmapSegIterator(Blockmap, traverseSeg);
-        var arrayData = intersections.Data;
+        var it = new BlockmapSegIterator(Blockmap, seg);
 
         while (true)
         {
@@ -68,6 +69,8 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
 
             ref var block = ref Blockmap.Lines[index];
             int count = block.BlockLineIndex + block.BlockLineCount;
+            intersections.EnsureCapacity(block.BlockLineCount);
+            var arrayData = intersections.Data;
             for (int i = block.BlockLineIndex; i < count; i++)
             {
                 ref var line = ref Blockmap.BlockLines[i];
@@ -81,13 +84,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     if (line.OneSided || line.BlockFlags.Sight)
                     {
                         hitOneSidedLine = true;
-                        goto sightTraverseEndOfLoop;
-                    }
-
-                    if (length >= intersections.Capacity)
-                    {
-                        intersections.EnsureCapacity(length + 1);
-                        arrayData = intersections.Data;
+                        return;
                     }
 
                     ref var bi = ref arrayData[length];
@@ -96,15 +93,17 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     length++;
                 }
             }
+
+            if (length == 0)
+                continue;
+
+            intersections.SetLength(length);
+            intersections.Sort();
+            if (!action(intersections))
+                return;
+
+            length = 0;
         }
-
-
-    sightTraverseEndOfLoop:
-        if (hitOneSidedLine)
-            return;
-
-        intersections.SetLength(length);
-        intersections.Sort();
     }
 
     public void ShootTraverse(in Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
