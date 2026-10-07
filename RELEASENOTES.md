@@ -4,7 +4,8 @@
 - Pack textures into 2D arrays for faster rendering speeds, especially on older iGPUs.
 
 ## Bug Fixes:
-
+- Fix various float checks would prevent floating enemies from floating up and/or getting stuck in ceilings when bunched together.
 
 ## Misc:
 - General blockmap traversal improvements.
+- Significant performance improvement for line of sight.
