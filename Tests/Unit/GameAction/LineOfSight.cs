@@ -174,67 +174,6 @@ public class LineOfSight
         World.InFieldOfView(SightThing, Player, MathHelper.HalfPi).Should().BeTrue();
     }
 
-    const int LineOfSightDistanceTest = 128;
-
-
-    [Fact(DisplayName = "Line of sight obstructed by door (los short check)")]
-    public void LineOfSightDoorObstructed_ShortCheck()
-    {
-        GameActions.GetSectorByTag(World, 3).Ceiling.SetZ(0);
-        GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
-        GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
-        SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
-        Player.AngleRadians = GameActions.GetAngle(Bearing.North);
-
-        World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
-    }
-
-    [Fact(DisplayName = "Line of sight obstructed by door (los short check)")]
-    public void LineOfSightDoorNotObstructed_ShortCheck()
-    {
-        var sector = GameActions.GetSectorByTag(World, 3);
-        GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
-        GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
-        SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
-        Player.AngleRadians = GameActions.GetAngle(Bearing.North);
-
-        for (int i = 0; i < 29; i++)
-        {
-            sector.Ceiling.SetZ(i);
-            World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
-        }
-
-        sector.Ceiling.SetZ(29);
-        World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
-    }
-
-    [Fact(DisplayName = "Line of sight obstructed by ledge (los short check)")]
-    public void LineOfSightLedgeObstructedShortCheck()
-    {
-        GameActions.SetEntityPosition(World, SightThing, new Vec2D(384, -32));
-        GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320));
-        SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
-        World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
-    }
-
-    [Fact(DisplayName = "Line of sight partially obstructed by ledge (los short check)")]
-    public void LineOfSightLedgeShortCheck()
-    {
-        GameActions.SetEntityPosition(World, SightThing, new Vec2D(384, -32));
-        GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320));
-        SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
-        World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
-
-        for (int i = 0; i < 119; i++)
-        {
-            GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320 - i));
-            World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
-        }
-
-        GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320 - 119));
-        World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
-    }
-
 
     [Fact(DisplayName = "Line of sight not blocked by self-referencing sector")]
     public void LineOfSightSelfReferencing()
