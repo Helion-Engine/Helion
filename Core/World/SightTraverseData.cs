@@ -16,9 +16,9 @@ internal struct SightTraverseData
     public bool OnLine;
     public bool CrossLined;
 
-    public void Init(in Vec3D sightPos, in Vec3D endSightPos, double segLength, Entity from, bool normalSolid)
+    public void Init(in Vec3D sightPos, in Vec3D endSightPos, double segLength, Entity from, Entity to, bool normalSolid)
     {
-        TopSlope = (endSightPos.Z + from.Height - sightPos.Z) / segLength;
+        TopSlope = (endSightPos.Z + to.Height - sightPos.Z) / segLength;
         BottomSlope = (endSightPos.Z - sightPos.Z) / segLength;
         SegLength = segLength;
         SightPos = sightPos;
