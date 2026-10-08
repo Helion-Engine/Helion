@@ -577,39 +577,53 @@ public class Player : Entity
         return position;
     }
 
-    private Vec3D ClampCameraPos(Vec3D originalPos, Vec3D position)
+    private Vec3D ClampCameraPos(Vec3D playerPos, Vec3D cameraPos, double angle)
     {
-        var intersect = Vec3D.Zero;
-        var tanPitch = Math.Tan(PitchRadians);
+        var testAngle = angle + MathHelper.Pi;
+        // Need to recompute this for use with Math.Tan for slope space math. The world is using spherical coordinates and is not compatible.
+        var pitch = Math.Atan((cameraPos.Z - playerPos.Z) / ChaseDistance);
 
-        var bi = World.FireHitScan(this, originalPos, position, AngleRadians, PitchRadians, originalPos.XY.Distance(position.XY), Constants.HitscanTestDamage,
+        var distance = ChaseDistance;
+        var sinAngle = Math.Sin(testAngle);
+        var cosAngle = Math.Cos(testAngle);
+        var tanPitch = Math.Tan(pitch);
+        var zOffset = tanPitch * distance;
+
+        var intersect = Vec3D.Zero;
+        var start = playerPos;
+        var end = new Vec3D(start.X + cosAngle * distance, start.Y + sinAngle * distance, start.Z + zOffset);
+
+        var bi = World.FireHitScan(this, start, end, testAngle, pitch, ChaseDistance, Constants.HitscanTestDamage,
             HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
 
         if (!bi.HasValue && hitSector == null && hitPlane3D == null)
-            return position;
+            return cameraPos;
 
         if (bi.HasValue && bi.Value.GetIndex(out _) == Physics.Blockmap.IntersectType.Line)
         {
             var unit = Vec3D.UnitSphere(AngleRadians, PitchRadians) * 4;
-            position.X = intersect.X + unit.X;
-            position.Y = intersect.Y + unit.Y;
+            cameraPos.X = intersect.X + unit.X;
+            cameraPos.Y = intersect.Y + unit.Y;
         }
+
+        if (hitSector != null && hitSector.Sector3D != null)
+            hitPlane3D = hitSector.Floor;
 
         const double CeilingOffset = 4;
         if (hitPlane3D != null)
         {
             if (hitPlane3D.Facing == SectorPlaneFace.Floor)
-                position.Z = Math.Min(hitPlane3D.Z - CeilingOffset, position.Z);
+                cameraPos.Z = Math.Min(hitPlane3D.Z - CeilingOffset, cameraPos.Z);
             else
-                position.Z = Math.Min(hitPlane3D.Z, position.Z);
+                cameraPos.Z = Math.Min(hitPlane3D.Z, cameraPos.Z);
         }
         if (hitSector != null)
         {
-            position.Z = Math.Clamp(position.Z, hitSector.Floor.Z, hitSector.Ceiling.Z - CeilingOffset);
+            cameraPos.Z = Math.Clamp(cameraPos.Z, hitSector.Floor.Z, hitSector.Ceiling.Z - CeilingOffset);
         }
         else
         {
-            position.Z = Math.Clamp(position.Z, HighestFloorZ, LowestCeilingZ - CeilingOffset);
+            cameraPos.Z = Math.Clamp(cameraPos.Z, HighestFloorZ, LowestCeilingZ - CeilingOffset);
         }
 
         if (hitSector == null && hitPlane3D == null)
@@ -617,15 +631,15 @@ public class Player : Entity
             var testEntity = World.TestClampEntity;
             testEntity.Radius = Radius;
             testEntity.Height = Height;
-            testEntity.Position = position;
-            testEntity.PrevPosition = position;
+            testEntity.Position = cameraPos;
+            testEntity.PrevPosition = cameraPos;
 
             World.Link(testEntity);
-            position.Z = Math.Clamp(position.Z, testEntity.HighestFloorZ, testEntity.LowestCeilingZ - CeilingOffset);
+            cameraPos.Z = Math.Clamp(cameraPos.Z, testEntity.HighestFloorZ, testEntity.LowestCeilingZ - CeilingOffset);
             testEntity.UnlinkFromWorld();
         }
 
-        return position;
+        return cameraPos;
     }
 
     public OldCamera GetCamera(double t, CameraOptions options = CameraOptions.Default)
@@ -638,8 +652,8 @@ public class Player : Entity
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
             prevPos = CalculateChaseCamPos(prevPos, PrevAngle, m_prevPitch);
-            originalPos = ClampCameraPos(GetViewPosition(), originalPos);
-            prevPos = ClampCameraPos(GetPrevViewPosition(), prevPos);
+            originalPos = ClampCameraPos(GetViewPosition(), originalPos, AngleRadians);
+            prevPos = ClampCameraPos(GetPrevViewPosition(), prevPos, PrevAngle);
             currentPos = originalPos;
         }
 
