@@ -595,9 +595,6 @@ public class Player : Entity
         var bi = World.FireHitScan(this, playerPos, end, testAngle, pitch, ChaseDistance, Constants.HitscanTestDamage,
             HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
 
-        if (!bi.HasValue && hitSector == null && hitPlane3D == null)
-            return cameraPos;
-
         if (bi.HasValue && bi.Value.GetIndex(out _) == Physics.Blockmap.IntersectType.Line)
         {
             var unit = Vec3D.UnitSphere(AngleRadians, PitchRadians) * 4;
