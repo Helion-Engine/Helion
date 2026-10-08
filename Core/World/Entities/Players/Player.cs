@@ -590,10 +590,9 @@ public class Player : Entity
         var zOffset = tanPitch * distance;
 
         var intersect = Vec3D.Zero;
-        var start = playerPos;
-        var end = new Vec3D(start.X + cosAngle * distance, start.Y + sinAngle * distance, start.Z + zOffset);
+        var end = new Vec3D(playerPos.X + cosAngle * distance, playerPos.Y + sinAngle * distance, playerPos.Z + zOffset);
 
-        var bi = World.FireHitScan(this, start, end, testAngle, pitch, ChaseDistance, Constants.HitscanTestDamage,
+        var bi = World.FireHitScan(this, playerPos, end, testAngle, pitch, ChaseDistance, Constants.HitscanTestDamage,
             HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
 
         if (!bi.HasValue && hitSector == null && hitPlane3D == null)
