@@ -337,9 +337,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_downscaleVanillaBuffer = m_config.Render.DownScaleVanillaRenderSampleBuffer.Value > 1;
         SetupClipBuffers(framebuffer, dimension, prevDownscale != m_downscaleVanillaBuffer);
 
-        if (!m_config.Developer.Render.Lock.Value && renderTickChange)
-            m_entityRenderer.Start(renderInfo);
-
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
 
