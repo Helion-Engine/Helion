@@ -91,6 +91,9 @@ public class Player : Entity
     private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
 
+    private Vec3D m_quake;
+    private int m_lastQuakeTick;
+
     private readonly OldCamera m_camera = new(Vec3F.Zero, Vec3F.Zero, 0, 0);
 
     public IAudioSource?[] SoundChannels = new IAudioSource[Constants.MaxSoundChannels];
@@ -562,42 +565,42 @@ public class Player : Entity
         return pitch;
     }
 
-    private Vec3D m_quake;
-    private int m_lastQuakeTick;
-
-    const double ChaseDistance = 90;
-    const double ChaseHeight = 8;
-
-    private static Vec3D CalculateChaseCamPos(Vec3D position, double angle, double pitch)
+    private Vec3D CalculateChaseCamPos(Vec3D position, double angle, double pitch)
     {
-        var unitBack = Vec3D.UnitSphere(angle, pitch) * ChaseDistance;
+        var unitBack = Vec3D.UnitSphere(angle, pitch) * World.Config.Game.ChaseCameraDistance.Value;
+        var unitLeft = Vec2D.UnitCircle(angle + MathHelper.QuarterPi) * World.Config.Game.ChaseCameraOffset.Value;
+
         position -= unitBack;
-        position.Z += ChaseHeight;
+        position.Z += World.Config.Game.ChaseCameraHeight;
+
+        position.X -= unitLeft.X;
+        position.Y -= unitLeft.Y;
 
         return position;
     }
 
     private Vec3D ClampCameraPos(Vec3D playerPos, Vec3D cameraPos, double angle)
     {
+        var distance = (double)World.Config.Game.ChaseCameraDistance.Value;
         var testAngle = angle + MathHelper.Pi;
         // Need to recompute this for use with Math.Tan for slope space math. The world is using spherical coordinates and is not compatible.
-        var pitch = Math.Atan((cameraPos.Z - playerPos.Z) / ChaseDistance);
-
-        var distance = ChaseDistance;
-        var sinAngle = Math.Sin(testAngle);
-        var cosAngle = Math.Cos(testAngle);
+        var pitch = Math.Atan((cameraPos.Z - playerPos.Z) / distance);
         var tanPitch = Math.Tan(pitch);
         var zOffset = tanPitch * distance;
 
         var intersect = Vec3D.Zero;
-        var end = new Vec3D(playerPos.X + cosAngle * distance, playerPos.Y + sinAngle * distance, playerPos.Z + zOffset);
+        var end = new Vec3D(cameraPos.X, cameraPos.Y, playerPos.Z + zOffset);
 
-        var bi = World.FireHitScan(this, playerPos, end, testAngle, pitch, ChaseDistance, Constants.HitscanTestDamage,
+        var bi = World.FireHitScan(this, playerPos, end, testAngle, pitch, distance, Constants.HitscanTestDamage,
             HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
 
-        if (bi.HasValue && bi.Value.GetIndex(out _) == Physics.Blockmap.IntersectType.Line)
+        if (bi.HasValue && bi.Value.GetIndex(out var blockLine) == Physics.Blockmap.IntersectType.Line)
         {
-            var unit = Vec3D.UnitSphere(AngleRadians, PitchRadians) * 4;
+            ref var line = ref World.Blockmap.BlockLines[blockLine];
+            var wallPos = line.Segment.FromTime(bi.Value.SegTime);
+            var angleToWall = wallPos.Angle(playerPos.XY);
+
+            var unit = Vec2D.UnitCircle(angleToWall) * 4;
             cameraPos.X = intersect.X + unit.X;
             cameraPos.Y = intersect.Y + unit.Y;
         }

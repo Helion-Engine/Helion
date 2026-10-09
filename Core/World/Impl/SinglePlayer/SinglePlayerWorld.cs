@@ -481,9 +481,9 @@ public class SinglePlayerWorld : WorldBase
     {
         m_chaseCamMode = !m_chaseCamMode;
         if (m_chaseCamMode)
-            DisplayMessage("Chase camera activated.");
+            DisplayMessage("Free camera activated.");
         else
-            DisplayMessage("Chase camera deactivated.");
+            DisplayMessage("Free camera deactivated.");
 
         DrawHud = !m_chaseCamMode;
 

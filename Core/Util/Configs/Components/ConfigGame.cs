@@ -128,14 +128,6 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Damage Multiplier", sliderMin: 0, sliderMax: 10.0, sliderStep: .1)]
     public readonly ConfigValue<double> DamageApplyMultiplier = new(1.0, GreaterOrEqual(0.0));
 
-    [ConfigInfo("Random number generator method.", demo: true, serialize: true, mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.General, "RNG Method", spacer: true)]
-    public readonly ConfigValue<RngMethod> Rng = new(RngMethod.Boom);
-
-    [ConfigInfo("Shows the currently played WAD/map in Discord.")]
-    [OptionMenu(OptionSectionType.General, "Discord Integration", spacer: true)]
-    public readonly ConfigValue<bool> DiscordIntegration = new(true);
-
     [ConfigInfo("Chase camera mode.")]
     [OptionMenu(OptionSectionType.General, "Chase Camera")]
     public readonly ConfigValue<bool> ChaseCamera = new(false);
@@ -143,6 +135,23 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [ConfigInfo("Death camera mode.")]
     [OptionMenu(OptionSectionType.General, "Death Camera")]
     public readonly ConfigValue<bool> DeathCamera = new(false);
+
+    [ConfigInfo("Chase camera distance.")]
+    public readonly ConfigValue<int> ChaseCameraDistance = new(90, Clamp(1, 256));
+
+    [ConfigInfo("Chase camera offset.")]
+    public readonly ConfigValue<int> ChaseCameraOffset = new(0, Clamp(-128, 128));
+
+    [ConfigInfo("Chase camera height.")]
+    public readonly ConfigValue<int> ChaseCameraHeight = new(8, Clamp(-64, 64));
+
+    [ConfigInfo("Random number generator method.", demo: true, serialize: true, mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.General, "RNG Method", spacer: true)]
+    public readonly ConfigValue<RngMethod> Rng = new(RngMethod.Boom);
+
+    [ConfigInfo("Shows the currently played WAD/map in Discord.")]
+    [OptionMenu(OptionSectionType.General, "Discord Integration", spacer: true)]
+    public readonly ConfigValue<bool> DiscordIntegration = new(true);
 
     // Non-menu items
     [ConfigInfo("Write stats to levelstat.txt.", save: false)]
