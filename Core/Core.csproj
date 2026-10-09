@@ -26,7 +26,7 @@
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="NLog" Version="6.0.0" />
     <PackageReference Include="OpenTK" Version="4.9.4" ExcludeAssets="native" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="3.1.2" />
     <PackageReference Include="ini-parser-net8" Version="2.6.2.1" />
     <PackageReference Include="xBRZNet" Version="1.2.0" />
     <PackageReference Include="zdbspSharp" Version="1.0.9" />

@@ -13,24 +13,25 @@
         // https://joeysbytes.net/reference/dos_colors.html
         public static readonly Color[] TextColors =
         {
-            Color.FromRgb(0, 0, 0),       // black
-            Color.FromRgb(0, 0, med),     // blue
-            Color.FromRgb(0, med, 0),     // green
-            Color.FromRgb(0, med, med),   // cyan
-            Color.FromRgb(med, 0, 0),     // red
-            Color.FromRgb(med, 0, med),   // magenta
-            Color.FromRgb(med, low, 0),   // brown
-            Color.FromRgb(med, med, med), // gray (white?)
-            Color.FromRgb(low, low, low), // dark gray
-            Color.FromRgb(low, low, hi),  // light blue
-            Color.FromRgb(low, hi, low),  // light green
-            Color.FromRgb(low, hi, hi),   // light cyan
-            Color.FromRgb(hi, low, low),  // light red
-            Color.FromRgb(hi, low, hi),   // light magenta
-            Color.FromRgb(hi, hi, low),   // light yellow
-            Color.FromRgb(hi, hi, hi),    // white
+            RgbColor(0, 0, 0),       // black
+            RgbColor(0, 0, med),     // blue
+            RgbColor(0, med, 0),     // green
+            RgbColor(0, med, med),   // cyan
+            RgbColor(med, 0, 0),     // red
+            RgbColor(med, 0, med),   // magenta
+            RgbColor(med, low, 0),   // brown
+            RgbColor(med, med, med), // gray (white?)
+            RgbColor(low, low, low), // dark gray
+            RgbColor(low, low, hi),  // light blue
+            RgbColor(low, hi, low),  // light green
+            RgbColor(low, hi, hi),   // light cyan
+            RgbColor(hi, low, low),  // light red
+            RgbColor(hi, low, hi),   // light magenta
+            RgbColor(hi, hi, low),   // light yellow
+            RgbColor(hi, hi, hi),    // white
         };
 
+        private static Color RgbColor(byte r, byte g, byte b) => Color.FromScaledVector(new(r / 255.0f, g / 255.0f, b / 255.0f, 0f));
 
         // Segment below adapted from GZDoom source, copyright notification follows:
         /*

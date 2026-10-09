@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Helion.Geometry.Vectors;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace Helion.Graphics;
 
@@ -56,7 +55,7 @@ public struct Color : IEquatable<Color>
     public readonly uint Uint => m_value;
     public readonly Vec4F Normalized => new(A / 255.0f, R / 255.0f, G / 255.0f, B / 255.0f);
     public readonly Vec3F Normalized3 => new(R / 255.0f, G / 255.0f, B / 255.0f);
-    public readonly SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
+    public readonly SixLabors.ImageSharp.Color ToImageSharp => SixLabors.ImageSharp.Color.FromScaledVector(new(R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f));
 
     public Color(Vec4F normalized) :
         this((byte)(normalized.X * 255), (byte)(normalized.Y * 255), (byte)(normalized.Z * 255), (byte)(normalized.W * 255))

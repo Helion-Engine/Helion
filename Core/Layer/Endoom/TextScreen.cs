@@ -6,7 +6,7 @@
     using SixLabors.ImageSharp.PixelFormats;
     using SixLabors.ImageSharp.Processing;
     using System;
-    using System.Globalization;
+
     using System.IO;
 
     public class TextScreen
@@ -76,11 +76,11 @@
             using (MemoryStream fontDataStream = new MemoryStream(fontData))
             {
                 FontCollection fontCollection = new();
-                FontFamily consoleFontFamily = fontCollection.Add(fontDataStream, CultureInfo.InvariantCulture);
+                FontFamily consoleFontFamily = fontCollection.Add(fontDataStream);
                 m_glyphHeight = pixelHeight / m_rows;
                 m_glyphWidth = m_glyphHeight / 2;  // Assume use of 8x16 style fonts
                 m_font = consoleFontFamily.CreateFont(m_glyphHeight); // Use whatever pixel value fits all the lines   
-                m_actualGlyphWidth = (int)TextMeasurer.MeasureSize($"{FULLBLOCK}", new TextOptions(m_font)).Width;
+                m_actualGlyphWidth = (int)TextMeasurer.MeasureBounds($"{FULLBLOCK}", new TextOptions(m_font)).Width;
             }
         }
 
@@ -92,6 +92,8 @@
         public Graphics.Image GenerateImage(bool blinkOn)
         {
             int xOffset = 0, yOffset = 0;
+            RichTextOptions textOptions = new(m_font);
+
             using (Image<Argb32> bitmap = new Image<Argb32>(m_glyphWidth * m_columns, m_pixelHeight))
             {
                 bitmap.Mutate(ctx =>
@@ -107,16 +109,14 @@
                             char textCharacter = m_unicodeCharacters[charIndex];
                             bool characterBlinking = m_blink[charIndex];
 
-                            ctx.FillPolygon(
-                                backgroundColor,
-                                new PointF(xOffset, yOffset),
-                                new PointF(xOffset + m_glyphWidth, yOffset),
-                                new PointF(xOffset + m_glyphWidth, yOffset + m_glyphHeight),
-                                new PointF(xOffset, yOffset + m_glyphHeight));
+                            ctx.Paint(canvas => canvas.Fill(
+                                Brushes.Solid(backgroundColor),
+                                new Rectangle(xOffset, yOffset, m_glyphWidth, m_glyphHeight)));
 
                             if (!(characterBlinking && blinkOn))
                             {
-                                ctx.DrawText($"{textCharacter}", m_font, foregroundColor, new PointF() { X = xOffset, Y = yOffset });
+                                textOptions.Origin = new PointF() { X = xOffset, Y = yOffset };
+                                ctx.Paint(canvas => canvas.DrawText(textOptions, new ReadOnlySpan<char>(ref textCharacter), Brushes.Solid(foregroundColor), pen: null));
                             }
 
                             // Special case: extend "box drawing" characters C0-DF rightward.

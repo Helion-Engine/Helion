@@ -2,7 +2,6 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
-using Helion.Util.Assertion;
 using Helion.Util.Extensions;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -140,7 +139,7 @@ public class Image
             Span<TPixel> pixelRow = SixLabors.ImageSharp.Advanced.AdvancedImageExtensions.DangerousGetPixelRowMemory(data, y).Span;
             foreach (ref TPixel pixel in pixelRow)
             {
-                pixel.ToRgba32(ref tempPixel);
+                tempPixel.ToRgba32();
                 if (tempPixel.A != 0)
                 {
                     argbData[offset] = tempPixel.A;
@@ -227,7 +226,7 @@ public class Image
             this.Namespace,
             upscaleFactor: upscalingFactor);
     }
-    
+
     public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels, byte[]? colorTranslation = null)
     {
         uint[] pixels = new uint[image.Indices.Length];

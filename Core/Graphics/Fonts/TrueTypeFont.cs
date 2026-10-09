@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using Helion.Geometry.Boxes;
@@ -9,7 +8,6 @@ using Helion.Resources;
 using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -40,7 +38,7 @@ public static class TrueTypeFont
             FontCollection fontCollection = new();
             using (MemoryStream stream = new(data))
             {
-                FontFamily fontFamily = fontCollection.Add(stream, CultureInfo.InvariantCulture);
+                FontFamily fontFamily = fontCollection.Add(stream);
                 SixLabors.Fonts.Font imageSharpFont = fontFamily.CreateFont(RenderFontSize);
                 RichTextOptions richTextOptions = new(imageSharpFont);
 
@@ -66,8 +64,11 @@ public static class TrueTypeFont
                     {
                         charImage.Mutate(ctx =>
                         {
-                            ctx.Fill(Color.Transparent.ToImageSharp);
-                            ctx.DrawText(richTextOptions, charString, Color.White.ToImageSharp);
+                            ctx.Paint((canvas) =>
+                            {
+                                canvas.Fill(Brushes.Solid(Color.Transparent.ToImageSharp));
+                                canvas.DrawText(richTextOptions, charString, Brushes.Solid(Color.White.ToImageSharp), pen: null);
+                            });
                         });
 
                         charImages[c] = Image.FromImageSharp(charImage, ns: ResourceNamespace.Fonts)!;
