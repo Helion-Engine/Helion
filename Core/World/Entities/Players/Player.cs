@@ -626,12 +626,20 @@ public class Player : Entity
         {
             var testEntity = World.TestClampEntity;
             testEntity.Radius = Radius;
-            testEntity.Height = Height;
+            testEntity.Height = 1;
             testEntity.Position = cameraPos;
             testEntity.PrevPosition = cameraPos;
 
             World.Link(testEntity);
-            cameraPos.Z = Math.Clamp(cameraPos.Z, testEntity.HighestFloorZ, testEntity.LowestCeilingZ - CeilingOffset);
+
+            var lowestCeilingZ = testEntity.LowestCeilingZ - 1;
+            var highestFloorZ = testEntity.HighestFloorZ + 1;
+
+            if (lowestCeilingZ < cameraPos.Z)
+                cameraPos.Z = lowestCeilingZ;
+            if (highestFloorZ > cameraPos.Z && highestFloorZ < lowestCeilingZ)
+                cameraPos.Z = highestFloorZ;
+
             testEntity.UnlinkFromWorld();
         }
 
