@@ -2093,6 +2093,9 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
+        if (intersect.X == 0 && intersect.Y == 0 && intersect.Z == 0)
+            intersect = end;
+
         if (WorldStatic.Sector3D)
         {
             // Calculate the plane intersection point of this sector and then all 3d sectors of this sector.
@@ -2108,11 +2111,22 @@ public abstract partial class WorldBase : IWorld
             {
                 returnValue = null;
             }
-            else if (noCrossCheck && GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, end.Z, ref intersect))
+            else if (noCrossCheck)
             {
-                returnValue = new();
-                hitSector = shooter.Sector;
-                intersect = currentPlaneIntersect;
+                if (SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref hitValues3D.MinIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out var hitSector3D, out var hitPlane))
+                {
+                    intersect = hitValues3D.MinIntersect3D;
+                    returnValue = null;
+                    hitValues3D.MinReturnValue3D = new();
+                    hitValues3D.MinHitSector3D = hitSector3D?.FakeSector;
+                    hitValues3D.MinHitSectorPlane3D = hitPlane;
+                }
+                else if (GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, end.Z, ref intersect))
+                {
+                    returnValue = new();
+                    hitSector = shooter.Sector;
+                    intersect = currentPlaneIntersect;
+                }
             }
 
             if (hitValues3D.ValidateEntity3D != null && distance3D > hitValues3D.ValidateEntityDistance3D)
@@ -2244,7 +2258,7 @@ public abstract partial class WorldBase : IWorld
                 }
             }
 
-            if (IntersectPlane3D(sector3D, sector, start, end, ref test, out var testPlane))
+            if (IntersectPlane3D(sector3D, start, end, ref test, out var testPlane))
             {
                 if (earlyExit)
                 {
@@ -2267,12 +2281,12 @@ public abstract partial class WorldBase : IWorld
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IntersectPlane3D(Sector3D sector3D, Sector sector, in Vec3D start, in Vec3D end, ref Vec3D intersect, out SectorPlane? plane)
+    private bool IntersectPlane3D(Sector3D sector3D, Vec3D start, Vec3D end, ref Vec3D intersect, out SectorPlane? plane)
     {
-        return IntersectPlane(sector3D.ControlTop, sector3D.ControlBottom, sector, start, end, ref intersect, out plane);
+        return IntersectPlane(sector3D.ControlTop, sector3D.ControlBottom, sector3D.ParentSector, start, end, ref intersect, out plane);
     }
 
-    private bool IntersectPlane(SectorPlane top, SectorPlane bottom, Sector sector, in Vec3D start, in Vec3D end, ref Vec3D intersect, out SectorPlane? plane)
+    private bool IntersectPlane(SectorPlane top, SectorPlane bottom, Sector sector, Vec3D start, Vec3D end, ref Vec3D intersect, out SectorPlane? plane)
     {
         plane = null;
 
