@@ -597,9 +597,7 @@ public class Player : Entity
         if (bi.HasValue && bi.Value.GetIndex(out var blockLine) == Physics.Blockmap.IntersectType.Line)
         {
             ref var line = ref World.Blockmap.BlockLines[blockLine];
-            var wallPos = line.Segment.FromTime(bi.Value.SegTime);
-            var angleToWall = wallPos.Angle(playerPos.XY);
-
+            var angleToWall = intersect.Angle(playerPos.XY);
             var unit = Vec2D.UnitCircle(angleToWall) * 4;
             cameraPos.X = intersect.X + unit.X;
             cameraPos.Y = intersect.Y + unit.Y;
