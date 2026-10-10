@@ -2093,6 +2093,9 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
+        if (intersect.X == 0 && intersect.Y == 0 && intersect.Z == 0)
+            intersect = end;
+
         if (WorldStatic.Sector3D)
         {
             // Calculate the plane intersection point of this sector and then all 3d sectors of this sector.
@@ -2110,8 +2113,6 @@ public abstract partial class WorldBase : IWorld
             }
             else if (noCrossCheck)
             {
-                if (intersect == Vec3D.Zero)
-                    intersect = end;
                 if (SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref hitValues3D.MinIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out var hitSector3D, out var hitPlane))
                 {
                     intersect = hitValues3D.MinIntersect3D;
