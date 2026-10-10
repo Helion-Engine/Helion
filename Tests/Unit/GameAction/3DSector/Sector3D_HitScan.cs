@@ -133,41 +133,65 @@ public class Sector3D_HitScan : IDisposable
         data.Intersect.Z.Should().BeApproximately(124, 2);
     }
 
-    [Fact(DisplayName = "Hit scan hits 3D sector ceiling with no lines crossed")]
+    [Fact(DisplayName = "Hit scan hits 3D sector floor with no lines crossed")]
     public void HitScanCeilingNoLineCross3D()
     {
-        var sector = GameActions.GetSector(World, 91);
+        var topSector = GameActions.GetSector(World, 91);
+        var bottomSector = GameActions.GetSector(World, 92);
         Player.AngleRadians = GameActions.GetAngle(Bearing.East);
         Player.PitchRadians = MathHelper.ToRadians(68);
-        GameActions.SetEntityPosition(World, Player, (224, 544, 0));
+        GameActions.SetEntityPosition(World, Player, (224, 544, 144));
         var data = GameActions.FireHitScanTest(World, Player, 512);
         data.HitSectorPlane3D.Should().NotBeNull();
-        data.HitSectorPlane3D.Should().Be(sector.Floor);
-        data.HitSectorPlane3D.Sector.Should().Be(sector);
+        data.HitSectorPlane3D.Should().Be(topSector.Floor);
+        data.HitSectorPlane3D.Sector.Should().Be(topSector);
         data.HitLine.Should().BeNull();
 
-        data.Intersect.X.Should().BeApproximately(287.02, 2);
+        data.Intersect.X.Should().BeApproximately(228.84, 2);
         data.Intersect.Y.Should().BeApproximately(544, 2);
         data.Intersect.Z.Should().BeApproximately(188, 2);
+
+        GameActions.SetEntityPosition(World, Player, (224, 544, 0));
+        data = GameActions.FireHitScanTest(World, Player, 512);
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Should().Be(bottomSector.Floor);
+        data.HitSectorPlane3D.Sector.Should().Be(bottomSector);
+        data.HitLine.Should().BeNull();
+
+        data.Intersect.X.Should().BeApproximately(261.17, 2);
+        data.Intersect.Y.Should().BeApproximately(544, 2);
+        data.Intersect.Z.Should().BeApproximately(124, 2);
     }
 
     [Fact(DisplayName = "Hit scan hits 3D sector ceiling with no lines crossed")]
     public void HitScanFloorNoLineCross3D()
     {
-        var sector = GameActions.GetSector(World, 91);
+        var topSector = GameActions.GetSector(World, 91);
+        var bottomSector = GameActions.GetSector(World, 92);
         Player.AngleRadians = GameActions.GetAngle(Bearing.East);
         Player.PitchRadians = MathHelper.ToRadians(-68);
         GameActions.SetEntityPosition(World, Player, (224, 544, 192));
         Player.Position.Z.Should().Be(192);
         var data = GameActions.FireHitScanTest(World, Player, 512);
         data.HitSectorPlane3D.Should().NotBeNull();
-        data.HitSectorPlane3D.Should().Be(sector.Ceiling);
-        data.HitSectorPlane3D.Sector.Should().Be(sector);
+        data.HitSectorPlane3D.Should().Be(topSector.Ceiling);
+        data.HitSectorPlane3D.Sector.Should().Be(topSector);
         data.HitLine.Should().BeNull();
 
         data.Intersect.X.Should().BeApproximately(225.61, 2);
         data.Intersect.Y.Should().BeApproximately(544, 2);
         data.Intersect.Z.Should().BeApproximately(220, 2);
+
+        GameActions.SetEntityPosition(World, Player, (224, 544, 144));
+        data = GameActions.FireHitScanTest(World, Player, 512);
+        data.HitSectorPlane3D.Should().NotBeNull();
+        data.HitSectorPlane3D.Should().Be(bottomSector.Ceiling);
+        data.HitSectorPlane3D.Sector.Should().Be(bottomSector);
+        data.HitLine.Should().BeNull();
+
+        data.Intersect.X.Should().BeApproximately(239.54, 2);
+        data.Intersect.Y.Should().BeApproximately(544, 2);
+        data.Intersect.Z.Should().BeApproximately(140, 2);
     }
 
     [Fact(DisplayName = "Hit scan hits 3D sector walls and planes from below")]
