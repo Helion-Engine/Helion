@@ -92,6 +92,8 @@ public class Player : Entity
     private WeakEntity m_killer = WeakEntity.Default;
 
     private Vec3D m_quake;
+    Vec3D m_chaseCam;
+    Vec3D m_prevChaseCam;
     private int m_lastQuakeTick;
 
     private readonly OldCamera m_camera = new(Vec3F.Zero, Vec3F.Zero, 0, 0);
@@ -516,6 +518,7 @@ public class Player : Entity
         DeltaViewHeight = 0;
         PrevWeaponOffset = WeaponOffset;
         PrevWeaponBobOffset = WeaponBobOffset;
+        m_prevChaseCam = m_chaseCam;
 
         ViewAngleRadians = 0;
         ViewPitchRadians = 0;
@@ -656,10 +659,14 @@ public class Player : Entity
         if ((World.Config.Game.ChaseCamera.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode)
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
-            prevPos = CalculateChaseCamPos(prevPos, PrevAngle, m_prevPitch);
             originalPos = ClampCameraPos(GetViewPosition(), originalPos, AngleRadians);
-            prevPos = ClampCameraPos(GetPrevViewPosition(), prevPos, PrevAngle);
             currentPos = originalPos;
+
+            if (m_prevChaseCam.X == 0 && m_prevChaseCam.Y == 0 && m_prevChaseCam.Z == 0)
+                m_prevChaseCam = currentPos;
+
+            m_chaseCam = currentPos;
+            prevPos = m_prevChaseCam;
         }
 
         if ((options & CameraOptions.EarthQuake) != 0)
@@ -780,6 +787,7 @@ public class Player : Entity
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
+        m_prevChaseCam = m_chaseCam;
     }
 
     public void PlayerTick()
