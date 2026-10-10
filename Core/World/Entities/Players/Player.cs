@@ -570,11 +570,11 @@ public class Player : Entity
 
     private Vec3D CalculateChaseCamPos(Vec3D position, double angle, double pitch)
     {
-        var unitBack = Vec3D.UnitSphere(angle, pitch) * World.Config.Game.ChaseCameraDistance.Value;
-        var unitLeft = Vec2D.UnitCircle(angle + MathHelper.QuarterPi) * World.Config.Game.ChaseCameraOffset.Value;
+        var unitBack = Vec3D.UnitSphere(angle, pitch) * World.Config.Game.ChaseDistance.Value;
+        var unitLeft = Vec2D.UnitCircle(angle + MathHelper.QuarterPi) * World.Config.Game.ChaseOffset.Value;
 
         position -= unitBack;
-        position.Z += World.Config.Game.ChaseCameraHeight;
+        position.Z += World.Config.Game.ChaseHeight;
 
         position.X -= unitLeft.X;
         position.Y -= unitLeft.Y;
@@ -584,7 +584,7 @@ public class Player : Entity
 
     private Vec3D ClampCameraPos(Vec3D playerPos, Vec3D cameraPos, double angle)
     {
-        var distance = (double)World.Config.Game.ChaseCameraDistance.Value;
+        var distance = (double)World.Config.Game.ChaseDistance.Value;
         var testAngle = angle + MathHelper.Pi;
         // Need to recompute this for use with Math.Tan for slope space math. The world is using spherical coordinates and is not compatible.
         var pitch = Math.Atan((cameraPos.Z - playerPos.Z) / distance);
@@ -601,7 +601,7 @@ public class Player : Entity
         {
             ref var line = ref World.Blockmap.BlockLines[blockLine];
             var angleToWall = intersect.Angle(playerPos.XY);
-            var unit = Vec2D.UnitCircle(angleToWall) * 4;
+            var unit = Vec2D.UnitCircle(angleToWall);
             cameraPos.X = intersect.X + unit.X;
             cameraPos.Y = intersect.Y + unit.Y;
         }
@@ -656,10 +656,10 @@ public class Player : Entity
         var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
 
-        if ((World.Config.Game.ChaseCamera.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode)
+        if ((World.Config.Game.Chase.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode)
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
-            originalPos = ClampCameraPos(GetViewPosition(), originalPos, AngleRadians);
+            originalPos = ClampCameraPos(new Vec3D(Position.X, Position.Y, Position.Z + Height), originalPos, AngleRadians);
             currentPos = originalPos;
 
             if (m_prevChaseCam.X == 0 && m_prevChaseCam.Y == 0 && m_prevChaseCam.Z == 0)

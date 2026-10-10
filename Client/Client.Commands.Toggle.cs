@@ -90,9 +90,9 @@ public partial class Client
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_config.Game.ChaseCamera.Set(!m_config.Game.ChaseCamera.Value);
+        m_config.Game.Chase.Set(!m_config.Game.Chase.Value);
 
-        if (m_config.Game.ChaseCamera)
+        if (m_config.Game.Chase)
             m_layerManager.WorldLayer.World.DisplayMessage("Chase camera activated.");
         else
             m_layerManager.WorldLayer.World.DisplayMessage("Chase camera deactivated.");

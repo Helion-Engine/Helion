@@ -130,20 +130,20 @@ public class ConfigGame : ConfigElement<ConfigGame>
 
     [ConfigInfo("Chase camera mode.")]
     [OptionMenu(OptionSectionType.General, "Chase Camera")]
-    public readonly ConfigValue<bool> ChaseCamera = new(false);
+    public readonly ConfigValue<bool> Chase = new(false);
 
     [ConfigInfo("Death camera mode.")]
     [OptionMenu(OptionSectionType.General, "Death Camera")]
     public readonly ConfigValue<bool> DeathCamera = new(false);
 
     [ConfigInfo("Chase camera distance.")]
-    public readonly ConfigValue<int> ChaseCameraDistance = new(90, Clamp(1, 256));
+    public readonly ConfigValue<int> ChaseDistance = new(90, Clamp(1, 1000));
 
     [ConfigInfo("Chase camera offset.")]
-    public readonly ConfigValue<int> ChaseCameraOffset = new(0, Clamp(-128, 128));
+    public readonly ConfigValue<int> ChaseOffset = new(0, Clamp(-1000, 1000));
 
     [ConfigInfo("Chase camera height.")]
-    public readonly ConfigValue<int> ChaseCameraHeight = new(8, Clamp(-64, 64));
+    public readonly ConfigValue<int> ChaseHeight = new(8, Clamp(-1000, 1000));
 
     [ConfigInfo("Random number generator method.", demo: true, serialize: true, mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.General, "RNG Method", spacer: true)]

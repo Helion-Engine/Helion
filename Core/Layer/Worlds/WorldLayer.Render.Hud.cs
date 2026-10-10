@@ -548,7 +548,7 @@ public partial class WorldLayer
 
     private void DrawHudWeapon(IHudRenderContext hud, in FrameState frameState, int yOffset, bool flash)
     {
-        if (m_config.Game.ChaseCamera.Value)
+        if (m_config.Game.Chase.Value)
             return;
 
         string sprite = GetHudWeaponSpriteString(frameState, flash);
@@ -685,7 +685,7 @@ public partial class WorldLayer
     
     private void DrawCrosshair(IHudRenderContext hud)
     {
-        if (m_config.Game.ChaseCamera.Value)
+        if (m_config.Game.Chase.Value)
             return;
 
         int Width = Math.Max((int)(1 * m_scale), 1);

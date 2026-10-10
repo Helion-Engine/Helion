@@ -40,7 +40,7 @@ public class Config : ConfigElement<Config>, IConfig
     protected readonly ConfigKeyMapping KeyMapping = new();
     protected readonly Dictionary<string, ConfigComponent> Components = new(StringComparer.OrdinalIgnoreCase);
 
-    public bool ShouldInterpolateMouse() => Mouse.Interpolate.Value || Game.ChaseCamera.Value;
+    public bool ShouldInterpolateMouse() => Mouse.Interpolate.Value || Game.Chase.Value;
 
     public static string FindSplitValue(string value)
     {

@@ -314,7 +314,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_lastRenderStatic = m_renderStatic;
         m_renderStatic = m_config.Render.Mode.Value != AdaptiveRenderMode.Bsp && renderInfo.TransferHeightView == TransferHeightView.Middle && !m_lastUseBsp;
         m_postProcessingEffects = m_config.Render.PostProcessingEffects;
-        m_chaseCam = m_config.Game.ChaseCamera.Value || (m_config.Game.DeathCamera && world.Player.IsDead());
+        m_chaseCam = m_config.Game.Chase.Value || (m_config.Game.DeathCamera && world.Player.IsDead());
 
         if (renderInfo.TransferHeightView == TransferHeightView.Middle)
         {
