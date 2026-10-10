@@ -209,10 +209,10 @@ public static class GLTextureArrayBuilder
         if (x.Image == null || y.Image == null)
             throw new NullReferenceException("Texture image must not be null");
 
-        if (x.Image.Height == y.Image.Height)
-            return x.Image.Width.CompareTo(y.Image.Width);
+        if (x.Image.Dimension.Height == y.Image.Dimension.Height)
+            return x.Image.Dimension.Width.CompareTo(y.Image.Dimension.Width);
 
-        return x.Image.Height.CompareTo(y.Image.Height);
+        return x.Image.Dimension.Height.CompareTo(y.Image.Dimension.Height);
     }
 
     private static int BuildTextureArray(IRendererTextureManager textureManager, Span<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, Dimension dimension, bool addToTextureTracker)

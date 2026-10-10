@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
 using Helion.Util.Assertion;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -288,13 +289,19 @@ public class Image
 
     public void DrawOnTopOf(Image image, Vec2I offset)
     {
-        for (int thisY = 0; thisY < Height; thisY++)
+        var height = Height;
+        var width = Width;
+
+        var imageHeight = image.Height;
+        var imageWidth = image.Width;
+
+        for (int thisY = 0; thisY < height; thisY++)
         {
             int targetY = thisY + offset.Y;
 
             if (targetY < 0)
                 continue;
-            if (targetY >= image.Height)
+            if (targetY >= imageHeight)
                 break;
 
             for (int thisX = 0; thisX < Width; thisX++)
@@ -302,11 +309,11 @@ public class Image
                 int targetX = thisX + offset.X;
                 if (targetX < 0)
                     continue;
-                if (targetX >= image.Width)
+                if (targetX >= imageWidth)
                     break;
 
-                int thisOffset = (thisY * Width) + thisX;
-                int targetOffset = (targetY * image.Width) + targetX;
+                int thisOffset = (thisY * width) + thisX;
+                int targetOffset = (targetY * imageWidth) + targetX;
 
                 uint pixel = m_pixels[thisOffset];
                 uint alpha = (pixel >> 24) & 0xFF;
@@ -368,27 +375,39 @@ public class Image
 
     public Color GetPixel(int x, int y)
     {
-        int offset = (y * Width) + x;
+        int offset = (y * Dimension.Width) + x;
         uint argb = m_pixels[offset];
         return new(argb);
     }
 
+    public uint GetPixelUint(int x, int y)
+    {
+        return m_pixels[(y * Dimension.Width) + x];
+    }
+
     public byte GetIndex(int x, int y)
     {
-        int offset = (y * Width) + x;
+        int offset = (y * Dimension.Width) + x;
         return m_indices[offset];
     }
 
     public void SetPixel(int x, int y, Color color)
     {
-        int offset = (y * Width) + x;
+        int offset = (y * Dimension.Width) + x;
         if (offset >= 0 && offset < m_pixels.Length)
             m_pixels[offset] = color.Uint;
     }
 
+    public void SetPixelUint(int x, int y, uint pixel)
+    {
+        int offset = (y * Dimension.Width) + x;
+        if (offset >= 0 && offset < m_pixels.Length)
+            m_pixels[offset] = pixel;
+    }
+
     public void SetIndex(int x, int y, byte index)
     {
-        int offset = (y * Width) + x;
+        int offset = (y * Dimension.Width) + x;
         if (offset >= 0 && offset < m_indices.Length)
             m_indices[offset] = index;
     }
@@ -419,11 +438,18 @@ public class Image
         {
             for (int y = 0; y < height; y++)
             {
-                SetPixel(x, y, image.GetPixel(x, y));
+                SetPixelUint(x, y, image.GetPixelUint(x, y));
                 if (image.ImageType == ImageType.PaletteWithArgb)
                     SetIndex(x, y, image.GetIndex(x, y));
             }
         }
+    }
+
+    public void ClearPixels()
+    {
+        m_pixels.ZeroArray();
+        if (ImageType == ImageType.PaletteWithArgb)
+            m_indices.ZeroArray();
     }
 
     public void ConvertToGrayscale(bool normalize)

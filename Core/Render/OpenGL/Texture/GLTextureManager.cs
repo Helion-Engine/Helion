@@ -274,10 +274,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         var arraySubTextures = GenerateTextureArray(imageIndex =>
         {
             var image = images[imageIndex];
-            if (image.Width == dimension.Width && image.Height == dimension.Height)
+            if (image.Dimension.Width == dimension.Width && image.Dimension.Height == dimension.Height)
                 return new(image, image.Dimension);
 
             fitImage ??= new Image(dimension, images[0].ImageType);
+            fitImage.ClearPixels();
             fitImage.CopyPixelsFrom(image);
             fitImage.Offset = image.Offset;
             return new(fitImage, image.Dimension);
