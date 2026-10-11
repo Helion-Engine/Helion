@@ -589,6 +589,9 @@ public class Player : Entity
 
     private Vec3D ClampCameraPos(Vec3D playerPos, Vec3D cameraPos, double angle)
     {
+        if (Flags.NoClip())
+            return cameraPos;
+
         var distance = (double)World.Config.Game.ChaseDistance.Value;
         var testAngle = angle + MathHelper.Pi;
         // Need to recompute this for use with Math.Tan for slope space math. The world is using spherical coordinates and is not compatible.
@@ -624,11 +627,13 @@ public class Player : Entity
         }
         if (hitSector != null)
         {
-            cameraPos.Z = Math.Clamp(cameraPos.Z, hitSector.Floor.Z, hitSector.Ceiling.Z - PlaneOffset);
+            cameraPos.Z = Math.Max(hitSector.Floor.Z + PlaneOffset, cameraPos.Z);
+            cameraPos.Z = Math.Min(hitSector.Ceiling.Z - PlaneOffset, cameraPos.Z);
         }
         else
         {
-            cameraPos.Z = Math.Clamp(cameraPos.Z, HighestFloorZ, LowestCeilingZ - PlaneOffset);
+            cameraPos.Z = Math.Max(HighestFloorZ + PlaneOffset, cameraPos.Z);
+            cameraPos.Z = Math.Min(LowestCeilingZ - PlaneOffset, cameraPos.Z);
         }
 
         if (hitSector == null && hitPlane3D == null)
