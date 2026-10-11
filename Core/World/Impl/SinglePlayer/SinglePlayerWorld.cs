@@ -9,6 +9,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Window;
@@ -548,6 +549,9 @@ public class SinglePlayerWorld : WorldBase
         Config.Player.Name.OnChanged -= PlayerName_OnChanged;
         Config.Player.Gender.OnChanged -= PlayerGender_OnChanged;
         Config.Game.MarkSpecials.OnChanged -= MarkSpecials_OnChanged;
+        Config.Game.ChaseDistance.OnChanged -= ChaseDistance_OnChanged;
+        Config.Game.ChaseOffset.OnChanged -= ChaseDistance_OnChanged;
+        Config.Game.ChaseHeight.OnChanged -= ChaseDistance_OnChanged;
 
         base.PerformDispose();
     }
