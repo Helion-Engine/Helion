@@ -109,7 +109,7 @@ public interface IWorld : IDisposable
     DataCache DataCache { get; }
     Player Player { get; }
     bool IsFastMonsters { get; }
-    bool IsChaseCamMode { get; }
+    bool IsFreeCamMode { get; }
     bool DrawHud { get; }
     bool AnyLayerObscuring { get; set; }
     bool IsDisposed { get; }
@@ -120,6 +120,7 @@ public interface IWorld : IDisposable
     MapType MapType { get; }
     ACS.WorldExecutor AcsExecutor { get; }
     byte[]? Behavior { get; }
+    Entity TestClampEntity { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);
@@ -145,6 +146,8 @@ public interface IWorld : IDisposable
     void FirePlayerHitscanBullets(Player shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
         Func<DamageFuncParams, int>? damageFunc = null, DamageFuncParams damageParams = default);
     Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage, HitScanOptions options = HitScanOptions.Default);
+    BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
+        HitScanOptions options, double tanPitch, ref Vec3D intersect, out Sector? hitSector, out SectorPlane? hitPlane3D);
     bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
     void ApplyVelocity(Entity entity, Vec3D velocity);
     bool SetPosition(Entity entity, Vec3D position, bool checkBlocking);
@@ -208,7 +211,7 @@ public interface IWorld : IDisposable
     void SetLineBlockFlags(int lineId, ZDoomLineBlockFlags setFlags, ZDoomLineBlockFlags clearFlags);
     void SetLineBlockFlags(Line line, in LineBlockFlags flags);
     void SetLineSpecial(Line line, ZDoomLineSpecialType type, in SpecialArgs args);
-    void ToggleChaseCameraMode();
+    void ToggleFreeCamMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
     void EntityTeleported(Entity entity);

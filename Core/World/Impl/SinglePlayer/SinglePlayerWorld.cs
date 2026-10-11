@@ -9,6 +9,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Window;
@@ -46,7 +47,7 @@ public class SinglePlayerWorld : WorldBase
     public override WorldType WorldType => m_worldType;
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;
-    public override bool IsChaseCamMode => m_chaseCamMode;
+    public override bool IsFreeCamMode => m_chaseCamMode;
     public override Player GetCameraPlayer()
     {
         if (m_chaseCamMode)
@@ -141,6 +142,9 @@ public class SinglePlayerWorld : WorldBase
         config.Player.Name.OnChanged += PlayerName_OnChanged;
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
         config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
+        config.Game.ChaseDistance.OnChanged += ChaseDistance_OnChanged;
+        config.Game.ChaseOffset.OnChanged += ChaseDistance_OnChanged;
+        config.Game.ChaseHeight.OnChanged += ChaseDistance_OnChanged;
 
         ChaseCamPlayer = CreateChaseCamPlayer();
 
@@ -157,6 +161,11 @@ public class SinglePlayerWorld : WorldBase
             if (entry != null)
                 AudioSystem.Music.CacheMusicEntry(entry);
         }
+    }
+
+    private void ChaseDistance_OnChanged(object? sender, int value)
+    {
+        Player.ResetChaseCamInterpolation();
     }
 
     public void DisableAutomapMarker()
@@ -477,13 +486,13 @@ public class SinglePlayerWorld : WorldBase
         return success;
     }
 
-    public override void ToggleChaseCameraMode()
+    public override void ToggleFreeCamMode()
     {
         m_chaseCamMode = !m_chaseCamMode;
         if (m_chaseCamMode)
-            DisplayMessage("Chase camera activated.");
+            DisplayMessage("Free camera activated.");
         else
-            DisplayMessage("Chase camera deactivated.");
+            DisplayMessage("Free camera deactivated.");
 
         DrawHud = !m_chaseCamMode;
 
@@ -540,6 +549,9 @@ public class SinglePlayerWorld : WorldBase
         Config.Player.Name.OnChanged -= PlayerName_OnChanged;
         Config.Player.Gender.OnChanged -= PlayerGender_OnChanged;
         Config.Game.MarkSpecials.OnChanged -= MarkSpecials_OnChanged;
+        Config.Game.ChaseDistance.OnChanged -= ChaseDistance_OnChanged;
+        Config.Game.ChaseOffset.OnChanged -= ChaseDistance_OnChanged;
+        Config.Game.ChaseHeight.OnChanged -= ChaseDistance_OnChanged;
 
         base.PerformDispose();
     }
@@ -565,7 +577,7 @@ public class SinglePlayerWorld : WorldBase
 
             player.AddToYaw(moveDelta.X, true);
 
-            if ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
+            if ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsFreeCamMode)
             {
                 float factorY = Config.Mouse.InvertY ? -1 : 1;
                 player.AddToPitch(moveDelta.Y * factorY, true);
@@ -587,7 +599,7 @@ public class SinglePlayerWorld : WorldBase
             double slowFastFactor = 0.0;
 
             bool hasYaw = input.Manager.AnalogAdapter.TryGetGyroAbsolute((GyroAxis)(int)Config.Controller.GyroAimTurnAxis.Value, out double yaw);
-            bool hasPitch = ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
+            bool hasPitch = ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsFreeCamMode)
                 && input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out pitch);
 
             if (hasYaw)

@@ -51,4 +51,6 @@ public interface IConfig
     void ApplyConfiguration(IList<ConfigValueModel> configValues);
 
     List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields();
+
+    bool ShouldInterpolateMouse();
 }

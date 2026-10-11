@@ -27,7 +27,6 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
-using Helion.World.Special.Specials;
 using Helion.World.StatusBar;
 using NLog;
 using System;
@@ -91,6 +90,11 @@ public class Player : Entity
     private double m_viewBob;
     private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
+
+    private Vec3D m_quake;
+    Vec3D m_chaseCam;
+    Vec3D m_prevChaseCam;
+    private int m_lastQuakeTick;
 
     private readonly OldCamera m_camera = new(Vec3F.Zero, Vec3F.Zero, 0, 0);
 
@@ -514,11 +518,17 @@ public class Player : Entity
         DeltaViewHeight = 0;
         PrevWeaponOffset = WeaponOffset;
         PrevWeaponBobOffset = WeaponBobOffset;
+        m_prevChaseCam = m_chaseCam;
 
         ViewAngleRadians = 0;
         ViewPitchRadians = 0;
 
         base.ResetInterpolation();
+    }
+
+    public void ResetChaseCamInterpolation()
+    {
+        m_prevChaseCam = Vec3D.Zero;
     }
 
     public override void SetRaiseState(bool restoreFlags = true)
@@ -563,18 +573,121 @@ public class Player : Entity
         return pitch;
     }
 
-    private Vec3D m_quake;
-    private int m_lastQuakeTick;
+    private Vec3D CalculateChaseCamPos(Vec3D position, double angle, double pitch)
+    {
+        var unitBack = Vec3D.UnitSphere(angle, pitch) * World.Config.Game.ChaseDistance.Value;
+        var unitLeft = Vec2D.UnitCircle(angle + MathHelper.QuarterPi) * World.Config.Game.ChaseOffset.Value;
+
+        position -= unitBack;
+        position.Z += World.Config.Game.ChaseHeight;
+
+        position.X -= unitLeft.X;
+        position.Y -= unitLeft.Y;
+
+        return position;
+    }
+
+    private Vec3D ClampCameraPos(Vec3D playerPos, Vec3D cameraPos, double angle)
+    {
+        if (Flags.NoClip())
+            return cameraPos;
+
+        var distance = (double)World.Config.Game.ChaseDistance.Value;
+        var testAngle = angle + MathHelper.Pi;
+        // Need to recompute this for use with Math.Tan for slope space math. The world is using spherical coordinates and is not compatible.
+        var pitch = Math.Atan((cameraPos.Z - playerPos.Z) / distance);
+        var tanPitch = Math.Tan(pitch);
+        var zOffset = tanPitch * distance;
+
+        var intersect = Vec3D.Zero;
+        var end = new Vec3D(cameraPos.X, cameraPos.Y, playerPos.Z + zOffset);
+
+        var bi = World.FireHitScan(this, playerPos, end, testAngle, pitch, distance, Constants.HitscanTestDamage,
+            HitScanOptions.PassThroughEntities | HitScanOptions.NoIgnoreSky, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
+
+        if (bi.HasValue && bi.Value.GetIndex(out var blockLine) == Physics.Blockmap.IntersectType.Line)
+        {
+            ref var line = ref World.Blockmap.BlockLines[blockLine];
+            var angleToWall = intersect.Angle(playerPos.XY);
+            var unit = Vec2D.UnitCircle(angleToWall);
+            cameraPos.X = intersect.X + unit.X;
+            cameraPos.Y = intersect.Y + unit.Y;
+        }
+
+        if (hitSector != null && hitSector.Sector3D != null)
+            hitPlane3D = hitSector.Floor;
+
+        const double PlaneOffset = 4;
+        if (hitPlane3D != null)
+        {
+            if (hitPlane3D.Facing == SectorPlaneFace.Floor)
+                cameraPos.Z = Math.Min(hitPlane3D.Z - PlaneOffset, cameraPos.Z);
+            else
+                cameraPos.Z = Math.Min(hitPlane3D.Z + PlaneOffset, cameraPos.Z);
+        }
+        if (hitSector != null)
+        {
+            cameraPos.Z = Math.Max(hitSector.Floor.Z + PlaneOffset, cameraPos.Z);
+            cameraPos.Z = Math.Min(hitSector.Ceiling.Z - PlaneOffset, cameraPos.Z);
+        }
+        else
+        {
+            cameraPos.Z = Math.Max(HighestFloorZ + PlaneOffset, cameraPos.Z);
+            cameraPos.Z = Math.Min(LowestCeilingZ - PlaneOffset, cameraPos.Z);
+        }
+
+        if (hitSector == null && hitPlane3D == null)
+        {
+            var testEntity = World.TestClampEntity;
+            testEntity.Radius = Radius;
+            testEntity.Height = 1;
+            testEntity.Position = cameraPos;
+            testEntity.PrevPosition = cameraPos;
+
+            World.Link(testEntity);
+
+            var lowestCeilingZ = testEntity.LowestCeilingZ - PlaneOffset;
+            var highestFloorZ = testEntity.HighestFloorZ + PlaneOffset;
+
+            cameraPos.Z = Math.Max(highestFloorZ, cameraPos.Z);
+            cameraPos.Z = Math.Min(lowestCeilingZ, cameraPos.Z);
+
+            testEntity.UnlinkFromWorld();
+        }
+
+        return cameraPos;
+    }
 
     public OldCamera GetCamera(double t, CameraOptions options = CameraOptions.Default)
     {
-        var currentPos = GetViewPosition();
+        var originalPos = GetViewPosition();
+        var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
+
+        var chase = (World.Config.Game.Chase.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode;
+        if (chase)
+        {
+            originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
+            originalPos = ClampCameraPos(new Vec3D(Position.X, Position.Y, Position.Z + Height), originalPos, AngleRadians);
+            currentPos = originalPos;
+
+            if (m_prevChaseCam.X == 0 && m_prevChaseCam.Y == 0 && m_prevChaseCam.Z == 0)
+                m_prevChaseCam = currentPos;
+
+            m_chaseCam = currentPos;
+            prevPos = m_prevChaseCam;
+        }
+        else
+        {
+            ResetChaseCamInterpolation();
+        }
 
         if ((options & CameraOptions.EarthQuake) != 0)
             currentPos += UpdateQuake(t);
 
         var position = prevPos.Interpolate(currentPos, t);
+        if (chase)
+            position = ClampCameraPos(new Vec3D(Position.X, Position.Y, Position.Z + Height), position, AngleRadians);
 
         CheckLineClip(currentPos);
         position = CheckPlaneClip(currentPos, prevPos, position);
@@ -584,7 +697,7 @@ public class Player : Entity
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
-        if (!m_strafeCommand && !WorldStatic.World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
+        if (!m_strafeCommand && !WorldStatic.World.Config.ShouldInterpolateMouse() && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
             playerPitch = MathHelper.Clamp(playerPitch + ViewPitchRadians, -MaxPitch, MaxPitch);
@@ -611,13 +724,13 @@ public class Player : Entity
 
             float yaw = (float)(prev + t * (current - prev));
             float pitch = (float)(m_prevPitch + t * (playerPitch - m_prevPitch));
-            m_camera.Set(position.Float, GetViewPosition().Float, yaw, pitch);
+            m_camera.Set(position.Float, originalPos.Float, yaw, pitch);
         }
         else
         {
             float yaw = (float)MathHelper.GetPositiveAngle(playerAngle);
             float pitch = (float)(playerPitch);
-            m_camera.Set(position.Float, GetViewPosition().Float, yaw, pitch);
+            m_camera.Set(position.Float, originalPos.Float, yaw, pitch);
         }
 
         return m_camera;
@@ -689,6 +802,7 @@ public class Player : Entity
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
+        m_prevChaseCam = m_chaseCam;
     }
 
     public void PlayerTick()
@@ -856,7 +970,7 @@ public class Player : Entity
         if (IsMaxFpsTickRate())
             return false;
 
-        if (WorldStatic.World.Config.Mouse.Interpolate)
+        if (WorldStatic.World.Config.ShouldInterpolateMouse())
             return true;
 
         return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead() || WorldStatic.World.PlayingDemo;

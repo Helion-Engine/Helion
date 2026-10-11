@@ -74,13 +74,28 @@ public partial class Client
         m_takeScreenshot = true;
     }
 
-    [ConsoleCommand("chasecam", "Toggles chase camera mode")]
+    [ConsoleCommand("freecam", "Toggles free camera mode")]
+    private void ToggleFreeCam(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.World.ToggleFreeCamMode();
+    }
+
+
+    [ConsoleCommand("chase", "Toggles cahse camera mode")]
     private void ToggleChaseCam(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_layerManager.WorldLayer.World.ToggleChaseCameraMode();
+        m_config.Game.Chase.Set(!m_config.Game.Chase.Value);
+
+        if (m_config.Game.Chase)
+            m_layerManager.WorldLayer.World.DisplayMessage("Chase camera activated.");
+        else
+            m_layerManager.WorldLayer.World.DisplayMessage("Chase camera deactivated.");
     }
 
     [ConsoleCommand("markspecials", "Toggles mark specials")]
