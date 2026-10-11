@@ -2131,7 +2131,7 @@ public abstract partial class WorldBase : IWorld
                 }
                 else if (GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, end.Z, ref intersect))
                 {
-                    returnValue = new();
+                    //returnValue = new();
                     hitSector = shooter.Sector;
                     intersect = currentPlaneIntersect;
                 }
@@ -2166,7 +2166,7 @@ public abstract partial class WorldBase : IWorld
         else if (noCrossCheck && returnValue == null && GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, end.Z, ref intersect))
         {
             hitSector = shooter.Sector;
-            returnValue = new();        
+            //returnValue = new();        
         }
 
         // Apply deferred 3D hit if it was the closest and we didn't find a concrete blocker
