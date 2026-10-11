@@ -526,6 +526,11 @@ public class Player : Entity
         base.ResetInterpolation();
     }
 
+    public void ResetChaseCamInterpolation()
+    {
+        m_prevChaseCam = Vec3D.Zero;
+    }
+
     public override void SetRaiseState(bool restoreFlags = true)
     {
         base.SetRaiseState();
@@ -669,7 +674,7 @@ public class Player : Entity
         }
         else
         {
-            m_prevChaseCam = Vec3D.Zero;
+            ResetChaseCamInterpolation();
         }
 
         if ((options & CameraOptions.EarthQuake) != 0)

@@ -141,6 +141,9 @@ public class SinglePlayerWorld : WorldBase
         config.Player.Name.OnChanged += PlayerName_OnChanged;
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
         config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
+        config.Game.ChaseDistance.OnChanged += ChaseDistance_OnChanged;
+        config.Game.ChaseOffset.OnChanged += ChaseDistance_OnChanged;
+        config.Game.ChaseHeight.OnChanged += ChaseDistance_OnChanged;
 
         ChaseCamPlayer = CreateChaseCamPlayer();
 
@@ -157,6 +160,11 @@ public class SinglePlayerWorld : WorldBase
             if (entry != null)
                 AudioSystem.Music.CacheMusicEntry(entry);
         }
+    }
+
+    private void ChaseDistance_OnChanged(object? sender, int value)
+    {
+        Player.ResetChaseCamInterpolation();
     }
 
     public void DisableAutomapMarker()
