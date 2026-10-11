@@ -133,7 +133,7 @@ public class PathsManager
     /// <summary>
     /// Converts relative to absolute paths if needed, and removes any trailing directory separators.
     /// </summary>
-    private static string StandardizePath(string path) => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
+    private static string StandardizePath(string path) => Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
 
     /// <summary>
     /// Builds a folder search list for WADs and other archives:
