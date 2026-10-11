@@ -2008,7 +2008,11 @@ public abstract partial class WorldBase : IWorld
                 if (line.FrontSector != line.BackSector)
                 {
                     if (IsSkyClipTwoSided(front, back, intersect))
+                    {
+                        if ((options & HitScanOptions.NoIgnoreSky) != 0)
+                            returnValue = bi;
                         break;
+                    }
 
                     floorZ = front.ToFloorZ(intersect);
                     ceilingZ = front.ToCeilingZ(intersect);
@@ -2131,7 +2135,6 @@ public abstract partial class WorldBase : IWorld
                 }
                 else if (GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, end.Z, ref intersect))
                 {
-                    //returnValue = new();
                     hitSector = shooter.Sector;
                     intersect = currentPlaneIntersect;
                 }

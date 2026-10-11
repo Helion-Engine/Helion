@@ -8,4 +8,5 @@ public enum HitScanOptions
     Default = 0,
     PassThroughEntities = 1,
     DrawRail = 2,
+    NoIgnoreSky = 4
 }

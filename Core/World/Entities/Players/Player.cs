@@ -595,7 +595,7 @@ public class Player : Entity
         var end = new Vec3D(cameraPos.X, cameraPos.Y, playerPos.Z + zOffset);
 
         var bi = World.FireHitScan(this, playerPos, end, testAngle, pitch, distance, Constants.HitscanTestDamage,
-            HitScanOptions.PassThroughEntities, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
+            HitScanOptions.PassThroughEntities | HitScanOptions.NoIgnoreSky, tanPitch, ref intersect, out var hitSector, out var hitPlane3D);
 
         if (bi.HasValue && bi.Value.GetIndex(out var blockLine) == Physics.Blockmap.IntersectType.Line)
         {
@@ -609,21 +609,21 @@ public class Player : Entity
         if (hitSector != null && hitSector.Sector3D != null)
             hitPlane3D = hitSector.Floor;
 
-        const double CeilingOffset = 4;
+        const double PlaneOffset = 4;
         if (hitPlane3D != null)
         {
             if (hitPlane3D.Facing == SectorPlaneFace.Floor)
-                cameraPos.Z = Math.Min(hitPlane3D.Z - CeilingOffset, cameraPos.Z);
+                cameraPos.Z = Math.Min(hitPlane3D.Z - PlaneOffset, cameraPos.Z);
             else
-                cameraPos.Z = Math.Min(hitPlane3D.Z, cameraPos.Z);
+                cameraPos.Z = Math.Min(hitPlane3D.Z + PlaneOffset, cameraPos.Z);
         }
         if (hitSector != null)
         {
-            cameraPos.Z = Math.Clamp(cameraPos.Z, hitSector.Floor.Z, hitSector.Ceiling.Z - CeilingOffset);
+            cameraPos.Z = Math.Clamp(cameraPos.Z, hitSector.Floor.Z, hitSector.Ceiling.Z - PlaneOffset);
         }
         else
         {
-            cameraPos.Z = Math.Clamp(cameraPos.Z, HighestFloorZ, LowestCeilingZ - CeilingOffset);
+            cameraPos.Z = Math.Clamp(cameraPos.Z, HighestFloorZ, LowestCeilingZ - PlaneOffset);
         }
 
         if (hitSector == null && hitPlane3D == null)
@@ -636,13 +636,11 @@ public class Player : Entity
 
             World.Link(testEntity);
 
-            var lowestCeilingZ = testEntity.LowestCeilingZ - 1;
-            var highestFloorZ = testEntity.HighestFloorZ + 1;
+            var lowestCeilingZ = testEntity.LowestCeilingZ - PlaneOffset;
+            var highestFloorZ = testEntity.HighestFloorZ + PlaneOffset;
 
-            if (lowestCeilingZ < cameraPos.Z)
-                cameraPos.Z = lowestCeilingZ;
-            if (highestFloorZ > cameraPos.Z && highestFloorZ < lowestCeilingZ)
-                cameraPos.Z = highestFloorZ;
+            cameraPos.Z = Math.Max(highestFloorZ, cameraPos.Z);
+            cameraPos.Z = Math.Min(lowestCeilingZ, cameraPos.Z);
 
             testEntity.UnlinkFromWorld();
         }
@@ -656,7 +654,8 @@ public class Player : Entity
         var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
 
-        if ((World.Config.Game.Chase.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode)
+        var chase = (World.Config.Game.Chase.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode;
+        if (chase)
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
             originalPos = ClampCameraPos(new Vec3D(Position.X, Position.Y, Position.Z + Height), originalPos, AngleRadians);
@@ -673,6 +672,8 @@ public class Player : Entity
             currentPos += UpdateQuake(t);
 
         var position = prevPos.Interpolate(currentPos, t);
+        if (chase)
+            position = ClampCameraPos(new Vec3D(Position.X, Position.Y, Position.Z + Height), position, AngleRadians);
 
         CheckLineClip(currentPos);
         position = CheckPlaneClip(currentPos, prevPos, position);
