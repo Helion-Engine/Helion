@@ -667,6 +667,10 @@ public class Player : Entity
             m_chaseCam = currentPos;
             prevPos = m_prevChaseCam;
         }
+        else
+        {
+            m_prevChaseCam = Vec3D.Zero;
+        }
 
         if ((options & CameraOptions.EarthQuake) != 0)
             currentPos += UpdateQuake(t);
