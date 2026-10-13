@@ -232,6 +232,7 @@ public interface IWorld : IDisposable
     void AddEntityScrollAccumulator(Entity entity, double x, double y);
     bool UseAverageScrollCarry();
     bool SectorReturnStop();
+    bool CrusherCompat();
     IEnumerable<string> GetPreCacheTextureNames();
     IEnumerable<string> GetPreCacheSoundNames();
     IBspHeuristics? GetBspHeuristics();

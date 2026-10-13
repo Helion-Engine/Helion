@@ -40,6 +40,7 @@ public class HexenMap : IMap
     public byte[]? Behavior { get; set; }
     public bool UseAverageScrollCarry() => true;
     public bool SectorReturnStop() => false;
+    public bool CrusherCompat() => true;
 
     private MapEntryCollection? m_map;
     private bool m_loaded;

@@ -34,6 +34,7 @@ public interface IMap
     void LoadData();
     bool UseAverageScrollCarry();
     bool SectorReturnStop();
+    bool CrusherCompat();
 
     public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null, bool loadData = true)
     {

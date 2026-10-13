@@ -72,6 +72,11 @@ public sealed class UdmfMap : IMap, IMapSpecials
         return UdmfNamespace == UdmfNamespace.Doom || UdmfNamespace == UdmfNamespace.Dsda;
     }
 
+    public bool CrusherCompat()
+    {
+        return UdmfNamespace == UdmfNamespace.Doom || UdmfNamespace == UdmfNamespace.Dsda;
+    }
+
     public void ClearAllExceptThings()
     {
         Lines = [];

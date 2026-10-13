@@ -5,6 +5,7 @@ actor BossBrain 88
     Mass 10000000
     PainChance 255
     PainSound "brain/pain"
+    Radius 16
     
     +NOICEDEATH
     +OLDRADIUSDMG
