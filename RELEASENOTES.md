@@ -8,6 +8,7 @@
 - Fix various float checks would prevent floating enemies from floating up and/or getting stuck in ceilings when bunched together.
 - Clear ambush flag in A_FaceTarget to match original behavior.
 - Fix sprite rendering to use the most up to date view angle for each frame. Fixes slight stutter in sprites when rotating the view quickly.
+- Add crusher compatibility for Doom maps that prevent things from being clamped to lowest floor when obstructed in x/y space. Fixes Resurgence MAP29 icon death exit.
 
 ## Misc:
 - General blockmap traversal improvements.

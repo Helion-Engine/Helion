@@ -191,7 +191,7 @@ public sealed partial class PhysicsManager
         }
 
         // Compat bullshit for crushers. Doom would short clamp checks if blocked by entities which breaks 3D physics. Ignore on Doom map format with crushers.
-        var isCrusherCompat = m_world.MapType == MapType.Doom && moveSpecial.MoveData.Crush != null;
+        var isCrusherCompat = m_world.CrusherCompat() && moveSpecial.MoveData.Crush != null;
         var sector = moveSpecial.Sector;
         var sectorPlane = moveSpecial.SectorPlane;
         var moveData = moveSpecial.MoveData;
