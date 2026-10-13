@@ -1,6 +1,7 @@
 using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
@@ -189,6 +190,8 @@ public sealed partial class PhysicsManager
             status |= linkStatus;
         }
 
+        // Compat bullshit for crushers. Doom would short clamp checks if blocked by entities which breaks 3D physics. Ignore on Doom map format with crushers.
+        var isCrusherCompat = m_world.MapType == MapType.Doom && moveSpecial.MoveData.Crush != null;
         var sector = moveSpecial.Sector;
         var sectorPlane = moveSpecial.SectorPlane;
         var moveData = moveSpecial.MoveData;
@@ -270,7 +273,7 @@ public sealed partial class PhysicsManager
                 if (!sectorMoveEntityData.WasCrushing && Math.Abs(startZ - destZ) >= entity.Height)
                     SetClampIgnoreEntities(entity);
 
-                ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+                ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity, isCrusherCompat));
 
                 // Check for missile hitting floor/ceiling. Doom would only explode on z movement so check for z velocity.
                 if (entity.Flags.Missile() && prevVelocityZ != 0)
@@ -297,7 +300,7 @@ public sealed partial class PhysicsManager
                     continue;
 
                 entity.SectorMovement3D = sector.Sector3D != null;
-                ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+                ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity, isCrusherCompat));
                 entity.SectorMovement3D = false;
 
                 var entityMoveData = m_sectorMoveEntitiesData[i];
@@ -545,36 +548,47 @@ public sealed partial class PhysicsManager
         return GridIterationStatus.Continue;
     }
 
-    private bool SectorMoveLinkedClampCheck(Entity entity)
+    private bool SectorMoveLinkedClampCheck(Entity entity, bool isCrusherCompat)
     {
         // If not move linked check if this thing would pop up and would clip into another entity.
         // Otherwise allow it to pop up and match vanilla doom behavior.
-        if (entity.MoveLinked || entity.Flags.NoClip())
+        if (entity.MoveLinked || entity.Flags.NoClip() || !entity.Flags.Solid())
             return true;
+
+        if (!entity.MoveLinked && isCrusherCompat)
+        {
+            m_moveLinkData.Init(entity, 0, false);
+            m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_sectorMoveLinkClampAction);
+            return m_moveLinkData.Success;
+        }
 
         GetEntityClampValues(entity, entity.IntersectSectors, true, null, out Sector highestFloor, out _, out _, out _);
 
         if (highestFloor == entity.HighestFloorSector)
             return true;
 
-        m_moveLinkData.Entity = entity;
-        m_moveLinkData.Success = true;
-        m_moveLinkData.Height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
-
+        m_moveLinkData.Init(entity, highestFloor.ToFloorZ(entity.Position) + entity.Height, true);
         m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_sectorMoveLinkClampAction);
         return m_moveLinkData.Success;
     }
 
     private GridIterationStatus HandleSectorMoveLinkClamp(Entity checkEntity)
     {
-        if (!checkEntity.Flags.Solid() || checkEntity.Flags.Corpse() || checkEntity.Flags.NoClip() || m_moveLinkData.Entity.Id == checkEntity.Id)
+        if (!checkEntity.Flags.Solid() || checkEntity.Flags.NoClip() || m_moveLinkData.Entity == checkEntity)
             return GridIterationStatus.Continue;
+
+        if (!m_moveLinkData.CheckHeight)
+        {
+            m_moveLinkData.Success = false;
+            return GridIterationStatus.Stop;
+        }
 
         if (m_moveLinkData.Height > checkEntity.Position.Z)
         {
             m_moveLinkData.Success = false;
             return GridIterationStatus.Stop;
         }
+
         return GridIterationStatus.Continue;
     }
 
