@@ -56,6 +56,7 @@ public partial class EndGameLayer : IGameLayer
     private readonly SoundManager m_soundManager;
     private readonly string m_backgroundImage;
     private readonly IList<string> m_displayText;
+    private readonly IConfigKeyMapping m_keys;
     private readonly Ticker m_ticker = new(LettersPerSecond);
     private readonly Action<HudBackgroundImage> m_virtualDrawBackground;
     private readonly Action<IHudRenderContext> m_virtualDrawCast;
@@ -77,7 +78,6 @@ public partial class EndGameLayer : IGameLayer
     private CastEntityState m_castEntityState;
     private int m_castEntityFrameTicks;
     private int m_castFrameCount;
-    private IConfigKeyMapping m_keys;
 
     public EndGameLayer(IWorld world, IConfigKeyMapping keys, SoundManager soundManager, IMusicPlayer musicPlayer,
         ArchiveCollection archiveCollection, ClusterDef currentCluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo,
@@ -94,8 +94,10 @@ public partial class EndGameLayer : IGameLayer
             if (isNextMapSecret)
                 clusterText = currentCluster.SecretExitText;
             if (clusterText.Count == 0)
+            {
                 clusterText = nextCluster.EnterText;
-            currentCluster = nextCluster;
+                currentCluster = nextCluster;
+            }
         }
         else
         {
