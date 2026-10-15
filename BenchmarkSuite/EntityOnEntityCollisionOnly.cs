@@ -7,12 +7,12 @@ using System.Collections.Generic;
 
 namespace BenchmarkSuite;
 
-public class EntityOnEntityCollision
+public class EntityOnEntityCollisionOnly
 {
     private readonly SinglePlayerWorld World;
     private readonly List<Entity> Monsters = new(8192);
 
-    public EntityOnEntityCollision()
+    public EntityOnEntityCollisionOnly()
     {
         World = WorldAllocator.LoadMap("Resources/1024enemies.zip", "1024enemies.wad", "MAP01", Guid.NewGuid().ToString(), (world) =>
         {
