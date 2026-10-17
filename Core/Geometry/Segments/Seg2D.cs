@@ -177,38 +177,6 @@ namespace Helion.Geometry.Segments
             return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&
                    CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);
         }
-        public bool Intersects(Seg2D other) => IntersectionInclusive(other, out double t) && (t >= 0 && t <= 1);
-        public bool Intersects(Segment2D other) => Intersection(other, out double t) && (t >= 0 && t <= 1);
-        public bool Intersects<T>(SegmentT2D<T> other) where T : Vector2D => Intersection(other, out double t) && (t >= 0 && t <= 1);
-
-        public readonly bool IntersectionInclusive(in Seg2D seg, out double t)
-        {
-            double startX = Start.X;
-            double startY = Start.Y;
-            double endX = End.X;
-            double endY = End.Y;
-            double segStartX = seg.Start.X;
-            double segStartY = seg.Start.Y;
-            double segEndX = seg.End.X;
-            double segEndY = seg.End.Y;
-            double areaStart = ((startX - segEndX) * (endY - segEndY)) - ((startY - segEndY) * (endX - segEndX));
-            double areaEnd = ((startX - segStartX) * (endY - segStartY)) - ((startY - segStartY) * (endX - segStartX));
-
-            if (areaStart * areaEnd <= 0)
-            {
-                double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
-                double areaThisEnd = ((segStartX - endX) * (segEndY - endY)) - ((segStartY - endY) * (segEndX - endX));
-
-                if (areaThisStart * areaThisEnd <= 0)
-                {
-                    t = areaThisStart / (areaThisStart - areaThisEnd);
-                    return t >= 0 && t <= 1;
-                }
-            }
-
-            t = default;
-            return false;
-        }
 
         public readonly bool IntersectionExclusive(in Seg2D seg, out double t)
         {
@@ -248,62 +216,22 @@ namespace Helion.Geometry.Segments
             double areaStart = ((startX - segEndX) * (endY - segEndY)) - ((startY - segEndY) * (endX - segEndX));
             double areaEnd = ((startX - segStartX) * (endY - segStartY)) - ((startY - segStartY) * (endX - segStartX));
 
-            if (areaStart * areaEnd <= 0)
+            if (areaStart * areaEnd <= Constants.Epsilon)
             {
                 double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
                 double areaThisEnd = ((segStartX - endX) * (segEndY - endY)) - ((segStartY - endY) * (segEndX - endX));
 
-                if (areaThisStart * areaThisEnd <= 0)
+                if (areaThisStart * areaThisEnd <= Constants.Epsilon)
                 {
                     t = areaThisStart / (areaThisStart - areaThisEnd);
-                    return t >= 0 && t <= 1;
+                    return t >= 0 && t <= 1 + Constants.Epsilon;
                 }
             }
 
             t = default;
             return false;
         }
-
-        public bool Intersection(Segment2D seg, out double t)
-        {
-            double areaStart = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.End.X, seg.End.Y);
-            double areaEnd = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.Start.X, seg.Start.Y);
-
-            if (areaStart.DifferentSign(areaEnd))
-            {
-                double areaThisStart = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, Start.X, Start.Y);
-                double areaThisEnd = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, End.X, End.Y);
-
-                if (areaStart.DifferentSign(areaEnd))
-                {
-                    t = areaThisStart / (areaThisStart - areaThisEnd);
-                    return t >= 0 && t <= 1;
-                }
-            }
-
-            t = default;
-            return false;
-        }
-        public bool Intersection<T>(SegmentT2D<T> seg, out double t) where T : Vector2D
-        {
-            double areaStart = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.End.X, seg.End.Y);
-            double areaEnd = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.Start.X, seg.Start.Y);
-
-            if (areaStart.DifferentSign(areaEnd))
-            {
-                double areaThisStart = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, Start.X, Start.Y);
-                double areaThisEnd = DoubleTriArea(seg.Start.X, seg.Start.Y, seg.End.X, seg.End.Y, End.X, End.Y);
-
-                if (areaStart.DifferentSign(areaEnd))
-                {
-                    t = areaThisStart / (areaThisStart - areaThisEnd);
-                    return t >= 0 && t <= 1;
-                }
-            }
-
-            t = default;
-            return false;
-        }
+     
         public bool IntersectionAsLine(Seg2D seg, out double tThis)
         {
             double determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
