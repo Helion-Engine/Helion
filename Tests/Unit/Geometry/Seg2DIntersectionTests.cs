@@ -58,6 +58,19 @@ public class Seg2DTests
     }
 
     [Fact]
+    public void CollinearOverlappingButNotCrossing_ShouldReturnFalse()
+    {
+        var a = CreateSeg(0, 0, 0, 10);
+        var b = CreateSeg(0, 7, 0, 3);
+
+        var result = a.IntersectionInclusive(b, out var t);
+
+        result.Should().BeFalse("collinear overlapping segments should not be treated as crossing");
+        t.Should().Be(0);
+    }
+
+
+    [Fact]
     public void TouchingAtEndpoint_ShouldReturnTrue_AtStart()
     {
         var a = CreateSeg(0, 0, 10, 0);

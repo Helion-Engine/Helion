@@ -216,6 +216,13 @@ namespace Helion.Geometry.Segments
             double areaStart = ((startX - segEndX) * (endY - segEndY)) - ((startY - segEndY) * (endX - segEndX));
             double areaEnd = ((startX - segStartX) * (endY - segStartY)) - ((startY - segStartY) * (endX - segStartX));
 
+            // Collinear test has to be checked explicitly since the epsilon tolerance below will let it fall through.
+            if (Math.Abs(areaStart) <= Constants.Epsilon && Math.Abs(areaEnd) <= Constants.Epsilon)
+            {
+                t = default;
+                return false;
+            }
+
             if (areaStart * areaEnd <= Constants.Epsilon)
             {
                 double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
