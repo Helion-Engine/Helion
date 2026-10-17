@@ -6,6 +6,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.Common.World;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Resources.Definitions.MapInfo;
@@ -612,6 +613,9 @@ public class Player : Entity
             var unit = Vec2D.UnitCircle(angleToWall);
             cameraPos.X = intersect.X + unit.X;
             cameraPos.Y = intersect.Y + unit.Y;
+
+            if (!ShaderVars.ReversedZ)
+                cameraPos = PushFromWall(cameraPos, line.Segment);
         }
 
         if (hitSector != null && hitSector.Sector3D != null)
@@ -658,13 +662,30 @@ public class Player : Entity
         return cameraPos;
     }
 
+    private static Vec3D PushFromWall(Vec3D cameraPos, in Seg2D line)
+    {
+        var wallAngle = line.Start.Angle(line.End);
+        var tx = Math.Cos(wallAngle);
+        var ty = Math.Sin(wallAngle);
+        var frontSide = line.OnRight(cameraPos);
+
+        var normal = frontSide ? new Vec2D(ty, -tx) : new Vec2D(-ty, tx);
+        normal.Normalize();
+
+        cameraPos.X += normal.X * 8.0;
+        cameraPos.Y += normal.Y * 8.0;
+        return cameraPos;
+    }
+
+    public bool IsChaseCamera() => World.Config.Game.Chase.Value || (World.Config.Game.DeathCamera.Value && IsDead());
+
     public OldCamera GetCamera(double t, CameraOptions options = CameraOptions.Default)
     {
         var originalPos = GetViewPosition();
         var currentPos = originalPos;
         var prevPos = GetPrevViewPosition();
 
-        var chase = (World.Config.Game.Chase.Value || (World.Config.Game.DeathCamera.Value && IsDead())) && !World.IsFreeCamMode;
+        var chase = IsChaseCamera() && !World.IsFreeCamMode;
         if (chase)
         {
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
@@ -691,8 +712,14 @@ public class Player : Entity
 
         CheckLineClip(currentPos);
         position = CheckPlaneClip(currentPos, prevPos, position);
-        if (!Flags.NoClip() && position.Z <= HighestFloorZ)
-            position.Z = HighestFloorZ + 1;        
+        if (!Flags.NoClip() && !chase)
+        {
+            if (position.Z <= HighestFloorZ)
+                position.Z = HighestFloorZ + 1;
+            if (!ShaderVars.ReversedZ && position.Z > LowestCeilingZ - 8)
+                position.Z = LowestCeilingZ - 8;
+            
+        }
 
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
