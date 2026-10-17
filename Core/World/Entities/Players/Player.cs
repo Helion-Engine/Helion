@@ -688,6 +688,7 @@ public class Player : Entity
         var chase = IsChaseCamera() && !World.IsFreeCamMode;
         if (chase)
         {
+            originalPos.Z -= m_viewBob;
             originalPos = CalculateChaseCamPos(originalPos, AngleRadians, PitchRadians);
             originalPos = ClampCameraPos(new Vec3D(Position.X, Position.Y, Position.Z + Height), originalPos, AngleRadians);
             currentPos = originalPos;
@@ -717,8 +718,7 @@ public class Player : Entity
             if (position.Z <= HighestFloorZ)
                 position.Z = HighestFloorZ + 1;
             if (!ShaderVars.ReversedZ && position.Z > LowestCeilingZ - 8)
-                position.Z = LowestCeilingZ - 8;
-            
+                position.Z = LowestCeilingZ - 8;            
         }
 
         double playerAngle = AngleRadians;
