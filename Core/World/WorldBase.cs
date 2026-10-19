@@ -2331,7 +2331,7 @@ public abstract partial class WorldBase : IWorld
     }
 
     public virtual bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType,
-        Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null)
+        Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null, DamageEntityOptions options = DamageEntityOptions.Default)
     {
         if (source != null && source.Owner() == target)
             damage = (int)(damage * source.Properties.SelfDamageFactor);
@@ -2413,7 +2413,7 @@ public abstract partial class WorldBase : IWorld
             damage = (int)(damage * WorldStatic.DamageApplyMultiplier);
         }
 
-        var success = target.Damage(source, damage, setPainState, damageType);
+        var success = target.Damage(source, damage, setPainState, damageType, options);
         if (success || target.IsInvulnerable)
             target.Velocity += thrustVelocity;
 
@@ -2928,7 +2928,7 @@ public abstract partial class WorldBase : IWorld
         return true;
     }
 
-    public virtual void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage)
+    public virtual void RadiusExplosion(Entity damageSource, Entity? attackSource, int radius, int maxDamage)
     {
         m_radiusExplosion.DamageSource = damageSource;
         m_radiusExplosion.AttackSource = attackSource;
@@ -2968,7 +2968,7 @@ public abstract partial class WorldBase : IWorld
             return;
 
         var applyDamage = CalcRadiusExplosionDamage(m_radiusExplosion.DamageSource, m_checkRadiusEntity, m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, Thrust.None, true);
-        DamageMapObject(m_radiusExplosion.AttackSource, line, applyDamage);
+        DamageMapObject(m_radiusExplosion.DamageSource, line, applyDamage);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
@@ -3271,14 +3271,14 @@ public abstract partial class WorldBase : IWorld
         HighlightAreas.Add(new HighlightArea(pos, HighlightSize));
     }
 
-    private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
+    private void ApplyExplosionDamageAndThrust(Entity source, Entity? attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
         bool approxDistance2D)
     {
         var applyDamage = CalcRadiusExplosionDamage(source, entity, radius, maxDamage, thrust, approxDistance2D);
 
         Entity? originalOwner = source.Owner();
         source.SetOwner(attackSource);
-        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
+        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust, options: DamageEntityOptions.IgnoreNullDamageSource);
         source.SetOwner(originalOwner);
     }
 

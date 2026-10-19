@@ -1833,7 +1833,7 @@ public class Player : Entity
             Inventory.Add(weapon.AmmoTypeDef, amount);
     }
 
-    public override bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType)
+    public override bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType, DamageEntityOptions options = DamageEntityOptions.Default)
     {
         if (Inventory.IsPowerupActive(PowerupType.Invulnerable))
             return false;
@@ -1848,7 +1848,7 @@ public class Player : Entity
                 damage = ApplyArmorDamage(damage);
         }
 
-        bool damageApplied = base.Damage(source, damage, setPainState, damageType);
+        bool damageApplied = base.Damage(source, damage, setPainState, damageType, options);
         if (damageApplied)
         {
             SetAttacker(source?.Owner() ?? source);

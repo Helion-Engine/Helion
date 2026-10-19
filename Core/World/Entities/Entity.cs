@@ -831,7 +831,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         return thisGroup.NullableEquals(otherGroup);
     }
 
-    public virtual bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType)
+    public virtual bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType, DamageEntityOptions options = DamageEntityOptions.Default)
     {
         if (damage <= 0 || Flags.Invulnerable())
             return false;
@@ -841,14 +841,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         bool willRetaliate = false;
         if (source != null)
         {
-            damageSource = source.Owner() ?? source;
+            damageSource = source.Owner();
+            if (damageSource == null && (options & DamageEntityOptions.IgnoreNullDamageSource) == 0)
+                damageSource = source;
+
             if (!CanDamage(source, damageType))
                 return false;
 
-            canRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead() && damageSource != this;
-            willRetaliate = canRetaliate && damageSource != Target();
-            if (willRetaliate && !damageSource.Flags.NoTarget() && !IsFriend(damageSource))
-                SetTarget(damageSource);
+            if (damageSource != null)
+            {
+                canRetaliate = CanRetaliateFrom(source, damageSource);
+                willRetaliate = canRetaliate && damageSource != Target();
+                if (willRetaliate && !damageSource.Flags.NoTarget() && !IsFriend(damageSource))
+                    SetTarget(damageSource);
+            }
         }
 
         if (damage == ForceGibDamage)
@@ -1401,15 +1407,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     public float GetSoundRadius() => (float)Radius + 16;
 
-    private bool WillRetaliateFrom(Entity damageSource)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool CanRetaliateFrom(Entity source, Entity? damageSource)
     {
-        if (damageSource.IsPlayer)
-            return true;
-
-        if (Properties.InfightingGroup.NullableEquals(damageSource.Properties.InfightingGroup))
-            return false;
-
-        return true;
+        damageSource ??= source;
+        return (damageSource.IsPlayer || !Properties.InfightingGroup.NullableEquals(damageSource.Properties.InfightingGroup)) && Threshold <= 0 && !damageSource.IsDead() && damageSource != this;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

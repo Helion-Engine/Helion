@@ -148,7 +148,8 @@ public interface IWorld : IDisposable
     Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage, HitScanOptions options = HitScanOptions.Default);
     BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
         HitScanOptions options, double tanPitch, ref Vec3D intersect, out Sector? hitSector, out SectorPlane? hitPlane3D);
-    bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
+    bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType, Thrust thrust = Thrust.HorizontalAndVertical, 
+        Sector? sectorSource = null, DamageEntityOptions options = DamageEntityOptions.Default);
     void ApplyVelocity(Entity entity, Vec3D velocity);
     bool SetPosition(Entity entity, Vec3D position, bool checkBlocking);
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
@@ -162,7 +163,7 @@ public interface IWorld : IDisposable
     void HandleFinalizeEntityIntersections(Entity entity, TryMoveData? tryMove);
     bool CheckLineOfSight(Entity from, Entity to);
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);
-    void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
+    void RadiusExplosion(Entity damageSource, Entity? attackSource, int radius, int maxDamage);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void InvokeSectorMoveStart(SectorPlane sectorPlane);
     void InvokeSectorMove(SectorPlane sectorPlane);

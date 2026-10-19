@@ -3244,11 +3244,11 @@ public static class EntityActionFunctions
         }
     }
 
-    private static void A_RadiusDamage(Entity entity)
+    public static void A_RadiusDamage(Entity entity)
     {
         int maxDamage = entity.FrameState.Frame.DehackedArgs1;
         Entity? attackSource = entity.Owner() ?? entity.Target();
-        WorldStatic.World.RadiusExplosion(entity, attackSource ?? entity, entity.FrameState.Frame.DehackedArgs2, maxDamage);
+        WorldStatic.World.RadiusExplosion(entity, attackSource, entity.FrameState.Frame.DehackedArgs2, maxDamage);
     }
 
     private static void A_NoiseAlert(Entity entity)
