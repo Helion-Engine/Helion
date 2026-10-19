@@ -1166,7 +1166,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
         if (transferSpecial)
         {
-            SectorDamageSpecial = changes.DamageSpecial?.Copy(this);
+            world.SetSectorDamageSpecial(this, changes.DamageSpecial?.Copy(this));
             if (changes.SectorEffect.HasValue)
                 SetSectorEffect(changes.SectorEffect.Value);
             if (changes.KillEffect.HasValue)

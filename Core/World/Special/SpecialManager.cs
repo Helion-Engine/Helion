@@ -2212,7 +2212,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             }
         }
 
-        sector.SetDamageSpecial(new SectorDamageSpecial(m_world, sector, amount, radSuitLeakChance: radSuitLeakChance, damageInterval: damageInterval));
+        m_world.SetSectorDamageSpecial(sector, new SectorDamageSpecial(m_world, sector, amount, radSuitLeakChance: radSuitLeakChance, damageInterval: damageInterval));
     }
 
     private void SetSectorPlaneScale(SectorPlane plane, int uInt, int uFrac, int vInt, int vFrac)
