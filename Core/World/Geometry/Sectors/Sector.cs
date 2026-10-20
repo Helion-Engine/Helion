@@ -112,11 +112,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
     public MapUserProperties UserProperties;
 
-#if DEBUG
     public SectorDamageSpecial? SectorDamageSpecial { get; private set; }
-#else
-    public SectorDamageSpecial? SectorDamageSpecial;
-#endif
 
     private Box2D? m_boundingBox;
 
