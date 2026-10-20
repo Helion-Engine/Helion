@@ -9,7 +9,7 @@ namespace Helion.Resources.Definitions.MusInfo;
 
 public class MusInfoDefinition
 {
-    public readonly List<MusInfoMap> Items = new();
+    public readonly List<MusInfoMap> Items = [];
 
     public void Parse(string text)
     {
@@ -18,15 +18,17 @@ public class MusInfoDefinition
 
         while (!parser.IsDone())
         {
-            string mapName = parser.ConsumeString();
-            MusInfoMap musInfoMap = new MusInfoMap(mapName);
+            var mapName = parser.ConsumeString();
+            var musInfoMap = new MusInfoMap(mapName);
 
             while (parser.PeekInteger(out _))
             {
-                int number = parser.ConsumeInteger();
-                string music = parser.ConsumeString();
+                var number = parser.ConsumeInteger();
+                var music = parser.ConsumeStringSpan();
+                if (music.Length > 8)
+                    music = music[..8];
 
-                musInfoMap.Music.Add(new MusInfoDef(number, music));
+                musInfoMap.Music.Add(new MusInfoDef(number, music.ToString()));
             }
 
             if (musInfoMap.Music.Count > 0)
