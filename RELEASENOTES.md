@@ -10,6 +10,8 @@
 - Fix sprite rendering to use the most up to date view angle for each frame. Fixes slight stutter in sprites when rotating the view quickly.
 - Add crusher compatibility for Doom maps that prevent things from being clamped to lowest floor when obstructed in x/y space. Fixes Resurgence MAP29 icon death exit.
 - Fix UMAPINFO interbackdrop. Fixes A Machine That Bleeds MAP02 secret exit.
+- Fix A_RadiusDamage causing monsters to target the source. Fixes New Dawn BFG.
+- Fix rare case where a line segment wouldn't be considered crossed when crossing exactly on vertex.
 
 ## Misc:
 - General blockmap traversal improvements.
