@@ -1464,6 +1464,7 @@ public sealed partial class PhysicsManager
 doneLinkToSectors:
         entity.SubsectorId = centerSubsector.Id;
         entity.Sector = centerSector;
+        entity.SectorId = centerSector.Id;
         entity.IntersectSectors.Add(new IntersectSectorNode(centerSector, centerSector.Link(entity)));
     }
 

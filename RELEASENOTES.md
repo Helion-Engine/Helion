@@ -18,3 +18,4 @@
 - General blockmap traversal improvements.
 - Significant performance improvement for line of sight.
 - Chasecam command moved to freecam.
+- Minor improvement to entity ticking performance.

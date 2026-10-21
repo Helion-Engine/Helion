@@ -26,7 +26,6 @@ using Helion.Resources.Definitions.MusInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
@@ -197,6 +196,7 @@ public abstract partial class WorldBase : IWorld
     private readonly IMap m_map;
     private readonly SpawnMulti m_spawnMulti;
     private readonly DynamicArray<SlopeSpan> m_visibleSpans = new(16);
+    private readonly SectorDamageSpecial?[] m_sectorDamageSpecials;
     private readonly bool m_averageScrollCarry;
     private readonly bool m_sectorReturnStop;
     private readonly bool m_crusherCompat;
@@ -239,6 +239,7 @@ public abstract partial class WorldBase : IWorld
         m_saveRandom = m_random;
         SecondaryRandom = m_random.Clone();
         m_map = map;
+        m_sectorDamageSpecials = new SectorDamageSpecial[Sectors.Count];
 
         CreationTimeNanos = Ticker.NanoTime();
         GlobalData = globalData;
@@ -1180,7 +1181,7 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                entity.Sector.SectorDamageSpecial?.Tick(entity, DamageTickOptions.CheckOnFloor);
+                m_sectorDamageSpecials[entity.SectorId]?.Tick(entity, DamageTickOptions.CheckOnFloor);
 
                 if (WorldStatic.Sector3D && entity.Sector.HasDamageSector3D)
                     CheckDamageSector3D(entity);
@@ -4640,6 +4641,7 @@ public abstract partial class WorldBase : IWorld
 
     public void SetSectorDamageSpecial(Sector sector, SectorDamageSpecial? special)
     {
+        m_sectorDamageSpecials[sector.Id] = special;
         sector.SetDamageSpecial(special);
     }
 

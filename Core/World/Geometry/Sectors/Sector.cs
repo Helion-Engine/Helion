@@ -112,11 +112,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
     public MapUserProperties UserProperties;
 
-#if DEBUG
     public SectorDamageSpecial? SectorDamageSpecial { get; private set; }
-#else
-    public SectorDamageSpecial? SectorDamageSpecial;
-#endif
 
     private Box2D? m_boundingBox;
 
@@ -1166,7 +1162,7 @@ public sealed class Sector : SectorSoundSource, IFloorCeilingAnchor
 
         if (transferSpecial)
         {
-            SectorDamageSpecial = changes.DamageSpecial?.Copy(this);
+            world.SetSectorDamageSpecial(this, changes.DamageSpecial?.Copy(this));
             if (changes.SectorEffect.HasValue)
                 SetSectorEffect(changes.SectorEffect.Value);
             if (changes.KillEffect.HasValue)

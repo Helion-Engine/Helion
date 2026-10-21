@@ -99,6 +99,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public Vec3D HitscanAttackPos => new(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
     public Vec3D CalcLastVelocity() => Position - PrevPosition;
     public int FrozenTics;
+    public int SectorId;
     public Sector Sector;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
@@ -224,6 +225,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         Position = position;
         PrevPosition = Position;
         Sector = sector;
+        SectorId = sector.Id;
         LowestCeilingZ = sector.Ceiling.Z;
         HighestFloorZ = sector.Floor.Z;
         HighestFloorSector = sector;
@@ -273,6 +275,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         Velocity.Y = entityModel.VelocityY;
         Velocity.Z = entityModel.VelocityZ;
         Sector = world.Sectors[entityModel.Sector];
+        SectorId = Sector.Id;
                 
         MoveLinked = entityModel.MoveLinked;
         Respawn = entityModel.Respawn;
@@ -1286,6 +1289,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         BlockingSector3D = null;
         Sector = Sector.Default;
         SubsectorId = 0;
+        SectorId = 0;
         HighestFloorObject = Sector.Default;
         LowestCeilingObject = Sector.Default;
         HighestFloorSector = Sector.Default;
