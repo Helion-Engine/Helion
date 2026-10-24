@@ -253,30 +253,29 @@ public struct TeleportSpecial
 
                 angle = lineAngle + teleportEntity.AngleRadians;
 
+                // Use original fudged boom calculation for compatibility...
+                if (teleportEntity.PlayerObj == null || teleportEntity.PlayerObj?.IsVooDooDoll == true)
+                    return TeleportLineBoomCompat(teleportEntity, m_sourceLine, line, m_teleportLineReverse, out pos, out offsetZ);
+
                 var teleportEntityPos = teleportEntity.Position.XY;
                 // Exit position is proportional to the position on the source teleport line
                 var time = m_sourceLine.Segment.ToTime(teleportEntityPos);
                 var destTime = m_teleportLineReverse ? time : 1.0 - time;
                 var destLinePos = line.Segment.FromTime(destTime);
                 var destZ = GetTeleportLineZ(teleportEntity, line, destLinePos, out _);
+  
+                var sourcePos = m_sourceLine.Segment.FromTime(time);
+                var distance = teleportEntityPos.Distance(sourcePos);
+                var distanceAngle = sourcePos.Angle(teleportEntityPos);
+                var unit = Vec2D.UnitCircle(lineAngle + distanceAngle);
+                var testDestPos =  destLinePos + unit * distance;
 
-                // This makes the teleport lines not feel jittery for players. Only do for real players and validate the final position.
-                // Closets can rely on this exact behavior (Remanence MAP01)
-                if (teleportEntity.PlayerObj != null && !teleportEntity.PlayerObj.IsVooDooDoll)
-                {
-                    var sourcePos = m_sourceLine.Segment.FromTime(time);
-                    var distance = teleportEntityPos.Distance(sourcePos);
-                    var distanceAngle = sourcePos.Angle(teleportEntityPos);
-                    var unit = Vec2D.UnitCircle(lineAngle + distanceAngle);
-                    var testDestPos =  destLinePos + unit * distance;
-
-                    var saveZ = teleportEntity.Position.Z;
-                    teleportEntity.Position.Z = destZ;
-                    m_world.PhysicsManager.IsPositionValid(teleportEntity, testDestPos.X, testDestPos.Y);
-                    if (teleportEntity.BlockingBlockLineIndex == -1 && teleportEntity.BlockingEntity == null)
-                        destLinePos = testDestPos;
-                    teleportEntity.Position.Z = saveZ;
-                }
+                var saveZ = teleportEntity.Position.Z;
+                teleportEntity.Position.Z = destZ;
+                m_world.PhysicsManager.IsPositionValid(teleportEntity, testDestPos.X, testDestPos.Y);
+                if (teleportEntity.BlockingBlockLineIndex == -1 && teleportEntity.BlockingEntity == null)
+                    destLinePos = testDestPos;
+                teleportEntity.Position.Z = saveZ;
 
                 GetTeleportLineZ(teleportEntity, m_sourceLine, teleportEntityPos, out offsetZ);
                 pos = destLinePos.To3D(destZ);
@@ -349,6 +348,37 @@ public struct TeleportSpecial
         }
 
         return false;
+    }
+
+    private static bool TeleportLineBoomCompat(Entity teleportEntity, Line sourceLine, Line destLine, bool onRight, out Vec3D teleportPos, out double offsetZ)
+    {
+        double pos;
+        if (Math.Abs(sourceLine.Segment.Delta.X) > Math.Abs(sourceLine.Segment.Delta.Y))
+            pos = (teleportEntity.Position.X - sourceLine.Segment.Start.X) / sourceLine.Segment.Delta.X;
+        else
+            pos = (teleportEntity.Position.Y - sourceLine.Segment.Start.Y) / sourceLine.Segment.Delta.Y;
+
+        if (onRight)
+            pos = 1.0 - pos;
+
+        var destDir = destLine.Segment.End - destLine.Segment.Start;
+        var destPos2D = new Vec2D(destLine.Segment.End.X - pos * destDir.X, destLine.Segment.End.Y - pos * destDir.Y);
+        double fudge = 10.0 / 65536.0;
+        const double fudgeStep = 1.0 / 65536.0;
+
+        while ((destLine.Segment.PerpDot(destPos2D) <= 0) != onRight && fudge >= 0)
+        {
+            if (Math.Abs(destDir.X) > Math.Abs(destDir.Y))
+                destPos2D.Y -= ((destDir.X < 0) != onRight) ? -fudgeStep : fudgeStep;
+            else
+                destPos2D.X += ((destDir.Y < 0) != onRight) ? -fudgeStep : fudgeStep;
+
+            fudge -= fudgeStep;
+        }
+
+        var destZ = GetTeleportLineZ(teleportEntity, destLine, destPos2D, out offsetZ);
+        teleportPos = destPos2D.To3D(destZ);
+        return true;
     }
 
     private static Vec3D GetTeleportPosition(Entity entity)

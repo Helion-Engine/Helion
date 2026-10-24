@@ -13,6 +13,7 @@
 - Fix A_RadiusDamage causing monsters to target the source. Fixes New Dawn BFG.
 - Fix rare case where a line segment wouldn't be considered crossed when crossing exactly on vertex.
 - Fix musinfo not truncating music names to 8 characters. Fixes Abyssal Apocrypha MAP04 music changer.
+- Fix boom teleport lines to use Boom's original method for non-players.
 
 ## Misc:
 - General blockmap traversal improvements.
