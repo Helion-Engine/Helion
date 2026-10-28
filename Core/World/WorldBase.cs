@@ -1,6 +1,7 @@
 using Helion.ACS;
 using Helion.Audio;
 using Helion.Dehacked;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
@@ -74,6 +75,7 @@ namespace Helion.World;
 public abstract partial class WorldBase : IWorld
 {
     const int BspBlockDimension = 16;
+    const int BspBlockShift = 4;
     // Min/max tangent of 80 degrees
     private const double MaxPitch = 5.67128;
     private const double MinPitch = -5.67128;
@@ -81,7 +83,8 @@ public abstract partial class WorldBase : IWorld
     private static BlockMap? LastBlockMap;
     private static BlockMap? LastRenderBlockMap;
     private static uint[]? LastBspBlockmapNodeIndices;
-    private static GridDimensions LastBspBlockmapDimensions;
+    private static Dimension LastBspBlockmapDimensions;
+    private static Vec2D LastBspBlockmapOrigin;
 
     private static WorldSoundManager? LastWorldSoundManager;
     private static EntityManager? LastEntityManager;
@@ -413,6 +416,7 @@ public abstract partial class WorldBase : IWorld
         if (SameAsPreviousMap && LastBlockMap != null)
         {
             m_bspBlockmapDimensions = LastBspBlockmapDimensions;
+            m_bspBlockmapOrigin = LastBspBlockmapOrigin;
             m_bspBlockmapNodeIndices = LastBspBlockmapNodeIndices!;
             LastBlockMap.Clear();
             return LastBlockMap;
