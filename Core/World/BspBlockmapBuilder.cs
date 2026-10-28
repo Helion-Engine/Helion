@@ -65,7 +65,13 @@ internal sealed unsafe class BspBlockmapBuilder
         if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0 && SubsectorContainsBox(nodeIndex, minX, minY, maxX, maxY))
         {
             for (int y = y0; y < y1; y++)
-                new Span<uint>(m_indices, y * m_width + x0, x1 - x0).Fill(nodeIndex);
+            {
+                var offset = y * m_width + x0;
+                var count = x1 - x0;
+
+                for (int i = 0; i < count; i++)
+                    m_indices[offset + i] = nodeIndex;
+            }
             return;
         }
 
@@ -78,11 +84,10 @@ internal sealed unsafe class BspBlockmapBuilder
             return;
         }
 
-        // When a dimension is 1 the second half is empty and returns immediately.
+        // Split into four squares
         var mx = w > 1 ? x0 + w / 2 : x1;
         var my = h > 1 ? y0 + h / 2 : y1;
 
-        // Split into quad
         Resolve(x0, y0, mx, my, nodeIndex, lastWholeNodeIndex);
         Resolve(mx, y0, x1, my, nodeIndex, lastWholeNodeIndex);
         Resolve(x0, my, mx, y1, nodeIndex, lastWholeNodeIndex);
