@@ -1,6 +1,5 @@
 ﻿using Helion.World.Bsp;
 using System;
-using System.Threading.Tasks;
 
 namespace Helion.World;
 
@@ -16,7 +15,6 @@ internal sealed unsafe class BspBlockmapBuilder
     private readonly int m_dimension;
     private readonly double m_originX;
     private readonly double m_originY;
-    private bool m_init;
 
     private BspBlockmapBuilder(CompactBspTree tree, uint[] indices, int width, int height, double originX, double originY, int dimension)
     {
@@ -156,7 +154,7 @@ internal sealed unsafe class BspBlockmapBuilder
 
     private static bool SegBoxIntersection(double sx, double sy, double ex, double ey, double minX, double minY, double maxX, double maxY)
     {
-        if (Math.Max(sx, ex) <= minX || Math.Min(sx, ex) >= maxX || Math.Max(sy, ey) <= minY || Math.Min(sy, ey) >= maxY)
+        if ((sx <= minX && ex <= minX) || (sx >= maxX && ex >= maxX) || (sy <= minY && ey <= minY) || (sy >= maxY && ey >= maxY))
             return false;
 
         var dx = ex - sx;
