@@ -10,12 +10,14 @@ using Helion.World.Geometry.Subsectors;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using zdbspSharp;
 
 namespace Helion.World;
 
 public partial class WorldBase
 {
+    const int BspBlockDimension = 16;
+    const int BspBlockShift = 4;
+
     // Maps bsp node indicies to a blockmap.
     // If the block is contained by a subsector it will be mapped to that subsector.
     // Otherwise it will be the smallest node containing the block.

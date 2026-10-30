@@ -54,7 +54,7 @@ internal sealed unsafe class BspBlockmapBuilder
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
             ref var node = ref m_tree.Nodes[nodeIndex];
-            var side = ClassifyBoxSide(minX, minY, maxX, maxY, in node);
+            var side = CompactBspTree.ClassifyBoxSide(minX, minY, maxX, maxY, in node);
             if (side < 0)
                 break;
 
@@ -75,65 +75,23 @@ internal sealed unsafe class BspBlockmapBuilder
             return;
         }
 
-        var w = x1 - x0;
-        var h = y1 - y0;
+        var width = x1 - x0;
+        var height = y1 - y0;
         // This is a single block (sized to BspBlockDimension);
-        if (w == 1 && h == 1)
+        if (width == 1 && height == 1)
         {
             m_indices[y0 * m_width + x0] = lastWholeNodeIndex;
             return;
         }
 
         // Split into four squares
-        var mx = w > 1 ? x0 + w / 2 : x1;
-        var my = h > 1 ? y0 + h / 2 : y1;
+        var mx = width > 1 ? x0 + width / 2 : x1;
+        var my = height > 1 ? y0 + height / 2 : y1;
 
         Resolve(x0, y0, mx, my, nodeIndex, lastWholeNodeIndex);
         Resolve(mx, y0, x1, my, nodeIndex, lastWholeNodeIndex);
         Resolve(x0, my, mx, y1, nodeIndex, lastWholeNodeIndex);
         Resolve(mx, my, x1, y1, nodeIndex, lastWholeNodeIndex);
-    }
-
-    private static int ClassifyBoxSide(double minX, double minY, double maxX, double maxY, in BspNodeCompact node)
-    {
-        var dx = node.SplitDelta.X;
-        var dy = node.SplitDelta.Y;
-        var sx = node.SplitStart.X;
-        var sy = node.SplitStart.Y;
-
-        if (dx == 0)
-        {
-            var min = minX <= sx;
-            var max = maxX <= sx;
-            if (min != max)
-                return -1;
-            return (min ? dy < 0 : dy > 0) ? 1 : 0;
-        }
-
-        if (dy == 0)
-        {
-            var min = minY <= sy;
-            var max = maxY <= sy;
-            if (min != max)
-                return -1;
-            return (min ? dx > 0 : dx < 0) ? 1 : 0;
-        }
-
-        // dot = dx*(y - sy) - dy*(x - sx); "right" when dot < 0.
-        var yAtMax = dx > 0 ? maxY : minY;
-        var yAtMin = dx > 0 ? minY : maxY;
-        var xAtMax = dy > 0 ? minX : maxX;
-        var xAtMin = dy > 0 ? maxX : minX;
-
-        var dotMax = (dx * (yAtMax - sy)) - (dy * (xAtMax - sx));
-        if (dotMax < 0)
-            return 1;
-
-        var dotMin = (dx * (yAtMin - sy)) - (dy * (xAtMin - sx));
-        if (dotMin >= 0)
-            return 0;
-
-        return -1;
     }
 
     private bool SubsectorContainsBox(uint nodeIndex, double minX, double minY, double maxX, double maxY)

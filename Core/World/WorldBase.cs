@@ -74,8 +74,6 @@ namespace Helion.World;
 
 public abstract partial class WorldBase : IWorld
 {
-    const int BspBlockDimension = 16;
-    const int BspBlockShift = 4;
     // Min/max tangent of 80 degrees
     private const double MaxPitch = 5.67128;
     private const double MinPitch = -5.67128;

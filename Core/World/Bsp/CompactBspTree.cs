@@ -150,6 +150,50 @@ public class CompactBspTree
         return dot < 0;
     }
 
+    // 0 when on left. 1 when on right. -1 when on both sides.
+    public static int ClassifyBoxSide(double minX, double minY, double maxX, double maxY, in BspNodeCompact node)
+    {
+        var dx = node.SplitDelta.X;
+        var dy = node.SplitDelta.Y;
+        var sx = node.SplitStart.X;
+        var sy = node.SplitStart.Y;
+
+        // Same behavior as OnRightNode
+        if (dx == 0)
+        {
+            var min = minX <= sx;
+            var max = maxX <= sx;
+            if (min != max)
+                return -1;
+            return (min ? dy < 0 : dy > 0) ? 1 : 0;
+        }
+
+        // Same behavior as OnRightNode
+        if (dy == 0)
+        {
+            var min = minY <= sy;
+            var max = maxY <= sy;
+            if (min != max)
+                return -1;
+            return (min ? dx > 0 : dx < 0) ? 1 : 0;
+        }
+
+        var yAtMax = dx > 0 ? maxY : minY;
+        var yAtMin = dx > 0 ? minY : maxY;
+        var xAtMax = dy > 0 ? minX : maxX;
+        var xAtMin = dy > 0 ? maxX : minX;
+
+        var dotMax = (dx * (yAtMax - sy)) - (dy * (xAtMax - sx));
+        if (dotMax < 0)
+            return 1;
+
+        var dotMin = (dx * (yAtMin - sy)) - (dy * (xAtMin - sx));
+        if (dotMin >= 0)
+            return 0;
+
+        return -1;
+    }
+
     private static Side? GetSideFromEdge(SubsectorEdge edge, GeometryBuilder builder)
     {
         if (edge.Line == null)
