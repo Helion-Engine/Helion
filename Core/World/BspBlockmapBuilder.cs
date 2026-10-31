@@ -1,5 +1,4 @@
 ﻿using Helion.World.Bsp;
-using System;
 
 namespace Helion.World;
 
@@ -122,16 +121,18 @@ internal sealed unsafe class BspBlockmapBuilder
 
         var dx = ex - sx;
         var dy = ey - sy;
-        var c0 = dx * (minY - sy) - dy * (minX - sx);
-        var c1 = dx * (minY - sy) - dy * (maxX - sx);
-        var c2 = dx * (maxY - sy) - dy * (minX - sx);
-        var c3 = dx * (maxY - sy) - dy * (maxX - sx);
 
-        if (c0 >= 0 && c1 >= 0 && c2 >= 0 && c3 >= 0)
-            return false;
-        if (c0 <= 0 && c1 <= 0 && c2 <= 0 && c3 <= 0)
-            return false;
+        var diffMinX = minX - sx;
+        var diffMaxX = maxX - sx;
+        var diffMinY = minY - sy;
+        var diffMaxY = maxY - sy;
 
-        return true;
+        var c0 = dx * diffMinY - dy * diffMinX;
+        var c1 = dx * diffMinY - dy * diffMaxX;
+        var c2 = dx * diffMaxY - dy * diffMinX;
+        var c3 = dx * diffMaxY - dy * diffMaxX;
+
+        return ((c0 > 0) | (c1 > 0) | (c2 > 0) | (c3 > 0)) &
+            ((c0 < 0) | (c1 < 0) | (c2 < 0) | (c3 < 0));
     }
 }
