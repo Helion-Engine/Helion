@@ -70,6 +70,7 @@ public partial class Renderer : IDisposable
     private readonly TransitionRenderer m_transitionRenderer;
     private readonly Image m_framebufferImage = new([], (0, 0), ImageType.Rgba, (0, 0), Resources.ResourceNamespace.Global);
     private readonly bool m_vanillaRender;
+    private readonly Action m_hudDrawImagesAction;
     private uint[] m_imageRowFlip = [];
 
     private IWorld? m_world;
@@ -92,6 +93,7 @@ public partial class Renderer : IDisposable
         m_config = config;
         m_archiveCollection = archiveCollection;
         m_fpsTracker = fpsTracker;
+        m_hudDrawImagesAction = DrawHudImagesAction;
 
         SetGLDebugger();
         SetShaderVars();
@@ -581,7 +583,7 @@ public partial class Renderer : IDisposable
                     HandleRenderAutomapCommand(renderCommands.AutomapCommands[cmd.Index], m_viewport);
                     break;
                 case RenderCommandType.Hud:
-                    DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
+                    ScissorLetterBox(false, m_hudDrawImagesAction);
                     break;
                 case RenderCommandType.Viewport:
                     HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out m_viewport);
@@ -613,6 +615,11 @@ public partial class Renderer : IDisposable
             DrawVirtualFramebufferToMain();
 
         LastDrawCounts = RenderProfiler.DrawCounts;
+    }
+
+    private void DrawHudImagesAction()
+    {
+        DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
     }
 
     private static void HandleScissorCommand(ScissorCommand cmd)
@@ -959,28 +966,39 @@ public partial class Renderer : IDisposable
         m_mainFramebuffer.BindDraw();
         UpdateVirtualTextureFilter(m_virtualFramebuffer);
 
+        ScissorLetterBox(true, null);
+
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+
+        m_framebufferRenderer.Render(m_virtualFramebuffer, CalculateVirtualMvp(m_virtualFramebuffer, GetVirtualDimension()));
+    }
+
+    private bool ScissorLetterBox(bool clearLetterBoxes, Action? action)
+    {
         if (GetNativeLetterBoxes(m_config, Window.ClientDimension, out var left, out var right))
         {
             GL.Enable(EnableCap.ScissorTest);
 
-            GL.Scissor(left.Min.X, left.Min.Y, left.Width, left.Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            if (clearLetterBoxes)
+            {
+                GL.Scissor(left.Min.X, left.Min.Y, left.Width, left.Height);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-            GL.Scissor(right.Min.X, right.Min.Y, right.Width, right.Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+                GL.Scissor(right.Min.X, right.Min.Y, right.Width, right.Height);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            }
 
             var box = new Box2I(new Vec2I(left.Max.X, left.Min.Y), new Vec2I(right.Min.X, right.Max.Y));
             GL.Scissor(box.Min.X, box.Min.Y, box.Width, box.Height);
-            GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            action?.Invoke();
 
             GL.Disable(EnableCap.ScissorTest);
-        }
-        else
-        {
-            GL.Clear(ClearBufferMask.DepthBufferBit);
+            return true;
         }
 
-        m_framebufferRenderer.Render(m_virtualFramebuffer, CalculateVirtualMvp(m_virtualFramebuffer, GetVirtualDimension()));
+        action?.Invoke();
+        return false;
     }
 
     protected virtual void Dispose(bool disposing)
