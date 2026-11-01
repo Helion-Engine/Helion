@@ -26,7 +26,7 @@
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="NLog" Version="6.0.0" />
     <PackageReference Include="OpenTK" Version="4.9.4" ExcludeAssets="native" />
-	<PackageReference Include="SixLabors.ImageSharp" Version="3.1.11">
+	<PackageReference Include="SixLabors.ImageSharp" Version="3.2.0">
 		<NoWarn>NU1902;NU1903</NoWarn>
 	</PackageReference>
 	<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
