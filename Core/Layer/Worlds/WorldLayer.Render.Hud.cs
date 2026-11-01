@@ -210,15 +210,17 @@ public partial class WorldLayer
     
     private void SetHudPadding(IHudRenderContext hud)
     {
+        var box = GetNativeDrawBox();
         if (m_config.Hud.Width == 0)
         {
-            m_hudPaddingX = 0;
+            m_hudPaddingX = Math.Max(0, box.Left);
             return;
         }
 
         var scale = GetDoomScale(hud, out _);
         var width = m_config.Hud.Width.Value * 320.0 * scale.X;
         m_hudPaddingX = Math.Max((hud.Dimension.Width - (int)width) / 2, 0);
+        m_hudPaddingX = Math.Max(m_hudPaddingX, box.Left);
     }
 
     private void DrawMapHeader(IHudRenderContext hud)
