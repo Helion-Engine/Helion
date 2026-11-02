@@ -14,6 +14,8 @@
 - Fix rare case where a line segment wouldn't be considered crossed when crossing exactly on vertex.
 - Fix musinfo not truncating music names to 8 characters. Fixes Abyssal Apocrypha MAP04 music changer.
 - Fix boom teleport lines to use Boom's original method for non-players.
+- Fix HUD drawing in letterbox areas.
+- Fix HUD autoscale calculation not accounting for window resizes and tweak auto-sizing calculation.
 
 ## Misc:
 - General blockmap traversal improvements.

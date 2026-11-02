@@ -143,6 +143,7 @@ public partial class Client : IDisposable, IInputManagement
         m_consoleCommands.RegisterMethodsOrThrow(this);
         m_console.OnConsoleCommandEvent += Console_OnCommand;
         m_window.RenderFrame += Window_MainLoop;
+        m_window.FramebufferResize += Window_FramebufferResize;
 
         SetMouseRawInput();
         RegisterConfigChanges();
@@ -150,6 +151,11 @@ public partial class Client : IDisposable, IInputManagement
         m_ticker.Start();
 
         m_profiler.TimeThresholdTriggered += Profiler_TimeThresholdTriggered;
+    }
+
+    private void Window_FramebufferResize(FramebufferResizeEventArgs args)
+    {
+        CalculateHudScale();
     }
 
     private void Profiler_TimeThresholdTriggered(object? sender, ProfileTriggerTimeArgs e)

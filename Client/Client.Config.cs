@@ -89,7 +89,7 @@ public partial class Client
         if (!m_config.Hud.AutoScale)
             return;
 
-        int ratio = Math.Clamp((int)Math.Ceiling(m_window.ClientSize.Y / 360.0), 1, 10);
+        int ratio = Math.Max((int)Math.Ceiling(m_window.ClientSize.Y / 400.0), 1);
         m_config.Hud.Scale.Set(ratio);
     }
 
