@@ -68,6 +68,12 @@ public class SkySphereShader : RenderProgram
     public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
     public void TimeFrac(float value) => ProgramUniforms.Set(value, m_timeFracLocation);
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new SkySphereShader();
+    }
+
     protected override string VertexShader() => @"
         #version 330
 

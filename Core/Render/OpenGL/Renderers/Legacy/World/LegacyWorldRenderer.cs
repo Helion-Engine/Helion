@@ -16,7 +16,6 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Entities;
@@ -37,22 +36,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
-    private readonly PrimitiveWorldRenderer m_primitiveRenderer;
-    private readonly InterpolationShader m_interpolationProgram = new("Main");
-    private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
-    private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
-    private readonly InterpolationPlaneClipAlphaShader m_interpolationPlaneClipAlphaProgram = new();
-    private readonly InterpolationPlaneClipShaderMrt m_interpolationPlaneClipMrtProgram = new();
-    private readonly InterpolationWallClipShader m_interpolationWallClipShader = new();
-    private readonly InterpolationWallClipAlphaShader m_interpolationWallClipAlphaProgram = new();
-    private readonly StaticShader m_staticProgram = new("Main");
-    private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
-    private readonly StaticPlaneClipAlphaShader m_staticPlaneClipAlphaProgram = new();
-    private readonly StaticPlaneClipShaderMrt m_staticPlaneClipMrtProgram = new();
-    private readonly StaticWallClipShader m_staticWallClipProgram = new();
-    private readonly StaticWallClipAlphaShader m_staticWallClipAlphaProgram = new();
-    private readonly StaticTransparentShader m_staticTransparentProgram = new();
-    private readonly StaticCompositeShader m_staticCompositeProgram = new();
+    private readonly PrimitiveWorldRenderer m_primitiveRenderer = new();
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -79,14 +63,15 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
+    private readonly WorldRenderPrograms m_programs = new();
+
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, RenderProfiler renderProfiler)
     {
         m_config = config;
         m_renderProfiler = renderProfiler;
-        m_entityRenderer = new(config, textureManager, archiveCollection, renderProfiler);
-        m_primitiveRenderer = new();
-        m_worldDataManager = new(m_interpolationProgram, OnDynamicDraw);
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev, renderProfiler);
+        m_entityRenderer = new(config, textureManager, archiveCollection, renderProfiler, m_programs);
+        m_worldDataManager = new(m_programs.InterpolationProgram, OnDynamicDraw);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_programs.InterpolationProgram, m_programs.StaticProgram, m_worldDataManager, m_viewClipper, m_viewClipperPrev, renderProfiler);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;
@@ -366,22 +351,22 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (!m_vanillaRender)
         {
-            m_interpolationProgram.Bind();
+            m_programs.InterpolationProgram.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
-            SetInterpolationUniforms(m_interpolationProgram, renderInfo);
-            m_interpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
+            SetInterpolationUniforms(m_programs.InterpolationProgram, renderInfo);
+            m_programs.InterpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_worldDataManager.RenderWalls();
-            m_interpolationProgram.VertexGapClampUV(false);
+            m_programs.InterpolationProgram.VertexGapClampUV(false);
             m_worldDataManager.RenderFlats();
 
             if (m_renderStatic)
             {
-                m_staticProgram.Bind();
+                m_programs.StaticProgram.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
-                SetStaticUniforms(m_staticProgram, renderInfo);
-                m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
+                SetStaticUniforms(m_programs.StaticProgram, renderInfo);
+                m_programs.StaticProgram.VertexGapClampUV(m_pixelGapCorrection);
                 m_geometryRenderer.RenderStaticGeometryWalls();
-                m_staticProgram.VertexGapClampUV(false);
+                m_programs.StaticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticGeometryFlats();
             }
 
@@ -393,29 +378,29 @@ public partial class LegacyWorldRenderer : WorldRenderer
             return;
         }
 
-        m_interpolationProgram.Bind();
+        m_programs.InterpolationProgram.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetInterpolationUniforms(m_interpolationProgram, renderInfo);
-        m_interpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
+        SetInterpolationUniforms(m_programs.InterpolationProgram, renderInfo);
+        m_programs.InterpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
         m_worldDataManager.RenderWalls();
 
         if (m_downscaleVanillaBuffer)
         {
-            m_interpolationProgram.VertexGapClampUV(false);
+            m_programs.InterpolationProgram.VertexGapClampUV(false);
             m_worldDataManager.RenderFlats();
         }
 
         if (m_renderStatic)
         {
-            m_staticProgram.Bind();
+            m_programs.StaticProgram.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
-            SetStaticUniforms(m_staticProgram, renderInfo);
-            m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
+            SetStaticUniforms(m_programs.StaticProgram, renderInfo);
+            m_programs.StaticProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_geometryRenderer.RenderStaticGeometryWalls();
 
             if (m_downscaleVanillaBuffer)
             {
-                m_staticProgram.VertexGapClampUV(false);
+                m_programs.StaticProgram.VertexGapClampUV(false);
                 m_geometryRenderer.RenderStaticGeometryFlats();
             }
         }
@@ -521,17 +506,17 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (walls)
         {
-            m_interpolationWallClipShader.Bind();
+            m_programs.InterpolationWallClipShader.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
-            SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo);
+            SetInterpolationUniforms(m_programs.InterpolationWallClipShader, renderInfo);
             GL.Disable(EnableCap.CullFace);
             m_worldDataManager.RenderCoverWalls();
             m_geometryRenderer.RenderWallClipPortals(renderInfo);
             GL.Enable(EnableCap.CullFace);
-            m_interpolationWallClipShader.Unbind();
+            m_programs.InterpolationWallClipShader.Unbind();
 
-            m_interpolationWallClipAlphaProgram.Bind();
-            SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo);
+            m_programs.InterpolationWallClipAlphaProgram.Bind();
+            SetInterpolationUniforms(m_programs.InterpolationWallClipAlphaProgram, renderInfo);
 
             if (WorldStatic.Sector3D)
             {
@@ -546,7 +531,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         else
         {
             InterpolationShader program = m_downscaleVanillaBuffer ? 
-                (WorldStatic.Sector3D ? m_interpolationPlaneClipAlphaProgram : m_interpolationPlaneClipAlphaProgram) : m_interpolationPlaneClipMrtProgram;
+                (WorldStatic.Sector3D ? m_programs.InterpolationPlaneClipAlphaProgram : m_programs.InterpolationPlaneClipAlphaProgram) : m_programs.InterpolationPlaneClipMrtProgram;
             program.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(program, renderInfo);
@@ -557,18 +542,18 @@ public partial class LegacyWorldRenderer : WorldRenderer
         {
             if (walls)
             {
-                m_staticWallClipProgram.Bind();
+                m_programs.StaticWallClipProgram.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
-                SetStaticUniforms(m_staticWallClipProgram, renderInfo);
+                SetStaticUniforms(m_programs.StaticWallClipProgram, renderInfo);
                 m_geometryRenderer.RenderStaticOneSidedCoverWalls();
                 m_geometryRenderer.RenderStaticCoverWalls();
                 GL.CullFace(TriangleFace.Front);
                 m_geometryRenderer.RenderStaticCoverWalls();
                 GL.CullFace(TriangleFace.Back);
-                m_staticWallClipProgram.Unbind();
+                m_programs.StaticWallClipProgram.Unbind();
 
-                m_staticWallClipAlphaProgram.Bind();
-                SetStaticUniforms(m_staticWallClipAlphaProgram, renderInfo);
+                m_programs.StaticWallClipAlphaProgram.Bind();
+                SetStaticUniforms(m_programs.StaticWallClipAlphaProgram, renderInfo);
 
                 if (WorldStatic.Sector3D)
                 {                    
@@ -583,7 +568,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
             else
             {
                 StaticShader program = m_downscaleVanillaBuffer ? 
-                    (WorldStatic.Sector3D ? m_staticPlaneClipAlphaProgram : m_staticPlaneClipProgram) : m_staticPlaneClipMrtProgram;
+                    (WorldStatic.Sector3D ? m_programs.StaticPlaneClipAlphaProgram : m_programs.StaticPlaneClipProgram) : m_programs.StaticPlaneClipMrtProgram;
                 program.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 program.VertexGapClampUV(false);
@@ -638,16 +623,16 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (hasDynamicAlphaGeometry)
         {
-            m_interpolationTransparentProgram.Bind();
+            m_programs.InterpolationTransparentProgram.Bind();
             // Alpha walls are the exception to pixel gap correction. Only required for opaque walls.
-            m_interpolationTransparentProgram.VertexGapClampUV(false);
-            SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo);
+            m_programs.InterpolationTransparentProgram.VertexGapClampUV(false);
+            SetInterpolationUniforms(m_programs.InterpolationTransparentProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
             m_worldDataManager.RenderAllAlpha();
 
             if (m_worldDataManager.HasStyleToRender(RenderDataStyle.FogBarrier))
             {
-                m_interpolationTransparentProgram.FogBarrier(true);
+                m_programs.InterpolationTransparentProgram.FogBarrier(true);
                 GL.Enable(EnableCap.PolygonOffsetFill);
                 m_worldDataManager.Render(RenderDataStyle.FogBarrier);
                 GL.Disable(EnableCap.PolygonOffsetFill);
@@ -656,15 +641,15 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (hasStaticAlphaGeometry)
         {
-            m_staticTransparentProgram.Bind();
-            m_staticTransparentProgram.VertexGapClampUV(false);
-            SetStaticUniforms(m_staticTransparentProgram, renderInfo);
+            m_programs.StaticTransparentProgram.Bind();
+            m_programs.StaticTransparentProgram.VertexGapClampUV(false);
+            SetStaticUniforms(m_programs.StaticTransparentProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
             m_geometryRenderer.StaticRenderer.RenderAllAlpha();
 
             if (m_geometryRenderer.StaticRenderer.HasStyleToRender(RenderDataStyle.FogBarrier))
             {
-                m_staticTransparentProgram.FogBarrier(true);
+                m_programs.StaticTransparentProgram.FogBarrier(true);
                 GL.Enable(EnableCap.PolygonOffsetFill);
                 m_geometryRenderer.StaticRenderer.Render(RenderDataStyle.FogBarrier);
                 GL.Disable(EnableCap.PolygonOffsetFill);
@@ -684,9 +669,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (hasDynamicAlphaGeometry)
         {
-            m_interpolationCompositeProgram.Bind();
-            m_interpolationCompositeProgram.VertexGapClampUV(false);
-            SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo);
+            m_programs.InterpolationCompositeProgram.Bind();
+            m_programs.InterpolationCompositeProgram.VertexGapClampUV(false);
+            SetInterpolationUniforms(m_programs.InterpolationCompositeProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
             RenderCompositeStyles(m_worldDataManager);
             SetBlendEquation(RenderDataStyle.Normal);
@@ -694,9 +679,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (hasStaticAlphaGeometry)
         {
-            m_staticCompositeProgram.Bind();
-            m_staticCompositeProgram.VertexGapClampUV(false);
-            SetStaticUniforms(m_staticCompositeProgram, renderInfo);
+            m_programs.StaticCompositeProgram.Bind();
+            m_programs.StaticCompositeProgram.VertexGapClampUV(false);
+            SetStaticUniforms(m_programs.StaticCompositeProgram, renderInfo);
             GL.ActiveTexture(BindTextures.BoundTexture);
             RenderCompositeStyles(m_geometryRenderer.StaticRenderer);
             SetBlendEquation(RenderDataStyle.Normal);
@@ -715,7 +700,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (styleRenderer.HasStyleToRender(RenderDataStyle.FogBarrier))
         {
-            m_staticCompositeProgram.FogBarrier(true);
+            m_programs.StaticCompositeProgram.FogBarrier(true);
             GL.Enable(EnableCap.PolygonOffsetFill);
             styleRenderer.Render(RenderDataStyle.FogBarrier);
             GL.Disable(EnableCap.PolygonOffsetFill);
@@ -759,9 +744,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private void RenderTwoSidedMiddleWalls(RenderInfo renderInfo)
     {
-        m_interpolationProgram.Bind();
+        m_programs.InterpolationProgram.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        m_interpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
+        m_programs.InterpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
         m_worldDataManager.RenderTwoSidedMiddleWalls();
 
         if (WorldStatic.Sector3D)
@@ -769,10 +754,10 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
         if (m_renderStatic)
         {
-            m_staticProgram.Bind();
+            m_programs.StaticProgram.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
-            SetStaticUniforms(m_staticProgram, renderInfo);
-            m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
+            SetStaticUniforms(m_programs.StaticProgram, renderInfo);
+            m_programs.StaticProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_geometryRenderer.RenderStaticTwoSidedWalls();
 
             if (WorldStatic.Sector3D)
@@ -927,8 +912,8 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private void ReleaseUnmanagedResources()
     {
-        m_interpolationProgram.Dispose();
-        m_staticProgram.Dispose();
+        //m_interpolationProgram.Dispose();
+        //m_staticProgram.Dispose();
         m_geometryRenderer.Dispose();
         m_worldDataManager.Dispose();
         m_primitiveRenderer.Dispose();

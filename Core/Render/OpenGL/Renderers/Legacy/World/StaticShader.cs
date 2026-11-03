@@ -1,9 +1,16 @@
 ﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name}")
 {
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new StaticShader(Label);
+    }
+
     protected override string VertexShader()
     {
         if (this is StaticWallClipShader || this is StaticWallClipAlphaShader || this is StaticPlaneClipShader || this is StaticPlaneClipAlphaShader)

@@ -35,6 +35,7 @@ public abstract class RenderProgram : IDisposable
     protected abstract string VertexShader();
     protected virtual string? GeometryShader() => null;
     protected virtual string? FragmentShader() => null;
+    public abstract RenderProgram Recreate();
 
     private void CreateAndCompileShaderOrThrow()
     {

@@ -17,6 +17,12 @@ public class SkySphereGeometryShader : RenderProgram
     public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
     public void TimeFrac(float value) => ProgramUniforms.Set(value, m_timeFracLocation);
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new SkySphereGeometryShader();
+    }
+
     protected override string VertexShader() => @"
         #version 330
 

@@ -1,9 +1,16 @@
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class InterpolationShader(string name) : RenderProgramBase($"World Interpolation - {name}")
 {
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new InterpolationShader(Label);
+    }
+
     protected override string VertexShader()
     {
         if (this is InterpolationWallClipShader || this is InterpolationWallClipAlphaShader || this is InterpolationPlaneClipShader || this is InterpolationPlaneClipAlphaShader)

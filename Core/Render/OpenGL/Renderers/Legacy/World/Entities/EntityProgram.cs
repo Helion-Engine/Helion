@@ -52,6 +52,12 @@ public class EntityProgram : RenderProgramBase
     public void RenderFuzzRefractionColor(bool value) => ProgramUniforms.Set(value, m_renderFuzzRefractionColorLocation);
     public void ColorClamp(float value) => ProgramUniforms.Set(value, m_colorClampLocation);
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new EntityProgram(Label);
+    }
+
     private const string BoxDefines = @"
         const float BoxWidth = 20;
         const float HalfBoxWidth = 10;

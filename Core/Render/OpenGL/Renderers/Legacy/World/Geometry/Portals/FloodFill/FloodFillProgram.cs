@@ -18,6 +18,12 @@ public class FloodFillProgram : RenderProgramBase
     public void CameraDirection(Vec3F dir) => ProgramUniforms.Set(dir, m_cameraDirection);
     public void Camera(Vec3F camera) => ProgramUniforms.Set(camera, m_cameraLocation);
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new FloodFillProgram(Label);
+    }
+
     protected override string VertexShader() => @"
         #version 330
 

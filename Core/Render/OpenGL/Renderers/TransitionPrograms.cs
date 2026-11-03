@@ -94,6 +94,12 @@ public class MeltTransitionProgram : TransitionProgram
         ProgramUniforms.Set(m_stripDelays, m_stripDelaysLocation);
     }
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new MeltTransitionProgram();
+    }
+
     protected override string FragmentShader() => @"
         #version 330
 
@@ -140,6 +146,12 @@ public class FadeTransitionProgram : TransitionProgram
         ProgramUniforms.Set(progress, m_progressLocation);
     }
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new FadeTransitionProgram();
+    }
+
     protected override string FragmentShader() => @"
         #version 330
 
@@ -164,6 +176,12 @@ public class FadeTransitionProgram : TransitionProgram
 public class NoTransitionProgram : TransitionProgram
 {
     public NoTransitionProgram() : base() { }
+
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new NoTransitionProgram();
+    }
 
     protected override string FragmentShader() => @"
         #version 330

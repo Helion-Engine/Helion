@@ -12,6 +12,12 @@ public class PrimitiveShader : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new PrimitiveShader();
+    }
+
     public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
 
     protected override string VertexShader() => @"
