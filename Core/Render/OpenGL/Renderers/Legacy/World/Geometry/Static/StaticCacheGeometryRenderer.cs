@@ -907,6 +907,26 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         m_geometry.DisposeAndClear();
         m_disposed = true;
+
+        foreach (var line in m_world.Lines)
+        {
+            line.Front.Middle.Static = default;
+            line.Front.Upper.Static = default;
+            line.Front.Lower.Static = default;
+
+            if (line.Back == null)
+                continue;
+
+            line.Back.Middle.Static = default;
+            line.Back.Upper.Static = default;
+            line.Back.Lower.Static = default;
+        }
+
+        foreach (var sector in m_world.Sectors)
+        {
+            sector.Floor.Static = default;
+            sector.Ceiling.Static = default;
+        }
     }
 
     public void Dispose()

@@ -38,13 +38,13 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly RenderDataPool<EntityVertex> m_renderDataPoolArray;
     private readonly RenderDataPool<EntityVertex> m_renderDataPoolOverflow;
     private readonly RenderProfiler m_renderProfiler;
-    private readonly bool m_vanillaRender;
     private readonly WorldRenderPrograms m_programs;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
     private bool m_healthBars;
     private bool m_attackIndicator;
+    private bool m_vanillaRender;
     private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
@@ -109,6 +109,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_healthBars = m_config.Render.HealthBar.Enable;
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
+        m_vanillaRender = m_config.Render.VanillaRender;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
