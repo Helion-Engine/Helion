@@ -476,6 +476,8 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         
         m_programs.EntityProgram.Dispose();
         m_dataManager.Dispose();
+        m_renderDataPoolArray.Dispose();
+        m_renderDataPoolOverflow.Dispose();
 
         m_disposed = true;
     }

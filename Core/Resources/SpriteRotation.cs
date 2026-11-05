@@ -32,4 +32,10 @@ public class SpriteRotation(Texture texture, bool mirror, bool brightmapNoFullbr
         m_translationRotations ??= new();
         m_translationRotations.Set(index, rotation);
     }
+
+    public void ClearGLTexture()
+    {
+        RenderStore = null;
+        BrightmapRenderStore = null;
+    }
 }

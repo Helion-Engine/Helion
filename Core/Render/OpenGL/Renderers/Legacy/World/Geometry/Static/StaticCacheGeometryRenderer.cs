@@ -905,8 +905,20 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (m_disposed)
             return;
 
+        m_skyRenderer.Dispose();
+
+        m_world.SectorMove -= World_SectorMove;
+        m_world.SectorMoveStart -= World_SectorMoveStart;
+        m_world.SectorMoveComplete -= World_SectorMoveComplete;
+        m_world.SideTextureChanged -= World_SideTextureChanged;
+        m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
+        m_world.SectorPlaneTransformed -= World_SectorPlaneTransformed;
+        m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
+
+        m_coverWallGeometry?.Dispose();
+        m_coverWallGeometryOneSided?.Dispose();
+        m_coverFlatGeometry?.Dispose();
         m_geometry.DisposeAndClear();
-        m_disposed = true;
 
         foreach (var line in m_world.Lines)
         {
@@ -927,6 +939,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             sector.Floor.Static = default;
             sector.Ceiling.Static = default;
         }
+
+        m_disposed = true;
     }
 
     public void Dispose()

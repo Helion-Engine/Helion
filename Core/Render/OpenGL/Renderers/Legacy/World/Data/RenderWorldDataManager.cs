@@ -133,5 +133,6 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
         for (int i = 0; i < items.Length; i++)
             items[i].ReleaseUnmanagedResources();
         m_coverWalls?.Dispose();
+        m_pool.Dispose();
     }
 }

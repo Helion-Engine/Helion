@@ -32,6 +32,30 @@ internal sealed class WorldRenderPrograms
 
     }
 
+    public void Dispose()
+    {
+        InterpolationProgram.Dispose();
+        InterpolationTransparentProgram.Dispose();
+        InterpolationCompositeProgram.Dispose();
+        InterpolationPlaneClipAlphaProgram.Dispose();
+        InterpolationPlaneClipMrtProgram.Dispose();
+        InterpolationWallClipShader.Dispose();
+        InterpolationWallClipAlphaProgram.Dispose();
+        StaticProgram.Dispose();
+        StaticPlaneClipProgram.Dispose();
+        StaticPlaneClipAlphaProgram.Dispose();
+        StaticPlaneClipMrtProgram.Dispose();
+        StaticWallClipProgram.Dispose();
+        StaticWallClipAlphaProgram.Dispose();
+        StaticTransparentProgram.Dispose();
+        StaticCompositeProgram.Dispose();
+        EntityProgram.Dispose();
+        EntityHealthBarProgram.Dispose();
+        EntityTransparentProgram.Dispose();
+        EntityCompositeProgram.Dispose();
+        EntityFuzzRefractionProgram.Dispose();
+    }
+
     public void Recreate()
     {
         InterpolationProgram = (InterpolationShader)InterpolationProgram.Recreate();

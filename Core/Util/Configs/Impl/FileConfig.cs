@@ -30,8 +30,6 @@ public class FileConfig : Config
     private readonly string m_filePath;
     private bool m_noFileExistedWhenRead;
 
-    public event EventHandler? AppRestartRequired;
-
     public FileConfig(string filePath, bool addDefaultsIfNew)
     {
         m_filePath = filePath;
@@ -49,9 +47,6 @@ public class FileConfig : Config
 
     private void RenderMode_OnChanged(object? sender, ConfigRenderMode e)
     {
-        var colorMode = Window.ColorMode.Value;
-        var vanillaRender = Render.VanillaRender.Value;
-
         var mode = (ConfigRenderModeFlags)e;
         if ((mode & ConfigRenderModeFlags.TrueColor) == 0)
             Window.ColorMode.Set(RenderColorMode.Palette);
@@ -64,9 +59,6 @@ public class FileConfig : Config
             Render.DownScaleVanillaRenderSampleBuffer.Set(1);
         else
             Render.DownScaleVanillaRenderSampleBuffer.Set(2);
-
-        if (colorMode != Window.ColorMode.Value || vanillaRender != Render.VanillaRender.Value)
-            AppRestartRequired?.Invoke(this, EventArgs.Empty);
     }
 
     private void DetermineRenderMode()

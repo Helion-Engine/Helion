@@ -243,6 +243,30 @@ public partial class TextureManager : ITickable
         }
     }
 
+    public void ClearRenderStore()
+    {
+        foreach (var texture in m_textures)
+            texture.ClearGLTexture();
+
+        foreach (var spriteDefinition in SpriteDefinitions)
+        {
+            if (spriteDefinition == null)
+                continue;
+
+            for (int i = 0; i < SpriteDefinition.MaxFrames; i++)
+            {
+                for (int j = 0; j < SpriteDefinition.MaxRotations; j++)
+                {
+                    var rotation = spriteDefinition.Rotations[i, j];
+                    if (rotation == null)
+                        continue;
+
+                    rotation.ClearGLTexture();
+                }
+            }
+        }
+    }
+
     private void LoadAnimSwitchComponents(IList<AnimatedTextureComponent> components)
     {
         foreach (var component in components)

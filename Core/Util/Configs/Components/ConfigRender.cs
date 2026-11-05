@@ -175,7 +175,7 @@ public class ConfigRender : ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Sprite Transparency")]
     public readonly ConfigValue<bool> SpriteTransparency = new(true);
 
-    [ConfigInfo("Render sprites emulating software sprite clipping. May slow down rendering.", mapRestartRequired: true)]
+    [ConfigInfo("Render sprites emulating software sprite clipping. May slow down rendering.")]
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 

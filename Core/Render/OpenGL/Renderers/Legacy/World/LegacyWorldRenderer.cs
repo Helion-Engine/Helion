@@ -44,7 +44,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private readonly OitFrameBuffer m_oitFrameBuffer = new();
     private readonly RenderInfo m_downSizedRenderInfo = new();
     private readonly RenderProfiler m_renderProfiler;
-    private bool m_vanillaRender;
+    private readonly bool m_vanillaRender;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_renderStatic;
@@ -75,14 +75,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;
-
-        config.Render.VanillaRender.OnChanged += VanillaRender_OnChanged;
-    }
-
-    private void VanillaRender_OnChanged(object? sender, bool value)
-    {
-        m_vanillaRender = value;
-        m_programs.Recreate();
     }
 
     private void OnDynamicDraw()
@@ -920,11 +912,13 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private void ReleaseUnmanagedResources()
     {
-        //m_interpolationProgram.Dispose();
-        //m_staticProgram.Dispose();
+        m_previousWorld?.OnResetInterpolation -= World_OnResetInterpolation;
         m_geometryRenderer.Dispose();
         m_worldDataManager.Dispose();
         m_primitiveRenderer.Dispose();
         m_entityRenderer.Dispose();
+        m_programs.Dispose();
+        m_planeClipFrameBuffer?.Dispose();
+        m_wallClipFrameBuffer?.Dispose();
     }
 }

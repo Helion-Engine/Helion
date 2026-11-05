@@ -15,6 +15,7 @@ using Helion.Util.Profiling.Timers;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using Helion.World;
 using NLog;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -36,7 +37,7 @@ public class Window : GameWindow, IWindow
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public Renderer Renderer { get; }
+    public Renderer Renderer { get; private set; }
     public int MaxFps { get; private set; }
     private readonly IConfig m_config;
 
@@ -70,6 +71,10 @@ public class Window : GameWindow, IWindow
     private Vector2i? m_knownGoodWindowPos;
     private bool IsWindowsBorderlessFullscreen => m_isWindows && m_renderWindowState == RenderWindowState.BorderlessFullscreenWindow;
 
+    private readonly ArchiveCollection m_archiveCollection;
+    private readonly FpsTracker m_fpsTracker;
+    private readonly Profiler m_profiler;
+
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, Profiler profiler, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor, flags))
@@ -80,6 +85,10 @@ public class Window : GameWindow, IWindow
         m_config = config;
         m_renderWindowState = config.Window.State;
         m_inputManagement = inputManagement;
+        m_archiveCollection = archiveCollection;
+        m_fpsTracker = tracker;
+        m_profiler = profiler;
+
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = new(this, config, archiveCollection, tracker, profiler.Render);
 
@@ -106,6 +115,15 @@ public class Window : GameWindow, IWindow
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
         FocusedChanged += Window_FocusedChanged;
+    }
+
+    public void RecreateRenderer(IWorld? world)
+    {
+        Renderer.Dispose();
+        Renderer = new(this, m_config, m_archiveCollection, m_fpsTracker, m_profiler.Render);
+
+        if (world != null)
+            Renderer.UpdateToNewWorld(world);
     }
 
     private void Window_FocusedChanged(FocusedChangedEventArgs e)

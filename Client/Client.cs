@@ -9,6 +9,7 @@ using Helion.Layer;
 using Helion.Layer.Worlds;
 using Helion.Models;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Definitions.MapInfo;
@@ -76,6 +77,7 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_loadComplete;
     private bool m_filesLoaded;
     private bool m_invalidateRng;
+    private bool m_recreateRenderer;
     private uint m_minTimerResolution = 1;
     private OnLoadMapComplete? m_onLoadMapComplete;
     private LoadMapResult? m_loadMapResult;
@@ -151,7 +153,15 @@ public partial class Client : IDisposable, IInputManagement
         m_ticker.Start();
 
         m_profiler.TimeThresholdTriggered += Profiler_TimeThresholdTriggered;
+        m_config.Window.ColorMode.OnChanged += ColorMode_OnChanged;
+        m_config.Render.VanillaRender.OnChanged += VanillaRender_OnChanged;
     }
+
+    private void VanillaRender_OnChanged(object? sender, bool e) =>
+        m_recreateRenderer = true;
+
+    private void ColorMode_OnChanged(object? sender, RenderColorMode e) =>
+        m_recreateRenderer = true;
 
     private void Window_FramebufferResize(FramebufferResizeEventArgs args)
     {
@@ -345,6 +355,14 @@ public partial class Client : IDisposable, IInputManagement
 
     private void Render()
     {
+        if (m_recreateRenderer)
+        {
+            m_archiveCollection.TextureManager.ClearRenderStore();
+            m_window.RecreateRenderer(m_layerManager.WorldLayer?.World);
+            LoadRendererFiles();
+            m_recreateRenderer = false;
+        }
+
         m_profiler.Render.Total.Start();
 
         PerformRender();
@@ -392,10 +410,15 @@ public partial class Client : IDisposable, IInputManagement
             return;
 
         m_filesLoaded = false;
+        m_saveGameManager.LoadCurrentSaveFiles();
+        LoadRendererFiles();
+    }
+
+    private void LoadRendererFiles()
+    {
         m_window.Renderer.UploadColorMap();
         // preload menu background to prevent hitch when opening options for first time
         m_window.Renderer.Textures.TryGet(Constants.DefaultBackgroundImage, out _);
-        m_saveGameManager.LoadCurrentSaveFiles();
     }
 
     private void CheckMapLoad()

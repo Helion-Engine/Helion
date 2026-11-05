@@ -414,6 +414,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         ClearData();
 
         m_program.Dispose();
+        m_wallClipProgram.Dispose();
         m_disposed = true;
     }
 
