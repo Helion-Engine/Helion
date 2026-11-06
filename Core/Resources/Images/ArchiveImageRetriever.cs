@@ -33,7 +33,6 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
         // Need to check for images that may have only loaded true-color like PNGs.
         // These need to be converted to their nearest palette index if not set.
-        // TODO some need to be flagged protected...
         foreach (var image in m_compiledImages.GetValues())
             image.UpdateToPaletteColor(paletteTranslationColorLookup);
     }
@@ -111,7 +110,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     private Image ImageFromDefinition(TextureDefinition definition, GetImageOptions options = default, byte[]? colorTranslation = null)
     {
-        var storeIndices = ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
+        var storeIndices = ShouldStoreIndices();
         var imageType = storeIndices ? ImageType.PaletteWithArgb : ImageType.Argb;
 
         Image image;
@@ -224,19 +223,20 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
                 Palette? paletteTransltion = null;
                 PaletteColorLookup? paletteTranslationColorLookup = null;
-                if (m_findNearestPaletteIndex && !AlwaysTrueColor(entry))
+                var alwaysTrueColor = AlwaysTrueColor(entry);
+                if (m_findNearestPaletteIndex && alwaysTrueColor)
                 {
                     paletteTransltion = m_archiveCollection.Palette;
                     paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
                 }
                 // Only search for nearest palette colors if colorTranslation is set (e.g. for blood colors)
-                else if (!m_findNearestPaletteIndex && !AlwaysTrueColor(entry) && colorTranslation != null)
+                else if (!m_findNearestPaletteIndex && alwaysTrueColor && colorTranslation != null)
                 {
                     paletteTransltion = m_archiveCollection.Palette;
                     paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
                 }
 
-                image = Image.FromImageSharp(img, offset, entry.Namespace, paletteTransltion, paletteTranslationColorLookup, colorTranslation);
+                image = Image.FromImageSharp(img, offset, entry.Namespace, paletteTransltion, paletteTranslationColorLookup, colorTranslation, alwaysTrueColor);
             }
             catch
             {
@@ -247,7 +247,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
         {
             bool clearBlackPixels = (options & GetImageOptions.ClearBlackPixels) != 0;
             var dataEntries = m_archiveCollection.Data;
-            var storeIndices = ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
+            var storeIndices = ShouldStoreIndices();
             var palette = entry.Parent.TranslationPalette ?? dataEntries.Palette;
             
             if (colorTranslation == null && palette.Translation != null)
@@ -283,6 +283,8 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
             m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
         return image;
     }
+
+    private bool ShouldStoreIndices() => ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
 
     private static void TranslatePaletteIndices(ushort[] indices, byte[] translation)
     {

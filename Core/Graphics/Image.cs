@@ -37,6 +37,7 @@ public class Image
     public uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
     public byte[] m_indices;
     public readonly int UpscaleFactor;
+    public readonly bool AlwaysTrueColor;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -58,11 +59,12 @@ public class Image
         Precondition(h >= 0, "Tried providing a negative height for an image");
     }
 
-    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null, int upscaleFactor = 1)
+    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null, int upscaleFactor = 1, bool alwaysTrueColor = false)
     {
         Precondition(pixels.Length >= dimension.Area, "Image size mismatch");
 
         UpscaleFactor = upscaleFactor;
+        AlwaysTrueColor = alwaysTrueColor;
         Dimension = dimension;
         ImageType = imageType;
         Offset = offset;
@@ -129,7 +131,7 @@ public class Image
 
     public void UpdateToPaletteColor(PaletteColorLookup paletteTranslationColorLookup)
     {
-        if (ImageType == ImageType.PaletteWithArgb)
+        if (ImageType == ImageType.PaletteWithArgb || AlwaysTrueColor)
             return;
 
         UploadType = ImageType.PaletteWithArgb;
@@ -149,7 +151,7 @@ public class Image
     }
 
     public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global,
-        Palette? paletteTranslation = null, PaletteColorLookup? paletteTranslationColorLookup = null, byte[]? colorTranslation = null)
+        Palette? paletteTranslation = null, PaletteColorLookup? paletteTranslationColorLookup = null, byte[]? colorTranslation = null, bool alwaysTrueColor = false)
         where TPixel : unmanaged, IPixel<TPixel>
     {
         var indices = paletteTranslation == null ? null : new ushort[data.Height * data.Width];
@@ -190,10 +192,10 @@ public class Image
             }
         }
 
-        return FromArgbBytes((data.Width, data.Height), argbData, imageOffset, ns, indices);
+        return FromArgbBytes((data.Width, data.Height), argbData, imageOffset, ns, indices, alwaysTrueColor);
     }
 
-    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global, ushort[]? indices = null)
+    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global, ushort[]? indices = null, bool alwaysTrueColor = false)
     {
         if (dimension.Area * 4 != argbData.Length)
             return null;
@@ -215,7 +217,7 @@ public class Image
         }
 
         var imageType = indices == null ? ImageType.Rgba : ImageType.PaletteWithArgb;
-        return new(pixels, dimension, imageType, offset, ns, indices);
+        return new(pixels, dimension, imageType, offset, ns, indices, alwaysTrueColor: alwaysTrueColor);
     }
 
     public Image GetUpscaled(int upscalingFactor)
