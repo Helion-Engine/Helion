@@ -92,13 +92,13 @@ public partial class BoomActions
         voodoo.PlayerObj.Should().NotBeNull();
         voodoo.PlayerObj.IsVooDooDoll.Should().BeTrue();
         voodoo.AngleRadians = GameActions.GetAngle(Bearing.North);
-        GameActions.SetEntityPosition(World, voodoo, (3424, 376));
+        GameActions.SetEntityPosition(World, voodoo, (3520, 408));
         GameActions.MoveEntity(World, voodoo, 32);
         // The player jitter fix is ignored non-player and player voodoo doll things.
-        voodoo.Position.X.Should().BeApproximately(3106.00016, 0.0001, "Boom fudge");
-        voodoo.Position.Y.Should().Be(352);
+        voodoo.Position.X.Should().Be(3744);
+        voodoo.Position.Y.Should().BeApproximately(416.00016, 0.0001, "Boom fudge");
         voodoo.Position.Z.Should().Be(0);
-        MathHelper.GetNormalAngle(voodoo.AngleRadians).Should().BeApproximately(GameActions.GetAngle(Bearing.East), 0.01);
+        MathHelper.GetNormalAngle(voodoo.AngleRadians).Should().BeApproximately(GameActions.GetAngle(Bearing.North), 0.01);
     }
 
     [Fact(DisplayName = "Boom Action 263 (WR) teleport line reverse")]
