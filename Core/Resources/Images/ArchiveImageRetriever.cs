@@ -23,7 +23,20 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     private readonly ArchiveCollection m_archiveCollection = archiveCollection;
     private readonly ResourceTracker<Image> m_compiledImages = new();
-    private readonly bool m_findNearestPaletteIndex = findNearestPaletteIndex;
+    private bool m_findNearestPaletteIndex = findNearestPaletteIndex;
+
+    public void UpdateToPaletteColor()
+    {
+        m_findNearestPaletteIndex = true;
+
+        var paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
+
+        // Need to check for images that may have only loaded true-color like PNGs.
+        // These need to be converted to their nearest palette index if not set.
+        // TODO some need to be flagged protected...
+        foreach (var image in m_compiledImages.GetValues())
+            image.UpdateToPaletteColor(paletteTranslationColorLookup);
+    }
 
     public static bool IsPng(byte[] data)
     {
@@ -98,6 +111,9 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     private Image ImageFromDefinition(TextureDefinition definition, GetImageOptions options = default, byte[]? colorTranslation = null)
     {
+        var storeIndices = ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
+        var imageType = storeIndices ? ImageType.PaletteWithArgb : ImageType.Argb;
+
         Image image;
         if (definition.IsAutoImageTexture)
         {
@@ -109,12 +125,12 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
                     findImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
             }
 
-            image = findImage ?? new Image(0, 0, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+            image = findImage ?? new Image(0, 0, imageType, (0, 0), definition.Namespace);
         }
         else
         {
             (int w, int h) = definition.Dimension;
-            image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+            image = new(w, h, imageType, (0, 0), definition.Namespace);
 
             foreach (TextureDefinitionComponent component in definition.Components)
             {

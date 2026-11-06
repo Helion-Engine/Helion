@@ -357,6 +357,8 @@ public partial class Client : IDisposable, IInputManagement
     {
         if (m_recreateRenderer)
         {
+            if (m_config.Window.ColorMode.Value == RenderColorMode.Palette)
+                m_archiveCollection.ImageRetriever.UpdateToPaletteColor();
             m_archiveCollection.TextureManager.ClearRenderStore();
             m_window.RecreateRenderer(m_layerManager.WorldLayer?.World);
             LoadRendererFiles();

@@ -52,4 +52,6 @@ public interface IImageRetriever
     public void Add(string name, ResourceNamespace resourceNamespace, Image image);
 
     public Image? GetByFullPath(string path, ResourceNamespace targetNamespace);
+
+    public void UpdateToPaletteColor();
 }

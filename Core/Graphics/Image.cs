@@ -35,7 +35,7 @@ public class Image
     public Vec2I Offset;
     public readonly ResourceNamespace Namespace;
     public uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
-    public readonly byte[] m_indices;
+    public byte[] m_indices;
     public readonly int UpscaleFactor;
 
     public int Width => Dimension.Width;
@@ -125,6 +125,27 @@ public class Image
             return null;
 
         return new(indices, dimension, ImageType.Palette, offset, ns);
+    }
+
+    public void UpdateToPaletteColor(PaletteColorLookup paletteTranslationColorLookup)
+    {
+        if (ImageType == ImageType.PaletteWithArgb)
+            return;
+
+        UploadType = ImageType.PaletteWithArgb;
+        ImageType = ImageType.PaletteWithArgb;
+
+        if (m_indices.Length != m_pixels.Length)
+            m_indices = new byte[m_pixels.Length];
+
+        for (int i = 0; i < m_pixels.Length; i++)
+        {
+            var pixel = new Color(m_pixels[i]);
+            if (pixel.A == 0)
+                continue;
+
+            m_indices[i] = paletteTranslationColorLookup.GetIndex(pixel);
+        }
     }
 
     public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global,

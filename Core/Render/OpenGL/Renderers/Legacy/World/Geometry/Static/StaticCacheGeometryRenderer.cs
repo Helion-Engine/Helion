@@ -33,7 +33,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 {
     const int WallVertices = 6;
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
-    private static readonly Sector DefaultSector = Sector.CreateDefault();
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
