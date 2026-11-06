@@ -123,7 +123,10 @@ public class Window : GameWindow, IWindow
         Renderer = new(this, m_config, m_archiveCollection, m_fpsTracker, m_profiler.Render);
 
         if (world != null)
+        {
+            world.SameAsPreviousMap = false;
             Renderer.UpdateToNewWorld(world);
+        }
     }
 
     private void Window_FocusedChanged(FocusedChangedEventArgs e)
