@@ -366,7 +366,7 @@ public struct TeleportSpecial
         double fudge = 10.0 / 65536.0;
         const double fudgeStep = 1.0 / 65536.0;
 
-        while ((destLine.Segment.PerpDot(destPos2D) <= 0) != onRight && fudge >= 0)
+        while (!CheckLineSide(destLine, destPos2D, onRight) && fudge >= 0)
         {
             if (Math.Abs(destDir.X) > Math.Abs(destDir.Y))
                 destPos2D.Y -= ((destDir.X < 0) != onRight) ? -fudgeStep : fudgeStep;
@@ -379,6 +379,14 @@ public struct TeleportSpecial
         var destZ = GetTeleportLineZ(teleportEntity, destLine, destPos2D, out offsetZ);
         teleportPos = destPos2D.To3D(destZ);
         return true;
+    }
+
+    private static bool CheckLineSide(Line destLine, Vec2D destPos2D, bool onRight)
+    {
+        var dot = destLine.Segment.PerpDot(destPos2D);
+        if (MathHelper.IsZero(dot))
+            return false;
+        return (dot < 0) == onRight;
     }
 
     private static Vec3D GetTeleportPosition(Entity entity)
