@@ -906,37 +906,40 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
         m_skyRenderer.Dispose();
 
-        m_world.SectorMove -= World_SectorMove;
-        m_world.SectorMoveStart -= World_SectorMoveStart;
-        m_world.SectorMoveComplete -= World_SectorMoveComplete;
-        m_world.SideTextureChanged -= World_SideTextureChanged;
-        m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
-        m_world.SectorPlaneTransformed -= World_SectorPlaneTransformed;
-        m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
-
         m_coverWallGeometry?.Dispose();
         m_coverWallGeometryOneSided?.Dispose();
         m_coverFlatGeometry?.Dispose();
         m_geometry.DisposeAndClear();
 
-        foreach (var line in m_world.Lines)
+        if (m_world != null)
         {
-            line.Front.Middle.Static = default;
-            line.Front.Upper.Static = default;
-            line.Front.Lower.Static = default;
+            m_world.SectorMove -= World_SectorMove;
+            m_world.SectorMoveStart -= World_SectorMoveStart;
+            m_world.SectorMoveComplete -= World_SectorMoveComplete;
+            m_world.SideTextureChanged -= World_SideTextureChanged;
+            m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
+            m_world.SectorPlaneTransformed -= World_SectorPlaneTransformed;
+            m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
 
-            if (line.Back == null)
-                continue;
+            foreach (var line in m_world.Lines)
+            {
+                line.Front.Middle.Static = default;
+                line.Front.Upper.Static = default;
+                line.Front.Lower.Static = default;
 
-            line.Back.Middle.Static = default;
-            line.Back.Upper.Static = default;
-            line.Back.Lower.Static = default;
-        }
+                if (line.Back == null)
+                    continue;
 
-        foreach (var sector in m_world.Sectors)
-        {
-            sector.Floor.Static = default;
-            sector.Ceiling.Static = default;
+                line.Back.Middle.Static = default;
+                line.Back.Upper.Static = default;
+                line.Back.Lower.Static = default;
+            }
+
+            foreach (var sector in m_world.Sectors)
+            {
+                sector.Floor.Static = default;
+                sector.Ceiling.Static = default;
+            }
         }
 
         m_disposed = true;
