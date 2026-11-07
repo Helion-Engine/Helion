@@ -223,13 +223,13 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
                 Palette? paletteTransltion = null;
                 PaletteColorLookup? paletteTranslationColorLookup = null;
                 var alwaysTrueColor = AlwaysTrueColor(entry);
-                if (m_findNearestPaletteIndex && alwaysTrueColor)
+                if (m_findNearestPaletteIndex && !alwaysTrueColor)
                 {
                     paletteTransltion = m_archiveCollection.Palette;
                     paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
                 }
                 // Only search for nearest palette colors if colorTranslation is set (e.g. for blood colors)
-                else if (!m_findNearestPaletteIndex && alwaysTrueColor && colorTranslation != null)
+                else if (!m_findNearestPaletteIndex && !alwaysTrueColor && colorTranslation != null)
                 {
                     paletteTransltion = m_archiveCollection.Palette;
                     paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
