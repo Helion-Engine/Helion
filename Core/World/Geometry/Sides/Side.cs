@@ -136,6 +136,18 @@ public sealed class Side
         Lower.Reset();
     }
 
+    public void ResetRenderData()
+    {
+        Middle.Static = default;
+        Upper.Static = default;
+        Lower.Static = default;
+        LowerFloodKeys = default;
+        UpperFloodKeys = default;
+        MidTextureFlood = default;
+        FloorFloodKey = default;
+        CeilingFloodKey = default;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool CheckRenderingChanged() => LastRenderChangeGametick >= LastRenderGametick;
 

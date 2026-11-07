@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Maps.Components;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -923,16 +924,8 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
             foreach (var line in m_world.Lines)
             {
-                line.Front.Middle.Static = default;
-                line.Front.Upper.Static = default;
-                line.Front.Lower.Static = default;
-
-                if (line.Back == null)
-                    continue;
-
-                line.Back.Middle.Static = default;
-                line.Back.Upper.Static = default;
-                line.Back.Lower.Static = default;
+                line.Front.ResetRenderData();
+                line.Back?.ResetRenderData();
             }
 
             foreach (var sector in m_world.Sectors)
