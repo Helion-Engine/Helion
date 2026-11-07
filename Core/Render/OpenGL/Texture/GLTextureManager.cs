@@ -529,10 +529,10 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         NullFont.Dispose();
 
         foreach (var texture in TextureTracker.GetValues())
-            texture.Dispose();
+            texture?.Dispose();
 
         foreach (var texture in TextureTrackerClamp.GetValues())
-            texture.Dispose();
+            texture?.Dispose();
 
         var arrayTextureData = m_arrayTextures.GetData();
         for (int i = 0; i < arrayTextureData.Length; i++)

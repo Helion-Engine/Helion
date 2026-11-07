@@ -1022,7 +1022,6 @@ public partial class Renderer : IDisposable
         m_sectorLightsBuffer?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
         m_sectorFogBuffer?.Dispose();
-        m_transitionRenderer?.Dispose();
         m_mapDataBuffer?.Dispose();
         m_lineHeightsBuffer?.Dispose();
         m_colorMapBuffer?.Dispose();

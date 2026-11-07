@@ -9,7 +9,6 @@ using Helion.Layer;
 using Helion.Layer.Worlds;
 using Helion.Models;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Definitions.MapInfo;
