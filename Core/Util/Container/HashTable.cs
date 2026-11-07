@@ -172,16 +172,16 @@ public class HashTable<K1, K2, V> where V : class
     /// <summary>
     /// Returns a list of all values.
     /// </summary>
-    public List<V> GetValues()
+    public IEnumerable<V> GetValues()
     {
-        return m_table.Values.SelectMany(pair => pair.Values).ToList();
+        return m_table.Values.SelectMany(pair => pair.Values);
     }
 
     /// <summary>
     /// Returns a list of all values for the given key.
     /// </summary>
-    public List<V> GetValues(K1 key)
+    public IEnumerable<V> GetValues(K1 key)
     {
-        return m_table.TryGetValue(key, out var data) ? data.Values.ToList() : new List<V>();
+        return m_table.TryGetValue(key, out var data) ? data.Values : [];
     }
 }

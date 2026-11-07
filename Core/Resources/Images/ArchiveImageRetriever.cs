@@ -78,8 +78,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
     {
         return m_compiledImages.GetNames(specificNamespace)
             .Concat(m_archiveCollection.Entries.GetNames(specificNamespace))
-            .Concat(m_archiveCollection.Definitions.Textures.GetNames(specificNamespace))
-            .ToList();
+            .Concat(m_archiveCollection.Definitions.Textures.GetNames(specificNamespace));
     }
 
     public Image? GetByFullPath(string path, ResourceNamespace targetNamespace)

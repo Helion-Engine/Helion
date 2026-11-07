@@ -681,7 +681,7 @@ public partial class TextureManager : ITickable
     private bool HasAnimation(int translationIndex) =>
         m_animations.Any(x => x.TranslationIndex == translationIndex);
 
-    private void InitTextureArrays(List<TextureDefinition> textures, List<Entry> flatEntries, out int flatIndexStart)
+    private void InitTextureArrays(IEnumerable<TextureDefinition> textures, List<Entry> flatEntries, out int flatIndexStart)
     {
         var noTexture = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
         m_textures.Add(noTexture);

@@ -37,7 +37,7 @@ public class Image
     public uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
     public byte[] m_indices;
     public readonly int UpscaleFactor;
-    public readonly bool AlwaysTrueColor;
+    public bool AlwaysTrueColor;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -112,21 +112,10 @@ public class Image
     public void DisableIndexedUpload()
     {
         if (UploadType == ImageType.PaletteWithArgb)
+        {
             UploadType = ImageType.Argb;
-    }
-
-    public void EnableIndexedUpload()
-    {
-        if (m_indices.Length > 0)
-            UploadType = ImageType.PaletteWithArgb;
-    }
-
-    public static Image? FromPaletteIndices(Dimension dimension, uint[] indices, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
-    {
-        if (dimension.Area != indices.Length)
-            return null;
-
-        return new(indices, dimension, ImageType.Palette, offset, ns);
+            AlwaysTrueColor = true;
+        }
     }
 
     public void UpdateToPaletteColor(PaletteColorLookup paletteTranslationColorLookup)
