@@ -34,6 +34,12 @@ public class FramebufferProgram : RenderProgram
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
     public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new FramebufferProgram();
+    }
+
     protected override string VertexShader() => @"
         #version 330
 

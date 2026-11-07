@@ -12,6 +12,7 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
 {
     private readonly RenderProgram m_program;
     private readonly DynamicArray<RenderData<TVertex>> m_entityRenderData;
+    private bool m_disposed;
 
     public int PoolSize { get; }
     public int VboCapacity { get; }
@@ -60,5 +61,16 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
     public void LogExhaustion()
     {
         HelionLog.Info($"RenderDataPool exhausted. Consider increasing the size. {UseCount}");
+    }
+
+    public void Dispose()
+    {
+        if (m_disposed)
+            return;
+
+        for (int i = 0; i < m_entityRenderData.Length; i++)
+            m_entityRenderData[i].Dispose();
+
+        m_disposed = true;
     }
 }

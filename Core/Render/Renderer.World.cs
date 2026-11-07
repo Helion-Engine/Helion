@@ -86,14 +86,7 @@ public partial class Renderer
         m_worldRenderer.UpdateToNewWorld(world);
         m_automapRenderer.UpdateTo(world);
 
-        if (m_world != null)
-        {
-            m_world.SectorLightChanged -= World_SectorLightChanged;
-            m_world.SectorColorMapChanged -= World_SectorColorMapChanged;
-            m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
-            m_world.SectorMove -= World_SectorMove;
-            m_world.SectorMoveComplete -= World_SectorMoveComplete;
-        }
+        UnRegisterWorldEvents();
 
         m_world = world;
         m_world.SectorLightChanged += World_SectorLightChanged;
@@ -108,6 +101,18 @@ public partial class Renderer
         m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         SetLineHeights(world, alloc);
+    }
+
+    private void UnRegisterWorldEvents()
+    {
+        if (m_world == null)
+            return;
+
+        m_world.SectorLightChanged -= World_SectorLightChanged;
+        m_world.SectorColorMapChanged -= World_SectorColorMapChanged;
+        m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
+        m_world.SectorMove -= World_SectorMove;
+        m_world.SectorMoveComplete -= World_SectorMoveComplete;
     }
 
     private unsafe void SetLineHeights(IWorld world, bool alloc)

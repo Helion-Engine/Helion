@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Maps.Components;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -33,7 +34,6 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 {
     const int WallVertices = 6;
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
-    private static readonly Sector DefaultSector = Sector.CreateDefault();
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -905,7 +905,36 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
         if (m_disposed)
             return;
 
+        m_skyRenderer.Dispose();
+
+        m_coverWallGeometry?.Dispose();
+        m_coverWallGeometryOneSided?.Dispose();
+        m_coverFlatGeometry?.Dispose();
         m_geometry.DisposeAndClear();
+
+        if (m_world != null)
+        {
+            m_world.SectorMove -= World_SectorMove;
+            m_world.SectorMoveStart -= World_SectorMoveStart;
+            m_world.SectorMoveComplete -= World_SectorMoveComplete;
+            m_world.SideTextureChanged -= World_SideTextureChanged;
+            m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
+            m_world.SectorPlaneTransformed -= World_SectorPlaneTransformed;
+            m_world.SectorFogColorChanged -= World_SectorFogColorChanged;
+
+            foreach (var line in m_world.Lines)
+            {
+                line.Front.ResetRenderData();
+                line.Back?.ResetRenderData();
+            }
+
+            foreach (var sector in m_world.Sectors)
+            {
+                sector.Floor.Static = default;
+                sector.Ceiling.Static = default;
+            }
+        }
+
         m_disposed = true;
     }
 

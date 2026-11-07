@@ -31,11 +31,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
-    private readonly EntityProgram m_program = new("Main");
-    private readonly EntityHealthBarProgram m_healthBarProgram = new();
-    private readonly EntityTransparentProgram m_programTransparent = new();
-    private readonly EntityCompositeProgram m_programComposite = new();
-    private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
@@ -43,30 +38,32 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
     private readonly RenderDataPool<EntityVertex> m_renderDataPoolArray;
     private readonly RenderDataPool<EntityVertex> m_renderDataPoolOverflow;
     private readonly RenderProfiler m_renderProfiler;
-    private readonly bool m_vanillaRender;
+    private readonly WorldRenderPrograms m_programs;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
     private bool m_healthBars;
     private bool m_attackIndicator;
+    private bool m_vanillaRender;
     private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection, RenderProfiler renderProfiler)
+    internal EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection, RenderProfiler renderProfiler, WorldRenderPrograms programs)
     {
         m_config = config;
         m_textureManager = textureManager;
         m_archiveCollection = archiveCollection;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
+        m_programs = programs;
 
         // Most things will be in the 5 texture array buckets. Anything that falls outside at runtime will end up in the overflow pool.
         // These come from sprites using colormaps in true color mode that need to be regenerated. (Blood colors, dehacked frames specifying a color map)
-        m_renderDataPoolArray = new(m_program, 64, 8192);
-        m_renderDataPoolOverflow = new(m_program, RenderPoolSize, 128);
+        m_renderDataPoolArray = new(m_programs.EntityProgram, 64, 8192);
+        m_renderDataPoolOverflow = new(m_programs.EntityProgram, RenderPoolSize, 128);
 
-        m_dataManager = new(m_program, textureManager.BlackTexture, m_renderDataPoolArray, m_renderDataPoolOverflow, OnDraw);
+        m_dataManager = new(m_programs.EntityProgram, textureManager.BlackTexture, m_renderDataPoolArray, m_renderDataPoolOverflow, OnDraw);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
@@ -112,6 +109,7 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         m_healthBars = m_config.Render.HealthBar.Enable;
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
+        m_vanillaRender = m_config.Render.VanillaRender;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -412,58 +410,58 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     public void RenderOpaque(RenderInfo renderInfo)
     {
-        m_program.Bind();
+        m_programs.EntityProgram.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_program, renderInfo);
+        SetUniforms(m_programs.EntityProgram, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal);
 
         if (m_healthBars)
         {
-            m_healthBarProgram.Bind();
-            SetUniforms(m_healthBarProgram, renderInfo);
+            m_programs.EntityHealthBarProgram.Bind();
+            SetUniforms(m_programs.EntityHealthBarProgram, renderInfo);
             m_dataManager.RenderHealthBars();
         }
     }
 
     public void RenderOitTransparentPass(RenderInfo renderInfo)
     {
-        m_programTransparent.Bind();
-        m_programTransparent.RenderFuzz(false);
+        m_programs.EntityTransparentProgram.Bind();
+        m_programs.EntityTransparentProgram.RenderFuzz(false);
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_programTransparent, renderInfo);
+        SetUniforms(m_programs.EntityTransparentProgram, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Add);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
-        m_programTransparent.ColorClamp(0.9f);
+        m_programs.EntityTransparentProgram.ColorClamp(0.9f);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd);
-        m_programTransparent.Unbind();
+        m_programs.EntityTransparentProgram.Unbind();
     }
 
     public void RenderOitTransparentFuzzPass(RenderInfo renderInfo)
     {
-        m_programTransparent.Bind();
-        m_programTransparent.RenderFuzz(true);
+        m_programs.EntityTransparentProgram.Bind();
+        m_programs.EntityTransparentProgram.RenderFuzz(true);
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_programTransparent, renderInfo);
+        SetUniforms(m_programs.EntityTransparentProgram, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
-        m_programTransparent.Unbind();
+        m_programs.EntityTransparentProgram.Unbind();
     }
 
     public void StartRenderOitCompositePass(RenderInfo renderInfo)
     {
-        m_programComposite.Bind();
+        m_programs.EntityCompositeProgram.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_programComposite, renderInfo);
+        SetUniforms(m_programs.EntityCompositeProgram, renderInfo);
     }
 
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)
     {
-        m_programFuzzRefraction.Bind();
+        m_programs.EntityFuzzRefractionProgram.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
-        SetUniforms(m_programFuzzRefraction, renderInfo);
+        m_programs.EntityFuzzRefractionProgram.RenderFuzzRefractionColor(renderColor);
+        SetUniforms(m_programs.EntityFuzzRefractionProgram, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
-        m_programFuzzRefraction.Unbind();
+        m_programs.EntityFuzzRefractionProgram.Unbind();
     }
 
     public void ResetInterpolation(IWorld world)
@@ -476,8 +474,10 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         if (m_disposed)
             return;
         
-        m_program.Dispose();
+        m_programs.EntityProgram.Dispose();
         m_dataManager.Dispose();
+        m_renderDataPoolArray.Dispose();
+        m_renderDataPoolOverflow.Dispose();
 
         m_disposed = true;
     }

@@ -62,6 +62,12 @@ public class LegacyHudShader : RenderProgram
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
 
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new LegacyHudShader();
+    }
+
     protected override string VertexShader() => @"
         #version 330
 

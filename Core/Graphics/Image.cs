@@ -35,8 +35,9 @@ public class Image
     public Vec2I Offset;
     public readonly ResourceNamespace Namespace;
     public uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
-    public readonly byte[] m_indices;
+    public byte[] m_indices;
     public readonly int UpscaleFactor;
+    public bool AlwaysTrueColor;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -58,11 +59,12 @@ public class Image
         Precondition(h >= 0, "Tried providing a negative height for an image");
     }
 
-    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null, int upscaleFactor = 1)
+    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null, int upscaleFactor = 1, bool alwaysTrueColor = false)
     {
         Precondition(pixels.Length >= dimension.Area, "Image size mismatch");
 
         UpscaleFactor = upscaleFactor;
+        AlwaysTrueColor = alwaysTrueColor;
         Dimension = dimension;
         ImageType = imageType;
         Offset = offset;
@@ -110,25 +112,35 @@ public class Image
     public void DisableIndexedUpload()
     {
         if (UploadType == ImageType.PaletteWithArgb)
+        {
             UploadType = ImageType.Argb;
+            AlwaysTrueColor = true;
+        }
     }
 
-    public void EnableIndexedUpload()
+    public void UpdateToPaletteColor(PaletteColorLookup paletteTranslationColorLookup)
     {
-        if (m_indices.Length > 0)
-            UploadType = ImageType.PaletteWithArgb;
-    }
+        if (ImageType == ImageType.PaletteWithArgb || AlwaysTrueColor)
+            return;
 
-    public static Image? FromPaletteIndices(Dimension dimension, uint[] indices, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
-    {
-        if (dimension.Area != indices.Length)
-            return null;
+        UploadType = ImageType.PaletteWithArgb;
+        ImageType = ImageType.PaletteWithArgb;
 
-        return new(indices, dimension, ImageType.Palette, offset, ns);
+        if (m_indices.Length != m_pixels.Length)
+            m_indices = new byte[m_pixels.Length];
+
+        for (int i = 0; i < m_pixels.Length; i++)
+        {
+            var pixel = new Color(m_pixels[i]);
+            if (pixel.A == 0)
+                continue;
+
+            m_indices[i] = paletteTranslationColorLookup.GetIndex(pixel);
+        }
     }
 
     public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global,
-        Palette? paletteTranslation = null, PaletteColorLookup? paletteTranslationColorLookup = null, byte[]? colorTranslation = null)
+        Palette? paletteTranslation = null, PaletteColorLookup? paletteTranslationColorLookup = null, byte[]? colorTranslation = null, bool alwaysTrueColor = false)
         where TPixel : unmanaged, IPixel<TPixel>
     {
         var indices = paletteTranslation == null ? null : new ushort[data.Height * data.Width];
@@ -169,10 +181,10 @@ public class Image
             }
         }
 
-        return FromArgbBytes((data.Width, data.Height), argbData, imageOffset, ns, indices);
+        return FromArgbBytes((data.Width, data.Height), argbData, imageOffset, ns, indices, alwaysTrueColor);
     }
 
-    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global, ushort[]? indices = null)
+    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global, ushort[]? indices = null, bool alwaysTrueColor = false)
     {
         if (dimension.Area * 4 != argbData.Length)
             return null;
@@ -194,7 +206,7 @@ public class Image
         }
 
         var imageType = indices == null ? ImageType.Rgba : ImageType.PaletteWithArgb;
-        return new(pixels, dimension, imageType, offset, ns, indices);
+        return new(pixels, dimension, imageType, offset, ns, indices, alwaysTrueColor: alwaysTrueColor);
     }
 
     public Image GetUpscaled(int upscalingFactor)

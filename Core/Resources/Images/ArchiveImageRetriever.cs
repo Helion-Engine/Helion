@@ -23,7 +23,19 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     private readonly ArchiveCollection m_archiveCollection = archiveCollection;
     private readonly ResourceTracker<Image> m_compiledImages = new();
-    private readonly bool m_findNearestPaletteIndex = findNearestPaletteIndex;
+    private bool m_findNearestPaletteIndex = findNearestPaletteIndex;
+
+    public void UpdateToPaletteColor()
+    {
+        m_findNearestPaletteIndex = true;
+
+        var paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
+
+        // Need to check for images that may have only loaded true-color like PNGs.
+        // These need to be converted to their nearest palette index if not set.
+        foreach (var image in m_compiledImages.GetValues())
+            image.UpdateToPaletteColor(paletteTranslationColorLookup);
+    }
 
     public static bool IsPng(byte[] data)
     {
@@ -66,8 +78,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
     {
         return m_compiledImages.GetNames(specificNamespace)
             .Concat(m_archiveCollection.Entries.GetNames(specificNamespace))
-            .Concat(m_archiveCollection.Definitions.Textures.GetNames(specificNamespace))
-            .ToList();
+            .Concat(m_archiveCollection.Definitions.Textures.GetNames(specificNamespace));
     }
 
     public Image? GetByFullPath(string path, ResourceNamespace targetNamespace)
@@ -98,6 +109,9 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     private Image ImageFromDefinition(TextureDefinition definition, GetImageOptions options = default, byte[]? colorTranslation = null)
     {
+        var storeIndices = ShouldStoreIndices();
+        var imageType = storeIndices ? ImageType.PaletteWithArgb : ImageType.Argb;
+
         Image image;
         if (definition.IsAutoImageTexture)
         {
@@ -109,12 +123,12 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
                     findImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
             }
 
-            image = findImage ?? new Image(0, 0, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+            image = findImage ?? new Image(0, 0, imageType, (0, 0), definition.Namespace);
         }
         else
         {
             (int w, int h) = definition.Dimension;
-            image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+            image = new(w, h, imageType, (0, 0), definition.Namespace);
 
             foreach (TextureDefinitionComponent component in definition.Components)
             {
@@ -208,19 +222,20 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
                 Palette? paletteTransltion = null;
                 PaletteColorLookup? paletteTranslationColorLookup = null;
-                if (m_findNearestPaletteIndex && !AlwaysTrueColor(entry))
+                var alwaysTrueColor = AlwaysTrueColor(entry);
+                if (m_findNearestPaletteIndex && !alwaysTrueColor)
                 {
                     paletteTransltion = m_archiveCollection.Palette;
                     paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
                 }
                 // Only search for nearest palette colors if colorTranslation is set (e.g. for blood colors)
-                else if (!m_findNearestPaletteIndex && !AlwaysTrueColor(entry) && colorTranslation != null)
+                else if (!m_findNearestPaletteIndex && !alwaysTrueColor && colorTranslation != null)
                 {
                     paletteTransltion = m_archiveCollection.Palette;
                     paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
                 }
 
-                image = Image.FromImageSharp(img, offset, entry.Namespace, paletteTransltion, paletteTranslationColorLookup, colorTranslation);
+                image = Image.FromImageSharp(img, offset, entry.Namespace, paletteTransltion, paletteTranslationColorLookup, colorTranslation, alwaysTrueColor);
             }
             catch
             {
@@ -231,7 +246,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
         {
             bool clearBlackPixels = (options & GetImageOptions.ClearBlackPixels) != 0;
             var dataEntries = m_archiveCollection.Data;
-            var storeIndices = ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
+            var storeIndices = ShouldStoreIndices();
             var palette = entry.Parent.TranslationPalette ?? dataEntries.Palette;
             
             if (colorTranslation == null && palette.Translation != null)
@@ -267,6 +282,8 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
             m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
         return image;
     }
+
+    private bool ShouldStoreIndices() => ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
 
     private static void TranslatePaletteIndices(ushort[] indices, byte[] translation)
     {

@@ -17,7 +17,6 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Numerics;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
@@ -404,6 +403,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         m_textureHandleToFloodFillInfoIndex.Clear();
         m_floodGeometry.Clear();
         m_freeData.Clear();
+        m_freeNodes.Clear();
     }
 
     protected void Dispose(bool disposing)
@@ -414,6 +414,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         ClearData();
 
         m_program.Dispose();
+        m_wallClipProgram.Dispose();
         m_disposed = true;
     }
 

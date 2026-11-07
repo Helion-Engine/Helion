@@ -125,12 +125,18 @@ public class PrimitiveWorldRenderer : IDisposable
         if (m_disposed)
             return;
 
-        for (int i = 0; i < m_drawItems.Count; i++)
-        {
-            var item = m_drawItems[i];
-            item.Pipeline.Dispose();
-        }
+        DisposeDrawItems(m_drawItems);
+        DisposeDrawItems(m_drawItemsTransparent);
+
+        m_program.Dispose();
+
         m_disposed = true;
+    }
+
+    private static void DisposeDrawItems(DynamicArray<PrimitiveVbo> items)
+    {
+        for (int i = 0; i < items.Count; i++)
+            items[i].Pipeline.Dispose();
     }
 
     public void Dispose()

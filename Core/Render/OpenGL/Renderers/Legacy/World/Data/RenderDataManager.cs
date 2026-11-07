@@ -96,6 +96,8 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
                 array[j].Dispose();
         }
 
+        m_healthBarData.Dispose();
+
         m_disposed = true;
     }
 

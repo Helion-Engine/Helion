@@ -8,7 +8,6 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.Assertion;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;

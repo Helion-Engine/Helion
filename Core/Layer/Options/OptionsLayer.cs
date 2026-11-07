@@ -86,11 +86,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
         m_config.Window.MenuScale.OnChanged += Scale_OnChanged;
-        
-        if (m_config is FileConfig fileConfig)
-        {
-            fileConfig.AppRestartRequired += Config_AppRestartRequired;
-        }
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);
         Animation.OnStart += Animation_OnStart;
@@ -99,11 +94,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private void Config_MapRestartRequired(object? sender, EventArgs e)
     {
         ShowMessage(ConfigInfoAttribute.MapRestartRequiredMessage);
-    }
-
-    private void Config_AppRestartRequired(object? sender, EventArgs e)
-    {
-        ShowRestartRequired();
     }
 
     private void Animation_OnStart(object? sender, IAnimationLayer e)

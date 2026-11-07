@@ -11,6 +11,7 @@ public class RenderWorldDataPool
 {
     private readonly RenderProgram m_program;
     private readonly DynamicArray<RenderWorldData> m_renderData;
+    private bool m_disposed;
 
     public int PoolSize { get; set; }
     public int UseCount { get; set; }
@@ -21,6 +22,17 @@ public class RenderWorldDataPool
         m_program = program;
         m_renderData = new(poolSize);
         RefillPool(PoolSize);
+    }
+
+    public void Dispose()
+    {
+        if (m_disposed)
+            return;
+
+        for (int i = 0; i < m_renderData.Length; i++)
+            m_renderData[i].Dispose();
+
+        m_disposed = true;
     }
 
     public void RefillPool(int size)

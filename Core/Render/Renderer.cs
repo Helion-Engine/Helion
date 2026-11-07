@@ -1006,21 +1006,25 @@ public partial class Renderer : IDisposable
         if (m_disposed)
             return;
 
+        UnRegisterWorldEvents();
+
         m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
 
         m_mainFramebuffer.Dispose();
         m_virtualFramebuffer?.Dispose();
+        m_screenshotFramebuffer.Dispose();
         Textures.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();
         m_framebufferRenderer.Dispose();
         m_automapRenderer.Dispose();
+        m_transitionRenderer.Dispose();
         m_sectorLightsBuffer?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
         m_sectorFogBuffer?.Dispose();
-        m_transitionRenderer?.Dispose();
         m_mapDataBuffer?.Dispose();
         m_lineHeightsBuffer?.Dispose();
+        m_colorMapBuffer?.Dispose();
 
         m_disposed = true;
     }

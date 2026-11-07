@@ -131,7 +131,7 @@ public class ResourceTracker<T> where T : class
     /// <summary>
     /// Returns a list of all resources.
     /// </summary>
-    public List<T> GetValues()
+    public IEnumerable<T> GetValues()
     {
         return m_table.GetValues();
     }
@@ -144,7 +144,7 @@ public class ResourceTracker<T> where T : class
     /// <summary>
     /// Returns a list of all resources of the given resource namespace.
     /// </summary>
-    public List<T> GetValues(ResourceNamespace resourceNamespace)
+    public IEnumerable<T> GetValues(ResourceNamespace resourceNamespace)
     {
         return m_table.GetValues(resourceNamespace);
     }

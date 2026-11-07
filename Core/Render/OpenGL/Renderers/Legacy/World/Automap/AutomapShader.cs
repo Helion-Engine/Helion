@@ -1,5 +1,6 @@
 using GlmSharp;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
@@ -17,6 +18,12 @@ public class AutomapShader : RenderProgram
 
     public void Color(Vec3F color) => ProgramUniforms.Set(color, m_colorLocation);
     public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
+
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new AutomapShader();
+    }
 
     protected override string VertexShader() => @"
         #version 330

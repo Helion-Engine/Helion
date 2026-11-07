@@ -100,7 +100,7 @@ public class ConfigWindow: ConfigElement<ConfigWindow>
     [OptionMenu(OptionSectionType.Video, "Display Number", spacer: true, allowReset: false, sliderMin: 0, sliderMax: 10, sliderStep: 1)]
     public readonly ConfigValue<int> Display = new(0, GreaterOrEqual(0));
 
-    [ConfigInfo("Color rendering mode: Palette uses Doom's colormaps and disables texture filtering, producing output that resembles software rendering. True Color interpolates color values. Application restart required.", restartRequired: true)]
+    [ConfigInfo("Color rendering mode: Palette uses Doom's colormaps and disables texture filtering, producing output that resembles software rendering. True Color interpolates color values.")]
     [OptionMenu(OptionSectionType.Video, "Color Mode", allowReset: false)]
     public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
 
