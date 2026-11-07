@@ -22,3 +22,4 @@
 - Significant performance improvement for line of sight.
 - Chasecam command moved to freecam.
 - Minor improvement to entity ticking performance.
+- Changing video color mode and software sprite clipping emulation no longer requires application restart.
