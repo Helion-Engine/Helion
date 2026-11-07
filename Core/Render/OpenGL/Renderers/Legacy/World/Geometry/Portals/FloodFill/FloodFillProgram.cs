@@ -8,11 +8,13 @@ public class FloodFillProgram : RenderProgramBase
 {
     private readonly int m_cameraLocation;
     private readonly int m_cameraDirection;
+    private readonly string m_name;
 
     public FloodFillProgram(string name) : base($"FloodFill - {name}")
     {
         m_cameraLocation = Uniforms.GetLocation("camera");
         m_cameraDirection = Uniforms.GetLocation("cameraDirection");
+        m_name = name;
     }
 
     public void CameraDirection(Vec3F dir) => ProgramUniforms.Set(dir, m_cameraDirection);
@@ -21,7 +23,7 @@ public class FloodFillProgram : RenderProgramBase
     public override RenderProgram Recreate()
     {
         Dispose();
-        return new FloodFillProgram(Label);
+        return new FloodFillProgram(m_name);
     }
 
     protected override string VertexShader() => @"

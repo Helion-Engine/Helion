@@ -20,6 +20,7 @@ public class EntityProgram : RenderProgramBase
     private readonly int m_mapDataTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
     private readonly int m_colorClampLocation;
+    private readonly string m_name;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -36,6 +37,7 @@ public class EntityProgram : RenderProgramBase
         m_fuzzTextureLocation = Uniforms.GetLocation("fuzzTexture");
         m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_colorClampLocation = Uniforms.GetLocation("colorClamp");
+        m_name = name;
     }
     
     public void FuzzTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_fuzzTextureLocation);
@@ -55,7 +57,7 @@ public class EntityProgram : RenderProgramBase
     public override RenderProgram Recreate()
     {
         Dispose();
-        return new EntityProgram(Label);
+        return new EntityProgram(m_name);
     }
 
     private const string BoxDefines = @"

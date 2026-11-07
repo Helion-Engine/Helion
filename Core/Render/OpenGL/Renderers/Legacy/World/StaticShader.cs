@@ -8,7 +8,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
     public override RenderProgram Recreate()
     {
         Dispose();
-        return new StaticShader(Label);
+        return new StaticShader(name);
     }
 
     protected override string VertexShader()

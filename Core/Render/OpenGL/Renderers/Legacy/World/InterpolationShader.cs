@@ -8,7 +8,7 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
     public override RenderProgram Recreate()
     {
         Dispose();
-        return new InterpolationShader(Label);
+        return new InterpolationShader(name);
     }
 
     protected override string VertexShader()
