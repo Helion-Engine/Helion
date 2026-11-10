@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
+using Helion.Util.Configs.Components;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
 
@@ -12,12 +13,14 @@ public class MbfBouncer
 
     public MbfBouncer()
     {
-        World = WorldAllocator.LoadMap("Resources/mbfbouncer.zip", "mbfbouncer.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/mbfbouncer.zip", "mbfbouncer.WAD", "MAP01", GetType().Name, (world) => { world.Config.Compatibility.AllowItemDropoff.Set(CompatSetting.False); }, IWadType.Doom2, cacheWorld: false);
     }
 
     [Fact(DisplayName = "MbfBouncer normal mass")]
     public void BounceNormalMass()
     {
+        World.Config.Compatibility.AllowItemDropoff.Value.Should().Be(CompatSetting.False);
+
         var bouncer = GameActions.CreateEntity(World, "*deh/entity152", new(-384, 64, 64));
         bouncer.Properties.Mass.Should().Be(100);
         bouncer.Flags.MbfBouncer().Should().BeTrue();
