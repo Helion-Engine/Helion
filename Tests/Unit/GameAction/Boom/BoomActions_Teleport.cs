@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Util;
+using Helion.World.Physics;
 using System;
 using System.Linq;
 using Xunit;
@@ -167,5 +168,57 @@ public partial class BoomActions
         eye.Position.Y.Should().Be(336);
         eye.Position.Z.Should().Be(0);
         MathHelper.GetNormalAngle(eye.AngleRadians).Should().BeApproximately(GameActions.GetAngle(Bearing.East), 0.01);
+    }
+
+    [Fact(DisplayName = "Doom teleport item clears velocity")]
+    public void DoomTeleportItemClearsVelocity()
+    {
+        var bfg = GameActions.GetSectorEntity(World, 175, "BFG9000");
+        bfg.Position.Should().Be(new Vec3D(4256, 864, 32));
+
+        GameActions.ActivateLine(World, Player, 867, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 35);
+        bfg.Position.Should().Be(new Vec3D(4256, 672, 0));
+        bfg.Velocity.Should().Be(Vec3D.Zero);
+    }
+
+    [Fact(DisplayName = "Boom teleport line item keeps velocity")]
+    public void BoomTeleportLineItemKeepsVelocity()
+    {
+        var plasma = GameActions.GetSectorEntity(World, 176, "PlasmaRifle");
+        plasma.Position.Should().Be(new Vec3D(4448, 864, 32));
+
+        GameActions.ActivateLine(World, Player, 879, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 35);
+        plasma.Position.X.Should().Be(4448);
+        plasma.Position.Z.Should().Be(0);
+        plasma.Position.Y.Should().BeLessThan(672);
+        plasma.Velocity.Y.Should().BeLessThan(0);
+    }
+
+    [Fact(DisplayName = "Doom teleport monster clears velocity")]
+    public void DoomTeleportMonsterClearsVelocity()
+    {
+        var bfg = GameActions.GetSectorEntity(World, 183, "DoomImp");
+        bfg.Position.Should().Be(new Vec3D(4640, 864, 32));
+
+        GameActions.ActivateLine(World, Player, 901, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 35);
+        bfg.Position.Should().Be(new Vec3D(4640, 672, 0));
+        bfg.Velocity.Should().Be(Vec3D.Zero);
+    }
+
+    [Fact(DisplayName = "Boom teleport line monster keeps velocity")]
+    public void BoomTeleportLineMonsterKeepsVelocity()
+    {
+        var plasma = GameActions.GetSectorEntity(World, 184, "ZombieMan");
+        plasma.Position.Should().Be(new Vec3D(4832, 864, 32));
+
+        GameActions.ActivateLine(World, Player, 913, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.TickWorld(World, 35);
+        plasma.Position.X.Should().Be(4832);
+        plasma.Position.Z.Should().Be(0);
+        plasma.Position.Y.Should().BeLessThan(672);
+        plasma.Velocity.Y.Should().BeLessThan(0);
     }
 }
