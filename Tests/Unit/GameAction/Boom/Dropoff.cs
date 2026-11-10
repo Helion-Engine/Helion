@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
+using Helion.Util.Configs.Components;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
 using static Helion.World.Entities.Entity;
@@ -19,6 +20,7 @@ public class Dropoff
 
     private void WorldInit(SinglePlayerWorld world)
     {
+        world.Config.Compatibility.AllowItemDropoff.Set(CompatSetting.True);
     }
 
 
@@ -29,6 +31,26 @@ public class Dropoff
         shotgun.Position.Z.Should().Be(64);
         GameActions.TickWorld(World, 105);
         shotgun.Position.Z.Should().Be(0);
+    }
+
+    [Fact(DisplayName = "Scrolling floor item dropoff allowed")]
+    public void ScrollingFloorItemDropoffAllowed()
+    {
+        World.Config.Compatibility.AllowItemDropoff.Value.Should().Be(CompatSetting.True);
+        var plasma = GameActions.GetEntity(World, 12);
+        plasma.Position.Z.Should().Be(64);
+        GameActions.TickWorld(World, 105);
+        plasma.Position.Z.Should().Be(0);
+    }
+
+    [Fact(DisplayName = "Scrolling floor item dropoff not allowed")]
+    public void ScrollingFloorItemDropoffNotAllowed()
+    {
+        World.Config.Compatibility.AllowItemDropoff.Set(CompatSetting.False);
+        var plasma = GameActions.GetEntity(World, 12);
+        plasma.Position.Z.Should().Be(64);
+        GameActions.TickWorld(World, 105);
+        plasma.Position.Z.Should().Be(64);
     }
 
     [Fact(DisplayName = "Scrolling floor monster dropoff")]

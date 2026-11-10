@@ -131,6 +131,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
     public bool HasMovementZ;
     public bool HasMovementXY;
     public bool SectorMovement3D;
+    public bool IsBoomSentient;
     public float Alpha;
     public RenderStyle RenderStyle;
 
@@ -244,6 +245,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         MaxTargetRange = Properties.MaxTargetRange;
         MinMissileChance = Properties.MinMissileChance;
         MeleeThreshold = Properties.MeleeThreshold;
+        IsBoomSentient = GetBoomSentient();
 
         FrameState = new(FrameStateOptions.DestroyOnStop);
         Args = args;
@@ -304,6 +306,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         MaxTargetRange = entityModel.MaxTargetRange ?? Properties.MaxTargetRange;
         MinMissileChance = entityModel.MinMissileChance ?? Properties.MinMissileChance;
         MeleeThreshold = entityModel.MeleeThreshold ?? Properties.MeleeThreshold;
+        IsBoomSentient = GetBoomSentient();
         Args = entityModel.Args;
 
         if (entityModel.IsBlood.HasValue && entityModel.IsBlood.Value)
@@ -312,6 +315,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
         if (Flags.Stealth())
             StealthVisible = IsDead();
     }
+
+    private bool GetBoomSentient() => Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
 
     public EntityModel ToEntityModel(EntityModel entityModel)
     {
@@ -983,65 +988,52 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IFloorCeilin
 
     const int DropOffFlags = EntityFlags.FloatFlag | EntityFlags.DropOffFlag;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ShouldCheckDropOff()
-    {
-        if ((Flags.Flags1 & DropOffFlags) != 0)
-            return false;
-
-        if (!WorldStatic.AllowItemDropoff)
-            return true;
-
-        if (IsBoomSentient && Flags.MonsterMove())
-            return true;
-
-        return !Flags.IgnoreDropOff();
-    }
-
-    public bool IsBoomSentient => Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
-
     public bool CheckDropOff(TryMoveData tryMove)
     {
-        if (!ShouldCheckDropOff())
-            return true;
-
-        var maxStepHeight = GetMaxStepHeight();
-        var dropOffZ = tryMove.DropOffZ;
-        // Walking on things test
-        Entity? highestWalk = null;
-        for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
-            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, tryMove.IntersectEntities2D.Data[i], maxStepHeight, ref dropOffZ);
-
-        for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
-            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines.Data[i]].GetMidTexEntity(World), maxStepHeight, ref dropOffZ);
-
-        if (WorldStatic.Sector3D)
+        if (((Flags.Flags1 & DropOffFlags) == 0) &&
+            !(WorldStatic.AllowItemDropoff && !IsBoomSentient) &&
+            ((IsBoomSentient && Flags.MonsterMove()) || !Flags.IgnoreDropOff()))
         {
-            // TODO this could be removed if the move crossed lines.
-            WorldStatic.CheckCounter++;
-            for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
-                highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.IntersectSectors.Data[i], ref dropOffZ);
+            var maxStepHeight = GetMaxStepHeight();
+            var dropOffZ = tryMove.DropOffZ;
+            // Walking on things test
+            Entity? highestWalk = null;
+            for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
+                highestWalk = GetHighestWalkEntity(tryMove, highestWalk, tryMove.IntersectEntities2D.Data[i], maxStepHeight, ref dropOffZ);
 
-            if (tryMove.Subsector != null)
-                highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.Subsector.Sector, ref dropOffZ);
+            for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
+                highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines.Data[i]].GetMidTexEntity(World), maxStepHeight, ref dropOffZ);
 
-            if (tryMove.HasDropOff3D)
-                dropOffZ = tryMove.DropOffZ_3D;
+            if (WorldStatic.Sector3D)
+            {
+                // TODO this could be removed if the move crossed lines.
+                WorldStatic.CheckCounter++;
+                for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
+                    highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.IntersectSectors.Data[i], ref dropOffZ);
+
+                if (tryMove.Subsector != null)
+                    highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.Subsector.Sector, ref dropOffZ);
+
+                if (tryMove.HasDropOff3D)
+                    dropOffZ = tryMove.DropOffZ_3D;
+            }
+
+            tryMove.DropOffZ = dropOffZ;
+            if (highestWalk != null && !highestWalk.Flags.ActLikeBridge() &&
+                highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
+                highestWalk.Position.Z + highestWalk.Height <= Position.Z)
+                return false;
+
+            // Entities can walk over the edge of another entity unlike normal sector lines.
+            // Check drop off from the entity they are on.
+            var onEntity = highestWalk ?? OnEntity();
+            if (onEntity != null && onEntity.Flags.ActLikeBridge())
+                return onEntity.Position.Z + onEntity.Height - dropOffZ <= maxStepHeight;
+
+            return tryMove.HighestFloorZ - dropOffZ <= maxStepHeight;
         }
 
-        tryMove.DropOffZ = dropOffZ;
-        if (highestWalk != null && !highestWalk.Flags.ActLikeBridge() &&
-            highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
-            highestWalk.Position.Z + highestWalk.Height <= Position.Z)
-            return false;
-
-        // Entities can walk over the edge of another entity unlike normal sector lines.
-        // Check drop off from the entity they are on.
-        var onEntity = highestWalk ?? OnEntity();
-        if (onEntity != null && onEntity.Flags.ActLikeBridge())
-            return onEntity.Position.Z + onEntity.Height - dropOffZ <= maxStepHeight;
-
-        return tryMove.HighestFloorZ - dropOffZ <= maxStepHeight;
+        return true;
     }
 
     private Entity? GetHighestWalkEntitySector3D(TryMoveData tryMove, double maxStepHeight, Entity? highestWalk, Sector sector, ref double dropOffZ)

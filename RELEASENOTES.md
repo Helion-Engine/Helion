@@ -16,6 +16,7 @@
 - Fix boom teleport lines to use Boom's original method for non-players.
 - Fix HUD drawing in letterbox areas.
 - Fix HUD autoscale calculation not accounting for window resizes and tweak auto-sizing calculation.
+- Fix allow item dropoff compatibility not functioning by default.
 
 ## Misc:
 - General blockmap traversal improvements.
