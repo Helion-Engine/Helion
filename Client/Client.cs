@@ -285,6 +285,7 @@ public partial class Client : IDisposable, IInputManagement
         GLInfo.ClipControlSupported = GlVersion.IsVersionSupported(4, 5) || (checkExtensions && GLExtensions.Supports("GL_ARB_clip_control"));
         GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4) || (checkExtensions && GLExtensions.Supports("GL_ARB_buffer_storage"));
         GLInfo.MemoryBarrierSupported = GlVersion.IsVersionSupported(4, 2) || (checkExtensions && GLExtensions.Supports("GL_ARB_shader_image_load_store"));
+        GLInfo.UniformTexelFetchElimination = GlVersion.IsVersionSupported(4, 5);
     }
 
     private static void SetIcon(Window window)

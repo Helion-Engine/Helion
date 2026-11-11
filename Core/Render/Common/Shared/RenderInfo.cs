@@ -29,6 +29,7 @@ public class RenderInfo
     public bool BrightMaps;
     public bool SectorColor;
     public bool SectorFog;
+    public bool SectorColorFetchChange;
 
     public RenderInfo()
     {
@@ -43,7 +44,7 @@ public class RenderInfo
 
     public void Set(OldCamera? camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
         Vec2I automapOffset, double automapScale, ConfigRender config, Sector viewSector, TransferHeightView transferHeightView,
-        bool brightMaps, bool sectorColor, bool sectorFog)
+        bool brightMaps, bool sectorColor, bool sectorFog, bool sectorColorFetchChange)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick fraction should be in the unit range");
 
@@ -61,6 +62,7 @@ public class RenderInfo
         BrightMaps = brightMaps;
         SectorColor = sectorColor;
         SectorFog = sectorFog;
+        SectorColorFetchChange = sectorColorFetchChange;
 
         if (!DrawAutomap)
             LastAutomapOffset = Vec2F.Zero;

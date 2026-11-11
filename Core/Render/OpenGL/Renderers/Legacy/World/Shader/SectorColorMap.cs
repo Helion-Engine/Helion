@@ -14,17 +14,55 @@ uniform samplerBuffer sectorFogTexture;";
 
     public static string VertexFunction(string indexVar, string colorVar, string fogVar)
     {
+        if (ShaderVars.UniformTexelFetchElimination)
+        {
+            return
+                $@"
+                if (useSectorColor == 1)
+                    {GetColorMap(indexVar, colorVar)}
+                else
+                    {colorVar} = vec3(1);
+
+                if (useSectorFog >= 1)
+                    {GetFog(indexVar, fogVar)}
+                else
+                    {fogVar} = vec4(0);
+                ";
+        }
+
+        // For old 3.3 GPUs that will not elminate texelFetch branches based on uniform toggles.
+        // Most maps will not use sector color or fog, so this is a performance hit for those maps.
+        // The renderer needs to recreate the programs if the map changes to use either feature.
+        return GetColorMap(indexVar, colorVar) + GetFog(indexVar, fogVar);
+    }
+
+    private static string GetFog(string indexVar, string fogVar)
+    {
+        if (!ShaderVars.FetchSectorFog)
+        {
+            return
+                $@"
+                {fogVar} = vec4(0);
+                ";
+        }
         return
             $@"
-            if (useSectorColor == 1)
-                {colorVar} = texelFetch(sectorColormapTexture, int({indexVar})).rgb;
-            else
-                {colorVar} = vec3(1);
-
-            if (useSectorFog >= 1)
                 {fogVar} = texelFetch(sectorFogTexture, int(mix({indexVar}, 0, float(useSectorFog == {ShaderUniforms.ViewBlendFog})))).rgba;
-            else
-                {fogVar} = vec4(0);
+            ";
+    }
+    private static string GetColorMap(string indexVar, string colorVar)
+    {
+        if (!ShaderVars.FetchSectorColorMap)
+        {
+            return
+                $@"
+                {colorVar} = vec3(1);
+                ";
+        }
+
+        return
+            $@"
+            {colorVar} = texelFetch(sectorColormapTexture, int({indexVar})).rgb;
             ";
     }
 

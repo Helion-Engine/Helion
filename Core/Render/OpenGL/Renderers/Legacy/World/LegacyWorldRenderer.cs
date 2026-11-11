@@ -16,6 +16,7 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
+using Helion.Util.Loggers;
 using Helion.Util.Profiling.Timers;
 using Helion.World;
 using Helion.World.Entities;
@@ -294,6 +295,9 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
+        if (renderInfo.SectorColorFetchChange && !ShaderVars.UniformTexelFetchElimination)
+            RecreateShaderPrograms(renderInfo);
+
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;
@@ -426,6 +430,16 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_renderProfiler.WorldGeometry.Stop();
     }
 
+    private void RecreateShaderPrograms(RenderInfo renderInfo)
+    {
+        ShaderVars.FetchSectorColorMap = renderInfo.SectorColor;
+        ShaderVars.FetchSectorFog = renderInfo.SectorFog;
+        m_stopwatch.Restart();
+        m_programs.Recreate();
+        m_stopwatch.Stop();
+        HelionLog.Info($"Recreated shader programs: {m_stopwatch.Elapsed.TotalMilliseconds}ms");
+    }
+
     private void RenderFloodFill(RenderInfo renderInfo)
     {
         // Doom would draw middle textures over flood fill.
@@ -458,7 +472,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
             viewport = new Rectangle((int)(viewport.X / downScaleAmount), (int)(viewport.Y / downScaleAmount), (int)(viewport.Width / downScaleAmount), (int)(viewport.Height / downScaleAmount));
             m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
                 renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
-                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView, renderInfo.BrightMaps, renderInfo.SectorColor, renderInfo.SectorFog);
+                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView, renderInfo.BrightMaps, renderInfo.SectorColor, renderInfo.SectorFog, renderInfo.SectorColorFetchChange);
             m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, m_downSizedRenderInfo);
 
             GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);

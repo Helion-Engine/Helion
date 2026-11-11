@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Textures;
+using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -41,8 +42,8 @@ public partial class Renderer
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
 
-    private bool m_sectorFog;
-    private bool m_sectorColor;
+    private ToggleState m_sectorFog;
+    private ToggleState m_sectorColor;
 
     public static int GetLightBufferIndex(Side side, Wall wall, Sector sector, out int overrideLightIndex)
     {
@@ -252,7 +253,7 @@ public partial class Renderer
             fog = Vec4F.Zero;
 
         if (fogColor.Uint != 0)
-            m_sectorFog = true;
+            m_sectorFog.Set(true);
 
         Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sector.Id} for sector fog buffer");
 
@@ -267,7 +268,7 @@ public partial class Renderer
         var setColor = GetSectorSetColor(colormap);
 
         if (setColor.X != 1 || setColor.Y != 1 || setColor.Z != 1)
-            m_sectorColor = true;
+            m_sectorColor.Set(true);
 
         Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sector.Id} for sector colormap buffer");
 

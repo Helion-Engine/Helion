@@ -261,6 +261,7 @@ public partial class Renderer : IDisposable
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         ShaderVars.EmulateInvulnerabilityColorMap = m_config.Render.EmulateInvulnerabilityColorMap;
         ShaderVars.SoftwareSpriteEmulation = m_config.Render.VanillaRender;
+        ShaderVars.UniformTexelFetchElimination = GLInfo.UniformTexelFetchElimination;
     }
 
     private void SetReverseZ()
@@ -876,7 +877,7 @@ public partial class Renderer : IDisposable
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, false, false, false);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, false, false, false, false);
 
         m_automapRenderer.Render(cmd.World, m_renderInfo);
     }
@@ -891,7 +892,7 @@ public partial class Renderer : IDisposable
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, 
-            m_archiveCollection.BrightMapFetched, m_sectorColor, m_sectorFog);
+            m_archiveCollection.BrightMapFetched, m_sectorColor.Current, m_sectorFog.Current, m_sectorColor.ConsumeChange() || m_sectorFog.ConsumeChange());
         m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         if (m_renderInfo.Uniforms.SectorFog && m_renderInfo.Uniforms.ViewBlendFogSectorIndex != ShaderUniforms.NoViewBlendSectorIndex)
