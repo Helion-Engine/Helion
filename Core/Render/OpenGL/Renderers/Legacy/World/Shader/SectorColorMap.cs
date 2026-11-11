@@ -36,34 +36,20 @@ uniform samplerBuffer sectorFogTexture;";
         return GetColorMap(indexVar, colorVar) + GetFog(indexVar, fogVar);
     }
 
-    private static string GetFog(string indexVar, string fogVar)
-    {
-        if (!ShaderVars.FetchSectorFog)
-        {
-            return
-                $@"
-                {fogVar} = vec4(0);
-                ";
-        }
-        return
-            $@"
-                {fogVar} = texelFetch(sectorFogTexture, int(mix({indexVar}, 0, float(useSectorFog == {ShaderUniforms.ViewBlendFog})))).rgba;
-            ";
-    }
     private static string GetColorMap(string indexVar, string colorVar)
     {
-        if (!ShaderVars.FetchSectorColorMap)
-        {
-            return
-                $@"
-                {colorVar} = vec3(1);
-                ";
-        }
+        if (!ShaderVars.UniformTexelFetchElimination && !ShaderVars.FetchSectorColorMap)
+            return $"{colorVar} = vec3(1);";
 
-        return
-            $@"
-            {colorVar} = texelFetch(sectorColormapTexture, int({indexVar})).rgb;
-            ";
+        return $"{colorVar} = texelFetch(sectorColormapTexture, int({indexVar})).rgb;";
+    }
+
+    private static string GetFog(string indexVar, string fogVar)
+    {
+        if (!ShaderVars.UniformTexelFetchElimination && !ShaderVars.FetchSectorFog)
+            return $" {fogVar} = vec4(0);";
+
+        return $" {fogVar} = texelFetch(sectorFogTexture, int(mix({indexVar}, 0, float(useSectorFog == {ShaderUniforms.ViewBlendFog})))).rgba;";
     }
 
     public static readonly string FragVariables =
