@@ -179,7 +179,8 @@ public class EntityProgram : RenderProgramBase
             renderDistSquared = distSquared(viewPos.xy, interpolatedPos.xy);
         }
     "
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag"))
+    // This always needs the colormap in palette color
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction("lightIndexInt", "sectorColorMapIndexFrag", "sectorFogColorFrag", forceColorMap: ShaderVars.PaletteColorMode))
     .Replace("${BoxDefines}", BoxDefines)
     .Replace("${DepthBiasBase}", ShaderVars.ReversedZ ? "25e-6" : "5e-4")
     .Replace("${MinMaxPos}", GetMinMaxPos())

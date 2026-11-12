@@ -74,6 +74,9 @@ public partial class Renderer
 
     public unsafe void UpdateToNewWorld(IWorld world)
     {
+        m_sectorColor.Reset(false);
+        m_sectorFog.Reset(false);
+
         m_lastDrawWorldCmd = default;
         m_updateLightSectors.ClearAndReset();
         m_updateColorMapSectors.ClearAndReset();
@@ -267,7 +270,7 @@ public partial class Renderer
         var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
         var setColor = GetSectorSetColor(colormap);
 
-        if (setColor.X != 1 || setColor.Y != 1 || setColor.Z != 1)
+        if (colormap != null && (setColor.X != 1 || setColor.Y != 1 || setColor.Z != 1))
             m_sectorColor.Set(true);
 
         Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sector.Id} for sector colormap buffer");

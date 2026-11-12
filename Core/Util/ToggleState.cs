@@ -4,11 +4,23 @@ public struct ToggleState
 {
     public bool Current;
     public bool Previous;
+    private bool m_resetChange;
 
-    public bool ConsumeChange()
+    public void Reset(bool value)
     {
-        bool changed = Current != Previous && Current == true;
+        Current = value;
+        m_resetChange = true;
+    }
+
+    public bool ConsumeChangeTrue()
+    {
+        var changed = false;
+        if (m_resetChange && Current != Previous)
+            changed = true;
+
+        changed = changed || (Current != Previous && Current == true);
         Previous = Current;
+        m_resetChange = false;
         return changed;
     }
 
