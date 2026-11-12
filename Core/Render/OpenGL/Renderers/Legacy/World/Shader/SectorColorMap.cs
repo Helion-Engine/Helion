@@ -12,14 +12,14 @@ uniform samplerBuffer sectorFogTexture;";
 
     public static string VertexFunctionWorld() => VertexFunction("colorMapIndexFrag", "sectorColorMapIndexFrag", "sectorFogColorFrag");
 
-    public static string VertexFunction(string indexVar, string colorVar, string fogVar, bool forceColorMap = false)
+    public static string VertexFunction(string indexVar, string colorVar, string fogVar)
     {
         if (ShaderVars.UniformTexelFetchElimination)
         {
             return
                 $@"
                 if (useSectorColor == 1)
-                    {GetColorMap(indexVar, colorVar, forceColorMap)}
+                    {GetColorMap(indexVar, colorVar)}
                 else
                     {colorVar} = vec3(1);
 
@@ -33,12 +33,13 @@ uniform samplerBuffer sectorFogTexture;";
         // For old 3.3 GPUs that will not elminate texelFetch branches based on uniform toggles.
         // Most maps will not use sector color or fog, so this is a performance hit for those maps.
         // The renderer needs to recreate the programs if the map changes to use either feature.
-        return GetColorMap(indexVar, colorVar, forceColorMap) + GetFog(indexVar, fogVar);
+        return GetColorMap(indexVar, colorVar) + GetFog(indexVar, fogVar);
     }
 
-    private static string GetColorMap(string indexVar, string colorVar, bool forceColorMap)
+    private static string GetColorMap(string indexVar, string colorVar)
     {
-        if (!ShaderVars.UniformTexelFetchElimination && !ShaderVars.FetchSectorColorMap && !forceColorMap)
+        // Always need the colormap when using PaletteColorMode
+        if (!ShaderVars.UniformTexelFetchElimination && !ShaderVars.FetchSectorColorMap && !ShaderVars.PaletteColorMode)
             return $"{colorVar} = vec3(1);";
 
         return $"{colorVar} = texelFetch(sectorColormapTexture, int({indexVar})).rgb;";
