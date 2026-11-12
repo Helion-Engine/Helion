@@ -86,6 +86,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public IImageRetriever ImageRetriever { get; }
     public bool Loaded { get; private set; }
     public static bool StoreImageIndices => true;
+    public static bool PaletteColorMode => ShaderVars.PaletteColorMode;
     public IConfig Config => m_config;
     public bool BrightMapFetched;
 
