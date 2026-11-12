@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Textures;
 using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -14,6 +15,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Diagnostics;
 using static Helion.Util.Constants;
 
 namespace Helion.Render;
@@ -105,6 +107,15 @@ public partial class Renderer
         m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         SetLineHeights(world, alloc);
+
+        DebugLog();
+    }
+
+    [Conditional("DEBUG")]
+    private void DebugLog()
+    {
+        HelionLog.Info($"SectorColor: {m_sectorColor.Current}");
+        HelionLog.Info($"SectorFog: {m_sectorFog.Current}");
     }
 
     private void UnRegisterWorldEvents()
