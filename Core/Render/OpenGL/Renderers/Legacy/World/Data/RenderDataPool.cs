@@ -60,7 +60,7 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
     [Conditional("DEBUG")]
     public void LogExhaustion()
     {
-        HelionLog.Info($"RenderDataPool exhausted. Consider increasing the size. {UseCount}");
+        HelionLog.Debug($"RenderDataPool exhausted. Consider increasing the size. {UseCount}");
     }
 
     public void Dispose()

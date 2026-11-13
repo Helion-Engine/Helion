@@ -68,7 +68,7 @@ public class RenderWorldDataPool
     [Conditional("DEBUG")]
     public void LogExhaustion()
     {
-        HelionLog.Info($"RenderWorldDataPool exhausted. Consider increasing the size. {UseCount}");
+        HelionLog.Debug($"RenderWorldDataPool exhausted. Consider increasing the size. {UseCount}");
     }
 }
 
