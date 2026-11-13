@@ -50,7 +50,7 @@ public struct ShaderUniforms(
     public ColorMapUniforms ColorMapUniforms = colorMapUniforms;
     public PaletteIndex PaletteIndex = paletteIndex;
     public RenderLightMode LightMode = lightMode;
-    public float GammaCorrection = gammaCorrection;
+    public float GammaCorrection = (gammaCorrection - 1) / 6.0f;
     public int MaxDistance = maxDistance;
     public bool UseBrightmaps = useBrightmaps;
     public bool SectorColor = sectorColor;

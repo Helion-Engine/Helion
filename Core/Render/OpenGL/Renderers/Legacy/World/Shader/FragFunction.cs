@@ -396,7 +396,7 @@ public class FragFunction
 	        fragColor = vec4(average_color, alphaComponent / countComponent);";
     }
 
-    public static string GammaCorrection() => "fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gammaCorrection));";
+    public static string GammaCorrection() => "fragColor.rgb += vec3(gammaCorrection);";
 
     public static string InvulnerabilityFragColor => ShaderVars.PaletteColorMode ? "" :
         """
