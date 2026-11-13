@@ -378,7 +378,6 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
         program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
     }
 

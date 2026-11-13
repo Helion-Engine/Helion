@@ -55,7 +55,7 @@ public struct ShaderUniforms(
     public bool UseBrightmaps = useBrightmaps;
     public bool SectorColor = sectorColor;
     public bool SectorFog = sectorFog;
-     public int SectorFogIndex = sectorFog ? viewBlendSectorFogIndex >= 0 ? ViewBlendFog : 1 : 0;
+    public int SectorFogIndex = sectorFog ? viewBlendSectorFogIndex >= 0 ? ViewBlendFog : 1 : 0;
     public int ViewBlendFogSectorIndex = viewBlendSectorFogIndex;
     public float DownScaleAmount = downScaleAmount;
 }

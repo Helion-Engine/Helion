@@ -8,7 +8,6 @@ public static class ShaderVars
     public static bool SoftwareSpriteEmulation;
     public static bool EmulateInvulnerabilityColorMap;
 
-    public static bool UniformTexelFetchElimination;
     public static bool FetchSectorColorMap;
     public static bool FetchSectorFog;
 }

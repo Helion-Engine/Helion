@@ -221,15 +221,13 @@ public class FragFunction
         // This is to support Sector_SetColor to have true color mixes when still using palette color mode.
         var colorMapFrag = "fragColor.rgb *= mix(vec3(1), min(sectorColorMapIndexFrag, 1), float(sectorColorMapIndexFrag.b >= 0));";
 
-        var fogFrag = "fragColor.rgb *= mix(vec3(1), min(sectorColorMapIndexFrag, 1), float(sectorColorMapIndexFrag.b >= 0));"
-            + $@"
-                float fogFactor = clamp(mix(1.0 - exp(-sectorFogColorFrag.a * dist3D), 0.5, float(useSectorFog == {ShaderUniforms.ViewBlendFog})), 0.0, 1.0);
-                fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, fogFactor);"
+        var fogFrag =
+            $@" 
+                float fogFactor = clamp(mix(1.0 - exp(-sectorFogColorFrag.a * dist2D), 0.5, float(useSectorFog == {ShaderUniforms.ViewBlendFog})), 0.0, 1.0);
+                fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, fogFactor);
+            "
             // Fog barriers need to ignore texture color and just apply fog color + factor directly. Only relevant to the OIT transparent pass for level geometry.
             + ((oitOptions != OitOptions.OitTransparentPass || ctx == ColorMapFetchContext.Entity) ? "" : "fragColor.rgba = mix(fragColor.rgba, vec4(sectorFogColorFrag.rgb, fogFactor), fogBarrier);");
-
-        if (ShaderVars.UniformTexelFetchElimination)
-            return colorMapFrag + fogFrag;
 
         var fragColor = "";
         if (ShaderVars.FetchSectorColorMap)

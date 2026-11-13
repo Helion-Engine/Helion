@@ -378,7 +378,6 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
         program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
         program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
         program.ColorClamp(1f);

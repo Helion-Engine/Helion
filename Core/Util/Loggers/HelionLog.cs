@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Helion.Util.Loggers;
 
@@ -20,5 +21,6 @@ public static class HelionLog
     public static void Info(string message) => Message?.Invoke(null, new(message, MessageLevel.Info));
     public static void Warn(string message) => Message?.Invoke(null, new(message, MessageLevel.Warning));
     public static void Error(string message) => Message?.Invoke(null, new(message, MessageLevel.Error));
+    //[Conditional("DEBUG")]
     public static void Debug(string message) => Message?.Invoke(null, new(message, MessageLevel.Debug));
 }

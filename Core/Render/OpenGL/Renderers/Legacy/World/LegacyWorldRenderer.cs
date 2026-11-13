@@ -295,7 +295,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        if (renderInfo.SectorColorFetchChange && !ShaderVars.UniformTexelFetchElimination)
+        if (renderInfo.SectorColorFetchChange)
             RecreateShaderPrograms(renderInfo);
 
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
@@ -437,7 +437,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_stopwatch.Restart();
         m_programs.Recreate();
         m_stopwatch.Stop();
-        HelionLog.Info($"Recreated shader programs: {m_stopwatch.Elapsed.TotalMilliseconds}ms");
+        HelionLog.Debug($"Recreated shader programs: {m_stopwatch.Elapsed.TotalMilliseconds}ms");
     }
 
     private void RenderFloodFill(RenderInfo renderInfo)
@@ -868,7 +868,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
         program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
@@ -907,7 +906,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
         program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
         program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
         program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));

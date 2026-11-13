@@ -261,7 +261,6 @@ public partial class Renderer : IDisposable
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         ShaderVars.EmulateInvulnerabilityColorMap = m_config.Render.EmulateInvulnerabilityColorMap;
         ShaderVars.SoftwareSpriteEmulation = m_config.Render.VanillaRender;
-        ShaderVars.UniformTexelFetchElimination = GLInfo.UniformTexelFetchElimination;
     }
 
     private void SetReverseZ()
