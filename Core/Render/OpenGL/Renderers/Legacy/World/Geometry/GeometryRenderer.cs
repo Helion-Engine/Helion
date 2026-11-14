@@ -49,7 +49,7 @@ public partial class GeometryRenderer : IDisposable
 
     public readonly PortalRenderer Portals;
     private readonly IConfig m_config;
-    private readonly RenderProgram m_program;
+    private readonly WorldRenderPrograms m_programs;
     private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
     private readonly DynamicArray<TriangulatedWorldVertex> m_subsectorVertices = new();
@@ -109,11 +109,11 @@ public partial class GeometryRenderer : IDisposable
     private BitArray m_hitLines = new(0);
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager, 
+        WorldRenderPrograms renderPrograms, RenderWorldDataManager worldDataManager, 
         ViewClipper viewClipper, ViewClipper viewClipperPrev, RenderProfiler renderProfiler, bool unitTest = false)
     {
         m_config = config;
-        m_program = program;
+        m_programs = renderPrograms;
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, renderProfiler);
@@ -142,8 +142,8 @@ public partial class GeometryRenderer : IDisposable
         }
         else
         {
-            Portals = new(archiveCollection, glTextureManager, renderProfiler);
-            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, renderProfiler, this);
+            Portals = new(archiveCollection, renderPrograms, glTextureManager, renderProfiler);
+            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, renderPrograms.StaticProgram, renderProfiler, this);
             m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
         }
 
@@ -243,7 +243,7 @@ public partial class GeometryRenderer : IDisposable
 
             Portals.UpdateTo(world);
             m_staticCacheGeometryRenderer.UpdateTo(world);
-            m_worldDataManager?.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
+            m_worldDataManager?.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_programs.InterpolationProgram);
         }
     }
 

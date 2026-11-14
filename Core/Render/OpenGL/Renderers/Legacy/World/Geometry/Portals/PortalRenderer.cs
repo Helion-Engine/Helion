@@ -40,11 +40,11 @@ public class PortalRenderer : IDisposable
     private bool m_disposed;
 
 
-    public PortalRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager, RenderProfiler renderProfiler)
+    public PortalRenderer(ArchiveCollection archiveCollection, WorldRenderPrograms renderPrograms, LegacyGLTextureManager glTextureManager, RenderProfiler renderProfiler)
     {
         m_archiveCollection = archiveCollection;
-        m_floodFillStatic = new(glTextureManager, FloodFillRenderMode.Static, renderProfiler);
-        m_floodFillDynamic = new(glTextureManager, FloodFillRenderMode.Dynamic, renderProfiler);
+        m_floodFillStatic = new(renderPrograms, glTextureManager, FloodFillRenderMode.Static, renderProfiler);
+        m_floodFillDynamic = new(renderPrograms, glTextureManager, FloodFillRenderMode.Dynamic, renderProfiler);
         m_floodFillRenderer = m_floodFillStatic;
         m_transferHeightView = TransferHeightView.Middle;
     }

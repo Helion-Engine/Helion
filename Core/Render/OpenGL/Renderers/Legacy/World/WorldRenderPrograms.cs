@@ -1,9 +1,10 @@
 ﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-internal sealed class WorldRenderPrograms
+public sealed class WorldRenderPrograms
 {
     internal InterpolationShader InterpolationProgram = new("Main");
     internal InterpolationTransparentShader InterpolationTransparentProgram = new();
@@ -20,6 +21,9 @@ internal sealed class WorldRenderPrograms
     internal StaticWallClipAlphaShader StaticWallClipAlphaProgram = new();
     internal StaticTransparentShader StaticTransparentProgram = new();
     internal StaticCompositeShader StaticCompositeProgram = new();
+
+    internal FloodFillProgram FloodFillProgram = new("Main");
+    internal FloodFillWallClipProgram FloodFillWallClipProgram = new();
 
     internal EntityProgram EntityProgram = new("Main");
     internal EntityHealthBarProgram EntityHealthBarProgram = new();
@@ -54,6 +58,8 @@ internal sealed class WorldRenderPrograms
         EntityTransparentProgram.Dispose();
         EntityCompositeProgram.Dispose();
         EntityFuzzRefractionProgram.Dispose();
+        FloodFillProgram.Dispose();
+        FloodFillWallClipProgram.Dispose();
     }
 
     public void Recreate()
@@ -80,5 +86,8 @@ internal sealed class WorldRenderPrograms
         EntityTransparentProgram = (EntityTransparentProgram)EntityTransparentProgram.Recreate();
         EntityCompositeProgram = (EntityCompositeProgram)EntityCompositeProgram.Recreate();
         EntityFuzzRefractionProgram = (EntityFuzzRefractionProgram)EntityFuzzRefractionProgram.Recreate();
+
+        FloodFillProgram = (FloodFillProgram)FloodFillProgram.Recreate();
+        FloodFillWallClipProgram = (FloodFillWallClipProgram)FloodFillWallClipProgram.Recreate();
     }
 }
