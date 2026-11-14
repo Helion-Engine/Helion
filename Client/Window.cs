@@ -69,7 +69,11 @@ public class Window : GameWindow, IWindow
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
     private Vector2i? m_knownGoodWindowPos;
+#if WINDOWS
     private bool IsWindowsBorderlessFullscreen => m_isWindows && m_renderWindowState == RenderWindowState.BorderlessFullscreenWindow;
+#else
+    private bool IsWindowsBorderlessFullscreen = false;
+#endif
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly FpsTracker m_fpsTracker;
@@ -310,13 +314,9 @@ public class Window : GameWindow, IWindow
                 case RenderWindowState.Fullscreen:
                     GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                     break;
+#if WINDOWS
                 case RenderWindowState.BorderlessFullscreenWindow:
-                    if (OperatingSystem.IsLinux())
-                    {
-                        // Borderless fullscreen mode changes on linux are _really_ inconsistent, so let's just not do that for now.
-                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
-                        break;
-                    }
+                    // This mode is mainly meaningful for Windows, where some graphics drivers may behave differently here than in exclusive fullscreen.
 
                     // Hide border before going fullscreen, otherwise taskbar gets stuck on Windows
                     WindowBorder = WindowBorder.Hidden;
@@ -334,6 +334,7 @@ public class Window : GameWindow, IWindow
                     GLFW.GetMonitorPos(monitor, out int monitorX, out int monitorY);
                     GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height + addHeight, GLFW.DontCare);
                     break;
+#endif
                 case RenderWindowState.Normal:
                 default:
                     Dimension windowDimension = m_config.Window.Dimension.Value;

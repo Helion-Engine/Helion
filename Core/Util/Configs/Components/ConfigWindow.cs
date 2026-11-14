@@ -15,8 +15,10 @@ public enum RenderWindowState
     Normal,
     [Description("Full Screen (exclusive)")]
     Fullscreen,
+#if WINDOWS
     [Description("Full Screen (borderless window)")]
     BorderlessFullscreenWindow
+#endif
 }
 
 public enum VirtualDrawFilter
@@ -78,7 +80,7 @@ public class ConfigWindow: ConfigElement<ConfigWindow>
     [OptionMenu(OptionSectionType.Video, "Render Mode")]
     public readonly ConfigValue<ConfigRenderMode> RenderMode = new(ConfigRenderMode.TrueColorFast);
 
-    [ConfigInfo("Display fullscreen or windowed.  Borderless Fullscreen is treated as Fullscreen on Linux.")]
+    [ConfigInfo("Display fullscreen or windowed.")]
     [OptionMenu(OptionSectionType.Video, "Fullscreen/Window", allowReset: false, spacer: true)]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
 
