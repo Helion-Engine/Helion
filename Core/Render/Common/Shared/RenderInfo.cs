@@ -8,6 +8,13 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared;
 
+public struct RenderInfoOptions
+{
+    public bool SectorColor;
+    public bool SectorFog;
+    public bool SectorColorFetchChange;
+}
+
 /// <summary>
 /// A simple container for render-related information.
 /// </summary>
@@ -27,9 +34,7 @@ public class RenderInfo
     public Sector ViewSector;
     public TransferHeightView TransferHeightView;
     public bool BrightMaps;
-    public bool SectorColor;
-    public bool SectorFog;
-    public bool SectorColorFetchChange;
+    public RenderInfoOptions Options;
 
     public RenderInfo()
     {
@@ -60,9 +65,9 @@ public class RenderInfo
         ViewSector = viewSector;
         TransferHeightView = transferHeightView;
         BrightMaps = brightMaps;
-        SectorColor = sectorColor;
-        SectorFog = sectorFog;
-        SectorColorFetchChange = sectorColorFetchChange;
+        Options.SectorColor = sectorColor;
+        Options.SectorFog = sectorFog;
+        Options.SectorColorFetchChange = sectorColorFetchChange;
 
         if (!DrawAutomap)
             LastAutomapOffset = Vec2F.Zero;

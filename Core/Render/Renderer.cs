@@ -338,7 +338,7 @@ public partial class Renderer : IDisposable
         }
 
         int viewBlendSectorFogIndex = ShaderUniforms.NoViewBlendSectorIndex;
-        if (renderInfo.SectorFog && renderInfo.ViewerEntity.Sector.GetViewSector3D(renderInfo.ViewerEntity, out var viewSector3D) &&
+        if (renderInfo.Options.SectorFog && renderInfo.ViewerEntity.Sector.GetViewSector3D(renderInfo.ViewerEntity, out var viewSector3D) &&
             (viewSector3D.Flags & SectorFlags3D.NoViewFade) == 0 && viewSector3D.ControlSector.FogColor.Uint != 0)
         {
             viewBlendSectorFogIndex = viewSector3D.ControlSector.Id;
@@ -364,8 +364,8 @@ public partial class Renderer : IDisposable
             (float)config.Render.GammaCorrection.Value,
             maxDistance,
             renderInfo.BrightMaps,
-            renderInfo.SectorColor,
-            renderInfo.SectorFog,
+            renderInfo.Options.SectorColor,
+            renderInfo.Options.SectorFog,
             viewBlendSectorFogIndex,
             GetDownScaleAmount(config, renderInfo));
     }
@@ -881,6 +881,13 @@ public partial class Renderer : IDisposable
         m_automapRenderer.Render(cmd.World, m_renderInfo);
     }
 
+    private bool ConsumeSectorColorFetchChange()
+    {
+        var sectorColorChange = m_sectorColor.ConsumeChangeTrue();
+        var sectorFogChange = m_sectorFog.ConsumeChangeTrue();
+        return sectorColorChange || sectorFogChange;
+    }
+
     private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle viewport)
     {
         if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
@@ -889,12 +896,9 @@ public partial class Renderer : IDisposable
         var viewSector = cmd.World.ToSubsector(cmd.Camera.PositionInterpolated.X, cmd.Camera.PositionInterpolated.Y).Sector;
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
-        var sectorColorChange = m_sectorColor.ConsumeChangeTrue();
-        var sectorFogChange = m_sectorFog.ConsumeChangeTrue();
-
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, 
-            m_archiveCollection.BrightMapFetched, m_sectorColor.Current, m_sectorFog.Current, sectorColorChange || sectorFogChange);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView,
+            m_archiveCollection.BrightMapFetched, m_sectorColor.Current, m_sectorFog.Current, ConsumeSectorColorFetchChange());
         m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         if (m_renderInfo.Uniforms.SectorFog && m_renderInfo.Uniforms.ViewBlendFogSectorIndex != ShaderUniforms.NoViewBlendSectorIndex)

@@ -94,7 +94,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
         GC.SuppressFinalize(this);
     }
 
-    public override void UpdateToNewWorld(IWorld world)
+    public override void UpdateToNewWorld(IWorld world, RenderInfoOptions options)
     {
         m_stopwatch.Restart();
         TransferHeights.FlushSectorReferences();
@@ -131,8 +131,16 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_aboveThresholdCount = 0;
         m_belowThresholdCount = 0;
 
+        HandleRenderInfoOptions(options);
+
         m_stopwatch.Stop();
         Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
+    }
+
+    private void HandleRenderInfoOptions(RenderInfoOptions options)
+    {
+        if (options.SectorColorFetchChange)
+            RecreateShaderPrograms(options);
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)
@@ -295,8 +303,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        if (renderInfo.SectorColorFetchChange)
-            RecreateShaderPrograms(renderInfo);
+        HandleRenderInfoOptions(renderInfo.Options);
 
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
@@ -430,10 +437,10 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_renderProfiler.WorldGeometry.Stop();
     }
 
-    private void RecreateShaderPrograms(RenderInfo renderInfo)
+    private void RecreateShaderPrograms(RenderInfoOptions options)
     {
-        ShaderVars.FetchSectorColorMap = renderInfo.SectorColor;
-        ShaderVars.FetchSectorFog = renderInfo.SectorFog;
+        ShaderVars.FetchSectorColorMap = options.SectorColor;
+        ShaderVars.FetchSectorFog = options.SectorFog;
         m_stopwatch.Restart();
         m_programs.Recreate();
         m_stopwatch.Stop();
@@ -472,7 +479,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
             viewport = new Rectangle((int)(viewport.X / downScaleAmount), (int)(viewport.Y / downScaleAmount), (int)(viewport.Width / downScaleAmount), (int)(viewport.Height / downScaleAmount));
             m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
                 renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
-                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView, renderInfo.BrightMaps, renderInfo.SectorColor, renderInfo.SectorFog, renderInfo.SectorColorFetchChange);
+                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView, renderInfo.BrightMaps, renderInfo.Options.SectorColor, renderInfo.Options.SectorFog, renderInfo.Options.SectorColorFetchChange);
             m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, m_downSizedRenderInfo);
 
             GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
