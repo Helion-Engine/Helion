@@ -889,9 +889,12 @@ public partial class Renderer : IDisposable
         var viewSector = cmd.World.ToSubsector(cmd.Camera.PositionInterpolated.X, cmd.Camera.PositionInterpolated.Y).Sector;
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
+        var sectorColorChange = m_sectorColor.ConsumeChangeTrue();
+        var sectorFogChange = m_sectorFog.ConsumeChangeTrue();
+
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView, 
-            m_archiveCollection.BrightMapFetched, m_sectorColor.Current, m_sectorFog.Current, m_sectorColor.ConsumeChangeTrue() || m_sectorFog.ConsumeChangeTrue());
+            m_archiveCollection.BrightMapFetched, m_sectorColor.Current, m_sectorFog.Current, sectorColorChange || sectorFogChange);
         m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         if (m_renderInfo.Uniforms.SectorFog && m_renderInfo.Uniforms.ViewBlendFogSectorIndex != ShaderUniforms.NoViewBlendSectorIndex)
