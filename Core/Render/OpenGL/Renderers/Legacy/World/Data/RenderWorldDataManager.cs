@@ -17,7 +17,7 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
 
     public bool BufferCoverWalls = true;
 
-    public RenderWorldDataManager(RenderProgram program, Action? onDraw)
+    public RenderWorldDataManager(IRenderProgramHandle program, Action? onDraw)
     {
         m_pool = new(program, 1024);
         m_onDraw = onDraw;
@@ -41,7 +41,7 @@ public sealed class RenderWorldDataManager : StyleRendererBase, IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public void InitCoverWallRenderData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
+    public void InitCoverWallRenderData(GLLegacyTexture texture, IRenderProgramHandle program, GLLegacyTexture? brightmapTexture = null)
     {
         m_coverWalls ??= new(texture, program, brightmapTexture);
     }

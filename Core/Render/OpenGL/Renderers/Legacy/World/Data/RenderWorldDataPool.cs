@@ -9,14 +9,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderWorldDataPool
 {
-    private readonly RenderProgram m_program;
+    private readonly IRenderProgramHandle m_program;
     private readonly DynamicArray<RenderWorldData> m_renderData;
     private bool m_disposed;
 
     public int PoolSize { get; set; }
     public int UseCount { get; set; }
 
-    public RenderWorldDataPool(RenderProgram program, int poolSize)
+    public RenderWorldDataPool(IRenderProgramHandle program, int poolSize)
     {
         PoolSize = poolSize;
         m_program = program;

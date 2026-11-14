@@ -10,7 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> where TVertex : struct
 {
-    private readonly RenderProgram m_program;
+    private readonly IRenderProgramHandle m_program;
     private readonly DynamicArray<RenderData<TVertex>> m_entityRenderData;
     private bool m_disposed;
 
@@ -18,7 +18,7 @@ public class RenderDataPool<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
     public int VboCapacity { get; }
     public int UseCount { get; private set; }
 
-    public RenderDataPool(RenderProgram program, int poolSize, int vboCapacity)
+    public RenderDataPool(IRenderProgramHandle program, int poolSize, int vboCapacity)
     {
         PoolSize = poolSize;
         VboCapacity = vboCapacity;

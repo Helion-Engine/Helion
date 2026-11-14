@@ -8,6 +8,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
@@ -96,7 +97,7 @@ public class LegacyAutomapRenderer : IDisposable
     {
         m_archiveCollection = archiveCollection;
         m_shader = new();
-        m_pipeline = new(m_shader, new StreamVertexBuffer<AutomapVertex>("Automap"), "Automap");
+        m_pipeline = new(new RenderProgramHandle<AutomapShader>(m_shader), new StreamVertexBuffer<AutomapVertex>("Automap"), "Automap");
     }
 
     ~LegacyAutomapRenderer()

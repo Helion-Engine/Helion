@@ -313,9 +313,9 @@ public class FloodFillRenderer(WorldRenderPrograms renderPrograms, LegacyGLTextu
         vbo.UploadSubData(bufferOffset, vertices);
     }
 
-    public void Render(RenderInfo renderInfo) => Render(m_programs.FloodFillProgram, renderInfo, false);
+    public void Render(RenderInfo renderInfo) => Render(m_programs.FloodFillProgram.Program, renderInfo, false);
 
-    public void RenderWallClip(RenderInfo renderInfo) => Render(m_programs.FloodFillWallClipProgram, renderInfo, true);
+    public void RenderWallClip(RenderInfo renderInfo) => Render(m_programs.FloodFillWallClipProgram.Program, renderInfo, true);
 
     private void Render(FloodFillProgram program, RenderInfo renderInfo, bool wallClip)
     {

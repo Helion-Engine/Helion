@@ -1,35 +1,36 @@
 ﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public sealed class WorldRenderPrograms
 {
-    internal InterpolationShader InterpolationProgram = new("Main");
-    internal InterpolationTransparentShader InterpolationTransparentProgram = new();
-    internal InterpolationCompositeShader InterpolationCompositeProgram = new();
-    internal InterpolationPlaneClipAlphaShader InterpolationPlaneClipAlphaProgram = new();
-    internal InterpolationPlaneClipShaderMrt InterpolationPlaneClipMrtProgram = new();
-    internal InterpolationWallClipShader InterpolationWallClipShader = new();
-    internal InterpolationWallClipAlphaShader InterpolationWallClipAlphaProgram = new();
-    internal StaticShader StaticProgram = new("Main");
-    internal StaticPlaneClipShader StaticPlaneClipProgram = new();
-    internal StaticPlaneClipAlphaShader StaticPlaneClipAlphaProgram = new();
-    internal StaticPlaneClipShaderMrt StaticPlaneClipMrtProgram = new();
-    internal StaticWallClipShader StaticWallClipProgram = new();
-    internal StaticWallClipAlphaShader StaticWallClipAlphaProgram = new();
-    internal StaticTransparentShader StaticTransparentProgram = new();
-    internal StaticCompositeShader StaticCompositeProgram = new();
+    internal RenderProgramHandle<InterpolationShader> InterpolationProgram = new(new InterpolationShader("Main"));
+    internal RenderProgramHandle<InterpolationTransparentShader> InterpolationTransparentProgram = new(new InterpolationTransparentShader());
+    internal RenderProgramHandle<InterpolationCompositeShader> InterpolationCompositeProgram = new(new InterpolationCompositeShader());
+    internal RenderProgramHandle<InterpolationPlaneClipAlphaShader> InterpolationPlaneClipAlphaProgram = new(new InterpolationPlaneClipAlphaShader());
+    internal RenderProgramHandle<InterpolationPlaneClipShaderMrt> InterpolationPlaneClipMrtProgram = new(new InterpolationPlaneClipShaderMrt());
+    internal RenderProgramHandle<InterpolationWallClipShader> InterpolationWallClipShader = new(new InterpolationWallClipShader());
+    internal RenderProgramHandle<InterpolationWallClipAlphaShader> InterpolationWallClipAlphaProgram = new(new InterpolationWallClipAlphaShader());
+    internal RenderProgramHandle<StaticShader> StaticProgram = new(new StaticShader("Main"));
+    internal RenderProgramHandle<StaticPlaneClipShader> StaticPlaneClipProgram = new(new StaticPlaneClipShader());
+    internal RenderProgramHandle<StaticPlaneClipAlphaShader> StaticPlaneClipAlphaProgram = new(new StaticPlaneClipAlphaShader());
+    internal RenderProgramHandle<StaticPlaneClipShaderMrt> StaticPlaneClipMrtProgram = new(new StaticPlaneClipShaderMrt());
+    internal RenderProgramHandle<StaticWallClipShader> StaticWallClipProgram = new(new StaticWallClipShader());
+    internal RenderProgramHandle<StaticWallClipAlphaShader> StaticWallClipAlphaProgram = new(new StaticWallClipAlphaShader());
+    internal RenderProgramHandle<StaticTransparentShader> StaticTransparentProgram = new(new StaticTransparentShader());
+    internal RenderProgramHandle<StaticCompositeShader> StaticCompositeProgram = new(new StaticCompositeShader());
 
-    internal FloodFillProgram FloodFillProgram = new("Main");
-    internal FloodFillWallClipProgram FloodFillWallClipProgram = new();
+    internal RenderProgramHandle<FloodFillProgram> FloodFillProgram = new(new FloodFillProgram("Main"));
+    internal RenderProgramHandle<FloodFillWallClipProgram> FloodFillWallClipProgram = new(new FloodFillWallClipProgram());
 
-    internal EntityProgram EntityProgram = new("Main");
-    internal EntityHealthBarProgram EntityHealthBarProgram = new();
-    internal EntityTransparentProgram EntityTransparentProgram = new();
-    internal EntityCompositeProgram EntityCompositeProgram = new();
-    internal EntityFuzzRefractionProgram EntityFuzzRefractionProgram = new();
+    internal RenderProgramHandle<EntityProgram> EntityProgram = new(new EntityProgram("Main"));
+    internal RenderProgramHandle<EntityHealthBarProgram> EntityHealthBarProgram = new(new EntityHealthBarProgram());
+    internal RenderProgramHandle<EntityTransparentProgram> EntityTransparentProgram = new(new EntityTransparentProgram());
+    internal RenderProgramHandle<EntityCompositeProgram> EntityCompositeProgram = new(new EntityCompositeProgram());
+    internal RenderProgramHandle<EntityFuzzRefractionProgram> EntityFuzzRefractionProgram = new(new EntityFuzzRefractionProgram());
 
     public WorldRenderPrograms()
     {
@@ -64,30 +65,30 @@ public sealed class WorldRenderPrograms
 
     public void Recreate()
     {
-        InterpolationProgram = (InterpolationShader)InterpolationProgram.Recreate();
-        InterpolationTransparentProgram = (InterpolationTransparentShader)InterpolationTransparentProgram.Recreate();
-        InterpolationCompositeProgram = (InterpolationCompositeShader)InterpolationCompositeProgram.Recreate();
-        InterpolationPlaneClipAlphaProgram = (InterpolationPlaneClipAlphaShader)InterpolationPlaneClipAlphaProgram.Recreate();
-        InterpolationPlaneClipMrtProgram = (InterpolationPlaneClipShaderMrt)InterpolationPlaneClipMrtProgram.Recreate();
-        InterpolationWallClipShader = (InterpolationWallClipShader)InterpolationWallClipShader.Recreate();
-        InterpolationWallClipAlphaProgram = (InterpolationWallClipAlphaShader)InterpolationWallClipAlphaProgram.Recreate();
+        InterpolationProgram.Recreate();
+        InterpolationTransparentProgram.Recreate();
+        InterpolationCompositeProgram.Recreate();
+        InterpolationPlaneClipAlphaProgram.Recreate();
+        InterpolationPlaneClipMrtProgram.Recreate();
+        InterpolationWallClipShader.Recreate();
+        InterpolationWallClipAlphaProgram.Recreate();
 
-        StaticProgram = (StaticShader)StaticProgram.Recreate();
-        StaticPlaneClipProgram = (StaticPlaneClipShader)StaticPlaneClipProgram.Recreate();
-        StaticPlaneClipAlphaProgram = (StaticPlaneClipAlphaShader)StaticPlaneClipAlphaProgram.Recreate();
-        StaticPlaneClipMrtProgram = (StaticPlaneClipShaderMrt)StaticPlaneClipMrtProgram.Recreate();
-        StaticWallClipProgram = (StaticWallClipShader)StaticWallClipProgram.Recreate();
-        StaticWallClipAlphaProgram = (StaticWallClipAlphaShader)StaticWallClipAlphaProgram.Recreate();
-        StaticTransparentProgram = (StaticTransparentShader)StaticTransparentProgram.Recreate();
-        StaticCompositeProgram = (StaticCompositeShader)StaticCompositeProgram.Recreate();
+        StaticProgram.Recreate();
+        StaticPlaneClipProgram.Recreate();
+        StaticPlaneClipAlphaProgram.Recreate();
+        StaticPlaneClipMrtProgram.Recreate();
+        StaticWallClipProgram.Recreate();
+        StaticWallClipAlphaProgram.Recreate();
+        StaticTransparentProgram.Recreate();
+        StaticCompositeProgram.Recreate();
 
-        EntityProgram = (EntityProgram)EntityProgram.Recreate();
-        EntityHealthBarProgram = (EntityHealthBarProgram)EntityHealthBarProgram.Recreate();
-        EntityTransparentProgram = (EntityTransparentProgram)EntityTransparentProgram.Recreate();
-        EntityCompositeProgram = (EntityCompositeProgram)EntityCompositeProgram.Recreate();
-        EntityFuzzRefractionProgram = (EntityFuzzRefractionProgram)EntityFuzzRefractionProgram.Recreate();
+        EntityProgram.Recreate();
+        EntityHealthBarProgram.Recreate();
+        EntityTransparentProgram.Recreate();
+        EntityCompositeProgram.Recreate();
+        EntityFuzzRefractionProgram.Recreate();
 
-        FloodFillProgram = (FloodFillProgram)FloodFillProgram.Recreate();
-        FloodFillWallClipProgram = (FloodFillWallClipProgram)FloodFillWallClipProgram.Recreate();
+        FloodFillProgram.Recreate();
+        FloodFillWallClipProgram.Recreate();
     }
 }

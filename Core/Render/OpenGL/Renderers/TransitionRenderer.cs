@@ -1,6 +1,7 @@
 ﻿using GlmSharp;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Framebuffer;
+using Helion.Render.OpenGL.Shader;
 using Helion.Window;
 using Helion.World;
 using OpenTK.Graphics.OpenGL;
@@ -28,7 +29,8 @@ public class TransitionRenderer : IDisposable
         m_window = window;
         m_startBuffer = GetNewFramebuffer();
 
-        m_pipeline = new([m_fadeProgram, m_meltProgram, m_noProgram], new StaticVertexBuffer<FramebufferVertex>("Transition"), "Transition");
+        m_pipeline = new([new RenderProgramHandle<FadeTransitionProgram>(m_fadeProgram), new RenderProgramHandle<MeltTransitionProgram>(m_meltProgram), new RenderProgramHandle<NoTransitionProgram>(m_noProgram)], 
+            new StaticVertexBuffer<FramebufferVertex>("Transition"), "Transition");
 
         UploadVertices();
     }

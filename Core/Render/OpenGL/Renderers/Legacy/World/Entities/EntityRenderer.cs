@@ -409,58 +409,58 @@ public sealed class EntityRenderer : StyleRendererBase, IDisposable
 
     public void RenderOpaque(RenderInfo renderInfo)
     {
-        m_programs.EntityProgram.Bind();
+        m_programs.EntityProgram.Program.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_programs.EntityProgram, renderInfo);
+        SetUniforms(m_programs.EntityProgram.Program, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal);
 
         if (m_healthBars)
         {
-            m_programs.EntityHealthBarProgram.Bind();
-            SetUniforms(m_programs.EntityHealthBarProgram, renderInfo);
+            m_programs.EntityHealthBarProgram.Program.Bind();
+            SetUniforms(m_programs.EntityHealthBarProgram.Program, renderInfo);
             m_dataManager.RenderHealthBars();
         }
     }
 
     public void RenderOitTransparentPass(RenderInfo renderInfo)
     {
-        m_programs.EntityTransparentProgram.Bind();
-        m_programs.EntityTransparentProgram.RenderFuzz(false);
+        m_programs.EntityTransparentProgram.Program.Bind();
+        m_programs.EntityTransparentProgram.Program.RenderFuzz(false);
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_programs.EntityTransparentProgram, renderInfo);
+        SetUniforms(m_programs.EntityTransparentProgram.Program, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Add);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
-        m_programs.EntityTransparentProgram.ColorClamp(0.9f);
+        m_programs.EntityTransparentProgram.Program.ColorClamp(0.9f);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd);
-        m_programs.EntityTransparentProgram.Unbind();
+        m_programs.EntityTransparentProgram.Program.Unbind();
     }
 
     public void RenderOitTransparentFuzzPass(RenderInfo renderInfo)
     {
-        m_programs.EntityTransparentProgram.Bind();
-        m_programs.EntityTransparentProgram.RenderFuzz(true);
+        m_programs.EntityTransparentProgram.Program.Bind();
+        m_programs.EntityTransparentProgram.Program.RenderFuzz(true);
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_programs.EntityTransparentProgram, renderInfo);
+        SetUniforms(m_programs.EntityTransparentProgram.Program, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
-        m_programs.EntityTransparentProgram.Unbind();
+        m_programs.EntityTransparentProgram.Program.Unbind();
     }
 
     public void StartRenderOitCompositePass(RenderInfo renderInfo)
     {
-        m_programs.EntityCompositeProgram.Bind();
+        m_programs.EntityCompositeProgram.Program.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_programs.EntityCompositeProgram, renderInfo);
+        SetUniforms(m_programs.EntityCompositeProgram.Program, renderInfo);
     }
 
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)
     {
-        m_programs.EntityFuzzRefractionProgram.Bind();
+        m_programs.EntityFuzzRefractionProgram.Program.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
-        m_programs.EntityFuzzRefractionProgram.RenderFuzzRefractionColor(renderColor);
-        SetUniforms(m_programs.EntityFuzzRefractionProgram, renderInfo);
+        m_programs.EntityFuzzRefractionProgram.Program.RenderFuzzRefractionColor(renderColor);
+        SetUniforms(m_programs.EntityFuzzRefractionProgram.Program, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy);
-        m_programs.EntityFuzzRefractionProgram.Unbind();
+        m_programs.EntityFuzzRefractionProgram.Program.Unbind();
     }
 
     public void ResetInterpolation(IWorld world)
