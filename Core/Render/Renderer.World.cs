@@ -4,8 +4,11 @@ using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Textures;
+using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -41,8 +44,8 @@ public partial class Renderer
     private GLBufferTextureStorage<float>? m_mapDataBuffer;
     private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
 
-    private bool m_sectorFog;
-    private bool m_sectorColor;
+    private ToggleState m_sectorFog;
+    private ToggleState m_sectorColor;
 
     public static int GetLightBufferIndex(Side side, Wall wall, Sector sector, out int overrideLightIndex)
     {
@@ -73,6 +76,12 @@ public partial class Renderer
 
     public unsafe void UpdateToNewWorld(IWorld world)
     {
+        if (!world.SameAsPreviousMap)
+        {
+            m_sectorColor.Reset(false);
+            m_sectorFog.Reset(false);
+        }
+
         m_lastDrawWorldCmd = default;
         m_updateLightSectors.ClearAndReset();
         m_updateColorMapSectors.ClearAndReset();
@@ -82,9 +91,6 @@ public partial class Renderer
         m_updateColorMapSectors.EnsureCapacity(world.Sectors.Count);
         m_updateFogColorSectors.EnsureCapacity(world.Sectors.Count);
         m_updateLineHeights.EnsureCapacity(world.Sectors.Count);
-
-        m_worldRenderer.UpdateToNewWorld(world);
-        m_automapRenderer.UpdateTo(world);
 
         UnRegisterWorldEvents();
 
@@ -101,6 +107,19 @@ public partial class Renderer
         m_sectorColorMapsBuffer = InitLightBuffer(world, alloc, m_sectorColorMapsBuffer, InitSectorColorMap, "Sector colormaps", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         m_sectorFogBuffer = InitLightBuffer(world, alloc, m_sectorFogBuffer, InitSectorFogBuffer, "Sector fog", SizedInternalFormat.Rgba32f, GLBufferTextureStorage<float>.FourComponentLength);
         SetLineHeights(world, alloc);
+
+        var options = new RenderInfoOptions()
+        {
+            SectorColorFetchChange = ConsumeSectorColorFetchChange(),
+            SectorColor = m_sectorColor.Current,
+            SectorFog = m_sectorFog.Current
+        };        
+
+        m_worldRenderer.UpdateToNewWorld(world, options);
+        m_automapRenderer.UpdateTo(world);
+
+        HelionLog.Debug($"SectorColor: {m_sectorColor.Current}");
+        HelionLog.Debug($"SectorFog: {m_sectorFog.Current}");
     }
 
     private void UnRegisterWorldEvents()
@@ -252,7 +271,7 @@ public partial class Renderer
             fog = Vec4F.Zero;
 
         if (fogColor.Uint != 0)
-            m_sectorFog = true;
+            m_sectorFog.Set(true);
 
         Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sector.Id} for sector fog buffer");
 
@@ -266,8 +285,8 @@ public partial class Renderer
         var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
         var setColor = GetSectorSetColor(colormap);
 
-        if (setColor.X != 1 || setColor.Y != 1 || setColor.Z != 1)
-            m_sectorColor = true;
+        if (colormap != null && (setColor.X != 1 || setColor.Y != 1 || setColor.Z != 1))
+            m_sectorColor.Set(true);
 
         Assert.Precondition(bufferLength > index + (GLBufferTextureStorage<float>.FourComponentLength * 3), $"Invalid sector id {sector.Id} for sector colormap buffer");
 

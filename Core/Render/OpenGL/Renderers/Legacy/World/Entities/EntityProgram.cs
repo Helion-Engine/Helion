@@ -100,7 +100,6 @@ public class EntityProgram : RenderProgramBase
         uniform vec2 viewRightNormal;
         uniform vec3 viewPos;
         uniform float timeFrac;
-        uniform int useSectorColor;
         uniform int useSectorFog;
         uniform sampler2DArray boundTexture;
         uniform samplerBuffer sectorColormapTexture;

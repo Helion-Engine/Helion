@@ -61,7 +61,6 @@ public class FloodFillProgram : RenderProgramBase
         uniform vec3 camera;
         uniform vec3 cameraDirection;
         uniform float timeFrac;
-        uniform int useSectorColor;
         uniform int useSectorFog;
 
         void main()

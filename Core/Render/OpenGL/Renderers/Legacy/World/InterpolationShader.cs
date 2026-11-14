@@ -54,7 +54,6 @@ public class InterpolationShader(string name) : RenderProgramBase($"World Interp
         uniform float timeFrac;
         uniform int vertexGapClampUV;
         uniform sampler2DArray boundTexture;
-        uniform int useSectorColor;
         uniform int useSectorFog;
 
         void main() {

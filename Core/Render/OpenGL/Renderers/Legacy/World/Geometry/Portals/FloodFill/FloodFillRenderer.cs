@@ -20,15 +20,14 @@ using System.Diagnostics;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
-public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFillRenderMode renderMode, RenderProfiler renderProfiler) : IDisposable
+public class FloodFillRenderer(WorldRenderPrograms renderPrograms, LegacyGLTextureManager glTextureManager, FloodFillRenderMode renderMode, RenderProfiler renderProfiler) : IDisposable
 {
     const int FloodPlaneAddCount = 2;
     const int VerticesPerWall = 6;
 
     private readonly LegacyGLTextureManager m_glTextureManager = glTextureManager;
     private readonly FloodFillRenderMode m_renderMode = renderMode;
-    private readonly FloodFillProgram m_program = new("Main");
-    private readonly FloodFillWallClipProgram m_wallClipProgram = new();
+    private readonly WorldRenderPrograms m_programs = renderPrograms;
     private readonly List<FloodFillInfo> m_floodFillInfos = [];
     private readonly Dictionary<int, int> m_textureHandleToFloodFillInfoIndex = [];
     private readonly DynamicArray<FloodGeometry> m_floodGeometry = [];
@@ -54,7 +53,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     private FloodFillInfo CreateFloodFillInfo(SectorPlane plane)
     {
         var label = GetLabel(plane);
-        var pipeline = new VertexPipeline<FloodFillVertex>(m_program, new StaticVertexBuffer<FloodFillVertex>(label), label);
+        var pipeline = new VertexPipeline<FloodFillVertex>(m_programs.FloodFillProgram, new StaticVertexBuffer<FloodFillVertex>(label), label);
 
         var texture = m_glTextureManager.GetParentArrayTexture(plane.TextureHandle);
         return new(plane.TextureHandle, texture, plane.Z, pipeline);
@@ -314,9 +313,9 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         vbo.UploadSubData(bufferOffset, vertices);
     }
 
-    public void Render(RenderInfo renderInfo) => Render(m_program, renderInfo, false);
+    public void Render(RenderInfo renderInfo) => Render(m_programs.FloodFillProgram.Program, renderInfo, false);
 
-    public void RenderWallClip(RenderInfo renderInfo) => Render(m_wallClipProgram, renderInfo, true);
+    public void RenderWallClip(RenderInfo renderInfo) => Render(m_programs.FloodFillWallClipProgram.Program, renderInfo, true);
 
     private void Render(FloodFillProgram program, RenderInfo renderInfo, bool wallClip)
     {
@@ -378,7 +377,6 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.UseSectorColor(renderInfo.Uniforms.SectorColor);
         program.UseSectorFog(renderInfo.Uniforms.SectorFogIndex);
     }
 
@@ -413,8 +411,6 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
         ClearData();
 
-        m_program.Dispose();
-        m_wallClipProgram.Dispose();
         m_disposed = true;
     }
 

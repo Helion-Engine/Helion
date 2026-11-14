@@ -14,18 +14,27 @@ uniform samplerBuffer sectorFogTexture;";
 
     public static string VertexFunction(string indexVar, string colorVar, string fogVar)
     {
-        return
-            $@"
-            if (useSectorColor == 1)
-                {colorVar} = texelFetch(sectorColormapTexture, int({indexVar})).rgb;
-            else
-                {colorVar} = vec3(1);
+        // Most maps will not use sector color or fog, so this is a performance hit for those maps.
+        // This only compiles in the fetch / color mix code if when the feature is enabled for fog/color.
+        // The renderer needs to recreate the programs if the map changes to use either feature.
+        return GetColorMap(indexVar, colorVar) + GetFog(indexVar, fogVar);
+    }
 
-            if (useSectorFog >= 1)
-                {fogVar} = texelFetch(sectorFogTexture, int(mix({indexVar}, 0, float(useSectorFog == {ShaderUniforms.ViewBlendFog})))).rgba;
-            else
-                {fogVar} = vec4(0);
-            ";
+    private static string GetColorMap(string indexVar, string colorVar)
+    {
+        // Always need the colormap when using PaletteColorMode
+        if (!ShaderVars.FetchSectorColorMap && !ShaderVars.PaletteColorMode)
+            return $"{colorVar} = vec3(1);";
+
+        return $"{colorVar} = texelFetch(sectorColormapTexture, int({indexVar})).rgb;";
+    }
+
+    private static string GetFog(string indexVar, string fogVar)
+    {
+        if (!ShaderVars.FetchSectorFog)
+            return $" {fogVar} = vec4(0);";
+
+        return $" {fogVar} = texelFetch(sectorFogTexture, int(mix({indexVar}, 0, float(useSectorFog == {ShaderUniforms.ViewBlendFog})))).rgba;";
     }
 
     public static readonly string FragVariables =
