@@ -223,7 +223,7 @@ public class FragFunction
 
         var fogFrag =
             $@" 
-                float fogFactor = clamp(mix(1.0 - exp(-sectorFogColorFrag.a * dist2D), 0.5, float(useSectorFog == {ShaderUniforms.ViewBlendFog})), 0.0, 1.0);
+                float fogFactor = clamp(mix(1.0 - exp(-sectorFogColorFrag.a * dist3D), 0.5, float(useSectorFog == {ShaderUniforms.ViewBlendFog})), 0.0, 1.0);
                 fragColor.rgb = mix(fragColor.rgb, sectorFogColorFrag.rgb, fogFactor);
             "
             // Fog barriers need to ignore texture color and just apply fog color + factor directly. Only relevant to the OIT transparent pass for level geometry.
