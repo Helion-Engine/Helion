@@ -9,6 +9,7 @@
     <ApplicationIcon>helion.ico</ApplicationIcon>
 
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(SelfContainedRelease)' == 'true'">
