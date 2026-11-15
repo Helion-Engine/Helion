@@ -1,6 +1,8 @@
-﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.Hud;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -32,6 +34,10 @@ public sealed class WorldRenderPrograms
     internal RenderProgramHandle<EntityCompositeProgram> EntityCompositeProgram = new(new EntityCompositeProgram());
     internal RenderProgramHandle<EntityFuzzRefractionProgram> EntityFuzzRefractionProgram = new(new EntityFuzzRefractionProgram());
 
+    internal RenderProgramHandle<SkySphereGeometryShader> SkyGeometryProgram = new(new SkySphereGeometryShader());
+    internal RenderProgramHandle<SkySphereForegroundShader> SkyForegroundProgram = new(new SkySphereForegroundShader());
+    internal RenderProgramHandle<SkySphereShader> SkyProgram = new(new SkySphereShader());
+
     public WorldRenderPrograms()
     {
 
@@ -61,6 +67,9 @@ public sealed class WorldRenderPrograms
         EntityFuzzRefractionProgram.Dispose();
         FloodFillProgram.Dispose();
         FloodFillWallClipProgram.Dispose();
+        SkyGeometryProgram.Dispose();
+        SkyForegroundProgram.Dispose();
+        SkyProgram.Dispose();
     }
 
     public void Recreate()
@@ -90,5 +99,9 @@ public sealed class WorldRenderPrograms
 
         FloodFillProgram.Recreate();
         FloodFillWallClipProgram.Recreate();
+
+        SkyGeometryProgram.Recreate();
+        SkyForegroundProgram.Recreate();
+        SkyProgram.Recreate();
     }
 }

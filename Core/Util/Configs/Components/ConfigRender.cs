@@ -183,7 +183,7 @@ public class ConfigRender : ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Downscale Vanilla Buffer")]
     public readonly ConfigValue<double> DownScaleVanillaRenderSampleBuffer = new(1, Clamp(1.0, 8.0));
 
-    [ConfigInfo("Emulates custom invulnerability palettes in true color mode. May not work well with all WADs. Application restart required.", restartRequired: true)]
+    [ConfigInfo("Emulates custom invulnerability palettes in true color mode. May not work well with all WADs. Application restart required.")]
     [OptionMenu(OptionSectionType.Render, "Emulate Invulnerability Colormap")]
     public readonly ConfigValue<bool> EmulateInvulnerabilityColorMap = new(false);
 

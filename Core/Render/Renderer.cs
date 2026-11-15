@@ -100,7 +100,7 @@ public partial class Renderer : IDisposable
 
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, renderProfiler);
-        m_hudRenderer = new LegacyHudRenderer(config, Textures, renderProfiler);
+        m_hudRenderer = new LegacyHudRenderer(config, Textures,  renderProfiler);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
@@ -112,6 +112,7 @@ public partial class Renderer : IDisposable
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged += EmulateInvulnerabilityColorMap_OnChanged;
 
         m_vanillaRender = m_config.Render.VanillaRender;
 
@@ -119,6 +120,11 @@ public partial class Renderer : IDisposable
 
         PrintGLInfo();
         SetGLStates();
+    }
+
+    private void EmulateInvulnerabilityColorMap_OnChanged(object? sender, bool value)
+    {
+        UploadColorMap();
     }
 
     private mat4 CalculateVirtualMvp(GLFramebuffer buffer, Dimension bufferDimension)
@@ -237,7 +243,7 @@ public partial class Renderer : IDisposable
 
     public unsafe void UploadColorMap()
     {
-        if (!(ShaderVars.PaletteColorMode || ShaderVars.EmulateInvulnerabilityColorMap))
+        if (!(ShaderVars.PaletteColorMode || ShaderVars.EmulateInvulnerabilityColorMap) || m_colorMapBuffer != null)
             return;
 
         var colorMapData = ColorMapBuffer.CreateRgba(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
@@ -1016,6 +1022,7 @@ public partial class Renderer : IDisposable
         UnRegisterWorldEvents();
 
         m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged -= EmulateInvulnerabilityColorMap_OnChanged;
 
         m_mainFramebuffer.Dispose();
         m_virtualFramebuffer?.Dispose();

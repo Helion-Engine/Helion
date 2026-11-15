@@ -116,7 +116,7 @@ public partial class GeometryRenderer : IDisposable
         m_programs = renderPrograms;
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
-        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, renderProfiler);
+        m_skyRenderer = new LegacySkyRenderer(archiveCollection, renderPrograms, glTextureManager, renderProfiler);
         m_archiveCollection = archiveCollection;
         m_fakeSideScrollData = new();
         m_fakeSide = new(0, default, m_fakeWall, m_fakeWall, m_fakeWall, m_sliceSector)
@@ -143,7 +143,7 @@ public partial class GeometryRenderer : IDisposable
         else
         {
             Portals = new(archiveCollection, renderPrograms, glTextureManager, renderProfiler);
-            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, renderPrograms.StaticProgram, renderProfiler, this);
+            m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, renderPrograms, renderProfiler, this);
             m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
         }
 

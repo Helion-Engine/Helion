@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -38,6 +39,14 @@ public class LegacyHudRenderer : HudRenderer
         m_program = new RenderProgramHandle<LegacyHudShader>(new LegacyHudShader());
         m_pipeline = new(m_program, new StreamVertexBuffer<HudVertex>("Hud"), "Hud");
         m_drawBuffer = new();
+
+        config.Render.EmulateInvulnerabilityColorMap.OnChanged += EmulateInvulnerabilityColorMap_OnChanged;
+    }
+
+    private void EmulateInvulnerabilityColorMap_OnChanged(object? sender, bool value)
+    {
+        ShaderVars.EmulateInvulnerabilityColorMap = value;
+        m_program.Recreate();
     }
 
     ~LegacyHudRenderer()
@@ -313,6 +322,7 @@ public class LegacyHudRenderer : HudRenderer
 
     private void ReleaseUnmanagedResources()
     {
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged -= EmulateInvulnerabilityColorMap_OnChanged;
         m_pipeline.Dispose();
         m_program.Dispose();
     }

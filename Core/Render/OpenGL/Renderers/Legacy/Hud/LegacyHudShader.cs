@@ -106,7 +106,7 @@ public class LegacyHudShader : RenderProgram
     .Replace("${ColorMapFrag}", ShaderVars.PaletteColorMode ? "flat out float drawPaletteFrag; flat out float hudColorMapIndexFrag;" : "")
     .Replace("${ColorMapFragSet}", ShaderVars.PaletteColorMode ? "drawPaletteFrag = drawPalette; hudColorMapIndexFrag = hudColorMapIndex;" : "");
 
-    private static readonly string TrueColorInvul =
+    private static string TrueColorInvul =>
         """
         if (drawColorMapFrag != 0)
         {

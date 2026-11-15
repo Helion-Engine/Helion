@@ -24,17 +24,17 @@ public class SkySphereRenderer : IDisposable
     private static bool SphereInitialized;
 
     private readonly VertexPipeline<SkySphereVertex> m_pipeline;
-    private readonly SkySphereShader m_skyProgram;
-    private readonly SkySphereForegroundShader m_foregroundProgram;
+    private readonly RenderProgramHandle<SkySphereShader> m_skyProgram;
+    private readonly RenderProgramHandle<SkySphereForegroundShader> m_foregroundProgram;
     private readonly SkySphereTexture m_texture;
 
     private SkyRenderMode m_mode;
 
-    public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
+    public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, WorldRenderPrograms renderPrograms, int textureHandle)
     {
-        m_skyProgram = new();
-        m_foregroundProgram = new();
-        m_pipeline = new([new RenderProgramHandle<SkySphereShader>(m_skyProgram), new RenderProgramHandle<SkySphereForegroundShader>(m_foregroundProgram)],
+        m_skyProgram = renderPrograms.SkyProgram;
+        m_foregroundProgram = renderPrograms.SkyForegroundProgram;
+        m_pipeline = new([m_skyProgram, m_foregroundProgram],
             new StaticVertexBuffer<SkySphereVertex>("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6), "Sky sphere");
         m_texture = new(archiveCollection, textureManager, textureHandle);
         m_texture.LoadTextures();
@@ -56,22 +56,24 @@ public class SkySphereRenderer : IDisposable
         skyTransform.Sky.Offset.X += offset.X;
         skyTransform.Sky.Offset.Y += offset.Y;
 
-        m_skyProgram.Bind();
-        SetSkyUniforms(m_skyProgram, renderInfo, options, m_mode, skyTexture, skyTexture, skyTransform.Sky);
+        var skyProgram = m_skyProgram.Program;
+        var foregroundProgram = m_foregroundProgram.Program;
+
+        skyProgram.Bind();
+        SetSkyUniforms(skyProgram, renderInfo, options, m_mode, skyTexture, skyTexture, skyTransform.Sky);
         DrawSphere(skyTexture.GlTexture);
-        m_skyProgram.Unbind();
+        skyProgram.Unbind();
 
         if (skyTransform.Foreground == null)
             return;
 
-        m_foregroundProgram.Bind();
+        foregroundProgram.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
 
         var foregroundTexture = m_texture.GetForegroundTexture(skyTransform.Foreground);
-        SetSkyUniforms(m_foregroundProgram, renderInfo, SkyOptions.Flip, m_mode, foregroundTexture, skyTexture, skyTransform.Foreground);
+        SetSkyUniforms(foregroundProgram, renderInfo, SkyOptions.Flip, m_mode, foregroundTexture, skyTexture, skyTransform.Foreground);
         DrawSphere(foregroundTexture.GlTexture);
-
-        m_foregroundProgram.Unbind();
+        foregroundProgram.Unbind();
     }
 
     public void Dispose()
@@ -207,8 +209,6 @@ public class SkySphereRenderer : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        m_skyProgram.Dispose();
-        m_foregroundProgram.Dispose();
         m_pipeline.Dispose();
         m_texture.Dispose();
     }

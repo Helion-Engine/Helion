@@ -76,6 +76,14 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_vanillaRender = config.Render.VanillaRender;
+
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged += EmulateInvulnerabilityColorMap_OnChanged;
+    }
+
+    private void EmulateInvulnerabilityColorMap_OnChanged(object? sender, bool value)
+    {
+        ShaderVars.EmulateInvulnerabilityColorMap = value;
+        m_programs.Recreate();
     }
 
     private void OnDynamicDraw()
@@ -931,6 +939,7 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     private void ReleaseUnmanagedResources()
     {
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged -= EmulateInvulnerabilityColorMap_OnChanged;
         m_previousWorld?.OnResetInterpolation -= World_OnResetInterpolation;
         m_geometryRenderer.Dispose();
         m_worldDataManager.Dispose();
