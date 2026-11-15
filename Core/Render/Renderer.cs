@@ -116,7 +116,6 @@ public partial class Renderer : IDisposable
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
-        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged += EmulateInvulnerabilityColorMap_OnChanged;
 
         m_vanillaRender = m_config.Render.VanillaRender;
 
@@ -126,12 +125,10 @@ public partial class Renderer : IDisposable
         SetGLStates();
     }
 
-    private void EmulateInvulnerabilityColorMap_OnChanged(object? sender, bool value)
+    public void RecreateRenderPrograms()
     {
-        ShaderVars.EmulateInvulnerabilityColorMap = value;
         m_renderPrograms.RecreateHud();
         m_renderPrograms.RecreateWorld();
-        UploadColorMap();
     }
 
     private mat4 CalculateVirtualMvp(GLFramebuffer buffer, Dimension bufferDimension)
@@ -1032,7 +1029,6 @@ public partial class Renderer : IDisposable
         UnRegisterWorldEvents();
 
         m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
-        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged -= EmulateInvulnerabilityColorMap_OnChanged;
 
         m_mainFramebuffer.Dispose();
         m_virtualFramebuffer?.Dispose();

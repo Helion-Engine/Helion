@@ -6,9 +6,11 @@ using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Graphics;
 using Helion.Layer;
+using Helion.Layer.IwadSelection;
 using Helion.Layer.Worlds;
 using Helion.Models;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Definitions.MapInfo;
@@ -77,6 +79,8 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_filesLoaded;
     private bool m_invalidateRng;
     private bool m_recreateRenderer;
+    private bool m_updateEmulateInvul;
+    private bool m_renderStateDelay;
     private uint m_minTimerResolution = 1;
     private OnLoadMapComplete? m_onLoadMapComplete;
     private LoadMapResult? m_loadMapResult;
@@ -111,6 +115,7 @@ public partial class Client : IDisposable, IInputManagement
 
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged += EmulateInvulnerabilityColorMap_OnChanged;
         m_config.Hud.Scale.OnChanged += Scale_OnChanged;
 
         GLFWProvider.EnsureInitialized();
@@ -157,10 +162,25 @@ public partial class Client : IDisposable, IInputManagement
     }
 
     private void VanillaRender_OnChanged(object? sender, bool e) =>
-        m_recreateRenderer = true;
+        RecreateRenderer();
 
     private void ColorMode_OnChanged(object? sender, RenderColorMode e) =>
+        RecreateRenderer();
+
+    private void RecreateRenderer()
+    {
+        AddLoadingLayer("Reloading...");
         m_recreateRenderer = true;
+        m_renderStateDelay = true;
+    }
+
+    private void EmulateInvulnerabilityColorMap_OnChanged(object? sender, bool value)
+    {
+        ShaderVars.EmulateInvulnerabilityColorMap = value;
+        AddLoadingLayer("Reloading...");
+        m_updateEmulateInvul = true;
+        m_renderStateDelay = true;
+    }
 
     private void Window_FramebufferResize(FramebufferResizeEventArgs args)
     {
@@ -354,15 +374,7 @@ public partial class Client : IDisposable, IInputManagement
 
     private void Render()
     {
-        if (m_recreateRenderer)
-        {
-            if (m_config.Window.ColorMode.Value == RenderColorMode.Palette)
-                m_archiveCollection.ImageRetriever.UpdateToPaletteColor();
-            m_archiveCollection.TextureManager.ClearRenderStore();
-            m_window.RecreateRenderer(m_layerManager.WorldLayer?.World);
-            LoadRendererFiles();
-            m_recreateRenderer = false;
-        }
+        CheckStateChanges();
 
         m_profiler.Render.Total.Start();
 
@@ -383,6 +395,30 @@ public partial class Client : IDisposable, IInputManagement
         m_profiler.Render.Total.Stop();
 
         m_frameLimiter.Limit(m_window.MaxFps);
+    }
+
+    private void CheckStateChanges()
+    {
+        if (m_recreateRenderer && !m_renderStateDelay)
+        {
+            if (m_config.Window.ColorMode.Value == RenderColorMode.Palette)
+                m_archiveCollection.ImageRetriever.UpdateToPaletteColor();
+            m_archiveCollection.TextureManager.ClearRenderStore();
+            m_window.RecreateRenderer(m_layerManager.WorldLayer?.World);
+            LoadRendererFiles();
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            m_recreateRenderer = false;
+        }
+
+        if (m_updateEmulateInvul && !m_renderStateDelay)
+        {
+            m_window.Renderer.UploadColorMap();
+            m_window.Renderer.RecreateRenderPrograms();
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            m_updateEmulateInvul = false;
+        }
+
+        m_renderStateDelay = false;
     }
 
     private void Window_MainLoop(FrameEventArgs frameEventArgs)
@@ -444,15 +480,8 @@ public partial class Client : IDisposable, IInputManagement
             PrepareTransition();
         }
 
-        var loadingLayer = m_layerManager.LoadingLayer;
-        if (loadingLayer == null)
-        {
-            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
-            m_layerManager.Add(loadingLayer);
-        }
-
-        loadingLayer.LoadingText = $"Loading {load.MapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection.Language)}...";
-        loadingLayer.LoadingImage = m_layerManager.WorldLayer == null ? m_archiveCollection.GameInfo.TitlePage : string.Empty;
+        AddLoadingLayer($"Loading {load.MapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection.Language)}...",
+            m_layerManager.WorldLayer == null ? m_archiveCollection.GameInfo.TitlePage : string.Empty);
 
         var worldLayer = m_layerManager.WorldLayer;
         if (worldLayer != null)
@@ -463,6 +492,23 @@ public partial class Client : IDisposable, IInputManagement
         }
 
         _ = LoadMapAsync(load.MapInfoDef, load.WorldModel, load.PreviousWorld, load.EventContext);
+    }
+
+    private LoadingLayer AddLoadingLayer(string text, string? image = null)
+    {
+        var loadingLayer = m_layerManager.LoadingLayer;
+        if (loadingLayer == null)
+        {
+            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
+            m_layerManager.Add(loadingLayer);
+        }
+
+        loadingLayer.LoadingText = text;
+
+        if (image != null)
+            loadingLayer.LoadingImage = image;
+
+        return loadingLayer;
     }
 
     private void CheckLoadMapComplete()
