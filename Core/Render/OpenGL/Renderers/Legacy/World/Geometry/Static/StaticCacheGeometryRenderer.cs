@@ -932,6 +932,20 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
             {
                 sector.Floor.Static = default;
                 sector.Ceiling.Static = default;
+
+                foreach (var sector3D in sector.Sectors3D)
+                {
+                    sector3D.FakeTop.Static = default;
+                    sector3D.FakeBottom.Static = default;
+                    sector3D.FakeTopFlipped?.Static = default;
+                    sector3D.FakeBottomFlipped?.Static = default;
+
+                    foreach (var line in sector3D.FakeSector.Lines)
+                    {
+                        line.Front.ResetRenderData();
+                        line.Back?.ResetRenderData();
+                    }
+                }
             }
         }
 
