@@ -74,11 +74,21 @@ public class ConfigWindowVirtual: ConfigElement<ConfigWindowVirtual>
 
 public class ConfigWindow: ConfigElement<ConfigWindow>
 {
+    public static RenderWindowState[] GetRenderWindowStates()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return Enum.GetValues<RenderWindowState>();
+        }
+
+        return [RenderWindowState.Normal, RenderWindowState.Fullscreen];
+    }
+
     [ConfigInfo("Render mode. Selections that combine video mode and software sprite clipping emulation", save: false)]
     [OptionMenu(OptionSectionType.Video, "Render Mode")]
     public readonly ConfigValue<ConfigRenderMode> RenderMode = new(ConfigRenderMode.TrueColorFast);
 
-    [ConfigInfo("Display fullscreen or windowed.  Borderless Fullscreen is treated as Fullscreen on Linux.")]
+    [ConfigInfo("Display fullscreen or windowed.")]
     [OptionMenu(OptionSectionType.Video, "Fullscreen/Window", allowReset: false, spacer: true)]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
 

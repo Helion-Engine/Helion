@@ -38,7 +38,7 @@ namespace Helion.Util.Configs
             { typeof(RenderVsyncMode), Enum.GetValues<RenderVsyncMode>() },
             { typeof(FilterType), Enum.GetValues<FilterType>() },
             { typeof(RenderLightMode), Enum.GetValues<RenderLightMode>() },
-            { typeof(RenderWindowState), Enum.GetValues<RenderWindowState>() },
+            { typeof(RenderWindowState), ConfigWindow.GetRenderWindowStates() },
             { typeof(WindowBorder), Enum.GetValues<WindowBorder>() },
             { typeof(RenderColorMode), Enum.GetValues<RenderColorMode>() },
             { typeof(VirtualDrawFilter), Enum.GetValues<VirtualDrawFilter>() },
