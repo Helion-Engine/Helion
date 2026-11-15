@@ -918,7 +918,7 @@ public partial class Renderer : IDisposable
             SetGlobalViewFog(m_renderInfo.Uniforms.ViewBlendFogSectorIndex);
 
         if (m_renderInfo.Options.SectorColorFetchChange)
-            RecreateShaderPrograms(m_renderInfo.Options);
+            RecreateWorldShaderPrograms(m_renderInfo.Options);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 

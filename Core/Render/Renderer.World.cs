@@ -118,7 +118,7 @@ public partial class Renderer
         };
 
         if (options.SectorColorFetchChange)
-            RecreateShaderPrograms(options);
+            RecreateWorldShaderPrograms(options);
 
         m_worldRenderer.UpdateToNewWorld(world, options);
         m_automapRenderer.UpdateTo(world);
@@ -127,7 +127,7 @@ public partial class Renderer
         HelionLog.Debug($"SectorFog: {m_sectorFog.Current}");
     }
 
-    private void RecreateShaderPrograms(RenderInfoOptions options)
+    private void RecreateWorldShaderPrograms(RenderInfoOptions options)
     {
         ShaderVars.FetchSectorColorMap = options.SectorColor;
         ShaderVars.FetchSectorFog = options.SectorFog;
