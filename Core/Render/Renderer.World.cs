@@ -16,6 +16,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Diagnostics;
 using static Helion.Util.Constants;
 
 namespace Helion.Render;
@@ -31,6 +32,7 @@ public partial class Renderer
 
     private unsafe delegate void SetLightBufferPtrAction<T>(IWorld world, T* data, int length);
 
+    private readonly Stopwatch m_stopwatch = new();
     private readonly SectorUpdates m_updateLightSectors = new();
     private readonly SectorUpdates m_updateColorMapSectors = new();
     private readonly SectorUpdates m_updateFogColorSectors = new();
@@ -113,13 +115,26 @@ public partial class Renderer
             SectorColorFetchChange = ConsumeSectorColorFetchChange(),
             SectorColor = m_sectorColor.Current,
             SectorFog = m_sectorFog.Current
-        };        
+        };
+
+        if (options.SectorColorFetchChange)
+            RecreateShaderPrograms(options);
 
         m_worldRenderer.UpdateToNewWorld(world, options);
         m_automapRenderer.UpdateTo(world);
 
         HelionLog.Debug($"SectorColor: {m_sectorColor.Current}");
         HelionLog.Debug($"SectorFog: {m_sectorFog.Current}");
+    }
+
+    private void RecreateShaderPrograms(RenderInfoOptions options)
+    {
+        ShaderVars.FetchSectorColorMap = options.SectorColor;
+        ShaderVars.FetchSectorFog = options.SectorFog;
+        m_stopwatch.Restart();
+        m_renderPrograms.RecreateWorld();
+        m_stopwatch.Stop();
+        HelionLog.Debug($"Recreated shader programs: {m_stopwatch.Elapsed.TotalMilliseconds}ms");
     }
 
     private void UnRegisterWorldEvents()

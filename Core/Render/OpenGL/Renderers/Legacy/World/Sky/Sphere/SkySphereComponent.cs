@@ -79,6 +79,7 @@ public class SkySphereComponent : ISkyComponent
     private void ReleaseUnmanagedResources()
     {
         m_pipeline.Dispose();
+        m_skySphereRenderer.Dispose();
     }
 
     public override string ToString() => Name;

@@ -1,5 +1,4 @@
-﻿using Helion.Render.OpenGL.Renderers.Legacy.Hud;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
