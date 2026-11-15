@@ -311,9 +311,9 @@ public class Window : GameWindow, IWindow
                     GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                     break;
                 case RenderWindowState.BorderlessFullscreenWindow:
-                    if (OperatingSystem.IsLinux())
+                    if (!OperatingSystem.IsWindows())
                     {
-                        // Borderless fullscreen mode changes on linux are _really_ inconsistent, so let's just not do that for now.
+                        // Don't bother implementing "fullscreen window" on Linux/MacOS
                         GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                         break;
                     }
