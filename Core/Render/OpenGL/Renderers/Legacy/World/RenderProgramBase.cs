@@ -36,7 +36,6 @@ public abstract class RenderProgramBase : RenderProgram
     private readonly int m_downScaleAmountLocation;
     private readonly int m_screenBoundsLocation;
     private readonly int m_fogBarrierLocation;
-    private readonly int m_useSectorColorLocation;
     private readonly int m_useSectorFogLocation;
 
     public RenderProgramBase(string label) : base(label)
@@ -69,7 +68,6 @@ public abstract class RenderProgramBase : RenderProgram
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_fogBarrierLocation = Uniforms.GetLocation("fogBarrier");
-        m_useSectorColorLocation = Uniforms.GetLocation("useSectorColor");
         m_useSectorFogLocation = Uniforms.GetLocation("useSectorFog");
     }
 
@@ -102,6 +100,5 @@ public abstract class RenderProgramBase : RenderProgram
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
     public void ScreenBounds(Vec2I value) => ProgramUniforms.Set(value, m_screenBoundsLocation);
     public void FogBarrier(bool value) => ProgramUniforms.Set(value, m_fogBarrierLocation);
-    public void UseSectorColor(bool value) => ProgramUniforms.Set(value, m_useSectorColorLocation);
     public void UseSectorFog(int value) => ProgramUniforms.Set(value, m_useSectorFogLocation);
 }

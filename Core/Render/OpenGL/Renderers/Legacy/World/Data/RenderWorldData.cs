@@ -13,13 +13,13 @@ public class RenderWorldData : IDisposable
     public VertexPipeline<DynamicVertex> Pipeline;
     public int RenderCount;
 
-    public RenderWorldData(RenderProgram program)
+    public RenderWorldData(IRenderProgramHandle program)
     {
         Pipeline = new(program, new DynamicVertexBuffer<DynamicVertex>("DynamicVertex"), "DynamicVertex");
         Texture = null!;
     }
 
-    public RenderWorldData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
+    public RenderWorldData(GLLegacyTexture texture, IRenderProgramHandle program, GLLegacyTexture? brightmapTexture = null)
     {
         Pipeline = new(program, new DynamicVertexBuffer<DynamicVertex>("DynamicVertex"), "DynamicVertex");
         Texture = null!;

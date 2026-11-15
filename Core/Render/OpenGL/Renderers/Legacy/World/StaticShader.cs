@@ -52,7 +52,7 @@ public class StaticShader(string name) : RenderProgramBase($"WorldStatic - {name
         uniform float timeFrac;
         uniform int vertexGapClampUV;
         uniform sampler2DArray boundTexture;
-        uniform int useSectorColor;
+ 
         uniform int useSectorFog;
 
         void main() {

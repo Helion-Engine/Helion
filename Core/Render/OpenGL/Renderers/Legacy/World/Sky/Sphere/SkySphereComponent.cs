@@ -1,6 +1,7 @@
 using System;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
@@ -27,7 +28,7 @@ public class SkySphereComponent : ISkyComponent
         Name = textureManager.GetTexture(textureHandle).Name;
         m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
         m_geometryProgram = new();
-        m_pipeline = new(m_geometryProgram, new StreamVertexBuffer<SkyGeometryVertex>("Sky geometry"), "Sky geometry");
+        m_pipeline = new(new RenderProgramHandle<SkySphereGeometryShader>(m_geometryProgram), new StreamVertexBuffer<SkyGeometryVertex>("Sky geometry"), "Sky geometry");
         m_options = options;
         m_offset = offset;
     }

@@ -1,9 +1,9 @@
-using System;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
@@ -11,6 +11,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
 using Helion.Util.Configs.Components;
 using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
@@ -33,7 +34,8 @@ public class SkySphereRenderer : IDisposable
     {
         m_skyProgram = new();
         m_foregroundProgram = new();
-        m_pipeline = new([m_skyProgram, m_foregroundProgram], new StaticVertexBuffer<SkySphereVertex>("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6), "Sky sphere");
+        m_pipeline = new([new RenderProgramHandle<SkySphereShader>(m_skyProgram), new RenderProgramHandle<SkySphereForegroundShader>(m_foregroundProgram)],
+            new StaticVertexBuffer<SkySphereVertex>("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6), "Sky sphere");
         m_texture = new(archiveCollection, textureManager, textureHandle);
         m_texture.LoadTextures();
 

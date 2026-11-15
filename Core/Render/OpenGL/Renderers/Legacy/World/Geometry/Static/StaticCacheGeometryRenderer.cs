@@ -39,7 +39,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly FloodFillRenderer m_floodFillRenderer;
-    private readonly RenderProgram m_program;
+    private readonly IRenderProgramHandle m_program;
     private readonly RenderGeometry m_geometry = new();
     private readonly RenderProfiler m_renderProfiler;
 
@@ -66,7 +66,7 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
     private readonly bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
-        RenderProgram program, RenderProfiler renderProfiler, GeometryRenderer geometryRenderer)
+        IRenderProgramHandle program, RenderProfiler renderProfiler, GeometryRenderer geometryRenderer)
     {
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;

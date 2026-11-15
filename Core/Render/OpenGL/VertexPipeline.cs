@@ -15,19 +15,19 @@ public class VertexPipeline<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
     public VertexBufferObject<TVertex> Vbo;
     private bool m_disposed;
 
-    public VertexPipeline(RenderProgram program, VertexBufferObject<TVertex> vbo, string vaoLabel)
+    public VertexPipeline(IRenderProgramHandle program, VertexBufferObject<TVertex> vbo, string vaoLabel)
         : this(MemoryMarshal.CreateSpan(ref program, 1), vbo, vaoLabel)
     {
 
     }
 
-    public VertexPipeline(Span<RenderProgram> programs, VertexBufferObject<TVertex> vbo, string vaoLabel)
+    public VertexPipeline(Span<IRenderProgramHandle> programs, VertexBufferObject<TVertex> vbo, string vaoLabel)
     {
         Vbo = vbo;
         Vao = new(vaoLabel, VertexArrayType.Legacy);
         Vao.Bind();
         for (int i = 0; i < programs.Length; i++)
-            Attributes.BindAndApply(Vbo, Vao, programs[i].Attributes);
+            Attributes.BindAndApply(Vbo, Vao, programs[i].ProgramBase.Attributes);
     }
 
     public void Bind(bool bindVbo = false)

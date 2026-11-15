@@ -24,3 +24,4 @@
 - Chasecam command moved to freecam.
 - Minor improvement to entity ticking performance.
 - Changing video color mode and software sprite clipping emulation no longer requires application restart.
+- Optimized shader generation for sector color and sector fog. Maps that do not use these features can see up to a 14% performance improvement on integrated GPUs.

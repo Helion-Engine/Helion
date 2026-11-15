@@ -82,7 +82,7 @@ public class FramebufferRenderer : IDisposable
 
     public FramebufferRenderer()
     {
-        m_pipeline = new(m_program, new StaticVertexBuffer<FramebufferVertex>("Framebuffer"), "Framebuffer");
+        m_pipeline = new(new RenderProgramHandle<FramebufferProgram>(m_program), new StaticVertexBuffer<FramebufferVertex>("Framebuffer"), "Framebuffer");
         UploadVertices();
     }
 

@@ -17,12 +17,12 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
     public int RenderCount;
     private bool m_disposed;
 
-    public RenderData(RenderProgram program, int capacity, GLLegacyTexture texture, GLLegacyTexture? brightMapTexture = null) : this(program, capacity)
+    public RenderData(IRenderProgramHandle program, int capacity, GLLegacyTexture texture, GLLegacyTexture? brightMapTexture = null) : this(program, capacity)
     {
         Set(texture, brightMapTexture);
     }
 
-    public RenderData(RenderProgram program, int capacity)
+    public RenderData(IRenderProgramHandle program, int capacity)
     {
         Pipeline = new(program, new DynamicVertexBuffer<TVertex>("Entity VBO", capacity), "Entity VAO");
         ArrayData = Pipeline.Vbo.Data;

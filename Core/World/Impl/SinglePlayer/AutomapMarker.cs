@@ -185,7 +185,7 @@ public class AutomapMarker(IConfig config) : IBspHeuristics
     {
         var viewPosition = pos.Position.Float;
         m_camera.Set(viewPosition, viewPosition, (float)pos.AngleRadians, (float)pos.PitchRadians);
-        m_renderInfo.Set(m_camera, 0, viewport, m_dummyEntity, false, default, 0, m_world.Config.Render, Sector.Default, default, default, default, default);
+        m_renderInfo.Set(m_camera, 0, viewport, m_dummyEntity, false, default, 0, m_world.Config.Render, Sector.Default, default, default, default, default, default);
         var mvp = Renderer.CalculateMvpMatrix(m_renderInfo, onlyXY: true);
         Frustum.SetFrustumPlanes(ref mvp, ref m_frustumPlanes);
     }

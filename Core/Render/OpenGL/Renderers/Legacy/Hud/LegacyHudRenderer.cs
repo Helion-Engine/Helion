@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
@@ -23,7 +24,7 @@ public class LegacyHudRenderer : HudRenderer
 {
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly VertexPipeline<HudVertex> m_pipeline;
-    private readonly LegacyHudShader m_program;
+    private readonly RenderProgramHandle<LegacyHudShader> m_program;
     private readonly HudDrawBuffer m_drawBuffer;
     private readonly IConfig m_config;
     private readonly RenderProfiler m_renderProfiler;
@@ -34,7 +35,7 @@ public class LegacyHudRenderer : HudRenderer
         m_config = config;
         m_textureManager = textureManager;
         m_renderProfiler = renderProfiler;
-        m_program = new();
+        m_program = new RenderProgramHandle<LegacyHudShader>(new LegacyHudShader());
         m_pipeline = new(m_program, new StreamVertexBuffer<HudVertex>("Hud"), "Hud");
         m_drawBuffer = new();
     }
@@ -143,27 +144,28 @@ public class LegacyHudRenderer : HudRenderer
 
     public override void Render(Rectangle viewport, Dimension windowDimension, Dimension virtualDimension, ShaderUniforms uniforms)
     {
-        m_program.Bind();
+        var program = m_program.Program;
+        program.Bind();
 
         GetFuzzSampleFactorAndOffset(windowDimension, virtualDimension, out var fuzzSampleFactor, out var fuzzSampleOffset);
 
         GL.ActiveTexture(BindTextures.BoundTexture);
-        m_program.BoundTexture(BindTextures.BoundTexture);
-        m_program.ColormapTexture(BindTextures.Colormap);
-        m_program.OpaqueTexture(BindTextures.OpaqueTexture);
-        m_program.BrightmapTexture(BindTextures.BrightmapTexture);
-        m_program.Mvp(CreateMvp(viewport));
-        m_program.FuzzFrac(Renderer.GetTimeFrac());
-        m_program.FuzzDiv(Renderer.GetFuzzDiv(m_config.Render, viewport));
-        m_program.FuzzRefraction(m_config.Render.PostProcessingEffects.Value);
-        m_program.FuzzSampleFactor(fuzzSampleFactor);
-        m_program.FuzzSampleOffset(fuzzSampleOffset);
-        m_program.PaletteIndex((int)uniforms.PaletteIndex);
-        m_program.ColorMapIndex(uniforms.ColorMapUniforms.SectorIndex == 0 ? uniforms.ColorMapUniforms.GlobalIndex : uniforms.ColorMapUniforms.SectorIndex);
-        m_program.HasInvulnerability(uniforms.DrawInvulnerability);
-        m_program.GammaCorrection(uniforms.GammaCorrection);
-        m_program.ScreenBounds((viewport.Width, viewport.Height));
-        m_program.UseBrightmaps(uniforms.UseBrightmaps);
+        program.BoundTexture(BindTextures.BoundTexture);
+        program.ColormapTexture(BindTextures.Colormap);
+        program.OpaqueTexture(BindTextures.OpaqueTexture);
+        program.BrightmapTexture(BindTextures.BrightmapTexture);
+        program.Mvp(CreateMvp(viewport));
+        program.FuzzFrac(Renderer.GetTimeFrac());
+        program.FuzzDiv(Renderer.GetFuzzDiv(m_config.Render, viewport));
+        program.FuzzRefraction(m_config.Render.PostProcessingEffects.Value);
+        program.FuzzSampleFactor(fuzzSampleFactor);
+        program.FuzzSampleOffset(fuzzSampleOffset);
+        program.PaletteIndex((int)uniforms.PaletteIndex);
+        program.ColorMapIndex(uniforms.ColorMapUniforms.SectorIndex == 0 ? uniforms.ColorMapUniforms.GlobalIndex : uniforms.ColorMapUniforms.SectorIndex);
+        program.HasInvulnerability(uniforms.DrawInvulnerability);
+        program.GammaCorrection(uniforms.GammaCorrection);
+        program.ScreenBounds((viewport.Width, viewport.Height));
+        program.UseBrightmaps(uniforms.UseBrightmaps);
 
         m_pipeline.Bind();
 
@@ -188,7 +190,7 @@ public class LegacyHudRenderer : HudRenderer
         }
 
         m_pipeline.Unbind();
-        m_program.Unbind();
+        program.Unbind();
     }
 
     private void GetFuzzSampleFactorAndOffset(Dimension windowDimension, Dimension virtualDimension, out Vec2F factor, out Vec2F offset)

@@ -159,7 +159,7 @@ public static class GLTextureArrayBuilder
     [Conditional("DEBUG")]
     private static void DebugLog(TextureContext textureContext, int totalTextures, int compressed)
     {
-        HelionLog.Info($"Compressed {textureContext} textures {totalTextures} -> {compressed}");
+        HelionLog.Debug($"Compressed {textureContext} textures {totalTextures} -> {compressed}");
     }
 
     private static int BuildTextureArrayFromTextures(IRendererTextureManager renderTextureManager, DynamicArray<Resources.Texture> textures, TextureContext textureContext, TextureFlags textureFlags, bool addToTextureTracker = false)

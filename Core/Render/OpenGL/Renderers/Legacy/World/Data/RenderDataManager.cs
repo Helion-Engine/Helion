@@ -25,7 +25,7 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     private readonly RenderData<TVertex> m_healthBarData;
     private bool m_disposed;
 
-    public RenderDataManager(RenderProgram program, GLLegacyTexture healthBarTexture, RenderDataPool<TVertex> renderDataPoolArray, RenderDataPool<TVertex> renderDataPoolOverflow, Action? onDraw = null)
+    public RenderDataManager(IRenderProgramHandle program, GLLegacyTexture healthBarTexture, RenderDataPool<TVertex> renderDataPoolArray, RenderDataPool<TVertex> renderDataPoolOverflow, Action? onDraw = null)
     {
         Assert.Precondition(RenderStyleLookup.Length == (int)RenderStyle.Count, "Render style lookup size mismatch");
 

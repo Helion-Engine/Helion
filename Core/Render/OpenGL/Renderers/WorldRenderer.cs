@@ -35,7 +35,8 @@ public abstract class WorldRenderer : IDisposable
     /// provided.
     /// </summary>
     /// <param name="world">The world to update to.</param>
-    public abstract void UpdateToNewWorld(IWorld world);
+    /// <param name="options">Options for rendering on the world update.</param>
+    public abstract void UpdateToNewWorld(IWorld world, RenderInfoOptions options);
 
     /// <summary>
     /// Performs the actual rendering commands.

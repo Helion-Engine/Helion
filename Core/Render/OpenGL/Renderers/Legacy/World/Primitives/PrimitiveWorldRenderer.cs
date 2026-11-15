@@ -1,6 +1,7 @@
 ﻿using System;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Container;
@@ -15,7 +16,7 @@ public class PrimitiveWorldRenderer : IDisposable
 {
     private readonly DynamicArray<PrimitiveVbo> m_drawItems = [];
     private readonly DynamicArray<PrimitiveVbo> m_drawItemsTransparent = [];
-    private readonly PrimitiveShader m_program = new();
+    private readonly RenderProgramHandle<PrimitiveShader> m_program = new(new PrimitiveShader());
     private bool m_disposed;
 
     public bool HasOpaque;
@@ -98,8 +99,9 @@ public class PrimitiveWorldRenderer : IDisposable
 
     private void Render(RenderInfo renderInfo, DynamicArray<PrimitiveVbo> items)
     {
-        m_program.Bind();
-        m_program.Mvp(renderInfo.Uniforms.Mvp);
+        var program = m_program.Program;
+        program.Bind();
+        program.Mvp(renderInfo.Uniforms.Mvp);
 
         for (int i = 0; i < items.Length; i++)
         {
@@ -117,7 +119,7 @@ public class PrimitiveWorldRenderer : IDisposable
 
         GL.LineWidth(1); // Any automap drawing should return to normal afterwards.
 
-        m_program.Unbind();
+        program.Unbind();
     }
 
     protected virtual void Dispose(bool disposing)

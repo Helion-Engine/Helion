@@ -130,10 +130,12 @@ public sealed class Side
         LowerInvalidatedCount = default;
         AlphaInvalidatedCount = default;
         SkyGeometry = default;
+        FogCleared = Fog != null;
 
         Upper.Reset();
         Middle.Reset();
         Lower.Reset();
+        Fog?.Reset();
     }
 
     public void ResetRenderData()
