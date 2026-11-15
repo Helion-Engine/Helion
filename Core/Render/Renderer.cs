@@ -12,6 +12,7 @@ using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
@@ -68,6 +69,7 @@ public partial class Renderer : IDisposable
     private readonly FramebufferRenderer m_framebufferRenderer = new();
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly TransitionRenderer m_transitionRenderer;
+    private readonly RenderPrograms m_renderPrograms;
     private readonly Image m_framebufferImage = new([], (0, 0), ImageType.Rgba, (0, 0), Resources.ResourceNamespace.Global);
     private readonly bool m_vanillaRender;
     private readonly Action m_hudDrawImagesAction;
@@ -98,9 +100,11 @@ public partial class Renderer : IDisposable
         SetGLDebugger();
         SetShaderVars();
 
+        m_renderPrograms = new();
+
         Textures = new LegacyGLTextureManager(config, archiveCollection);
-        m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, renderProfiler);
-        m_hudRenderer = new LegacyHudRenderer(config, Textures, renderProfiler);
+        m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures, m_renderPrograms.WorldRenderPrograms, renderProfiler);
+        m_hudRenderer = new LegacyHudRenderer(config, Textures, m_renderPrograms.HudProgram, renderProfiler);
         m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
         m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
@@ -112,6 +116,7 @@ public partial class Renderer : IDisposable
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged += EmulateInvulnerabilityColorMap_OnChanged;
 
         m_vanillaRender = m_config.Render.VanillaRender;
 
@@ -119,6 +124,14 @@ public partial class Renderer : IDisposable
 
         PrintGLInfo();
         SetGLStates();
+    }
+
+    private void EmulateInvulnerabilityColorMap_OnChanged(object? sender, bool value)
+    {
+        ShaderVars.EmulateInvulnerabilityColorMap = value;
+        m_renderPrograms.RecreateHud();
+        m_renderPrograms.RecreateWorld();
+        UploadColorMap();
     }
 
     private mat4 CalculateVirtualMvp(GLFramebuffer buffer, Dimension bufferDimension)
@@ -237,7 +250,7 @@ public partial class Renderer : IDisposable
 
     public unsafe void UploadColorMap()
     {
-        if (!(ShaderVars.PaletteColorMode || ShaderVars.EmulateInvulnerabilityColorMap))
+        if (!(ShaderVars.PaletteColorMode || ShaderVars.EmulateInvulnerabilityColorMap) || m_colorMapBuffer != null)
             return;
 
         var colorMapData = ColorMapBuffer.CreateRgba(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
@@ -904,6 +917,9 @@ public partial class Renderer : IDisposable
         if (m_renderInfo.Uniforms.SectorFog && m_renderInfo.Uniforms.ViewBlendFogSectorIndex != ShaderUniforms.NoViewBlendSectorIndex)
             SetGlobalViewFog(m_renderInfo.Uniforms.ViewBlendFogSectorIndex);
 
+        if (m_renderInfo.Options.SectorColorFetchChange)
+            RecreateWorldShaderPrograms(m_renderInfo.Options);
+
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 
         if (ShaderVars.ReversedZ)
@@ -1016,6 +1032,7 @@ public partial class Renderer : IDisposable
         UnRegisterWorldEvents();
 
         m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
+        m_config.Render.EmulateInvulnerabilityColorMap.OnChanged -= EmulateInvulnerabilityColorMap_OnChanged;
 
         m_mainFramebuffer.Dispose();
         m_virtualFramebuffer?.Dispose();

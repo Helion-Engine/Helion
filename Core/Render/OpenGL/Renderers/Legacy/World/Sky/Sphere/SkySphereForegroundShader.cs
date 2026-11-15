@@ -1,4 +1,5 @@
 ﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
@@ -7,6 +8,12 @@ internal sealed class SkySphereForegroundShader : SkySphereShader
     public SkySphereForegroundShader() : base("Sky foreground texture")
     {
 
+    }
+
+    public override RenderProgram Recreate()
+    {
+        Dispose();
+        return new SkySphereForegroundShader();
     }
 
     protected override string VertexShader() => @"

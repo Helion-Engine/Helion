@@ -65,15 +65,15 @@ public partial class StaticCacheGeometryRenderer : StyleRendererBase, IDisposabl
 
     private readonly bool m_vanillaRender;
 
-    public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
-        IRenderProgramHandle program, RenderProfiler renderProfiler, GeometryRenderer geometryRenderer)
+    public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, WorldRenderPrograms renderPrograms,
+        RenderProfiler renderProfiler, GeometryRenderer geometryRenderer)
     {
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_floodFillRenderer = geometryRenderer.Portals.GetStaticFloodFillRenderer();
-        m_program = program;
-        m_skyRenderer = new(archiveCollection, textureManager, renderProfiler);
+        m_program = renderPrograms.StaticProgram;
+        m_skyRenderer = new(archiveCollection, renderPrograms, textureManager, renderProfiler);
         m_textureToGeometryLookup = new(textureManager);
         m_freeManager = new(textureManager);
         m_renderProfiler = renderProfiler;

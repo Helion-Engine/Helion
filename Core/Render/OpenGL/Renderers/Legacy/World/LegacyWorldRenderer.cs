@@ -64,11 +64,12 @@ public partial class LegacyWorldRenderer : WorldRenderer
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
     private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
-    private readonly WorldRenderPrograms m_programs = new();
+    private readonly WorldRenderPrograms m_programs;
 
-    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, RenderProfiler renderProfiler)
+    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, WorldRenderPrograms renderPrograms, RenderProfiler renderProfiler)
     {
         m_config = config;
+        m_programs = renderPrograms;
         m_renderProfiler = renderProfiler;
         m_entityRenderer = new(config, textureManager, archiveCollection, renderProfiler, m_programs);
         m_worldDataManager = new(m_programs.InterpolationProgram, OnDynamicDraw);
@@ -131,16 +132,8 @@ public partial class LegacyWorldRenderer : WorldRenderer
         m_aboveThresholdCount = 0;
         m_belowThresholdCount = 0;
 
-        HandleRenderInfoOptions(options);
-
         m_stopwatch.Stop();
         Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
-    }
-
-    private void HandleRenderInfoOptions(RenderInfoOptions options)
-    {
-        if (options.SectorColorFetchChange)
-            RecreateShaderPrograms(options);
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)
@@ -303,8 +296,6 @@ public partial class LegacyWorldRenderer : WorldRenderer
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        HandleRenderInfoOptions(renderInfo.Options);
-
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_lastRenderStatic = m_renderStatic;

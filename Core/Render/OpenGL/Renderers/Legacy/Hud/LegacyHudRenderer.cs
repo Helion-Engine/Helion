@@ -12,7 +12,6 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Definitions.Zdoom;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Profiling.Timers;
 using OpenTK.Graphics.OpenGL;
@@ -30,12 +29,12 @@ public class LegacyHudRenderer : HudRenderer
     private readonly RenderProfiler m_renderProfiler;
     private float DrawDepth = 1.0f;
 
-    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderProfiler renderProfiler)
+    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderProgramHandle<LegacyHudShader> program, RenderProfiler renderProfiler)
     {
         m_config = config;
         m_textureManager = textureManager;
         m_renderProfiler = renderProfiler;
-        m_program = new RenderProgramHandle<LegacyHudShader>(new LegacyHudShader());
+        m_program = program;
         m_pipeline = new(m_program, new StreamVertexBuffer<HudVertex>("Hud"), "Hud");
         m_drawBuffer = new();
     }

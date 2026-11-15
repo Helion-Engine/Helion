@@ -12,7 +12,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 public class SkySphereComponent : ISkyComponent
 {
     private readonly VertexPipeline<SkyGeometryVertex> m_pipeline;
-    private readonly SkySphereGeometryShader m_geometryProgram;
+    private readonly RenderProgramHandle<SkySphereGeometryShader> m_geometryProgram;
     private readonly SkySphereRenderer m_skySphereRenderer;
     private readonly SkyOptions m_options;
     private readonly Vec2F m_offset;
@@ -22,13 +22,13 @@ public class SkySphereComponent : ISkyComponent
 
     public readonly string Name;
 
-    public SkySphereComponent(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle,
+    public SkySphereComponent(ArchiveCollection archiveCollection, WorldRenderPrograms programs, LegacyGLTextureManager textureManager, int textureHandle,
         SkyOptions options, Vec2F offset)
     {
         Name = textureManager.GetTexture(textureHandle).Name;
-        m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
-        m_geometryProgram = new();
-        m_pipeline = new(new RenderProgramHandle<SkySphereGeometryShader>(m_geometryProgram), new StreamVertexBuffer<SkyGeometryVertex>("Sky geometry"), "Sky geometry");
+        m_skySphereRenderer = new(archiveCollection, textureManager, programs, textureHandle);
+        m_geometryProgram = programs.SkyGeometryProgram;
+        m_pipeline = new(m_geometryProgram, new StreamVertexBuffer<SkyGeometryVertex>("Sky geometry"), "Sky geometry");
         m_options = options;
         m_offset = offset;
     }
@@ -50,10 +50,11 @@ public class SkySphereComponent : ISkyComponent
 
     public void RenderWorldGeometry(RenderInfo renderInfo)
     {
-        m_geometryProgram.Bind();
+        var program = m_geometryProgram.Program;
+        program.Bind();
 
-        m_geometryProgram.Mvp(renderInfo.Uniforms.Mvp);
-        m_geometryProgram.TimeFrac(renderInfo.TickFraction);
+        program.Mvp(renderInfo.Uniforms.Mvp);
+        program.TimeFrac(renderInfo.TickFraction);
 
         m_pipeline.Vbo.UploadIfNeeded();
 
@@ -61,7 +62,7 @@ public class SkySphereComponent : ISkyComponent
         m_pipeline.DrawArrays();
         m_pipeline.Unbind();
 
-        m_geometryProgram.Unbind();
+        program.Unbind();
     }
 
     public void RenderSky(RenderInfo renderInfo)
@@ -77,9 +78,7 @@ public class SkySphereComponent : ISkyComponent
 
     private void ReleaseUnmanagedResources()
     {
-        m_geometryProgram.Dispose();
         m_pipeline.Dispose();
-
         m_skySphereRenderer.Dispose();
     }
 

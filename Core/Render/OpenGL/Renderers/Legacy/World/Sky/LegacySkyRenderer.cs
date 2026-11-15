@@ -14,13 +14,14 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 
-public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager, RenderProfiler renderProfiler) : IDisposable
+public class LegacySkyRenderer(ArchiveCollection archiveCollection, WorldRenderPrograms renderPrograms, LegacyGLTextureManager glTextureManager, RenderProfiler renderProfiler) : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
     public static readonly Dictionary<int, Image> GeneratedImages = [];
 
     private readonly ArchiveCollection m_archiveCollection = archiveCollection;
+    private readonly WorldRenderPrograms m_renderPrograms = renderPrograms;
     private readonly LegacyGLTextureManager m_glTextureManager = glTextureManager;
     private readonly Dictionary<SkyKey, ISkyComponent> m_skyComponents = [];
     private readonly List<ISkyComponent> m_skyComponentsList = [];
@@ -65,7 +66,7 @@ public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLText
         if (m_skyComponents.TryGetValue(key, out sky))
             return true;
 
-        sky = new SkySphereComponent(m_archiveCollection, m_glTextureManager, textureHandle.Value, options, offset);
+        sky = new SkySphereComponent(m_archiveCollection, m_renderPrograms, m_glTextureManager, textureHandle.Value, options, offset);
         m_skyComponents[key] = sky;
         m_skyComponentsList.Add(sky);
         return true;
