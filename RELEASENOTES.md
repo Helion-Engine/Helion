@@ -17,6 +17,7 @@
 - Fix HUD drawing in letterbox areas.
 - Fix HUD autoscale calculation not accounting for window resizes and tweak auto-sizing calculation.
 - Fix allow item dropoff compatibility not functioning by default.
+- Fix brightmap images being used in hud and endcast in place of original image.
 
 ## Misc:
 - General blockmap traversal improvements.
