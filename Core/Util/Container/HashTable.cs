@@ -11,16 +11,11 @@ namespace Helion.Util.Container;
 /// <typeparam name="K1">The first key.</typeparam>
 /// <typeparam name="K2">The second key.</typeparam>
 /// <typeparam name="V">The value.</typeparam>
-public class HashTable<K1, K2, V> where V : class
+public class HashTable<K1, K2, V>(IEqualityComparer<K1>? comparer1 = null, IEqualityComparer<K2>? comparer2 = null) where V : class
 {
-    private readonly Dictionary<K1, Dictionary<K2, V>> m_table;
-    private readonly IEqualityComparer<K2>? m_comparer;
-
-    public HashTable(IEqualityComparer<K1>? comparer1 = null, IEqualityComparer<K2>? comparer2 = null)
-    {
-        m_table = new Dictionary<K1, Dictionary<K2, V>>(comparer1);
-        m_comparer = comparer2;
-    }
+    private readonly Dictionary<K1, Dictionary<K2, V>> m_table = new(comparer1);
+    private readonly IEqualityComparer<K2>? m_comparer = comparer2;
+    private readonly bool m_stringKey = typeof(K2) == typeof(string);
 
     /// <summary>
     /// Gets/sets the value at the key pair provided. If it doesn't exist
@@ -81,14 +76,14 @@ public class HashTable<K1, K2, V> where V : class
     /// all of the keys in that list and return that.
     /// </summary>
     /// <returns>A new list of all the first keys.</returns>
-    public IEnumerable<K1> GetFirstKeys() => m_table.Keys.ToList();
+    public IEnumerable<K1> GetFirstKeys() => m_table.Keys;
 
     /// <summary>
     /// Gets a list of the second-level keys, for a given value of a first key.
     /// This will return a new list.
     /// </summary>
     /// <returns>A new list of all second-level keys for a given first key value</returns>
-    public IEnumerable<K2> GetSecondKeys(K1 firstKey) => m_table.TryGetValue(firstKey, out var contents) ? contents.Keys.ToList() : [];
+    public IEnumerable<K2> GetSecondKeys(K1 firstKey) => m_table.TryGetValue(firstKey, out var contents) ? contents.Keys : [];
 
     /// <summary>
     /// Gets the value in the map.
@@ -107,16 +102,13 @@ public class HashTable<K1, K2, V> where V : class
 
     public V? Get(K1 firstKey, ReadOnlySpan<char> secondKey)
     {
-        if (m_table.TryGetValue(firstKey, out var map))
+        if (m_stringKey && m_table.TryGetValue(firstKey, out var map))
         {
-            if (typeof(K2) == typeof(string))
-            {
-                var lookup = ((Dictionary<string, V>)(object)map)
-                    .GetAlternateLookup<ReadOnlySpan<char>>();
+            var lookup = ((Dictionary<string, V>)(object)map)
+                .GetAlternateLookup<ReadOnlySpan<char>>();
 
-                if (lookup.TryGetValue(secondKey, out var value))
-                    return value;
-            }
+            if (lookup.TryGetValue(secondKey, out var value))
+                return value;
         }
 
         return null;
@@ -143,15 +135,12 @@ public class HashTable<K1, K2, V> where V : class
 
     public bool TryGet(K1 firstKey, ReadOnlySpan<char> secondKey, ref V? value)
     {
-        if (m_table.TryGetValue(firstKey, out var map))
+        if (m_stringKey && m_table.TryGetValue(firstKey, out var map))
         {
-            if (typeof(K2) == typeof(string))
-            {
-                var lookup = ((Dictionary<string, V>)(object)map)
-                    .GetAlternateLookup<ReadOnlySpan<char>>();
+            var lookup = ((Dictionary<string, V>)(object)map)
+                .GetAlternateLookup<ReadOnlySpan<char>>();
 
-                return lookup.TryGetValue(secondKey, out value);
-            }
+            return lookup.TryGetValue(secondKey, out value);
         }
 
         value = default;
