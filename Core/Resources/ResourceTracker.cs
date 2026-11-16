@@ -60,7 +60,7 @@ public class ResourceTracker<T> where T : class
     public void Insert(string name, ResourceNamespace resourceNamespace, T value)
     {
         m_table.Insert(resourceNamespace, name, value);
-        if ((m_options & ResourceTrackerOptions.StoreByName) != 0)
+        if (resourceNamespace != ResourceNamespace.Brightmaps && (m_options & ResourceTrackerOptions.StoreByName) != 0)
             m_tableByName[name] = value;
     }
 
