@@ -30,6 +30,8 @@ using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
 using NLog;
+using NLog.Config;
+using NLog.Filters;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -73,6 +75,8 @@ public partial class Client : IDisposable, IInputManagement
     private readonly Stopwatch m_stopwatch = Stopwatch.StartNew();
     private readonly FrameLimiter m_frameLimiter = new();
     private readonly IClipboard m_clipboard;
+    private readonly AppState<EnvironmentAppState> m_envAppState;
+    private readonly AppState<InstallAppState> m_installAppState;
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
@@ -95,11 +99,13 @@ public partial class Client : IDisposable, IInputManagement
     ];
 
     private Client(CommandLineArgs commandLineArgs, PathsManager pathsManager, IConfig config, HelionConsole console, IAudioSystem audioSystem,
-        ArchiveCollection archiveCollection)
+        ArchiveCollection archiveCollection, AppState<EnvironmentAppState> envAppState, AppState<InstallAppState> installAppState)
     {
         m_commandLineArgs = commandLineArgs;
         m_pathsManager = pathsManager;
         m_config = config;
+        m_envAppState = envAppState;
+        m_installAppState = installAppState;
         m_console = console;
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
@@ -110,7 +116,7 @@ public partial class Client : IDisposable, IInputManagement
         m_saveGameManager = new SaveGameManager(config, m_pathsManager, m_archiveCollection, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
-        m_config.Window.LaptopGpu.Set(LaptopGpuSettings.GetGpuMode(AppInfo));
+        m_config.Window.LaptopGpu.Set(LaptopGpuSettings.GetGpuMode(AppInfo, out _));
         m_config.Window.LaptopGpu.OnChanged += LaptopGpu_OnChanged;
 
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
@@ -218,8 +224,11 @@ public partial class Client : IDisposable, IInputManagement
 
     private void InitGpuPreference()
     {
-        if (!OperatingSystem.IsWindows())
+        var state = m_envAppState.Data;
+        if (!OperatingSystem.IsWindows() || !state.ShouldSetGpuPreference || state.InstallPaths.Contains(AppInfo.ApplicationExeFullPath))
             return;
+
+        state.InstallPaths.Add(AppInfo.ApplicationExeFullPath);
 
         if (m_commandLineArgs.Restarted)
         {
@@ -228,6 +237,16 @@ public partial class Client : IDisposable, IInputManagement
         }
 
         var result = LaptopGpuSettings.InitGpuModeIfNotExists(AppInfo, LaptopGpuMode.HighPerformance, out var error);
+
+        // Verify the key was actually written. This can fail when it's not a laptop or user doesn't have permission.
+        LaptopGpuSettings.GetGpuMode(AppInfo, out var keyExists);
+        if (!keyExists)
+        {
+            // Flag to not retry since writing the key did not succeed.
+            state.ShouldSetGpuPreference = false;
+            return;
+        }
+
         if (result == InitGpuResult.SuccessDidNotExist)
         {
             ExecuteRestart();
@@ -785,12 +804,29 @@ public partial class Client : IDisposable, IInputManagement
         }
     }
 
+    private static AppState<TAppState> ReadAppState<TAppState, TFactory>(PathsManager pathsManager, TFactory factory)
+        where TAppState : IAppState where TFactory : IAppStateFactory
+    {
+        var appStatePath = factory.Global ? pathsManager.GlobalDataFolder : pathsManager.UserDataFolder;
+        return new AppState<TAppState>(factory, Path.Combine(appStatePath, factory.FileName));
+    }
+
+    private static void WriteAppState<TAppState>(PathsManager pathsManager, AppState<TAppState> appState)
+        where TAppState : IAppState
+    {
+        if (!appState.Write(appState.FilePath))
+            Log.Error($"Unable to write appstate to {appState.FilePath}");
+    }
+
     private static void Run(CommandLineArgs commandLineArgs, PathsManager pathsManager)
     {
         var configPath = !string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName)
             ? commandLineArgs.ConfigFileName.Trim()
             : FileConfig.GetDefaultConfigPath(pathsManager.UserDataFolder);
-        FileConfig config = ReadConfigFileOrTerminate(configPath);
+        var appStatePath = Path.Combine(pathsManager.UserDataFolder, "appstate.json");
+        var config = ReadConfigFileOrTerminate(configPath);
+        var envAppState = ReadAppState<EnvironmentAppState, EnvironmentAppStateFactory>(pathsManager, new EnvironmentAppStateFactory());
+        var installAppState = ReadAppState<InstallAppState, InstallAppStateFactory>(pathsManager, new InstallAppStateFactory());
 
         try
         {
@@ -805,8 +841,9 @@ public partial class Client : IDisposable, IInputManagement
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer, Log);
 
             Log.Info($"Read config {configPath}");
+            Log.Info($"Read appstate {appStatePath} ShouldSetGpuPreference:{envAppState.Data.ShouldSetGpuPreference}");
 
-            using Client client = new(commandLineArgs, pathsManager, config, console, audioPlayer, archiveCollection);
+            using Client client = new(commandLineArgs, pathsManager, config, console, audioPlayer, archiveCollection, envAppState, installAppState);
             client.Run();
         }
         catch (Exception e)
@@ -817,6 +854,10 @@ public partial class Client : IDisposable, IInputManagement
         {
             if (!config.Write(configPath))
                 Log.Error($"Unable to write config to {configPath}");
+
+            installAppState.Data.LastRunVersion = AppVersion.Current.VersionString;
+            WriteAppState(pathsManager, envAppState);
+            WriteAppState(pathsManager, installAppState);
 
             TempFileManager.DeleteAllFiles();
         }

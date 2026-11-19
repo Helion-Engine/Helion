@@ -17,6 +17,7 @@ public class PathsManager
 {
     private readonly string m_workingDirectory;
     private readonly string m_userDataFolder;
+    private readonly string m_globalDataFolder;
     private readonly List<string> m_applicationFolders;
     private readonly List<string> m_wadEnvFolders;
     private readonly List<string> m_wadCommonFolders;
@@ -31,6 +32,11 @@ public class PathsManager
     /// The save dir can still be overridden by the -savedir arg.
     /// </summary>
     public string UserDataFolder => m_userDataFolder;
+
+    /// <summary>
+    /// The folder where everything is saved globally when not using portable mode.
+    /// </summary>
+    public string GlobalDataFolder => m_globalDataFolder;
 
     /// <summary>
     /// Helion's folder as well as its resource folder on Linux
@@ -91,6 +97,7 @@ public class PathsManager
         m_workingDirectory = StandardizePath(workingDirectory);
         string portableConfigFile = Path.Combine(AppContext.BaseDirectory, FileConfig.IniFile);
         m_userDataFolder = StandardizePath(GetConfigFolder(forcePortableMode || File.Exists(portableConfigFile)));
+        m_globalDataFolder = GetConfigFolder(false);
         m_applicationFolders = [StandardizePath(AppContext.BaseDirectory)];
         if (OperatingSystem.IsLinux())
         {

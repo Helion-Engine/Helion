@@ -25,7 +25,7 @@ public static class LaptopGpuSettings
         {
             if (SubKeyExists(appInfo))
             {
-                var existingMode = GetGpuMode(appInfo);
+                var existingMode = GetGpuMode(appInfo, out _);
                 // Auto will not work. If auto set then change to high performance and count as not set.
                 if (existingMode == LaptopGpuMode.HighPerformance || existingMode == LaptopGpuMode.PowerSaving)
                     return InitGpuResult.AlreadyExists;               
@@ -54,13 +54,14 @@ public static class LaptopGpuSettings
         return lookupValue != null;
     }
 
-    public static LaptopGpuMode GetGpuMode(AppInfo appInfo)
+    public static LaptopGpuMode GetGpuMode(AppInfo appInfo, out bool keyExists)
     {
+        keyExists = false;
         try
         {
             using var key = GetRegKey(false);
             if (key != null)
-                return GetModeFromKey(appInfo, key);
+                return GetModeFromKey(appInfo, key, out keyExists);
         }
         catch { }
         return default;
@@ -86,8 +87,9 @@ public static class LaptopGpuSettings
         }
     }
 
-    private static LaptopGpuMode GetModeFromKey(AppInfo appInfo, RegistryKey key)
+    private static LaptopGpuMode GetModeFromKey(AppInfo appInfo, RegistryKey key, out bool keyExists)
     {
+        keyExists = false;
         if (!OperatingSystem.IsWindows())
             return default;
 
@@ -97,7 +99,10 @@ public static class LaptopGpuSettings
 
         var regString = lookupValue.Replace("GpuPreference=", "").Replace(";", "");
         if (int.TryParse(regString, out var value))
+        {
+            keyExists = true;
             return (LaptopGpuMode)value;
+        }
 
         return default;
     }
