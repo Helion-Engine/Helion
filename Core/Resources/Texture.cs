@@ -31,6 +31,8 @@ public class Texture
     {
         RenderStore = null;
         RenderStoreClamp = null;
+        BrightmapRenderStore = null;
+        BrightmapRenderStoreClamp = null;
     }
 
     /// <summary>
