@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 
 namespace Helion.Client;
@@ -17,6 +18,7 @@ public class AppInfo
         GitSHA = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion[6..] ?? "Unknown";
         ApplicationDirectory = AppContext.BaseDirectory;
         ApplicationExe = AppDomain.CurrentDomain.FriendlyName + ".exe";
+        ApplicationExeFullPath = Path.Combine(ApplicationDirectory, ApplicationExe);
     }
 
     public string ApplicationName { get; set; } = "Helion";
@@ -24,4 +26,5 @@ public class AppInfo
     public string GitSHA { get; set; }
     public string ApplicationDirectory { get; set; }
     public string ApplicationExe { get; set; }
+    public string ApplicationExeFullPath { get; set; }
 }

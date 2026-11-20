@@ -21,7 +21,7 @@ public class EntityCreate
     [Benchmark]
     public void CreateEntities()
     {
-        var impBall = World.EntityManager.DefinitionComposer.GetByName("DoomImpBall");
+        var impBall = World.EntityManager.DefinitionComposer.GetByName("DoomImpBall")!;
         var pos = new Vec3D(-65000, -65000, 32);
         for (int i = 0; i < 16000; i++)
         {
