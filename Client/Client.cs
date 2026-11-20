@@ -811,7 +811,7 @@ public partial class Client : IDisposable, IInputManagement
         return new AppState<TAppState>(factory, Path.Combine(appStatePath, factory.FileName));
     }
 
-    private static void WriteAppState<TAppState>(PathsManager pathsManager, AppState<TAppState> appState)
+    private static void WriteAppState<TAppState>(AppState<TAppState> appState)
         where TAppState : IAppState
     {
         if (!appState.Write(appState.FilePath))
@@ -856,8 +856,8 @@ public partial class Client : IDisposable, IInputManagement
                 Log.Error($"Unable to write config to {configPath}");
 
             installAppState.Data.LastRunVersion = AppVersion.Current.VersionString;
-            WriteAppState(pathsManager, envAppState);
-            WriteAppState(pathsManager, installAppState);
+            WriteAppState(envAppState);
+            WriteAppState(installAppState);
 
             TempFileManager.DeleteAllFiles();
         }
