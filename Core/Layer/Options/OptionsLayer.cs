@@ -37,8 +37,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public long LastClosedNanos;
     public bool CurrentlyBindingKey => m_sections[m_currentSectionIndex] is KeyBindingSection { CurrentlyBinding: true };
 
-    private const int BackIndex = 0;
-    private const int ForwardIndex = 1;
     private const string Font = Fonts.Options.Font;
     private const string FooterFont = Fonts.Options.FooterFont;
 
@@ -49,7 +47,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private readonly IWindow m_window;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<IOptionSection> m_sections;
-    private readonly BoxList m_backForwardPos = new();
     private readonly List<StringSlice> m_footerLines = [];
     private readonly List<string> m_sbarLayoutNames = [];
     private readonly TabHeader m_tabHeader;
@@ -355,24 +352,20 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
                 m_scrollOffset = Math.Clamp(m_scrollOffset, -(Math.Abs(section.GetRenderHeight() + m_headerHeight + m_footerScrollPadding - m_windowSize.Height + scrollAmount)), 0);
             }
 
-            int buttonIndex = -1;
-            if (!m_locked && m_backForwardPos.GetIndex(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
-                buttonIndex = checkButtonIndex;
-
             m_tabHeader.HandleInput(input, m_cursorPos);
             section.HandleInput(input);
 
             var index = m_currentSectionIndex;
 
             if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4)
-                || input.ConsumePressOrContinuousHold(Key.DPadLeft) || buttonIndex == BackIndex)
+                || input.ConsumePressOrContinuousHold(Key.DPadLeft))
             {
                 m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
             }
 
             if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5)
-                || input.ConsumePressOrContinuousHold(Key.DPadRight) || buttonIndex == ForwardIndex)
+                || input.ConsumePressOrContinuousHold(Key.DPadRight))
             {
                 m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
@@ -397,19 +390,22 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void ScrollToVisibleArea(IOptionSection section)
     {
+        var scrollOffset = m_scrollOffset;
         int scrollAmount = GetScrollAmount();
         (int startY, int endY) = section.GetSelectedRenderY();
-        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + (m_windowSize.Height - m_footerScrollPadding))
+        if (endY + m_headerHeight > Math.Abs(scrollOffset) + (m_windowSize.Height - m_footerScrollPadding))
         {
-            m_scrollOffset = (endY + m_headerHeight - m_windowSize.Height + m_footerScrollPadding);
-            m_scrollOffset = -(int)Math.Ceiling((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
+            scrollOffset = endY + m_headerHeight - m_windowSize.Height + m_footerScrollPadding;
+            scrollOffset = -(int)Math.Ceiling(scrollOffset / (double)scrollAmount) * scrollAmount;
         }
 
-        if (startY + m_headerHeight < Math.Abs(m_scrollOffset))
+        if (startY + m_headerHeight < Math.Abs(scrollOffset))
         {
-            m_scrollOffset = (startY + m_headerHeight);
-            m_scrollOffset = -(int)Math.Floor((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
+            scrollOffset = startY + m_headerHeight;
+            scrollOffset = -(int)Math.Floor(scrollOffset / (double)scrollAmount) * scrollAmount;
         }
+
+        m_scrollOffset = scrollOffset;
     }
 
     private int GetScrollAmount() => (int)(16 * m_config.Window.MenuScale);
@@ -428,7 +424,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         Animation.Tick();
         m_windowSize = hud.Dimension;
-        m_backForwardPos.Clear();
         ctx.ClearDepth();
         hud.Clear(Color.Gray);
 
@@ -437,43 +432,23 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         hud.RenderFullscreenImageStretched(DefaultBackgroundImage);
 
         int fontSize = m_config.Window.GetMenuMediumFontSize();
-        int largeFontSize = m_config.Window.GetMenuLargeFontSize();
         int smallPad = m_config.Window.GetMenuScaled(2);
 
         m_footerScrollPadding = hud.MeasureText(" ", FooterFont, fontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
-
         m_headerHeight = 0;
-        int y = m_scrollOffset;
-        int titleY = m_scrollOffset;
-        hud.Text("Options", Font, largeFontSize, (smallPad, smallPad + titleY),
-                   out var titleArea, both: Align.TopMiddle, color: Color.White);
-        m_headerHeight += titleArea.Height + m_config.Window.GetMenuScaled(5);
 
-        int padding = m_config.Window.GetMenuScaled(8);
-        if (m_sections.Count > 1)
-        {
-            int xOffset = (hud.Dimension.Width - titleArea.Width) / 2;
-            var arrowSize = hud.MeasureText("<-", Font, fontSize);
-            int yOffset = titleArea.Height - arrowSize.Height;
-            Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, titleY + yOffset);
-            Vec2I forwardArrowPos = (xOffset + titleArea.Width + padding, titleY + yOffset);
-            hud.Text("<-", Font, fontSize, backArrowPos, color: Color.White);
-            hud.Text("->", Font, fontSize, forwardArrowPos, color: Color.White);
+        var y = 0;
+        var headerPadding = m_config.Window.GetMenuScaled(6);
+        m_headerHeight += headerPadding;
 
-            m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
-            m_backForwardPos.Add(new Box2I(forwardArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
-        }
+        var padding = m_config.Window.GetMenuScaled(8);
 
-        hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Font, fontSize, (0, m_headerHeight + y),
-            out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
-
-        m_headerHeight += pageInstrArea.Height + m_config.Window.GetMenuScaled(6);
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
             GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, out m_footerHeight);
         m_lastSelectedRowDescription = m_selectedRowDescription;
 
         m_tabHeader.SetMaxRows(3);
-        var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, y + m_headerHeight) + m_config.Window.GetMenuScaled(6);
+        var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, y + m_headerHeight);
         m_headerHeight += tabHeaderHeight;
         y += m_headerHeight;
 
@@ -485,11 +460,16 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         if (m_currentSectionIndex < m_sections.Count)
         {
+            var sectionStartY = y + m_scrollOffset;
             var section = m_sections[m_currentSectionIndex];
-            section.Render(ctx, hud, y, m_didMouseWheelScroll);
-            m_didMouseWheelScroll = false;
 
-            RenderScrollBar(hud, fontSize, section);
+            var scissorBox = new Box2I(new Vec2I(0, 0), new Vec2I(m_windowSize.Width, m_windowSize.Height - m_headerHeight + headerPadding));
+            ctx.Scissor(scissorBox, true);
+            section.Render(ctx, hud, sectionStartY, m_didMouseWheelScroll);
+            ctx.Scissor(scissorBox, false);
+            
+            m_didMouseWheelScroll = false;
+            RenderScrollBar(hud, section, y);
 
             if (m_locked && m_lockOptions == LockOptions.None)
                 return;
@@ -502,7 +482,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             }
             else
             {
-                hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _) || m_tabHeader.MouseHover(m_cursorPos);
+                hover = section.OnClickableItem(m_cursorPos) || m_tabHeader.MouseHover(m_cursorPos);
             }
 
             string cursor = hover ? "helion-pointer" : "helion-cursor";
@@ -523,7 +503,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             hud.FillBox(new(new Vec2I(0, hud.Dimension.Height - dim.Height - (padding * 2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
             hud.Text(m_message, Font, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
         }
-        else if (m_footerLines.Count > 0)
+        else if (m_footerLines.Count > 0 && tabHeaderHeight > 0)
         {
             RenderFooter(m_footerLines, hud.Height - m_footerHeight, FooterFont, fontSize, hud);
         }
@@ -588,7 +568,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_cursorPos = m_window.InputManager.MousePosition;
     }
 
-    private void RenderScrollBar(IHudRenderContext hud, int fontSize, IOptionSection section)
+    private void RenderScrollBar(IHudRenderContext hud, IOptionSection section, int y)
     {
         if (!ScrollRequired(hud.Dimension.Height, section))
             return;

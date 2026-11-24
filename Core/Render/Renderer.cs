@@ -632,10 +632,12 @@ public partial class Renderer : IDisposable
         DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
     }
 
-    private static void HandleScissorCommand(ScissorCommand cmd)
+    private void HandleScissorCommand(ScissorCommand cmd)
     {
         if (cmd.Enable != ScissorEnable.KeepState)
         {
+            DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
+
             if (cmd.Enable == ScissorEnable.Enable)
                 GL.Enable(EnableCap.ScissorTest);
             else

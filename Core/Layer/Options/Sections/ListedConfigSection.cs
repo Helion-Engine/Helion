@@ -679,6 +679,7 @@ public class ListedConfigSection : IOptionSection
         int y = startY;
         int fontSize = m_config.Window.GetMenuSmallFontSize();
         int smallPad = m_config.Window.GetMenuScaled(1);
+        int largePad = m_config.Window.GetMenuScaled(8);
 
         hud.Text("Press enter to modify the selected setting", Font, fontSize, (0, y), out Dimension textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
@@ -687,19 +688,17 @@ public class ListedConfigSection : IOptionSection
         hud.Text("Press R to reset the selected setting to its default", Font, fontSize, (0, y), out textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
 
-
-        string additionalHeader = GetExtendedHeaderText(out Color additionalHeaderColor);
+        var additionalHeader = GetExtendedHeaderText(out Color additionalHeaderColor);
         if (!string.IsNullOrEmpty(additionalHeader))
         {
+            y += largePad;
             y += textDimension.Height + smallPad;
             hud.Text(additionalHeader, Font, fontSize, (0, y), out textDimension,
                 both: Align.TopMiddle, color: additionalHeaderColor);
         }
 
-        y += textDimension.Height + m_config.Window.GetMenuScaled(8);
-
-        hud.Text(Title, Font, m_config.Window.GetMenuLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
-        y += headerArea.Height + m_config.Window.GetMenuScaled(8);
+        y += largePad;
+        y += textDimension.Height;
 
         int offsetX = m_config.Window.GetMenuScaled(8);
         int spacerY = m_config.Window.GetMenuScaled(8);

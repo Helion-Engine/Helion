@@ -355,9 +355,7 @@ public class KeyBindingSection : IOptionSection
         }
 
         int fontSize = m_config.Window.GetMenuSmallFontSize();
-        hud.Text(Title, Font, m_config.Window.GetMenuLargeFontSize(), (0, startY), out Dimension headerArea,
-            both: Align.TopMiddle, color: Color.Red);
-        int y = startY + headerArea.Height + m_config.Window.GetMenuScaled(8);
+        int y = startY;
         int xOffset = m_config.Window.GetMenuScaled(4) * 2;
         int smallPad = m_config.Window.GetMenuScaled(1);
 
@@ -381,16 +379,15 @@ public class KeyBindingSection : IOptionSection
         for (int groupIndex = 0; groupIndex < CommandGroupLabels.Count && cmdIndex < m_commandToKeys.Count; groupIndex++)
         {
             string group = CommandGroupLabels[groupIndex];
-            y += m_config.Window.GetMenuScaled(12);
+            y += m_config.Window.GetMenuScaled(8);
 
-            Dimension commandArea;
-            hud.Text(group, Font, fontSize, (-xOffset, y), out commandArea,
+            hud.Text(group, Font, fontSize, (-xOffset, y), out Dimension commandArea,
                 window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
             y += commandArea.Height;
 
             // Assume that "custom" command bindings are at the end of m_commandToKeys
-            string[] commands = group == "Custom"
-                ? m_customCommands.ToArray()
+            IEnumerable<string> commands = group == "Custom"
+                ? m_customCommands
                 : CommandsByGroup[group];
 
             foreach (string command in commands)
