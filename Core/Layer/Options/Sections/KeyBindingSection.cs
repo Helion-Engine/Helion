@@ -22,7 +22,7 @@ namespace Helion.Layer.Options.Sections;
 
 public class KeyBindingSection : IOptionSection
 {
-    private const string Font = Fonts.SmallGray;
+    private const string Font = Fonts.Options.Font;
 
     struct CommandKeys
     {
@@ -52,6 +52,7 @@ public class KeyBindingSection : IOptionSection
     public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType => OptionSectionType.Keys;
+    public string Title => "Keys";
     public bool CurrentlyBinding => m_updatingKeyBinding;
     private readonly Key[] AllKeys = Enum.GetValues<Key>();
     private readonly IConfig m_config;
@@ -354,7 +355,7 @@ public class KeyBindingSection : IOptionSection
         }
 
         int fontSize = m_config.Window.GetMenuSmallFontSize();
-        hud.Text("Key Bindings", Font, m_config.Window.GetMenuLargeFontSize(), (0, startY), out Dimension headerArea,
+        hud.Text(Title, Font, m_config.Window.GetMenuLargeFontSize(), (0, startY), out Dimension headerArea,
             both: Align.TopMiddle, color: Color.Red);
         int y = startY + headerArea.Height + m_config.Window.GetMenuScaled(8);
         int xOffset = m_config.Window.GetMenuScaled(4) * 2;

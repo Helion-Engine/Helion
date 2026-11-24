@@ -10,13 +10,10 @@ public enum OptionSectionType
     General,
     Player,
     Video,
-    Audio,
     Render,
+    Audio,
     Hud,
     Automap,
-    Compatibility,
-    SlowTick,
-    Demo,
-    Console,
-    Weapons
+    Compat,
+    Misc
 }

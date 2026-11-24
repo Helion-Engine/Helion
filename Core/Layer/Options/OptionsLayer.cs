@@ -24,8 +24,8 @@ using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.StatusBar;
 using static Helion.Util.Constants;
+using System.Linq;
 
 namespace Helion.Layer.Options;
 
@@ -39,9 +39,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
-    private const string Font = Fonts.SmallGray;
-    private const string FooterFont = Fonts.Console;
-    private const string ScrollBarFont = Fonts.Small;
+    private const string Font = Fonts.Options.Font;
+    private const string FooterFont = Fonts.Options.FooterFont;
 
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
@@ -52,7 +51,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private readonly List<IOptionSection> m_sections;
     private readonly BoxList m_backForwardPos = new();
     private readonly List<StringSlice> m_footerLines = [];
-    private readonly List<string> m_sbarLayoutNames = new();
+    private readonly List<string> m_sbarLayoutNames = [];
+    private readonly TabHeader m_tabHeader;
     private Dimension m_windowSize;
     private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
@@ -81,6 +81,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_window = window;
         m_archiveCollection = archiveCollection;
         m_sections = GenerateSections();
+        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font);
+        m_tabHeader.SelectedIndexChanged += TabHeader_SelectedIndexChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
@@ -89,6 +91,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);
         Animation.OnStart += Animation_OnStart;
+    }
+
+    private void TabHeader_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        m_currentSectionIndex = m_tabHeader.SelectedIndex;
     }
 
     private void Config_MapRestartRequired(object? sender, EventArgs e)
@@ -173,7 +180,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         if (sectionMap.TryGetValue(section, out var optionSection))
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
-        ListedConfigSection listedConfigSection = (section == OptionSectionType.Compatibility)
+        ListedConfigSection listedConfigSection = (section == OptionSectionType.Compat)
             ? new CompatibilitySection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager)
             : new ListedConfigSection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager);
 
@@ -350,7 +357,10 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             if (!m_locked && m_backForwardPos.GetIndex(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
                 buttonIndex = checkButtonIndex;
 
+            m_tabHeader.HandleInput(input, m_cursorPos);
             section.HandleInput(input);
+
+            var index = m_currentSectionIndex;
 
             if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4)
                 || input.ConsumePressOrContinuousHold(Key.DPadLeft) || buttonIndex == BackIndex)
@@ -371,6 +381,9 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
                 m_sections[m_currentSectionIndex].OnShow();
             }
+
+            if (index != m_currentSectionIndex)
+                m_tabHeader.SetSelectedIndex(m_currentSectionIndex);
         }
 
         // We don't want any input leaking into the layers below this.
@@ -452,11 +465,13 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Font, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
 
-        m_headerHeight += pageInstrArea.Height + m_config.Window.GetMenuScaled(16);
+        m_headerHeight += pageInstrArea.Height + m_config.Window.GetMenuScaled(6);
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
             GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, out m_footerHeight);
         m_lastSelectedRowDescription = m_selectedRowDescription;
 
+        m_tabHeader.SetMaxRows(3);
+        m_headerHeight += m_tabHeader.Render(hud, fontSize, y + m_headerHeight) + m_config.Window.GetMenuScaled(6);
         y += m_headerHeight;
 
         if (m_currentSectionIndex < m_sections.Count)
@@ -478,7 +493,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             }
             else
             {
-                hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);
+                hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _) || m_tabHeader.MouseHover(m_cursorPos);
             }
 
             string cursor = hover ? "helion-pointer" : "helion-cursor";
@@ -573,22 +588,18 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         int maxScrollOffset = scrollHeight - hud.Dimension.Height;
 
         if (maxScrollOffset < 0)
-        {
             return;
-        }
 
         int actualScrollOffset = Math.Abs(m_scrollOffset);
         int barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * hud.Dimension.Height);
 
-        const string Bar = "|";
-        var textDimension = hud.MeasureText(Bar, ScrollBarFont, fontSize);
+        var barDim = new Dimension(m_config.Window.GetMenuScaled(4), m_config.Window.GetMenuScaled(20));
 
-        if (barPosition + textDimension.Height > hud.Dimension.Height)
-        {
-            barPosition = hud.Dimension.Height - textDimension.Height;
-        }
+        if (barPosition + barDim.Height > hud.Dimension.Height)
+            barPosition = hud.Dimension.Height - barDim.Height;
 
-        hud.Text(Bar, ScrollBarFont, fontSize, (0, barPosition), both: Align.TopRight);
+        hud.FillBox(new(new Vec2I(-barDim.Width, 0), new Vec2I(0, hud.Dimension.Height)), Color.Black, window: Align.TopRight, alpha: 0.3f);
+        hud.FillBox(new(new Vec2I(-barDim.Width, barPosition), new Vec2I(0, barPosition + barDim.Height)), Color.Gray, window: Align.TopRight);
     }
 
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>

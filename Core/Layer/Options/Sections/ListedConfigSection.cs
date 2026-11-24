@@ -28,7 +28,7 @@ namespace Helion.Layer.Options.Sections;
 
 public class ListedConfigSection : IOptionSection
 {
-    private const string Font = Fonts.SmallGray;
+    private const string Font = Fonts.Options.Font;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<LockEvent>? OnLockChanged;
@@ -37,6 +37,7 @@ public class ListedConfigSection : IOptionSection
     public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType { get; }
+    public string Title { get; private set; }
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = [];
     private readonly BoxList m_menuPositionList = new();
     private readonly IConfig m_config;
@@ -70,6 +71,7 @@ public class ListedConfigSection : IOptionSection
         m_pathsManager = pathsManager;
         m_soundManager = soundManager;
         m_inputManager = inputManager;
+        Title = OptionType.ToString();
 
         SetDisableStates();
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -696,7 +698,7 @@ public class ListedConfigSection : IOptionSection
 
         y += textDimension.Height + m_config.Window.GetMenuScaled(8);
 
-        hud.Text(OptionType.ToString(), Font, m_config.Window.GetMenuLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
+        hud.Text(Title, Font, m_config.Window.GetMenuLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
         y += headerArea.Height + m_config.Window.GetMenuScaled(8);
 
         int offsetX = m_config.Window.GetMenuScaled(8);

@@ -55,11 +55,12 @@ public struct RowEvent
 
 public interface IOptionSection
 {
-    public event EventHandler<LockEvent>? OnLockChanged;
-    public event EventHandler<RowEvent>? OnRowChanged;
-    public event EventHandler<string>? OnError;
+    event EventHandler<LockEvent>? OnLockChanged;
+    event EventHandler<RowEvent>? OnRowChanged;
+    event EventHandler<string>? OnError;
 
-    public OptionSectionType OptionType { get; }
+    OptionSectionType OptionType { get; }
+    string Title { get; }
 
     void OnShow();
     void ResetSelection();
