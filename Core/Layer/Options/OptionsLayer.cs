@@ -467,9 +467,9 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             ctx.Scissor(scissorBox, true);
             section.Render(ctx, hud, sectionStartY, m_didMouseWheelScroll);
             ctx.Scissor(scissorBox, false);
-            
+
             m_didMouseWheelScroll = false;
-            RenderScrollBar(hud, section, y);
+            RenderScrollBar(hud, section, tabHeaderHeight);
 
             if (m_locked && m_lockOptions == LockOptions.None)
                 return;
@@ -573,21 +573,22 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         if (!ScrollRequired(hud.Dimension.Height, section))
             return;
 
-        int scrollHeight = section.GetRenderHeight() + m_headerHeight + m_footerScrollPadding;
-        int maxScrollOffset = scrollHeight - hud.Dimension.Height;
+        var maxRenderHeight = hud.Dimension.Height - m_headerHeight;
+        var scrollHeight = section.GetRenderHeight() + m_footerScrollPadding;
+        var maxScrollOffset = scrollHeight - maxRenderHeight;
 
         if (maxScrollOffset < 0)
             return;
 
-        int actualScrollOffset = Math.Abs(m_scrollOffset);
-        int barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * hud.Dimension.Height);
+        var actualScrollOffset = Math.Abs(m_scrollOffset);
+        var barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * maxRenderHeight) + y;
 
         var barDim = new Dimension(m_config.Window.GetMenuScaled(4), m_config.Window.GetMenuScaled(20));
 
         if (barPosition + barDim.Height > hud.Dimension.Height)
             barPosition = hud.Dimension.Height - barDim.Height;
 
-        hud.FillBox(new(new Vec2I(-barDim.Width, 0), new Vec2I(0, hud.Dimension.Height)), Color.Black, window: Align.TopRight, alpha: 0.3f);
+        hud.FillBox(new(new Vec2I(-barDim.Width, y), new Vec2I(0, hud.Dimension.Height)), Color.Black, window: Align.TopRight, alpha: 0.7f);
         hud.FillBox(new(new Vec2I(-barDim.Width, barPosition), new Vec2I(0, barPosition + barDim.Height)), Color.Gray, window: Align.TopRight);
     }
 
