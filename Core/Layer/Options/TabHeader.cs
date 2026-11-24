@@ -10,8 +10,11 @@ using System.Collections.Generic;
 
 namespace Helion.Layer.Options;
 
-public class TabHeader(ConfigWindow config, string[] tabTitles, string font)
+public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Color tabColor, Color selectColor, float tabAlpha)
 {
+    public readonly Color TabColor = tabColor;
+    public readonly Color SelectColor = selectColor;
+    public readonly float TabAlpha = tabAlpha;
     record struct RenderData(List<int> Widths, int TotalHeight);
 
     public event EventHandler? SelectedIndexChanged;
@@ -25,7 +28,7 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font)
     private int m_selectedIndex;
     private int m_maxRows = 1;
 
-    public int GetRowHeight(IHudRenderContext hud, int fontSize) => hud.MeasureText(" ", m_font, fontSize).Height + m_config.GetMenuScaled(2);
+    public int GetRowHeight(IHudRenderContext hud, int fontSize) => hud.MeasureText(" ", m_font, fontSize).Height + m_config.GetMenuScaled(8);
 
     public void SetMaxRows(int maxRows)
     {
@@ -52,8 +55,8 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font)
         m_boxList.Clear();
         var textHeight = hud.MeasureText(" ", m_font, fontSize).Height;
         var tabRowHeight = GetRowHeight(hud, fontSize);
-        var separatorWidth = m_config.GetMenuScaled(1);
-        var separatorSpace = m_config.GetMenuScaled(6);
+        var separatorSpace = m_config.GetMenuScaled(3);
+        var tabPadding = m_config.GetMenuScaled(3);
         var startX = separatorSpace;
         var pos = new Vec2I(startX, yPos);
         if (rowWidths != null && rowWidths.Count > 0)
@@ -65,14 +68,12 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font)
         if (!draw)
             m_widths.Clear();
 
-        RenderTabSeparator(hud, textHeight, separatorWidth, separatorSpace, pos, draw);
-
         for (int i = startIndex; i < m_titles.Length; i++)
         {
             var title = m_titles[i];
             var textSize = hud.MeasureText(title, m_font, fontSize);
 
-            if (pos.X + textSize.Width + separatorWidth + separatorSpace > hud.Dimension.Width)
+            if (pos.X + textSize.Width + (tabPadding * 2) > hud.Dimension.Width)
             {
                 if (!draw)
                     m_widths.Add(pos.X);
@@ -84,34 +85,33 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font)
 
                 if (rowWidths != null && rowIndex < rowWidths.Count)
                     pos.X = (hud.Dimension.Width - rowWidths[rowIndex]) / 2;
-
-                RenderTabSeparator(hud, textHeight, separatorWidth, separatorSpace, pos, draw);
             }
 
             m_boxList.Add(new(pos, pos + new Vec2I(textSize.Width, textSize.Height)), i);
-
-            textSize.Width -= 4;
-            pos.X += separatorSpace;
+            pos.X += tabPadding;
 
             if (draw)
-                hud.Text(title, m_font, fontSize, pos, color: i == m_selectedIndex ? Color.White : Color.Gray);
+            {
+                var selected = i == m_selectedIndex;
+                var boxPos = new Vec2I(pos.X - tabPadding, pos.Y - tabPadding);
+                var boxEnd = pos + new Vec2I(textSize.Width + tabPadding, textHeight + tabPadding);
+                hud.FillBox(new(boxPos, boxEnd), TabColor, alpha: TabAlpha);
+                hud.Text(title, m_font, fontSize, pos, color: selected ? Color.White : Color.Gray);
 
-            pos.X += textSize.Width + separatorSpace;
+                if (selected)
+                {
+                    boxEnd.Y = boxPos.Y + m_config.GetMenuScaled(2);
+                    hud.FillBox(new(boxPos, boxEnd), SelectColor);
+                }
+            }
 
-            if (draw)
-                hud.FillBox(new(pos, pos + new Vec2I(separatorWidth, textHeight)), Color.Gray);
+            pos.X += textSize.Width + tabPadding + separatorSpace;
         }
 
         if (!draw)
             m_widths.Add(pos.X);
 
         return new(m_widths, rowCount * tabRowHeight);
-    }
-
-    private static void RenderTabSeparator(IHudRenderContext hud, int textHeight, int separatorWidth, int separatorSpace, Vec2I pos, bool draw)
-    {
-        if (draw)
-            hud.FillBox(new(pos, pos + new Vec2I(separatorWidth, textHeight)), Color.Gray);
     }
 
     public void HandleInput(IConsumableInput input, Vec2I cursorPos)

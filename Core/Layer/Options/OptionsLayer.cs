@@ -70,6 +70,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private bool m_resetMouse;
     private bool m_setMouse;
     private bool m_didMouseWheelScroll;
+    private bool m_sectionChange;
     private MessageDialog? m_dialog;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, PathsManager pathsManager, SoundManager soundManager, IWindow window, ArchiveCollection archiveCollection)
@@ -81,7 +82,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_window = window;
         m_archiveCollection = archiveCollection;
         m_sections = GenerateSections();
-        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font);
+        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font, new Color(32, 32, 32), Color.LawnGreen, 0.5f);
         m_tabHeader.SelectedIndexChanged += TabHeader_SelectedIndexChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -96,6 +97,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private void TabHeader_SelectedIndexChanged(object? sender, EventArgs e)
     {
         m_currentSectionIndex = m_tabHeader.SelectedIndex;
+        m_sectionChange = true;
     }
 
     private void Config_MapRestartRequired(object? sender, EventArgs e)
@@ -365,25 +367,28 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4)
                 || input.ConsumePressOrContinuousHold(Key.DPadLeft) || buttonIndex == BackIndex)
             {
-                m_soundManager.PlayStaticSound(MenuSounds.Change);
-                m_scrollOffset = 0;
-                section.SetToFirstSelection();
+                m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
-                m_sections[m_currentSectionIndex].OnShow();
             }
 
             if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5)
                 || input.ConsumePressOrContinuousHold(Key.DPadRight) || buttonIndex == ForwardIndex)
             {
-                m_soundManager.PlayStaticSound(MenuSounds.Change);
-                m_scrollOffset = 0;
-                section.SetToFirstSelection();
+                m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
-                m_sections[m_currentSectionIndex].OnShow();
             }
 
             if (index != m_currentSectionIndex)
                 m_tabHeader.SetSelectedIndex(m_currentSectionIndex);
+
+            if (m_sectionChange)
+            {
+                m_scrollOffset = 0;
+                m_soundManager.PlayStaticSound(MenuSounds.Change);
+                m_sections[m_currentSectionIndex].OnShow();
+                m_sectionChange = false;
+                section.SetToFirstSelection();
+            }
         }
 
         // We don't want any input leaking into the layers below this.
@@ -437,9 +442,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         m_footerScrollPadding = hud.MeasureText(" ", FooterFont, fontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
 
-        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
-            out _, both: Align.TopLeft, color: Color.Red);
-
         m_headerHeight = 0;
         int y = m_scrollOffset;
         int titleY = m_scrollOffset;
@@ -471,8 +473,15 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_lastSelectedRowDescription = m_selectedRowDescription;
 
         m_tabHeader.SetMaxRows(3);
-        m_headerHeight += m_tabHeader.Render(hud, fontSize, y + m_headerHeight) + m_config.Window.GetMenuScaled(6);
+        var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, y + m_headerHeight) + m_config.Window.GetMenuScaled(6);
+        m_headerHeight += tabHeaderHeight;
         y += m_headerHeight;
+
+        if (tabHeaderHeight == 0)
+        {
+            hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
+                out _, both: Align.TopLeft, color: Color.Red);
+        }
 
         if (m_currentSectionIndex < m_sections.Count)
         {
