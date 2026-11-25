@@ -458,30 +458,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_tabHeader.SetMaxHeight((int)(m_windowSize.Height * 0.3));
         var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, y + m_headerHeight);
         m_headerHeight += tabHeaderHeight;
-        y += m_headerHeight;
 
         if (tabHeaderHeight == 0)
-        {
-            hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
-                out _, both: Align.TopLeft, color: Color.Red);
+            RenderFallBackHeader(hud, fontSize, smallPad, padding);
 
-            hud.Text(m_sections[m_currentSectionIndex].Title, Font, fontSize, (smallPad, smallPad),
-               out var titleArea, both: Align.TopMiddle, color: Color.White);
-            m_headerHeight += titleArea.Height + m_config.Window.GetMenuScaled(5);
-
-            m_maxHeaderWidth = GetMaxHeaderWidth(hud, Font, fontSize);
-
-            int xOffset = (hud.Dimension.Width - m_maxHeaderWidth) / 2;
-            var arrowSize = hud.MeasureText("<-", Font, fontSize);
-            int yOffset = titleArea.Height - arrowSize.Height;
-            Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, yOffset);
-            Vec2I forwardArrowPos = (xOffset + m_maxHeaderWidth + padding, yOffset);
-            hud.Text("<-", Font, fontSize, backArrowPos, color: Color.White);
-            hud.Text("->", Font, fontSize, forwardArrowPos, color: Color.White);
-
-            m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
-            m_backForwardPos.Add(new Box2I(forwardArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
-        }
+        y += m_headerHeight;
 
         if (m_currentSectionIndex < m_sections.Count)
         {
@@ -494,7 +475,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             ctx.Scissor(scissorBox, false);
 
             m_didMouseWheelScroll = false;
-            RenderScrollBar(hud, section, tabHeaderHeight);
+            RenderScrollBar(hud, section,  m_headerHeight);
 
             if (m_locked && m_lockOptions == LockOptions.None)
                 return;
@@ -532,6 +513,31 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         {
             RenderFooter(m_footerLines, hud.Height - m_footerHeight, Font, footerFontSize, hud);
         }
+    }
+
+    private void RenderFallBackHeader(IHudRenderContext hud, int fontSize, int smallPad, int padding)
+    {
+        m_footerHeight = 0;
+
+        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
+            out _, both: Align.TopLeft, color: Color.Red);
+
+        hud.Text(m_sections[m_currentSectionIndex].Title, Font, fontSize, (smallPad, smallPad),
+           out var titleArea, both: Align.TopMiddle, color: Color.White);
+        m_headerHeight += titleArea.Height + smallPad;
+
+        m_maxHeaderWidth = GetMaxHeaderWidth(hud, Font, fontSize);
+
+        int xOffset = (hud.Dimension.Width - m_maxHeaderWidth) / 2;
+        var arrowSize = hud.MeasureText("<-", Font, fontSize);
+        int yOffset = titleArea.Height - arrowSize.Height;
+        Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, yOffset);
+        Vec2I forwardArrowPos = (xOffset + m_maxHeaderWidth + padding, yOffset);
+        hud.Text("<-", Font, fontSize, backArrowPos, color: Color.White);
+        hud.Text("->", Font, fontSize, forwardArrowPos, color: Color.White);
+
+        m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
+        m_backForwardPos.Add(new Box2I(forwardArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
     }
 
     private int GetMaxHeaderWidth(IHudRenderContext hud, string font, int fontSize)
