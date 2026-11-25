@@ -27,12 +27,18 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
     private readonly List<int> m_widths = [];
     private int m_selectedIndex;
     private int m_maxRows = 1;
+    private int m_maxHeight = int.MaxValue;
 
     public int GetRowHeight(IHudRenderContext hud, int fontSize) => hud.MeasureText(" ", m_font, fontSize).Height + m_config.GetMenuScaled(8);
 
     public void SetMaxRows(int maxRows)
     {
         m_maxRows = Math.Max(1, maxRows);
+    }
+
+    public void SetMaxHeight(int maxHeight)
+    {
+        m_maxHeight = maxHeight;
     }
 
     public void SetSelectedIndex(int index)
@@ -44,15 +50,20 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
     public int Render(IHudRenderContext hud, int fontSize, int yPos)
     {
         var data = RenderInternal(hud, fontSize, yPos, false, null);
-        if (data.Widths.Count > m_maxRows)
+        if (data.Widths.Count > m_maxRows || data.TotalHeight > m_maxHeight)
+        {
+            m_boxList.Clear();
             return 0;
+        }
 
         return RenderInternal(hud, fontSize, yPos, true, data.Widths).TotalHeight;
     }
 
     private RenderData RenderInternal(IHudRenderContext hud, int fontSize, int yPos, bool draw, List<int>? rowWidths)
     {
-        m_boxList.Clear();
+        if (draw)
+            m_boxList.Clear();
+
         var textHeight = hud.MeasureText(" ", m_font, fontSize).Height;
         var tabRowHeight = GetRowHeight(hud, fontSize);
         var separatorSpace = m_config.GetMenuScaled(3);
@@ -87,7 +98,9 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
                     pos.X = (hud.Dimension.Width - rowWidths[rowIndex]) / 2;
             }
 
-            m_boxList.Add(new(pos, pos + new Vec2I(textSize.Width, textSize.Height)), i);
+            if (draw)
+                m_boxList.Add(new(pos, pos + new Vec2I(textSize.Width, textSize.Height)), i);
+
             pos.X += tabPadding;
 
             if (draw)

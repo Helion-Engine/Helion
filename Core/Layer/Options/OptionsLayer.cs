@@ -37,8 +37,9 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public long LastClosedNanos;
     public bool CurrentlyBindingKey => m_sections[m_currentSectionIndex] is KeyBindingSection { CurrentlyBinding: true };
 
+    private const int BackIndex = 0;
+    private const int ForwardIndex = 1;
     private const string Font = Fonts.Options.Font;
-    private const string FooterFont = Fonts.Options.FooterFont;
 
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
@@ -47,6 +48,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private readonly IWindow m_window;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<IOptionSection> m_sections;
+    private readonly BoxList m_backForwardPos = new();
     private readonly List<StringSlice> m_footerLines = [];
     private readonly List<string> m_sbarLayoutNames = [];
     private readonly TabHeader m_tabHeader;
@@ -58,6 +60,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private int m_footerHeight;
     private int m_footerScrollPadding;
     private int m_messageTicks;
+    private int m_maxHeaderWidth = -1;
     private string m_message = string.Empty;
     private string m_sectionMessage = string.Empty;
     private string m_selectedRowDescription = string.Empty;
@@ -352,20 +355,24 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
                 m_scrollOffset = Math.Clamp(m_scrollOffset, -(Math.Abs(section.GetRenderHeight() + m_headerHeight + m_footerScrollPadding - m_windowSize.Height + scrollAmount)), 0);
             }
 
+            int buttonIndex = -1;
+            if (!m_locked && m_backForwardPos.GetIndex(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
+                buttonIndex = checkButtonIndex;
+
             m_tabHeader.HandleInput(input, m_cursorPos);
             section.HandleInput(input);
 
             var index = m_currentSectionIndex;
 
             if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4)
-                || input.ConsumePressOrContinuousHold(Key.DPadLeft))
+                || input.ConsumePressOrContinuousHold(Key.DPadLeft) || buttonIndex == BackIndex)
             {
                 m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
             }
 
             if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5)
-                || input.ConsumePressOrContinuousHold(Key.DPadRight))
+                || input.ConsumePressOrContinuousHold(Key.DPadRight) || buttonIndex == ForwardIndex)
             {
                 m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
@@ -390,20 +397,19 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void ScrollToVisibleArea(IOptionSection section)
     {
-        var scrollOffset = m_scrollOffset;
-        int scrollAmount = GetScrollAmount();
+        var scrollOffset = Math.Abs(m_scrollOffset);
         (int startY, int endY) = section.GetSelectedRenderY();
-        if (endY + m_headerHeight > Math.Abs(scrollOffset) + (m_windowSize.Height - m_footerScrollPadding))
-        {
-            scrollOffset = endY + m_headerHeight - m_windowSize.Height + m_footerScrollPadding;
-            scrollOffset = -(int)Math.Ceiling(scrollOffset / (double)scrollAmount) * scrollAmount;
-        }
 
-        if (startY + m_headerHeight < Math.Abs(scrollOffset))
-        {
-            scrollOffset = startY + m_headerHeight;
-            scrollOffset = -(int)Math.Floor(scrollOffset / (double)scrollAmount) * scrollAmount;
-        }
+        var pageSize = m_windowSize.Height - m_headerHeight - m_footerHeight;
+        var visibleTopY = scrollOffset;
+        var visibleBottomY = scrollOffset + pageSize;
+
+        if (startY < visibleTopY)
+            scrollOffset = -startY;
+        else if (endY > visibleBottomY)
+            scrollOffset = -endY + pageSize;
+        else
+            return;
 
         m_scrollOffset = scrollOffset;
     }
@@ -424,6 +430,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         Animation.Tick();
         m_windowSize = hud.Dimension;
+        m_backForwardPos.Clear();
         ctx.ClearDepth();
         hud.Clear(Color.Gray);
 
@@ -431,23 +438,24 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         hud.RenderFullscreenImageStretched(DefaultBackgroundImage);
 
+        int footerFontSize = m_config.Window.GetMenuSmallFontSize();
         int fontSize = m_config.Window.GetMenuMediumFontSize();
         int smallPad = m_config.Window.GetMenuScaled(2);
 
-        m_footerScrollPadding = hud.MeasureText(" ", FooterFont, fontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
+        m_footerScrollPadding = hud.MeasureText(" ", Font, footerFontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
         m_headerHeight = 0;
 
         var y = 0;
         var headerPadding = m_config.Window.GetMenuScaled(6);
+        var padding = m_config.Window.GetMenuScaled(8);
         m_headerHeight += headerPadding;
 
-        var padding = m_config.Window.GetMenuScaled(8);
-
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
-            GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, out m_footerHeight);
+            GenerateFooterLines(m_selectedRowDescription, Font, footerFontSize, hud, m_footerLines, out m_footerHeight);
         m_lastSelectedRowDescription = m_selectedRowDescription;
 
         m_tabHeader.SetMaxRows(3);
+        m_tabHeader.SetMaxHeight((int)(m_windowSize.Height * 0.3));
         var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, y + m_headerHeight);
         m_headerHeight += tabHeaderHeight;
         y += m_headerHeight;
@@ -456,6 +464,23 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         {
             hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
                 out _, both: Align.TopLeft, color: Color.Red);
+
+            hud.Text(m_sections[m_currentSectionIndex].Title, Font, fontSize, (smallPad, smallPad),
+               out var titleArea, both: Align.TopMiddle, color: Color.White);
+            m_headerHeight += titleArea.Height + m_config.Window.GetMenuScaled(5);
+
+            m_maxHeaderWidth = GetMaxHeaderWidth(hud, Font, fontSize);
+
+            int xOffset = (hud.Dimension.Width - m_maxHeaderWidth) / 2;
+            var arrowSize = hud.MeasureText("<-", Font, fontSize);
+            int yOffset = titleArea.Height - arrowSize.Height;
+            Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, yOffset);
+            Vec2I forwardArrowPos = (xOffset + m_maxHeaderWidth + padding, yOffset);
+            hud.Text("<-", Font, fontSize, backArrowPos, color: Color.White);
+            hud.Text("->", Font, fontSize, forwardArrowPos, color: Color.White);
+
+            m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
+            m_backForwardPos.Add(new Box2I(forwardArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
         }
 
         if (m_currentSectionIndex < m_sections.Count)
@@ -482,7 +507,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             }
             else
             {
-                hover = section.OnClickableItem(m_cursorPos) || m_tabHeader.MouseHover(m_cursorPos);
+                hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _) || m_tabHeader.MouseHover(m_cursorPos);
             }
 
             string cursor = hover ? "helion-pointer" : "helion-cursor";
@@ -505,8 +530,20 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         }
         else if (m_footerLines.Count > 0 && tabHeaderHeight > 0)
         {
-            RenderFooter(m_footerLines, hud.Height - m_footerHeight, FooterFont, fontSize, hud);
+            RenderFooter(m_footerLines, hud.Height - m_footerHeight, Font, footerFontSize, hud);
         }
+    }
+
+    private int GetMaxHeaderWidth(IHudRenderContext hud, string font, int fontSize)
+    {
+        var max = 0;
+        foreach (var section in m_sections)
+        {
+            var width = hud.MeasureText(section.Title, font, fontSize).Width;
+            max = Math.Max(width, max);
+        }
+
+        return max;
     }
 
     private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<StringSlice> lines,
