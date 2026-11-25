@@ -519,7 +519,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         m_footerHeight = 0;
 
-        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
+        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, m_config.Window.GetMenuSmallFontSize(), (smallPad, smallPad),
             out _, both: Align.TopLeft, color: Color.Red);
 
         hud.Text(m_sections[m_currentSectionIndex].Title, Font, fontSize, (smallPad, smallPad),
