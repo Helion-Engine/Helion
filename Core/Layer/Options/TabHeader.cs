@@ -127,7 +127,7 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
         if (!draw)
             m_widths.Add(pos.X);
 
-        return new(m_widths, rowCount * tabRowHeight);
+        return new(m_widths, rowCount * tabRowHeight + (tabPadding * (rowCount - 1)));
     }
 
     public void HandleInput(IConsumableInput input, Vec2I cursorPos)

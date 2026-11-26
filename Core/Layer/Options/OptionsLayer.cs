@@ -460,7 +460,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         if (tabHeaderHeight == 0)
             RenderFallBackHeader(hud, fontSize, smallPad, padding);
 
-        var y = m_headerHeight + padding;
+        var y = m_headerHeight;
 
         if (m_currentSectionIndex < m_sections.Count)
         {
