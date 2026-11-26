@@ -679,7 +679,7 @@ public class ListedConfigSection : IOptionSection
         int fontSize = m_config.Window.GetMenuSmallFontSize();
         int smallPad = m_config.Window.GetMenuScaled(1);
         int largePad = m_config.Window.GetMenuScaled(8);
-        int y = startY + largePad;
+        int y = startY;
 
         hud.Text("Press enter to modify the selected setting", Font, fontSize, (0, y), out Dimension textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);

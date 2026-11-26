@@ -61,6 +61,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private int m_footerScrollPadding;
     private int m_messageTicks;
     private int m_maxHeaderWidth = -1;
+    private int m_pageOffset;
     private string m_message = string.Empty;
     private string m_sectionMessage = string.Empty;
     private string m_selectedRowDescription = string.Empty;
@@ -82,7 +83,14 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_window = window;
         m_archiveCollection = archiveCollection;
         m_sections = GenerateSections();
-        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font, Color.Gray, new Color(32, 32, 32), new Color(0, 255, 128), Color.Gray, new Color(192, 192, 192), 0.5f);
+
+        var tabTextColor = Color.Gray;
+        var tabColor = new Color(32, 32, 32);
+        var tabSelectColor = new Color(0, 255, 128);
+        var tabHighlightTabColor = new Color(72, 72, 72);
+
+        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font,
+            tabTextColor, tabColor, tabSelectColor, tabTextColor, tabHighlightTabColor, 0.5f);
         m_tabHeader.SelectedIndexChanged += TabHeader_SelectedIndexChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -399,7 +407,9 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         var scrollOffset = Math.Abs(m_scrollOffset);
         (int startY, int endY) = section.GetSelectedRenderY();
-        
+        startY += m_pageOffset;
+        endY += m_pageOffset;
+
         var pageSize = m_windowSize.Height - m_headerHeight - m_footerHeight;
         var visibleTopY = scrollOffset;
         var visibleBottomY = scrollOffset + pageSize;
@@ -439,9 +449,10 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         hud.RenderFullscreenImageStretched(DefaultBackgroundImage);
 
-        int footerFontSize = m_config.Window.GetMenuSmallFontSize();
-        int fontSize = m_config.Window.GetMenuMediumFontSize();
-        int smallPad = m_config.Window.GetMenuScaled(2);
+        var footerFontSize = m_config.Window.GetMenuSmallFontSize();
+        var fontSize = m_config.Window.GetMenuMediumFontSize();
+        var smallPad = m_config.Window.GetMenuScaled(2);
+        m_pageOffset = m_config.Window.GetMenuScaled(8);
 
         m_footerScrollPadding = hud.MeasureText(" ", Font, footerFontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
         m_headerHeight = 0;
@@ -464,13 +475,15 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         if (m_currentSectionIndex < m_sections.Count)
         {
-            var sectionStartY = y + m_scrollOffset;
             var section = m_sections[m_currentSectionIndex];
 
             var scissorBox = new Box2I(new Vec2I(0, 0), new Vec2I(m_windowSize.Width, m_windowSize.Height - m_headerHeight));
             ctx.Scissor(scissorBox, true);
+            hud.PushOffset(new(0, m_pageOffset));
+            var sectionStartY = y + m_scrollOffset;
             section.Render(ctx, hud, sectionStartY, m_didMouseWheelScroll);
             ctx.Scissor(scissorBox, false);
+            hud.PopOffset();
 
             m_didMouseWheelScroll = false;
             RenderScrollBar(hud, section,  m_headerHeight);
