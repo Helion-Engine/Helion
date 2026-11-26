@@ -28,7 +28,7 @@ namespace Helion.Layer.Options.Sections;
 
 public class ListedConfigSection : IOptionSection
 {
-    private const string Font = Fonts.Options.Font;
+    private const string Font = Fonts.Options;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<LockEvent>? OnLockChanged;

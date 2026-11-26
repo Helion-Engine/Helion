@@ -361,12 +361,7 @@ public static class Constants
         public const string SmallGrayFixedWidthNumbers = "SmallFontGrayscaleFixedWidthNumbers";
         public const string VGA = "Ac437_IBM_VGA_8x16";
         public const string IbmSemiBoldOutline = "IBMPlexMono-SemiBold-Outline";
-
-        public static class Options
-        {
-            public const string Font = IbmSemiBoldOutline;
-            public const string FooterFont = Console;
-        }
+        public const string Options = IbmSemiBoldOutline;
     };
 
     public static class LightBuffer

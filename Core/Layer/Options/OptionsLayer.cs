@@ -39,7 +39,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
-    private const string Font = Fonts.Options.Font;
+    private const string Font = Fonts.Options;
 
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;

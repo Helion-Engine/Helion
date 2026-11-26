@@ -22,7 +22,7 @@ namespace Helion.Layer.Options.Sections;
 
 public class KeyBindingSection : IOptionSection
 {
-    private const string Font = Fonts.Options.Font;
+    private const string Font = Fonts.Options;
 
     struct CommandKeys
     {
