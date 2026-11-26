@@ -82,7 +82,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_window = window;
         m_archiveCollection = archiveCollection;
         m_sections = GenerateSections();
-        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font, Color.Gray, new Color(32, 32, 32), Color.LawnGreen, Color.Gray, new Color(192, 192, 192), 0.5f);
+        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font, Color.Gray, new Color(32, 32, 32), new Color(0, 255, 128), Color.Gray, new Color(192, 192, 192), 0.5f);
         m_tabHeader.SelectedIndexChanged += TabHeader_SelectedIndexChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
