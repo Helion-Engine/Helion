@@ -10,10 +10,13 @@ using System.Collections.Generic;
 
 namespace Helion.Layer.Options;
 
-public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Color tabColor, Color selectColor, float tabAlpha)
+public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Color textColor, Color tabColor, Color selectColor, Color textHighlightColor, Color tabHighlightColor, float tabAlpha)
 {
+    public readonly Color TextColor = textColor;
     public readonly Color TabColor = tabColor;
     public readonly Color SelectColor = selectColor;
+    public readonly Color TextHighlightColor = textHighlightColor;
+    public readonly Color TabHighlightColor = tabHighlightColor;
     public readonly float TabAlpha = tabAlpha;
     record struct RenderData(List<int> Widths, int TotalHeight);
 
@@ -28,8 +31,7 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
     private int m_selectedIndex;
     private int m_maxRows = 1;
     private int m_maxHeight = int.MaxValue;
-
-    public int GetRowHeight(IHudRenderContext hud, int fontSize) => hud.MeasureText(" ", m_font, fontSize).Height + m_config.GetMenuScaled(8);
+    private int m_hoverIndex = -1;
 
     public void SetMaxRows(int maxRows)
     {
@@ -65,11 +67,11 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
             m_boxList.Clear();
 
         var textHeight = hud.MeasureText(" ", m_font, fontSize).Height;
-        var tabRowHeight = GetRowHeight(hud, fontSize);
         var separatorSpace = m_config.GetMenuScaled(3);
         var tabPadding = m_config.GetMenuScaled(3);
+        var tabRowHeight = textHeight + tabPadding * 2;
         var startX = separatorSpace;
-        var pos = new Vec2I(startX, yPos);
+        var pos = new Vec2I(startX, yPos + tabPadding);
         if (rowWidths != null && rowWidths.Count > 0)
             pos.X = (hud.Dimension.Width - rowWidths[0] + startX) / 2;
         var rowCount = 1;
@@ -92,7 +94,7 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
                 rowCount++;
                 rowIndex++;
                 pos.X = startX;
-                pos.Y += tabRowHeight;
+                pos.Y += tabRowHeight + tabPadding;
 
                 if (rowWidths != null && rowIndex < rowWidths.Count)
                     pos.X = (hud.Dimension.Width - rowWidths[rowIndex]) / 2;
@@ -106,10 +108,11 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
             if (draw)
             {
                 var selected = i == m_selectedIndex;
+                var highlight = i == m_hoverIndex && !selected;
                 var boxPos = new Vec2I(pos.X - tabPadding, pos.Y - tabPadding);
                 var boxEnd = pos + new Vec2I(textSize.Width + tabPadding, textHeight + tabPadding);
-                hud.FillBox(new(boxPos, boxEnd), TabColor, alpha: TabAlpha);
-                hud.Text(title, m_font, fontSize, pos, color: selected ? Color.White : Color.Gray);
+                hud.FillBox(new(boxPos, boxEnd), highlight ? TabHighlightColor : TabColor, alpha: TabAlpha);
+                hud.Text(title, m_font, fontSize, pos, color: selected ? Color.White : highlight ? TextHighlightColor : TextColor);
 
                 if (selected)
                 {
@@ -129,8 +132,15 @@ public class TabHeader(ConfigWindow config, string[] tabTitles, string font, Col
 
     public void HandleInput(IConsumableInput input, Vec2I cursorPos)
     {
-        if (m_boxList.GetIndex(cursorPos, out var index) && input.ConsumeKeyPressed(Key.MouseLeft))
+        m_hoverIndex = -1;
+        var selected = m_boxList.GetIndex(cursorPos, out var index);
+        if (!selected)
+            return;
+
+        if (input.ConsumeKeyPressed(Key.MouseLeft))
             SetSelectedIndex(index);
+        else
+            m_hoverIndex = index;
     }
 
     public bool MouseHover(Vec2I cursorPos) => m_boxList.GetIndex(cursorPos, out _);

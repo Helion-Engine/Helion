@@ -82,7 +82,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_window = window;
         m_archiveCollection = archiveCollection;
         m_sections = GenerateSections();
-        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font, new Color(32, 32, 32), Color.LawnGreen, 0.5f);
+        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font, Color.Gray, new Color(32, 32, 32), Color.LawnGreen, Color.Gray, new Color(192, 192, 192), 0.5f);
         m_tabHeader.SelectedIndexChanged += TabHeader_SelectedIndexChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -400,8 +400,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         var scrollOffset = Math.Abs(m_scrollOffset);
         (int startY, int endY) = section.GetSelectedRenderY();
         
-        // TODO where is the 4 coming from
-        var pageSize = m_windowSize.Height - m_headerHeight - m_footerHeight - m_config.Window.GetMenuScaled(4);
+        var pageSize = m_windowSize.Height - m_headerHeight - m_footerHeight;
         var visibleTopY = scrollOffset;
         var visibleBottomY = scrollOffset + pageSize;
 
@@ -447,10 +446,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_footerScrollPadding = hud.MeasureText(" ", Font, footerFontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
         m_headerHeight = 0;
 
-        var headerPadding = m_config.Window.GetMenuScaled(6);
         var padding = m_config.Window.GetMenuScaled(8);
-        m_headerHeight += headerPadding;
-        var y = headerPadding;
 
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
             GenerateFooterLines(m_selectedRowDescription, Font, footerFontSize, hud, m_footerLines, out m_footerHeight);
@@ -458,13 +454,13 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         m_tabHeader.SetMaxRows(3);
         m_tabHeader.SetMaxHeight((int)(m_windowSize.Height * 0.3));
-        var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, y + m_headerHeight);
-        m_headerHeight += tabHeaderHeight;
+        var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, padding);
+        m_headerHeight = tabHeaderHeight + padding;
 
         if (tabHeaderHeight == 0)
             RenderFallBackHeader(hud, fontSize, smallPad, padding);
 
-        y += m_headerHeight;
+        var y = m_headerHeight + padding;
 
         if (m_currentSectionIndex < m_sections.Count)
         {
