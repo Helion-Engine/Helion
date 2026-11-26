@@ -10,10 +10,10 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Definitions.Zdoom;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Commands;
@@ -30,7 +30,8 @@ public enum RenderCommandType
     Automap,
     Hud,
     Transition,
-    Scissor
+    Scissor,
+    DepthTest
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -57,16 +58,17 @@ public class RenderCommands
     private int m_centeringOffsetX;
     private float m_alpha = 1;
     private Vec2I m_offset = Vec2I.Zero;
-    public List<RenderCommand> Commands = new();
-    public List<DrawWorldCommand> AutomapCommands = new();
-    public List<ClearRenderCommand> ClearCommands = new();
-    public List<DrawWorldCommand> WorldCommands = new();
-    public List<DrawImageCommand> ImageCommands = new();
-    public List<ViewportCommand> ViewportCommands = new();
-    public List<DrawTextCommand> TextCommands = new();
-    public List<DrawShapeCommand> ShapeCommands = new();
-    public List<TransitionCommand> TransitionCommands = new();
-    public List<ScissorCommand> ScissorCommands = new();
+    public DynamicArray<RenderCommand> Commands = [];
+    public DynamicArray<DrawWorldCommand> AutomapCommands = [];
+    public DynamicArray<ClearRenderCommand> ClearCommands = [];
+    public DynamicArray<DrawWorldCommand> WorldCommands = [];
+    public DynamicArray<DrawImageCommand> ImageCommands = [];
+    public DynamicArray<ViewportCommand> ViewportCommands = [];
+    public DynamicArray<DrawTextCommand> TextCommands = [];
+    public DynamicArray<DrawShapeCommand> ShapeCommands = [];
+    public DynamicArray<TransitionCommand> TransitionCommands = [];
+    public DynamicArray<ScissorCommand> ScissorCommands = [];
+    public DynamicArray<DepthCommand> DepthCommands = [];
 
     public Dimension RenderDimension => m_renderDimensions;
     public Dimension WindowDimension => m_windowDimensions;
@@ -102,6 +104,7 @@ public class RenderCommands
         AutomapCommands.Clear();
         TransitionCommands.Clear();
         ScissorCommands.Clear();
+        DepthCommands.Clear();
 
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = RenderDimension };
         m_scale = Vec2D.One;
@@ -185,7 +188,13 @@ public class RenderCommands
     public void Scissor(Box2I box, ScissorEnable enable)
     {
         Commands.Add(new RenderCommand(RenderCommandType.Scissor, ScissorCommands.Count));
-        ScissorCommands.Add(new(box, enable));
+        ScissorCommands.Add(new ScissorCommand(box, enable));
+    }
+
+    public void DepthTest(bool enable)
+    {
+        Commands.Add(new RenderCommand(RenderCommandType.DepthTest, DepthCommands.Count));
+        DepthCommands.Add(new DepthCommand(enable));
     }
 
     /// <summary>

@@ -612,6 +612,9 @@ public partial class Renderer : IDisposable
                 case RenderCommandType.Scissor:
                     HandleScissorCommand(renderCommands.ScissorCommands[cmd.Index]);
                     break;
+                case RenderCommandType.DepthTest:
+                    HandleDepthCommand(renderCommands.DepthCommands[cmd.Index]);
+                    break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
                     break;
@@ -645,6 +648,14 @@ public partial class Renderer : IDisposable
         }
 
         GL.Scissor(cmd.Box.Min.X, cmd.Box.Min.Y, cmd.Box.Width, cmd.Box.Height);
+    }
+
+    private static void HandleDepthCommand(DepthCommand depthCommand)
+    {
+        if (depthCommand.Enable)
+            GL.Enable(EnableCap.DepthTest);
+        else
+            GL.Disable(EnableCap.DepthTest);
     }
 
     private void BindColorMapBuffer()

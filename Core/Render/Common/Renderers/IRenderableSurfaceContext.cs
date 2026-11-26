@@ -65,6 +65,12 @@ public interface IRenderableSurfaceContext
     void Scissor(Box2I area, bool enable);
 
     /// <summary>
+    /// Enables/disables depth test
+    /// </summary>
+    /// <param name="enable">True to enable depth test.</param>
+    void DepthTest(bool enable);
+
+    /// <summary>
     /// Begins hud rendering actions.
     /// </summary>
     /// <param name="context">Contextual rendering information.</param>

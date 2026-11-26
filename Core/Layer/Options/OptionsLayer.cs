@@ -433,6 +433,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_windowSize = hud.Dimension;
         m_backForwardPos.Clear();
         ctx.ClearDepth();
+        ctx.DepthTest(false);
         hud.Clear(Color.Gray);
 
         SetMouseFromRender(hud);
