@@ -399,8 +399,9 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         var scrollOffset = Math.Abs(m_scrollOffset);
         (int startY, int endY) = section.GetSelectedRenderY();
-
-        var pageSize = m_windowSize.Height - m_headerHeight - m_footerHeight;
+        
+        // TODO where is the 4 coming from
+        var pageSize = m_windowSize.Height - m_headerHeight - m_footerHeight - m_config.Window.GetMenuScaled(4);
         var visibleTopY = scrollOffset;
         var visibleBottomY = scrollOffset + pageSize;
 
@@ -445,10 +446,10 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_footerScrollPadding = hud.MeasureText(" ", Font, footerFontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
         m_headerHeight = 0;
 
-        var y = 0;
         var headerPadding = m_config.Window.GetMenuScaled(6);
         var padding = m_config.Window.GetMenuScaled(8);
         m_headerHeight += headerPadding;
+        var y = headerPadding;
 
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
             GenerateFooterLines(m_selectedRowDescription, Font, footerFontSize, hud, m_footerLines, out m_footerHeight);
@@ -469,13 +470,15 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             var sectionStartY = y + m_scrollOffset;
             var section = m_sections[m_currentSectionIndex];
 
-            var scissorBox = new Box2I(new Vec2I(0, 0), new Vec2I(m_windowSize.Width, m_windowSize.Height - m_headerHeight + headerPadding));
+            var scissorBox = new Box2I(new Vec2I(0, 0), new Vec2I(m_windowSize.Width, m_windowSize.Height - m_headerHeight));
             ctx.Scissor(scissorBox, true);
             section.Render(ctx, hud, sectionStartY, m_didMouseWheelScroll);
             ctx.Scissor(scissorBox, false);
 
             m_didMouseWheelScroll = false;
             RenderScrollBar(hud, section,  m_headerHeight);
+
+            hud.FillBox(new(new Vec2I(0, m_headerHeight), new Vec2I(hud.Dimension.Width, m_headerHeight + 1)), Color.DarkGray);
 
             if (m_locked && m_lockOptions == LockOptions.None)
                 return;
@@ -517,14 +520,15 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void RenderFallBackHeader(IHudRenderContext hud, int fontSize, int smallPad, int padding)
     {
+        m_headerHeight = smallPad;
         m_footerHeight = 0;
 
-        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, m_config.Window.GetMenuSmallFontSize(), (smallPad, smallPad),
+        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, m_config.Window.GetMenuSmallFontSize(), (smallPad, smallPad * 2),
             out _, both: Align.TopLeft, color: Color.Red);
 
         hud.Text(m_sections[m_currentSectionIndex].Title, Font, fontSize, (smallPad, smallPad),
            out var titleArea, both: Align.TopMiddle, color: Color.White);
-        m_headerHeight += titleArea.Height + smallPad;
+        m_headerHeight += titleArea.Height;
 
         m_maxHeaderWidth = GetMaxHeaderWidth(hud, Font, fontSize);
 
