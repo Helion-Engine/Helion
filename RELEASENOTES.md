@@ -27,3 +27,4 @@
 - Changing video color mode, software sprite clipping emulation, and true color emulate invulnerability colormap no longer requires application restart.
 - Optimized shader generation for sector color and sector fog. Maps that do not use these features can see up to a 14% performance improvement on integrated GPUs.
 - Write application info for GPU preference instead of relying on registry for Windows. Prevents restarts on desktops/system that don't have permissions to write the registry key.
+- Add tabs to options menu and update styling.
