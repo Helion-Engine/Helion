@@ -77,6 +77,11 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
         Commands.Scissor(area, enable ? ScissorEnable.Enable : ScissorEnable.Disable);
     }
 
+    public void DepthTest(bool enable)
+    {
+        Commands.DepthTest(enable);
+    }
+
     public void DrawVirtualFrameBuffer()
     {
         Commands.DrawVirtualFrameBuffer();

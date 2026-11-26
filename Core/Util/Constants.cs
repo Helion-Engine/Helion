@@ -357,8 +357,11 @@ public static class Constants
         public const string SmallGray = "SmallFontGrayscale";
         public const string LargeHud = "LargeHudFont";
         public const string Console = "Console";
+        public const string Loading = "Console";
         public const string SmallGrayFixedWidthNumbers = "SmallFontGrayscaleFixedWidthNumbers";
         public const string VGA = "Ac437_IBM_VGA_8x16";
+        public const string IbmSemiBoldOutline = "IBMPlexMono-SemiBold-Outline";
+        public const string Options = IbmSemiBoldOutline;
     };
 
     public static class LightBuffer

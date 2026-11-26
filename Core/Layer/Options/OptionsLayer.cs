@@ -24,8 +24,8 @@ using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.StatusBar;
 using static Helion.Util.Constants;
+using System.Linq;
 
 namespace Helion.Layer.Options;
 
@@ -39,9 +39,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
-    private const string Font = Fonts.SmallGray;
-    private const string FooterFont = Fonts.Console;
-    private const string ScrollBarFont = Fonts.Small;
+    private const string Font = Fonts.Options;
 
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
@@ -52,7 +50,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private readonly List<IOptionSection> m_sections;
     private readonly BoxList m_backForwardPos = new();
     private readonly List<StringSlice> m_footerLines = [];
-    private readonly List<string> m_sbarLayoutNames = new();
+    private readonly List<string> m_sbarLayoutNames = [];
+    private readonly TabHeader m_tabHeader;
     private Dimension m_windowSize;
     private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
@@ -61,6 +60,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private int m_footerHeight;
     private int m_footerScrollPadding;
     private int m_messageTicks;
+    private int m_maxHeaderWidth = -1;
+    private int m_pageOffset;
     private string m_message = string.Empty;
     private string m_sectionMessage = string.Empty;
     private string m_selectedRowDescription = string.Empty;
@@ -70,6 +71,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private bool m_resetMouse;
     private bool m_setMouse;
     private bool m_didMouseWheelScroll;
+    private bool m_sectionChange;
     private MessageDialog? m_dialog;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, PathsManager pathsManager, SoundManager soundManager, IWindow window, ArchiveCollection archiveCollection)
@@ -82,6 +84,15 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_archiveCollection = archiveCollection;
         m_sections = GenerateSections();
 
+        var tabTextColor = Color.Gray;
+        var tabColor = new Color(32, 32, 32);
+        var tabSelectColor = new Color(0, 255, 128);
+        var tabHighlightTabColor = new Color(72, 72, 72);
+
+        m_tabHeader = new TabHeader(m_config.Window, [.. m_sections.Select(x => x.Title)], Font,
+            tabTextColor, tabColor, tabSelectColor, tabTextColor, tabHighlightTabColor, 0.5f);
+        m_tabHeader.SelectedIndexChanged += TabHeader_SelectedIndexChanged;
+
         m_config.Window.State.OnChanged += WindowState_OnChanged;
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
@@ -89,6 +100,12 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);
         Animation.OnStart += Animation_OnStart;
+    }
+
+    private void TabHeader_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        m_currentSectionIndex = m_tabHeader.SelectedIndex;
+        m_sectionChange = true;
     }
 
     private void Config_MapRestartRequired(object? sender, EventArgs e)
@@ -173,7 +190,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         if (sectionMap.TryGetValue(section, out var optionSection))
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
-        ListedConfigSection listedConfigSection = (section == OptionSectionType.Compatibility)
+        ListedConfigSection listedConfigSection = (section == OptionSectionType.Compat)
             ? new CompatibilitySection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager)
             : new ListedConfigSection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager);
 
@@ -350,26 +367,35 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             if (!m_locked && m_backForwardPos.GetIndex(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
                 buttonIndex = checkButtonIndex;
 
+            m_tabHeader.HandleInput(input, m_cursorPos);
             section.HandleInput(input);
+
+            var index = m_currentSectionIndex;
 
             if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4)
                 || input.ConsumePressOrContinuousHold(Key.DPadLeft) || buttonIndex == BackIndex)
             {
-                m_soundManager.PlayStaticSound(MenuSounds.Change);
-                m_scrollOffset = 0;
-                section.SetToFirstSelection();
+                m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
-                m_sections[m_currentSectionIndex].OnShow();
             }
 
             if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5)
                 || input.ConsumePressOrContinuousHold(Key.DPadRight) || buttonIndex == ForwardIndex)
             {
-                m_soundManager.PlayStaticSound(MenuSounds.Change);
-                m_scrollOffset = 0;
-                section.SetToFirstSelection();
+                m_sectionChange = true;
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
+            }
+
+            if (index != m_currentSectionIndex)
+                m_tabHeader.SetSelectedIndex(m_currentSectionIndex);
+
+            if (m_sectionChange)
+            {
+                m_scrollOffset = 0;
+                m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_sections[m_currentSectionIndex].OnShow();
+                m_sectionChange = false;
+                section.SetToFirstSelection();
             }
         }
 
@@ -379,19 +405,23 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void ScrollToVisibleArea(IOptionSection section)
     {
-        int scrollAmount = GetScrollAmount();
+        var scrollOffset = Math.Abs(m_scrollOffset);
         (int startY, int endY) = section.GetSelectedRenderY();
-        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + (m_windowSize.Height - m_footerScrollPadding))
-        {
-            m_scrollOffset = (endY + m_headerHeight - m_windowSize.Height + m_footerScrollPadding);
-            m_scrollOffset = -(int)Math.Ceiling((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
-        }
+        startY += m_pageOffset;
+        endY += m_pageOffset;
 
-        if (startY + m_headerHeight < Math.Abs(m_scrollOffset))
-        {
-            m_scrollOffset = (startY + m_headerHeight);
-            m_scrollOffset = -(int)Math.Floor((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
-        }
+        var pageSize = m_windowSize.Height - m_headerHeight - m_footerHeight;
+        var visibleTopY = scrollOffset;
+        var visibleBottomY = scrollOffset + pageSize;
+
+        if (startY < visibleTopY)
+            scrollOffset = -startY;
+        else if (endY > visibleBottomY)
+            scrollOffset = -endY + pageSize;
+        else
+            return;
+
+        m_scrollOffset = scrollOffset;
     }
 
     private int GetScrollAmount() => (int)(16 * m_config.Window.MenuScale);
@@ -412,60 +442,53 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_windowSize = hud.Dimension;
         m_backForwardPos.Clear();
         ctx.ClearDepth();
+        ctx.DepthTest(false);
         hud.Clear(Color.Gray);
 
         SetMouseFromRender(hud);
 
         hud.RenderFullscreenImageStretched(DefaultBackgroundImage);
 
-        int fontSize = m_config.Window.GetMenuMediumFontSize();
-        int largeFontSize = m_config.Window.GetMenuLargeFontSize();
-        int smallPad = m_config.Window.GetMenuScaled(2);
+        var footerFontSize = m_config.Window.GetMenuSmallFontSize();
+        var fontSize = m_config.Window.GetMenuMediumFontSize();
+        var smallPad = m_config.Window.GetMenuScaled(2);
+        m_pageOffset = m_config.Window.GetMenuScaled(8);
 
-        m_footerScrollPadding = hud.MeasureText(" ", FooterFont, fontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
-
-        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
-            out _, both: Align.TopLeft, color: Color.Red);
-
+        m_footerScrollPadding = hud.MeasureText(" ", Font, footerFontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
         m_headerHeight = 0;
-        int y = m_scrollOffset;
-        int titleY = m_scrollOffset;
-        hud.Text("Options", Font, largeFontSize, (smallPad, smallPad + titleY),
-                   out var titleArea, both: Align.TopMiddle, color: Color.White);
-        m_headerHeight += titleArea.Height + m_config.Window.GetMenuScaled(5);
 
-        int padding = m_config.Window.GetMenuScaled(8);
-        if (m_sections.Count > 1)
-        {
-            int xOffset = (hud.Dimension.Width - titleArea.Width) / 2;
-            var arrowSize = hud.MeasureText("<-", Font, fontSize);
-            int yOffset = titleArea.Height - arrowSize.Height;
-            Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, titleY + yOffset);
-            Vec2I forwardArrowPos = (xOffset + titleArea.Width + padding, titleY + yOffset);
-            hud.Text("<-", Font, fontSize, backArrowPos, color: Color.White);
-            hud.Text("->", Font, fontSize, forwardArrowPos, color: Color.White);
+        var padding = m_config.Window.GetMenuScaled(8);
 
-            m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
-            m_backForwardPos.Add(new Box2I(forwardArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
-        }
-
-        hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Font, fontSize, (0, m_headerHeight + y),
-            out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
-
-        m_headerHeight += pageInstrArea.Height + m_config.Window.GetMenuScaled(16);
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
-            GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, out m_footerHeight);
+            GenerateFooterLines(m_selectedRowDescription, Font, footerFontSize, hud, m_footerLines, out m_footerHeight);
         m_lastSelectedRowDescription = m_selectedRowDescription;
 
-        y += m_headerHeight;
+        m_tabHeader.SetMaxRows(3);
+        m_tabHeader.SetMaxHeight((int)(m_windowSize.Height * 0.3));
+        var tabHeaderHeight = m_tabHeader.Render(hud, fontSize, padding);
+        m_headerHeight = tabHeaderHeight + padding;
+
+        if (tabHeaderHeight == 0)
+            RenderFallBackHeader(hud, fontSize, smallPad, padding);
+
+        var y = m_headerHeight;
 
         if (m_currentSectionIndex < m_sections.Count)
         {
             var section = m_sections[m_currentSectionIndex];
-            section.Render(ctx, hud, y, m_didMouseWheelScroll);
-            m_didMouseWheelScroll = false;
 
-            RenderScrollBar(hud, fontSize, section);
+            var scissorBox = new Box2I(new Vec2I(0, 0), new Vec2I(m_windowSize.Width, m_windowSize.Height - m_headerHeight));
+            ctx.Scissor(scissorBox, true);
+            hud.PushOffset(new(0, m_pageOffset));
+            var sectionStartY = y + m_scrollOffset;
+            section.Render(ctx, hud, sectionStartY, m_didMouseWheelScroll);
+            ctx.Scissor(scissorBox, false);
+            hud.PopOffset();
+
+            m_didMouseWheelScroll = false;
+            RenderScrollBar(hud, section,  m_headerHeight);
+
+            hud.FillBox(new(new Vec2I(0, m_headerHeight), new Vec2I(hud.Dimension.Width, m_headerHeight + 1)), Color.DarkGray);
 
             if (m_locked && m_lockOptions == LockOptions.None)
                 return;
@@ -478,7 +501,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             }
             else
             {
-                hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);
+                hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _) || m_tabHeader.MouseHover(m_cursorPos);
             }
 
             string cursor = hover ? "helion-pointer" : "helion-cursor";
@@ -499,10 +522,48 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             hud.FillBox(new(new Vec2I(0, hud.Dimension.Height - dim.Height - (padding * 2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
             hud.Text(m_message, Font, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
         }
-        else if (m_footerLines.Count > 0)
+        else if (m_footerLines.Count > 0 && tabHeaderHeight > 0)
         {
-            RenderFooter(m_footerLines, hud.Height - m_footerHeight, FooterFont, fontSize, hud);
+            RenderFooter(m_footerLines, hud.Height - m_footerHeight, Font, footerFontSize, hud);
         }
+    }
+
+    private void RenderFallBackHeader(IHudRenderContext hud, int fontSize, int smallPad, int padding)
+    {
+        m_headerHeight = smallPad;
+        m_footerHeight = 0;
+
+        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, m_config.Window.GetMenuSmallFontSize(), (smallPad, smallPad * 2),
+            out _, both: Align.TopLeft, color: Color.Red);
+
+        hud.Text(m_sections[m_currentSectionIndex].Title, Font, fontSize, (smallPad, smallPad),
+           out var titleArea, both: Align.TopMiddle, color: Color.White);
+        m_headerHeight += titleArea.Height;
+
+        m_maxHeaderWidth = GetMaxHeaderWidth(hud, Font, fontSize);
+
+        int xOffset = (hud.Dimension.Width - m_maxHeaderWidth) / 2;
+        var arrowSize = hud.MeasureText("<-", Font, fontSize);
+        int yOffset = titleArea.Height - arrowSize.Height;
+        Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, yOffset);
+        Vec2I forwardArrowPos = (xOffset + m_maxHeaderWidth + padding, yOffset);
+        hud.Text("<-", Font, fontSize, backArrowPos, color: Color.White);
+        hud.Text("->", Font, fontSize, forwardArrowPos, color: Color.White);
+
+        m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
+        m_backForwardPos.Add(new Box2I(forwardArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
+    }
+
+    private int GetMaxHeaderWidth(IHudRenderContext hud, string font, int fontSize)
+    {
+        var max = 0;
+        foreach (var section in m_sections)
+        {
+            var width = hud.MeasureText(section.Title, font, fontSize).Width;
+            max = Math.Max(width, max);
+        }
+
+        return max;
     }
 
     private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<StringSlice> lines,
@@ -564,31 +625,28 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_cursorPos = m_window.InputManager.MousePosition;
     }
 
-    private void RenderScrollBar(IHudRenderContext hud, int fontSize, IOptionSection section)
+    private void RenderScrollBar(IHudRenderContext hud, IOptionSection section, int y)
     {
         if (!ScrollRequired(hud.Dimension.Height, section))
             return;
 
-        int scrollHeight = section.GetRenderHeight() + m_headerHeight + m_footerScrollPadding;
-        int maxScrollOffset = scrollHeight - hud.Dimension.Height;
+        var maxRenderHeight = hud.Dimension.Height - m_headerHeight;
+        var scrollHeight = section.GetRenderHeight() + m_footerScrollPadding;
+        var maxScrollOffset = scrollHeight - maxRenderHeight;
 
         if (maxScrollOffset < 0)
-        {
             return;
-        }
 
-        int actualScrollOffset = Math.Abs(m_scrollOffset);
-        int barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * hud.Dimension.Height);
+        var actualScrollOffset = Math.Abs(m_scrollOffset);
+        var barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * maxRenderHeight) + y;
 
-        const string Bar = "|";
-        var textDimension = hud.MeasureText(Bar, ScrollBarFont, fontSize);
+        var barDim = new Dimension(m_config.Window.GetMenuScaled(4), m_config.Window.GetMenuScaled(20));
 
-        if (barPosition + textDimension.Height > hud.Dimension.Height)
-        {
-            barPosition = hud.Dimension.Height - textDimension.Height;
-        }
+        if (barPosition + barDim.Height > hud.Dimension.Height)
+            barPosition = hud.Dimension.Height - barDim.Height;
 
-        hud.Text(Bar, ScrollBarFont, fontSize, (0, barPosition), both: Align.TopRight);
+        hud.FillBox(new(new Vec2I(-barDim.Width, y), new Vec2I(0, hud.Dimension.Height)), Color.Black, window: Align.TopRight, alpha: 0.7f);
+        hud.FillBox(new(new Vec2I(-barDim.Width, barPosition), new Vec2I(0, barPosition + barDim.Height)), Color.Gray, window: Align.TopRight);
     }
 
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>

@@ -28,7 +28,7 @@ namespace Helion.Layer.Options.Sections;
 
 public class ListedConfigSection : IOptionSection
 {
-    private const string Font = Fonts.SmallGray;
+    private const string Font = Fonts.Options;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<LockEvent>? OnLockChanged;
@@ -37,6 +37,7 @@ public class ListedConfigSection : IOptionSection
     public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType { get; }
+    public string Title { get; private set; }
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = [];
     private readonly BoxList m_menuPositionList = new();
     private readonly IConfig m_config;
@@ -70,6 +71,7 @@ public class ListedConfigSection : IOptionSection
         m_pathsManager = pathsManager;
         m_soundManager = soundManager;
         m_inputManager = inputManager;
+        Title = OptionType.ToString();
 
         SetDisableStates();
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -674,9 +676,10 @@ public class ListedConfigSection : IOptionSection
             m_updateMouse = true;
         }
 
-        int y = startY;
         int fontSize = m_config.Window.GetMenuSmallFontSize();
         int smallPad = m_config.Window.GetMenuScaled(1);
+        int largePad = m_config.Window.GetMenuScaled(8);
+        int y = startY;
 
         hud.Text("Press enter to modify the selected setting", Font, fontSize, (0, y), out Dimension textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
@@ -685,19 +688,17 @@ public class ListedConfigSection : IOptionSection
         hud.Text("Press R to reset the selected setting to its default", Font, fontSize, (0, y), out textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
 
-
-        string additionalHeader = GetExtendedHeaderText(out Color additionalHeaderColor);
+        var additionalHeader = GetExtendedHeaderText(out Color additionalHeaderColor);
         if (!string.IsNullOrEmpty(additionalHeader))
         {
+            y += largePad;
             y += textDimension.Height + smallPad;
             hud.Text(additionalHeader, Font, fontSize, (0, y), out textDimension,
                 both: Align.TopMiddle, color: additionalHeaderColor);
         }
 
-        y += textDimension.Height + m_config.Window.GetMenuScaled(8);
-
-        hud.Text(OptionType.ToString(), Font, m_config.Window.GetMenuLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
-        y += headerArea.Height + m_config.Window.GetMenuScaled(8);
+        y += largePad;
+        y += textDimension.Height;
 
         int offsetX = m_config.Window.GetMenuScaled(8);
         int spacerY = m_config.Window.GetMenuScaled(8);

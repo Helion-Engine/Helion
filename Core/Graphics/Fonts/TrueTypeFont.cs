@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
@@ -10,9 +5,17 @@ using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Helion.Graphics.Fonts;
 
@@ -38,45 +41,48 @@ public static class TrueTypeFont
         try
         {
             FontCollection fontCollection = new();
-            using (MemoryStream stream = new(data))
+            using MemoryStream stream = new(data);
+            FontFamily fontFamily = fontCollection.Add(stream, CultureInfo.InvariantCulture);
+            SixLabors.Fonts.Font imageSharpFont = fontFamily.CreateFont(RenderFontSize);
+            RichTextOptions richTextOptions = new(imageSharpFont);
+
+            string text = ComposeRenderableCharacters();
+            Dictionary<char, Image> charImages = [];
+
+            // Use this to compute the maximum height needed for the entire font, so that all of the character
+            // bitmaps can have the same height dimension.
+            FontRectangle fontBounds = TextMeasurer.MeasureBounds(text, richTextOptions);
+            var outlineColor = new Color(32, 32, 32).ToImageSharp;
+            var drawColor = Color.White.ToImageSharp;
+            var shouldOutline = name.Contains("-outline", StringComparison.OrdinalIgnoreCase);
+
+            foreach (char c in text)
             {
-                FontFamily fontFamily = fontCollection.Add(stream, CultureInfo.InvariantCulture);
-                SixLabors.Fonts.Font imageSharpFont = fontFamily.CreateFont(RenderFontSize);
-                RichTextOptions richTextOptions = new(imageSharpFont);
+                string charString = $"{c}";
+                // To measure the amount of room we need to render each character, we are using character advance
+                // for the width dimension.  Advance is how far "over" the renderer needs to move before drawing the
+                // next character.
+                // For height, we are using the maximum height dimension of the entire font, as computed above.
+                FontRectangle charAdvance = TextMeasurer.MeasureAdvance(charString, richTextOptions);
+                var path = TextBuilder.GenerateGlyphs(charString, new TextOptions(imageSharpFont));
 
-                string text = ComposeRenderableCharacters();
-                Dictionary<char, Image> charImages = new Dictionary<char, Image>();
+                using Image<Rgba32> charImage = new(
+                    (int)Math.Ceiling(charAdvance.X + charAdvance.Width),
+                    (int)Math.Ceiling(fontBounds.Y + fontBounds.Height));
 
-                // Use this to compute the maximum height needed for the entire font, so that all of the character
-                // bitmaps can have the same height dimension.
-                FontRectangle fontBounds = TextMeasurer.MeasureBounds(text, richTextOptions);
-
-                foreach (char c in text)
+                charImage.Mutate(ctx =>
                 {
-                    string charString = $"{c}";
-                    // To measure the amount of room we need to render each character, we are using character advance
-                    // for the width dimension.  Advance is how far "over" the renderer needs to move before drawing the
-                    // next character.
-                    // For height, we are using the maximum height dimension of the entire font, as computed above.
-                    FontRectangle charAdvance = TextMeasurer.MeasureAdvance(charString, richTextOptions);
+                    if (shouldOutline)
+                        ctx.Draw(outlineColor, 8.0f, path);
+                    ctx.Fill(Color.Transparent.ToImageSharp);
+                    ctx.DrawText(richTextOptions, charString, drawColor);
+                });
 
-                    using (Image<Rgba32> charImage = new(
-                        (int)Math.Ceiling(charAdvance.X + charAdvance.Width),
-                        (int)Math.Ceiling(fontBounds.Y + fontBounds.Height)))
-                    {
-                        charImage.Mutate(ctx =>
-                        {
-                            ctx.Fill(Color.Transparent.ToImageSharp);
-                            ctx.DrawText(richTextOptions, charString, Color.White.ToImageSharp);
-                        });
-
-                        charImages[c] = Image.FromImageSharp(charImage, ns: ResourceNamespace.Fonts)!;
-                    }
-                }
-
-                var (glyphs, image) = ComposeFontGlyphs(charImages);
-                return new Font(name, glyphs, image, isTrueTypeFont: true);
+                charImages[c] = Image.FromImageSharp(charImage, ns: ResourceNamespace.Fonts)!;
             }
+
+            var (glyphs, image) = ComposeFontGlyphs(charImages);
+            return new Font(name, glyphs, image, isTrueTypeFont: true);
         }
         catch (Exception e)
         {

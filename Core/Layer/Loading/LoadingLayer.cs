@@ -16,7 +16,7 @@ namespace Helion.Layer.IwadSelection;
 
 public class LoadingLayer : IGameLayer
 {
-    private static readonly string ConsoleFont = Constants.Fonts.Console;
+    private static readonly string Font = Constants.Fonts.Loading;
     private static readonly string[] Spinner = ["-", "\\", "|", "/"];
 
     private readonly ArchiveCollection m_archiveCollection;
@@ -48,12 +48,12 @@ public class LoadingLayer : IGameLayer
     {
         int fontSize = m_config.Window.GetMenuLargeFontSize();
         int yOffset = -m_config.Window.GetMenuScaled(8);
-        var dim = hud.MeasureText(LoadingText, ConsoleFont, fontSize);
+        var dim = hud.MeasureText(LoadingText, Font, fontSize);
         if (dim.Width == 0 && dim.Height == 0)
             return;
 
         hud.FillBox(new(new Vec2I(0, hud.Dimension.Height - dim.Height + (yOffset * 2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
-        hud.Text(LoadingText, ConsoleFont, fontSize, (0, yOffset), both: Align.BottomMiddle);
+        hud.Text(LoadingText, Font, fontSize, (0, yOffset), both: Align.BottomMiddle);
 
         if (m_stopwatch.ElapsedMilliseconds >= 80)
         {
@@ -62,7 +62,7 @@ public class LoadingLayer : IGameLayer
         }
 
         if (ShowSpinner)
-            hud.Text(Spinner[m_spinner], ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetHudScaled(16), yOffset), both: Align.BottomMiddle);
+            hud.Text(Spinner[m_spinner], Font, fontSize, (-dim.Width / 2 - m_config.Hud.GetHudScaled(16), yOffset), both: Align.BottomMiddle);
     }
 
     public void HandleInput(IConsumableInput input)
