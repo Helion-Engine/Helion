@@ -1,3 +1,4 @@
+using Helion.Graphics;
 using Helion.World.Save;
 using Helion.World.Util;
 using System;
@@ -11,9 +12,11 @@ public class MenuSaveRowComponent(
     SaveVerificationResult verificationResult,
     Func<Menu?>? action = null,
     Func<Menu?>? deleteAction = null,
-    SaveGame? saveGame = null) : IMenuComponent
+    SaveGame? saveGame = null,
+    Color? textColor = null) : IMenuComponent
 {
     public string Text { get; set; } = text;
+    public Color? TextColor { get; set; } = textColor;
     public string MapName { get; set; } = mapName;
     public Func<Menu?>? Action { get; set; } = action;
     public Func<Menu?>? DeleteAction { get; } = deleteAction;

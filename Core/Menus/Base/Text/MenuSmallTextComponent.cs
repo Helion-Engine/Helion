@@ -4,7 +4,13 @@ using static Helion.Util.Constants;
 
 namespace Helion.Menus.Base.Text;
 
-public class MenuSmallTextComponent(string text, Func<Menu?>? action = null, Align? align = null, bool lineWrap = false) : 
-    MenuTextComponent(text, 8, Fonts.Small, action, align, lineWrap)
+public class MenuSmallTextSaveComponent(string text, Func<Menu?>? action = null, Align? align = null, bool lineWrap = false, string font = Fonts.Options) :
+    MenuSmallTextComponent(text, action, align, lineWrap, font)
+{
+}
+
+
+public class MenuSmallTextComponent(string text, Func<Menu?>? action = null, Align? align = null, bool lineWrap = false, string font = Fonts.Small) : 
+    MenuTextComponent(text, 8, font, action, align, lineWrap)
 {
 }

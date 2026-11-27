@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Window;
 using Helion.Window.Input;
+using Helion.Util;
 
 namespace Helion.Menus.Impl;
 
@@ -20,7 +21,7 @@ public class MessageMenu : Menu
     public event EventHandler<bool>? Cleared;
 
     public MessageMenu(IWindow window, IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
-        IList<string> text, bool isYesNoConfirm = false, bool clearMenus = true)
+        IList<string> text, bool isYesNoConfirm = false, bool clearMenus = true, string font = Constants.Fonts.Small)
         : base(window, config, console, soundManager, archiveCollection, 90, clearOnClose: clearMenus)
     {
         IsYesNoConfirm = isYesNoConfirm;
@@ -28,7 +29,7 @@ public class MessageMenu : Menu
 
         for (int i = 0; i < text.Count; i++)
         {
-            Components = Components.Add(new MenuSmallTextComponent(text[i]));
+            Components = Components.Add(new MenuSmallTextComponent(text[i], font: font));
             if (i != text.Count - 1)
                 Components = Components.Add(new MenuPaddingComponent(8));
         }

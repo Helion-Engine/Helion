@@ -1,4 +1,5 @@
 using Helion.Audio.Sounds;
+using Helion.Graphics;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
@@ -30,7 +31,7 @@ public class SaveMenu : Menu
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private const int RowsPerPage = 18;
     private const string UnknownSavedGameName = "Unknown";
-    private const string EmptySlotText = "Empty slot";
+    private const string EmptySlotText = "Empty Slot";
     private const string NoSavedGamesText = "There are no saved games.";
     private static readonly string[] DeleteConfirmationText = ["Are you sure you want to delete this save?", "Press Y to confirm."];
     private static readonly string[] IncompatibleLoadText = ["Are you sure you want to load" , "this potentially incompatible save?", "Press Y to confirm."];
@@ -50,9 +51,9 @@ public class SaveMenu : Menu
     private readonly StringBuilder m_customNameBuilder = new();
     private readonly Stopwatch m_tickStopwatch = new();
 
-    private readonly MenuSmallTextComponent SaveHeader;
+    private readonly MenuSmallTextSaveComponent SaveHeader;
     private readonly MenuPaddingComponent SmallPadding = new(4);
-    private readonly MenuSmallTextComponent NoSavedGamesComponent = new(NoSavedGamesText);
+    private readonly MenuSmallTextSaveComponent NoSavedGamesComponent = new(NoSavedGamesText);
 
     private MenuSaveRowComponent? m_confirmIncompatibleSave;
     private SaveGame? m_deleteSave;
@@ -66,7 +67,7 @@ public class SaveMenu : Menu
         m_canSave = canSave;
         IsSaveMenu = isSave;
         m_screenshotGenerator = screenshotGenerator;
-        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");
+        SaveHeader = new(isSave ? "Save Game" : "Load Game");
 
         m_saveGames = saveManager.GetSaveGames();
         UpdateMenuComponents(setTop: true);
@@ -101,7 +102,7 @@ public class SaveMenu : Menu
     private void AddPaginationFooter(List<IMenuComponent> components)
     {
         components.Add(SmallPadding);
-        components.Add(new MenuSmallTextComponent($"<- Page {m_currentPage}/{GetPageCount()} ->", align: Align.BottomMiddle));
+        components.Add(new MenuSmallTextSaveComponent($"<- Page {m_currentPage}/{GetPageCount()} ->", align: Align.BottomMiddle));
     }
 
     /// <summary>
@@ -151,7 +152,7 @@ public class SaveMenu : Menu
             // show empty slot on page 1
             if (m_currentPage == 1)
             {
-                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false, SaveVerificationResult.Success);
+                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false, SaveVerificationResult.Success, textColor: Color.Orange);
                 saveRowComponent.Action = CreateNewSaveGame(() => saveRowComponent.Text);
                 newComponents.Add(saveRowComponent);
             }
@@ -277,7 +278,7 @@ public class SaveMenu : Menu
                     {
                         m_confirmIncompatibleSave = savedGameRow;
                         var confirm = new MessageMenu(Window, Config, Console, SoundManager, ArchiveCollection,
-                            IncompatibleLoadText, isYesNoConfirm: true, clearMenus: false);
+                            IncompatibleLoadText, isYesNoConfirm: true, clearMenus: false, font: Constants.Fonts.Options);
                         confirm.Cleared += IncompatibleSaveCleared;
                         m_parent.PushMenu(confirm);
                         return;
@@ -467,22 +468,13 @@ public class SaveMenu : Menu
         world.DisplayMessage(world.EntityManager.Players[0], null, message);
     }
 
-    private Func<Menu?> CreateConsoleCommand(string command)
-    {
-        return () =>
-        {
-            Console.SubmitInputText(command);
-            return null;
-        };
-    }
-
     private Func<Menu?> CreateDeleteCommand(SaveGame saveGame)
     {
         return () =>
         {
             m_deleteSave = saveGame;
             MessageMenu confirm = new(Window, Config, Console, SoundManager, ArchiveCollection,
-                DeleteConfirmationText, isYesNoConfirm: true, clearMenus: false);
+                DeleteConfirmationText, isYesNoConfirm: true, clearMenus: false, font: Constants.Fonts.Options);
             confirm.Cleared += Confirm_Cleared;
             return confirm;
         };
