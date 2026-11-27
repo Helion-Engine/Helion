@@ -35,6 +35,7 @@ public class ListedConfigSection : IOptionSection
     public event EventHandler<RowEvent>? OnRowChanged;
     public event EventHandler<ConfigInfoAttribute>? OnAttributeChanged;
     public event EventHandler<string>? OnError;
+    public int OffsetY { get; set; }
 
     public OptionSectionType OptionType { get; }
     public string Title { get; private set; }
@@ -769,7 +770,7 @@ public class ListedConfigSection : IOptionSection
             }
 
             int maxHeight = Math.Max(attrArea.Height, valueArea.Height);
-            var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + maxHeight));
+            var rowDimensions = new Box2I((0, y + OffsetY), (hud.Dimension.Width, y + maxHeight + OffsetY));
             m_menuPositionList.Add(rowDimensions, i);
 
             y += maxHeight + m_config.Window.GetMenuScaled(3);

@@ -481,6 +481,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             ctx.Scissor(scissorBox, true);
             hud.PushOffset(new(0, m_pageOffset));
             var sectionStartY = y + m_scrollOffset;
+            section.OffsetY = m_pageOffset;
             section.Render(ctx, hud, sectionStartY, m_didMouseWheelScroll);
             ctx.Scissor(scissorBox, false);
             hud.PopOffset();

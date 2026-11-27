@@ -61,6 +61,7 @@ public interface IOptionSection
 
     OptionSectionType OptionType { get; }
     string Title { get; }
+    int OffsetY { get; set; }
 
     void OnShow();
     void ResetSelection();

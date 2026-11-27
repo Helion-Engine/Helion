@@ -45,11 +45,10 @@ public class KeyBindingSection : IOptionSection
         }
     }
 
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     public event EventHandler<LockEvent>? OnLockChanged;
     public event EventHandler<RowEvent>? OnRowChanged;
     public event EventHandler<string>? OnError;
+    public int OffsetY { get; set; }
 
     public OptionSectionType OptionType => OptionSectionType.Keys;
     public string Title => "Keys";
@@ -419,7 +418,7 @@ public class KeyBindingSection : IOptionSection
                         window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gray);
 
                     int rowHeight = Math.Max(noBindingArea.Height, commandArea.Height);
-                    var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
+                    var rowDimensions = new Box2I((0, y + OffsetY), (hud.Dimension.Width, y + rowHeight + OffsetY));
                     m_menuPositionList.Add(rowDimensions, cmdIndex);
                     y += Math.Max(noBindingArea.Height, commandArea.Height);
                 }
@@ -444,7 +443,7 @@ public class KeyBindingSection : IOptionSection
                     }
 
                     int rowHeight = Math.Max(totalKeyArea.Height, commandArea.Height);
-                    var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
+                    var rowDimensions = new Box2I((0, y + OffsetY), (hud.Dimension.Width, y + rowHeight + OffsetY));
                     m_menuPositionList.Add(rowDimensions, cmdIndex);
                     y += commandArea.Height;
                 }
