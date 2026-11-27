@@ -110,7 +110,7 @@ public class SaveMenu : Menu
     /// </summary>
     private void UpdateMenuComponents(bool setTop = false, bool setBottom = false)
     {
-        var newComponents = (IsSaveMenu)
+        var newComponents = IsSaveMenu
             ? GenerateSaveMenuComponents()
             : GenerateLoadMenuComponents();
         Components = [.. newComponents];
@@ -142,7 +142,7 @@ public class SaveMenu : Menu
             string[] text = ArchiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
             for (int i = 0; i < text.Length; i++)
             {
-                newComponents.Add(new MenuSmallTextComponent(text[i]));
+                newComponents.Add(new MenuSmallTextSaveComponent(text[i]));
                 if (i != text.Length - 1)
                     newComponents.Add(SmallPadding);
             }

@@ -47,30 +47,56 @@ public partial class MenuLayer
             hud.Textures.CreateOrReplaceTexture(StaticMenuImageName, Resources.ResourceNamespace.Graphics, StaticMenuImage);
 
         Animation.Tick();
-        hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
+        DrawDarkBackground(hud);
 
-        if (m_menus.TryPeek(out var menu) && menu.CurrentComponent is MenuSaveRowComponent)
-        {
-            // Save/load menu is rendering true type fonts which look terrible using Doom's stretched aspect ratio.
-            // Use a normal 4:3 ratio instead.
-            hud.PushVirtualDimension((320, 240), ResolutionScale.Center);
-            m_renderVirtualHudAction(hud);
-            hud.PopVirtualDimension();
-        }
-        else
-        {
-            hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
-        }
+        PushVirtualResolution(hud);
+        m_renderVirtualHudAction(hud);
+        hud.PopVirtualDimension();
 
         if (!m_window.GrabCursor)
             m_mouseMenu.Render(hud);
     }
 
+    private void PushVirtualResolution(IHudRenderContext hud)
+    {
+        var dimension = new Dimension(320, 200);
+        var aspectRatio = Constants.DoomVirtualAspectRatio;
+
+        if (TryPeekMenu(out var menu) && (menu.CurrentComponent is MenuSaveRowComponent || menu is MessageMenu))
+        {
+            // Save/load menu is rendering true type fonts which look terrible using Doom's stretched aspect ratio.
+            // Use a normal 4:3 ratio instead.
+            dimension = new(320, 240);
+            aspectRatio = dimension.Width / (float)dimension.Height;
+        }
+
+        hud.PushVirtualDimension(dimension, ResolutionScale.Center, aspectRatio);
+    }
+
+    private static void DrawDarkBackground(IHudRenderContext hud)
+    {
+        hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
+    }
+
     private void RenderVirtualHud(IHudRenderContext hud)
     {
-        if (!m_menus.TryPeek(out Menu? menu))
+        if (!TryPeekMenu(out var menu))
             return;
 
+        if (menu is MessageMenu && m_menus.Count > 1)
+        {
+            RenderMenu(hud, m_menus[^2], checkMouse: false);
+            hud.PopVirtualDimension();
+            DrawDarkBackground(hud);
+            PushVirtualResolution(hud);
+        }
+
+        RenderMenu(hud, menu, checkMouse: true);
+        hud.PopOffset();
+    }
+
+    private void RenderMenu(IHudRenderContext hud, Menu menu, bool checkMouse)
+    {
         m_mouseMenu.Clear();
         m_mouseMenu.SetLocked(menu.RowLocked);
 
@@ -122,7 +148,7 @@ public partial class MenuLayer
 
             if (component.HasAction && drawArea.Max.X != 0)
             {
-                var scaleDrawArea = new Box2I(((int)(drawArea.Min.X * scaleWidth), (int)(drawArea.Min.Y * scaleHeight)), 
+                var scaleDrawArea = new Box2I(((int)(drawArea.Min.X * scaleWidth), (int)(drawArea.Min.Y * scaleHeight)),
                     ((int)(drawArea.Max.X * scaleWidth), (int)(drawArea.Max.Y * scaleHeight)));
                 m_mouseMenu.Add(scaleDrawArea, i);
             }
@@ -134,22 +160,25 @@ public partial class MenuLayer
         if (saveMenu && m_saveGameSummary != null)
             RenderSaveGameDetails(hud);
 
-        if (m_resetMouse)
+        if (checkMouse)
         {
-            m_window.SetGrabCursor(false);
-            m_resetMouse = false;
-        }
+            if (m_resetMouse)
+            {
+                m_window.SetGrabCursor(false);
+                m_resetMouse = false;
+            }
 
-        if (m_initMouse)
-        {
-            m_initMouse = false;
-            m_mouseMenu.SetMousePosition((m_window.ClientDimension.Width / 2, (int)(16 * scaleHeight)));
-        }
+            if (m_initMouse)
+            {
+                m_initMouse = false;
+                m_mouseMenu.SetMousePosition((m_window.ClientDimension.Width / 2, (int)(16 * scaleHeight)));
+            }
 
-        if ((m_forceCheckMouse || m_mouseMenu.MousePositionChanged()) && m_mouseMenu.GetSelectedIndex(out var selectedIndex))
-        {
-            menu.SetComponentIndex(selectedIndex);
-            m_forceCheckMouse = false;
+            if ((m_forceCheckMouse || m_mouseMenu.MousePositionChanged()) && m_mouseMenu.GetSelectedIndex(out var selectedIndex))
+            {
+                menu.SetComponentIndex(selectedIndex);
+                m_forceCheckMouse = false;
+            }
         }
     }
 
