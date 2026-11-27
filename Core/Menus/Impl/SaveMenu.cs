@@ -306,14 +306,15 @@ public class SaveMenu : Menu
     {
         bool changed = false;
 
-        if (input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.PageUp))
+        var scroll = input.ConsumeScroll();
+        if (input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.PageUp) || scroll < 0)
         {
             m_currentPage--;
             if (m_currentPage < 1)
                 m_currentPage = GetPageCount();
             changed = true;
         }
-        else if (input.ConsumeKeyPressed(Key.Right) || input.ConsumeKeyPressed(Key.PageDown))
+        else if (input.ConsumeKeyPressed(Key.Right) || input.ConsumeKeyPressed(Key.PageDown) || scroll > 0)
         {
             m_currentPage++;
             if (m_currentPage > GetPageCount())
