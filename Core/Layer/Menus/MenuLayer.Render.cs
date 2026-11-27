@@ -10,8 +10,10 @@ using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Commands;
 using Helion.Strings;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Util;
 using System;
@@ -35,6 +37,10 @@ public partial class MenuLayer
     private readonly static List<StringSlice> m_lineWrapLines = [];
     private readonly static Image StaticMenuImage = new((StaticMenuWidth, MainMenu.MenuItemHeight), ImageType.Argb);
 
+    record struct TextArea(Box2I Area, Vec2I Offset, string Text, bool Center);
+
+    private readonly DynamicArray<TextArea> m_textAreas = new(32);
+
     private IMenuComponent? m_previousSelectedComponent;
     private IRenderableTextureHandle? m_saveGameTexture;
     private SaveGameSummary? m_saveGameSummary;
@@ -49,12 +55,35 @@ public partial class MenuLayer
         Animation.Tick();
         hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
         hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
+        RenderNativeResolution(hud);
         if (!m_window.GrabCursor)
             m_mouseMenu.Render(hud);
     }
 
+    private void RenderNativeResolution(IHudRenderContext hud)
+    {
+        return;
+        var resolutionInfo = new ResolutionInfo((320, 240), ResolutionScale.Center, 320/240f);
+        var scale = RenderCommands.GetVirtualScale(hud.Dimension, resolutionInfo, out var centerOffsetX);
+
+        for (int i = 0; i < m_textAreas.Length; i++)
+        {
+            var textArea = m_textAreas.Data[i];
+            var pos = textArea.Offset + textArea.Area.Min;
+            pos.Y += 1;
+            var textAreaScale = new Box2D(textArea.Area.Min.Double * scale, textArea.Area.Max.Double * scale);
+            var posScale = pos.Double * scale;
+
+            if (textArea.Center)
+                posScale.X += centerOffsetX;
+
+            hud.Text(textArea.Text, Constants.Fonts.Options, (int)textAreaScale.Height, posScale.Int, out var dim);
+        }
+    }
+
     private void RenderVirtualHud(IHudRenderContext hud)
     {
+        m_textAreas.Clear();
         if (!m_menus.TryPeek(out Menu? menu))
             return;
 
@@ -71,7 +100,10 @@ public partial class MenuLayer
         var scaleHeight = m_window.ClientDimension.Height / (float)hud.Dimension.Height;
 
         if (saveMenu)
+        {
+            hud.PushVirtualDimension((320, 240));
             DrawSaveMenuBox(hud, detailsEnabled);
+        }
 
         for (int i = 0; i < menu.Components.Count; i++)
         {
@@ -100,8 +132,11 @@ public partial class MenuLayer
                         offsetY++;
                         firstRow = false;
                     }
-                    hud.PushOffset(GetSaveMenuOffset(hud));
-                    DrawSaveRow(hud, (SaveMenu)menu, saveRowComponent, isSelected, wasSelected, ref offsetY, detailsEnabled, out drawArea);
+                    var hudOffset = GetSaveMenuOffset(hud);
+                    hud.PushOffset(hudOffset);
+                    var textArea = DrawSaveRow(hud, (SaveMenu)menu, saveRowComponent, isSelected, wasSelected, ref offsetY, detailsEnabled, out drawArea);
+                    textArea.Offset += new Vec2I(-hudOffset.X, -hudOffset.Y);
+                    m_textAreas.Add(textArea);
                     break;
                 default:
                     throw new Exception($"Unexpected menu component type for drawing: {component.GetType().FullName}");
@@ -137,7 +172,12 @@ public partial class MenuLayer
         {
             menu.SetComponentIndex(selectedIndex);
             m_forceCheckMouse = false;
-        }        
+        }
+
+        if (saveMenu)
+        {
+            hud.PopVirtualDimension();
+        }
     }
 
     private static void DrawText(IHudRenderContext hud, MenuTextComponent text, ref int offsetY)
@@ -238,13 +278,15 @@ public partial class MenuLayer
 
     private static int GetSaveRowWidth(bool detailsEnabled) => detailsEnabled ? 218 : 301;
 
-    private void DrawSaveRow(IHudRenderContext hud, SaveMenu saveMenu, MenuSaveRowComponent saveRowComponent, bool isSelected,
+    private TextArea DrawSaveRow(IHudRenderContext hud, SaveMenu saveMenu, MenuSaveRowComponent saveRowComponent, bool isSelected,
         bool wasPreviouslySelected, ref int offsetY, bool detailsEnabled, out Box2I drawArea)
     {
         bool isTypingTarget = isSelected && saveMenu.IsTypingName;
 
-        string fontName = (saveRowComponent.VerificationResult == SaveVerificationResult.Success || isTypingTarget) ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
-        int fontSize = hud.GetFontMaxHeight(fontName) - 2;
+        //string fontName = (saveRowComponent.VerificationResult == SaveVerificationResult.Success || isTypingTarget) ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        //int fontSize = hud.GetFontMaxHeight(fontName) - 2;
+        var fontName = Constants.Fonts.Options;
+        var fontSize = 8;
         int menuRowWidth = GetSaveRowWidth(detailsEnabled);
 
         var textDimension = hud.MeasureText("_", fontName, fontSize);
@@ -266,7 +308,8 @@ public partial class MenuLayer
         }
         
         var rowHeight = textHeight + 3;
-        hud.AddOffset((17, 0));
+        var offset = new Vec2I(17, 0);
+        hud.AddOffset(offset);
 
         HudBox box = new((0, offsetY), (textRowWidth, offsetY + rowHeight));
         drawArea = new(box.Min, box.Max);
@@ -294,11 +337,13 @@ public partial class MenuLayer
         }
 
         hud.PopOffset();
+        offset.X += 1;
+        return new(new Box2I(new Vec2I(drawArea.Min.X, drawArea.Min.Y), new Vec2I(drawArea.Max.X, drawArea.Max.Y - 1)), offset, saveText, false);
     }
 
     private static void DrawSaveMenuBox(IHudRenderContext hud, bool detailsEnabled)
     {
-        int height = 164;
+        int height = 192;
         hud.PushOffset((16, 20));
         hud.AddOffset(GetSaveMenuOffset(hud));
         int saveRowWidth = GetSaveRowWidth(detailsEnabled);
@@ -317,7 +362,7 @@ public partial class MenuLayer
     private static Vec2I GetSaveMenuOffset(IHudRenderContext hud)
     {
         if (SaveMenuWide(hud))
-            return (-28, 0);
+            return (28, 0);
         return Vec2I.Zero;
     }
 
@@ -326,17 +371,19 @@ public partial class MenuLayer
         if (m_saveGameSummary == null)
             return;
 
-        string fontName = m_saveGameSummary.VerificationResult == SaveVerificationResult.Success ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        //string fontName = m_saveGameSummary.VerificationResult == SaveVerificationResult.Success ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        var fontName = Constants.Fonts.Options;
         const float ImageAspect = 4 / 3f;
 
         bool wideScreen = SaveMenuWide(hud);
-        int textSize = wideScreen ? 6 : 4;
+        int textSize = 6;
         int boxWidth = wideScreen ? 128 : 80;
-        int thumbnailHeight = (int)(boxWidth / ImageAspect * 0.8f);
+        int thumbnailHeight = (int)(boxWidth / ImageAspect);
         int boxHeight = thumbnailHeight + textSize * (m_saveGameSummary.VerificationResult == SaveVerificationResult.Success ? 5 : 7) + 3;
 
         var centerOffset = GetSaveMenuOffset(hud);
-        hud.LineWrap(m_saveGameSummary.MapName, fontName, textSize, boxWidth - 4, m_lineWrapLines, 
+        var testString = "This is a test. This is a test. This is a test. This is a test. This is a test. This is a test. ";
+        hud.LineWrap(testString, fontName, textSize, boxWidth - 4, m_lineWrapLines, 
             out var requiredHeight);
         boxHeight += requiredHeight;
 
@@ -356,6 +403,7 @@ public partial class MenuLayer
             hud.PushOffset(boxUpperLeft);
             var size = hud.MeasureText("No Image", fontName, textSize);
             hud.Text("No Image", fontName, textSize, (boxWidth / 2 - size.Width / 2, thumbnailHeight / 2 - size.Height / 2), textAlign: TextAlign.Center);
+            m_textAreas.Add(new TextArea(new Box2I(Vec2I.Zero, new Vec2I(0, textSize)), boxUpperLeft + (boxWidth / 2 - size.Width / 2, thumbnailHeight / 2 - size.Height / 2), "No Image", true));
             hud.PopOffset();
         }
         else
@@ -364,27 +412,36 @@ public partial class MenuLayer
             hud.Image(SaveGameSummary.TEXTURENAME, imageBox);
         }
 
-        Vec2I offset = boxUpperLeft + (2, thumbnailHeight + 2);
+        Vec2I offset = boxUpperLeft + (2, thumbnailHeight);
 
         for (int i = 0; i < m_lineWrapLines.Count; i++)
         {
-            hud.Text(m_lineWrapLines[i].AsSpan(), fontName, textSize, offset, out var drawArea);
-            offset += (0, drawArea.Height);
+            //var drawArea = hud.MeasureText(m_lineWrapLines[i].AsSpan(), fontName, textSize);
+            m_textAreas.Add(new TextArea(new Box2I(Vec2I.Zero, new Vec2I(0, textSize)), (offset.X - 54, offset.Y), m_lineWrapLines[i].ToString(), true));
+            hud.Text(m_lineWrapLines[i].AsSpan(), fontName, textSize, offset, out _);
+            offset += (0, textSize);
         }
 
-        hud.Text(m_saveGameSummary.Date, fontName, textSize, offset, out var area);
+        var area = hud.MeasureText(m_saveGameSummary.Date, fontName, textSize);
+        //hud.Text(m_saveGameSummary.Date, fontName, textSize, offset, out _);
+        m_textAreas.Add(new TextArea(new Box2I(Vec2I.Zero, new Vec2I(0, textSize)), offset, m_saveGameSummary.Date, true));
         offset += (0, area.Height);
         offset += (0, area.Height);
 
         foreach (string str in m_saveGameSummary.Stats ?? [])
         {
+            //area = hud.MeasureText(str, fontName, textSize);
             hud.Text(str, fontName, textSize, offset, out area);
+            m_textAreas.Add(new TextArea(new Box2I(Vec2I.Zero, new Vec2I(0, textSize)), offset, str, true));
             offset += (0, area.Height);
         }
         if (m_saveGameSummary.VerificationResult != SaveVerificationResult.Success)
         {
             offset += (0, area.Height);
-            hud.Text(GetResultString(m_saveGameSummary.VerificationResult), fontName, textSize, offset, out area);
+            var result = GetResultString(m_saveGameSummary.VerificationResult);
+            //area = hud.MeasureText(result, fontName, textSize);
+            hud.Text(result, fontName, textSize, offset, out _);
+            m_textAreas.Add(new TextArea(new Box2I(Vec2I.Zero, new Vec2I(0, textSize)), offset, result, true));
         }
     }
 

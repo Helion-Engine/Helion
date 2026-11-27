@@ -217,12 +217,7 @@ public class RenderCommands
     public void SetVirtualResolution(ResolutionInfo resolutionInfo)
     {
         ResolutionInfo = resolutionInfo;
-
-        double viewWidth = RenderDimension.Height * resolutionInfo.AspectRatio;
-        double scaleWidth = viewWidth / resolutionInfo.VirtualDimensions.Width;
-        double scaleHeight = RenderDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
-        m_scale = new Vec2D(scaleWidth, scaleHeight);
-
+        m_scale = GetVirtualScale(RenderDimension, resolutionInfo, out var centerOffsetX);
         m_centeringOffsetX = 0;
 
         // By default we're stretching, but if we're centering, our values
@@ -234,8 +229,17 @@ public class RenderCommands
             // on the side. This can only happen if the virtual dimension
             // has a smaller aspect ratio. We have to exit out if not since
             // it will cause weird overdrawing otherwise.
-            m_centeringOffsetX = (RenderDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * m_scale.X)) / 2;
+            m_centeringOffsetX = centerOffsetX;
         }
+    }
+
+    public static Vec2D GetVirtualScale(Dimension renderDimension, ResolutionInfo resolutionInfo, out int centerOffsetX)
+    {
+        var viewWidth = renderDimension.Height * resolutionInfo.AspectRatio;
+        var scaleWidth = viewWidth / resolutionInfo.VirtualDimensions.Width;
+        var scaleHeight = renderDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
+        centerOffsetX = (renderDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * scaleWidth)) / 2;
+        return new Vec2D(scaleWidth, scaleHeight);
     }
 
     public void SetAlpha(float alpha) => m_alpha = alpha;
