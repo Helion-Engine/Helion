@@ -281,6 +281,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             fitImage.ClearPixels();
             fitImage.CopyPixelsFrom(image);
             fitImage.Offset = image.Offset;
+            fitImage.BlankRowsFromBottom = image.BlankRowsFromBottom;
+            fitImage.BlankRowsFromTop = image.BlankRowsFromTop;
             return new(fitImage, image.Dimension);
         }, images.Length, dimension, ResourceNamespace.Textures, textureFlags, textureContext, out var arrayTexture);
 
