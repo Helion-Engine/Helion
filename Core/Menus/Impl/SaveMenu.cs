@@ -29,9 +29,9 @@ public class SaveMenu : Menu
 {
     public const string SaveMessage = "Game saved.";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private const int RowsPerPage = 18;
+    private const int RowsPerPage = 20;
     private const string UnknownSavedGameName = "Unknown";
-    private const string EmptySlotText = "Empty Slot";
+    private const string EmptySlotText = "- Empty Slot -";
     private const string NoSavedGamesText = "There are no saved games.";
     private static readonly string[] DeleteConfirmationText = ["Are you sure you want to delete this save?", "Press Y to confirm."];
     private static readonly string[] IncompatibleLoadText = ["Are you sure you want to load" , "this potentially incompatible save?", "Press Y to confirm."];
@@ -101,7 +101,6 @@ public class SaveMenu : Menu
 
     private void AddPaginationFooter(List<IMenuComponent> components)
     {
-        components.Add(SmallPadding);
         components.Add(new MenuSmallTextSaveComponent($"<- Page {m_currentPage}/{GetPageCount()} ->", align: Align.BottomMiddle));
     }
 

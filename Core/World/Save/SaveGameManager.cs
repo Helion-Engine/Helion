@@ -36,6 +36,11 @@ public class SaveGameManager
         public Image? Image = image;
     }
 
+    public const string QuickPrefix = "Quick:";
+    public const string AutoPrefix = "Auto:";
+    public static readonly int MaxPrefixLength = Math.Max(QuickPrefix.Length, AutoPrefix.Length);
+    public static readonly string[] Prefixes = [QuickPrefix, AutoPrefix];
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly SaveGameEvent ActiveSaveError = new(null!, null!, "file", false, null, "(Save in progress)");
     private readonly IConfig m_config;

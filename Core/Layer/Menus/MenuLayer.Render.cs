@@ -13,6 +13,7 @@ using Helion.Render.Common.Textures;
 using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.World.Save;
 using Helion.World.Util;
 using System;
 using System.Collections.Generic;
@@ -285,11 +286,28 @@ public partial class MenuLayer
     {
         bool isTypingTarget = isSelected && saveMenu.IsTypingName;
 
+        var tokenSpaceCount = 0;
+        var tokenIndex = -1;
         var verifiedSave = saveRowComponent.VerificationResult == SaveVerificationResult.Success || isTypingTarget;
         var fontName = Constants.Fonts.Options;
-        var fontColor = verifiedSave ? Color.White : Color.Gray;
+        var textColor = verifiedSave ? Color.White : Color.Gray;
+
         if (saveRowComponent.TextColor != null)
-            fontColor = saveRowComponent.TextColor.Value;
+        {
+            textColor = saveRowComponent.TextColor.Value;
+        }
+        else
+        {
+            foreach (var prefix in SaveGameManager.Prefixes)
+            {
+                if (!saveRowComponent.Text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                tokenSpaceCount = SaveGameManager.MaxPrefixLength - prefix.Length;
+                tokenIndex = prefix.Length - 1;
+            }
+        }
+
         var fontSize = 8;
         int menuRowWidth = GetSaveRowWidth(detailsEnabled);
 
@@ -308,10 +326,10 @@ public partial class MenuLayer
         }
         else
         {
-            saveText = hud.GetEllipsesText(saveRowComponent.Text, fontName, fontSize, textRowWidth);
+            saveText = saveRowComponent.Text;
         }
         
-        var rowHeight = textHeight + 3;
+        var rowHeight = textHeight + 2;
         var offset = new Vec2I(17, 0);
         hud.AddOffset(offset);
 
@@ -325,7 +343,22 @@ public partial class MenuLayer
             hud.PopAlpha();
         }
 
-        hud.Text(saveText, fontName, fontSize, (1, offsetY + 2), color: fontColor);
+        var textPos = new Vec2I(1, offsetY + 1);
+        if (tokenIndex != -1)
+        {
+            hud.Text(saveText.AsSpan(0, tokenIndex), fontName, fontSize, textPos, out var textTokenArea, color: Color.Orange);
+
+            var offsetX = textDimension.Width * tokenSpaceCount;
+            textPos.X += offsetX + textTokenArea.Width;
+            var postText = hud.GetEllipsesTextSpan(saveText.AsSpan(tokenIndex + 1), fontName, fontSize, textRowWidth - offsetX - textTokenArea.Width);
+            hud.Text(postText, fontName, fontSize, textPos, color: textColor);
+        }
+        else
+        {
+            saveText = hud.GetEllipsesText(saveText, fontName, fontSize, textRowWidth);
+            hud.Text(saveText, fontName, fontSize, textPos, color: textColor);
+        }
+
         offsetY += rowHeight;
 
         if (isSelected && detailsEnabled && !wasPreviouslySelected)
@@ -345,7 +378,7 @@ public partial class MenuLayer
 
     private static void DrawSaveMenuBox(IHudRenderContext hud, bool detailsEnabled)
     {
-        int height = 200;
+        int height = 202;
         hud.PushOffset((16, 20));
         hud.AddOffset(GetSaveMenuOffset(hud));
         int saveRowWidth = GetSaveRowWidth(detailsEnabled);
@@ -409,7 +442,8 @@ public partial class MenuLayer
         }
         else
         {
-            var imageBox = new HudBox(boxUpperLeft, boxUpperLeft + (boxWidth, thumbnailHeight));
+            var imageBoxBottom = boxUpperLeft + (boxWidth, thumbnailHeight);
+            var imageBox = new HudBox(boxUpperLeft, imageBoxBottom);
             hud.Image(SaveGameSummary.TEXTURENAME, imageBox);
         }
 
