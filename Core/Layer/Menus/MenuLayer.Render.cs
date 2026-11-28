@@ -339,7 +339,7 @@ public partial class MenuLayer
         if (isSelected)
         {
             hud.PushAlpha(0.5f);
-            hud.FillBox(box, Color.Blue);
+            hud.FillBox(box, new Color(0, 128, 255));
             hud.PopAlpha();
         }
 
