@@ -77,6 +77,26 @@ public static class HudExtensions
         return string.Concat(text.AsSpan(0, textSpan.Length - 3), "...");
     }
 
+    public static ReadOnlySpan<char> GetEllipsesTextSpan(this IHudRenderContext hud, ReadOnlySpan<char> text, string font, int fontSize, int maxWidth)
+    {
+        int nameWidth = hud.MeasureText(text, font, fontSize).Width;
+        if (nameWidth <= maxWidth)
+            return text;
+
+        var textSpan = text;
+        int sub = 1;
+        while (sub < text.Length && hud.MeasureText(textSpan, font, fontSize).Width > maxWidth)
+        {
+            textSpan = text[..^sub];
+            sub++;
+        }
+
+        if (textSpan.Length <= 3)
+            return text;
+
+        return string.Concat(text[..(textSpan.Length - 3)], "...");
+    }
+
     public static string GetTypedText(this IHudRenderContext hud, string text, string font, int fontSize, int maxWidth)
     {
         int nameWidth = hud.MeasureText(text, font, fontSize).Width;

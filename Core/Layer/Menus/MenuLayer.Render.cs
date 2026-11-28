@@ -13,6 +13,7 @@ using Helion.Render.Common.Textures;
 using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.World.Save;
 using Helion.World.Util;
 using System;
 using System.Collections.Generic;
@@ -47,17 +48,56 @@ public partial class MenuLayer
             hud.Textures.CreateOrReplaceTexture(StaticMenuImageName, Resources.ResourceNamespace.Graphics, StaticMenuImage);
 
         Animation.Tick();
-        hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
-        hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
+        DrawDarkBackground(hud);
+
+        PushVirtualResolution(hud);
+        m_renderVirtualHudAction(hud);
+        hud.PopVirtualDimension();
+
         if (!m_window.GrabCursor)
             m_mouseMenu.Render(hud);
     }
 
+    private void PushVirtualResolution(IHudRenderContext hud)
+    {
+        var dimension = new Dimension(320, 200);
+        var aspectRatio = Constants.DoomVirtualAspectRatio;
+
+        if (TryPeekMenu(out var menu) && (menu.CurrentComponent is MenuSaveRowComponent || menu is MessageMenu))
+        {
+            // Save/load menu is rendering true type fonts which look terrible using Doom's stretched aspect ratio.
+            // Use a normal 4:3 ratio instead.
+            dimension = new(320, 240);
+            aspectRatio = dimension.Width / (float)dimension.Height;
+        }
+
+        hud.PushVirtualDimension(dimension, ResolutionScale.Center, aspectRatio);
+    }
+
+    private static void DrawDarkBackground(IHudRenderContext hud)
+    {
+        hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
+    }
+
     private void RenderVirtualHud(IHudRenderContext hud)
     {
-        if (!m_menus.TryPeek(out Menu? menu))
+        if (!TryPeekMenu(out var menu))
             return;
 
+        if (menu is MessageMenu && m_menus.Count > 1)
+        {
+            RenderMenu(hud, m_menus[^2], checkMouse: false);
+            hud.PopVirtualDimension();
+            DrawDarkBackground(hud);
+            PushVirtualResolution(hud);
+        }
+
+        RenderMenu(hud, menu, checkMouse: true);
+        hud.PopOffset();
+    }
+
+    private void RenderMenu(IHudRenderContext hud, Menu menu, bool checkMouse)
+    {
         m_mouseMenu.Clear();
         m_mouseMenu.SetLocked(menu.RowLocked);
 
@@ -109,7 +149,7 @@ public partial class MenuLayer
 
             if (component.HasAction && drawArea.Max.X != 0)
             {
-                var scaleDrawArea = new Box2I(((int)(drawArea.Min.X * scaleWidth), (int)(drawArea.Min.Y * scaleHeight)), 
+                var scaleDrawArea = new Box2I(((int)(drawArea.Min.X * scaleWidth), (int)(drawArea.Min.Y * scaleHeight)),
                     ((int)(drawArea.Max.X * scaleWidth), (int)(drawArea.Max.Y * scaleHeight)));
                 m_mouseMenu.Add(scaleDrawArea, i);
             }
@@ -121,23 +161,26 @@ public partial class MenuLayer
         if (saveMenu && m_saveGameSummary != null)
             RenderSaveGameDetails(hud);
 
-        if (m_resetMouse)
+        if (checkMouse)
         {
-            m_window.SetGrabCursor(false);
-            m_resetMouse = false;
-        }
+            if (m_resetMouse)
+            {
+                m_window.SetGrabCursor(false);
+                m_resetMouse = false;
+            }
 
-        if (m_initMouse)
-        {
-            m_initMouse = false;
-            m_mouseMenu.SetMousePosition((m_window.ClientDimension.Width / 2, (int)(16 * scaleHeight)));
-        }
+            if (m_initMouse)
+            {
+                m_initMouse = false;
+                m_mouseMenu.SetMousePosition((m_window.ClientDimension.Width / 2, (int)(16 * scaleHeight)));
+            }
 
-        if ((m_forceCheckMouse || m_mouseMenu.MousePositionChanged()) && m_mouseMenu.GetSelectedIndex(out var selectedIndex))
-        {
-            menu.SetComponentIndex(selectedIndex);
-            m_forceCheckMouse = false;
-        }        
+            if ((m_forceCheckMouse || m_mouseMenu.MousePositionChanged()) && m_mouseMenu.GetSelectedIndex(out var selectedIndex))
+            {
+                menu.SetComponentIndex(selectedIndex);
+                m_forceCheckMouse = false;
+            }
+        }
     }
 
     private static void DrawText(IHudRenderContext hud, MenuTextComponent text, ref int offsetY)
@@ -155,18 +198,18 @@ public partial class MenuLayer
 
             foreach (var line in m_lineWrapLines)
             {
-                hud.Text(line.AsSpan(), text.FontName, text.Size, (0, offsetY + rowHeight), out _, both: align);
+                hud.Text(line.AsSpan(), text.FontName, text.Size, (0, offsetY + rowHeight) + text.Offset, out _, both: align);
                 rowHeight += height;
             }
         }
         else
         {
-            hud.Text(text.Text, text.FontName, text.Size, (0, offsetY), out Dimension area, both: align);
+            hud.Text(text.Text, text.FontName, text.Size, (0, offsetY) + text.Offset, out Dimension area, both: align);
             addHeight = area.Height;
         }
 
         if (align == Align.TopMiddle)
-            offsetY += addHeight;
+            offsetY += addHeight + text.Offset.Y;
     }
 
     private void DrawImage(IHudRenderContext hud, MenuImageComponent image, bool isSelected, ref int offsetY, int upscalingFactor, bool isLegacyMenu, out Box2I drawArea)
@@ -243,8 +286,29 @@ public partial class MenuLayer
     {
         bool isTypingTarget = isSelected && saveMenu.IsTypingName;
 
-        string fontName = (saveRowComponent.VerificationResult == SaveVerificationResult.Success || isTypingTarget) ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
-        int fontSize = hud.GetFontMaxHeight(fontName) - 2;
+        var tokenSpaceCount = 0;
+        var tokenIndex = -1;
+        var verifiedSave = saveRowComponent.VerificationResult == SaveVerificationResult.Success || isTypingTarget;
+        var fontName = Constants.Fonts.Options;
+        var textColor = verifiedSave ? Color.White : Color.Gray;
+
+        if (saveRowComponent.TextColor != null)
+        {
+            textColor = saveRowComponent.TextColor.Value;
+        }
+        else
+        {
+            foreach (var prefix in SaveGameManager.Prefixes)
+            {
+                if (!saveRowComponent.Text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                tokenSpaceCount = SaveGameManager.MaxPrefixLength - prefix.Length;
+                tokenIndex = prefix.Length - 1;
+            }
+        }
+
+        var fontSize = 8;
         int menuRowWidth = GetSaveRowWidth(detailsEnabled);
 
         var textDimension = hud.MeasureText("_", fontName, fontSize);
@@ -262,11 +326,12 @@ public partial class MenuLayer
         }
         else
         {
-            saveText = hud.GetEllipsesText(saveRowComponent.Text, fontName, fontSize, textRowWidth);
+            saveText = saveRowComponent.Text;
         }
         
-        var rowHeight = textHeight + 3;
-        hud.AddOffset((17, 0));
+        var rowHeight = textHeight + 2;
+        var offset = new Vec2I(17, 0);
+        hud.AddOffset(offset);
 
         HudBox box = new((0, offsetY), (textRowWidth, offsetY + rowHeight));
         drawArea = new(box.Min, box.Max);
@@ -274,11 +339,27 @@ public partial class MenuLayer
         if (isSelected)
         {
             hud.PushAlpha(0.5f);
-            hud.FillBox(box, Color.Blue);
+            hud.FillBox(box, new Color(0, 128, 255));
             hud.PopAlpha();
         }
 
-        hud.Text(saveText, fontName, fontSize, (1, offsetY + 2));
+        var textPos = new Vec2I(1, offsetY + 1);
+        if (tokenIndex != -1)
+        {
+            hud.Text(saveText.AsSpan(0, tokenIndex), fontName, fontSize, textPos, out var textTokenArea, 
+                color: verifiedSave ? Color.Orange : textColor);
+
+            var offsetX = textDimension.Width * tokenSpaceCount;
+            textPos.X += offsetX + textTokenArea.Width;
+            var postText = hud.GetEllipsesTextSpan(saveText.AsSpan(tokenIndex + 1), fontName, fontSize, textRowWidth - offsetX - textTokenArea.Width);
+            hud.Text(postText, fontName, fontSize, textPos, color: textColor);
+        }
+        else
+        {
+            saveText = hud.GetEllipsesText(saveText, fontName, fontSize, textRowWidth);
+            hud.Text(saveText, fontName, fontSize, textPos, color: textColor);
+        }
+
         offsetY += rowHeight;
 
         if (isSelected && detailsEnabled && !wasPreviouslySelected)
@@ -298,7 +379,7 @@ public partial class MenuLayer
 
     private static void DrawSaveMenuBox(IHudRenderContext hud, bool detailsEnabled)
     {
-        int height = 164;
+        int height = 202;
         hud.PushOffset((16, 20));
         hud.AddOffset(GetSaveMenuOffset(hud));
         int saveRowWidth = GetSaveRowWidth(detailsEnabled);
@@ -326,14 +407,16 @@ public partial class MenuLayer
         if (m_saveGameSummary == null)
             return;
 
-        string fontName = m_saveGameSummary.VerificationResult == SaveVerificationResult.Success ? Constants.Fonts.Small : Constants.Fonts.SmallGray;
+        var verifiedSave = m_saveGameSummary.VerificationResult == SaveVerificationResult.Success;
+        var fontName = Constants.Fonts.Options;
+        var fontColor = verifiedSave ? Color.White : Color.Gray;
         const float ImageAspect = 4 / 3f;
 
-        bool wideScreen = SaveMenuWide(hud);
-        int textSize = wideScreen ? 6 : 4;
-        int boxWidth = wideScreen ? 128 : 80;
-        int thumbnailHeight = (int)(boxWidth / ImageAspect * 0.8f);
-        int boxHeight = thumbnailHeight + textSize * (m_saveGameSummary.VerificationResult == SaveVerificationResult.Success ? 5 : 7) + 3;
+        var wideScreen = SaveMenuWide(hud);
+        var textSize = 6;
+        var boxWidth = wideScreen ? 128 : 80;
+        var thumbnailHeight = (int)(boxWidth / ImageAspect);
+        var boxHeight = thumbnailHeight + textSize * (verifiedSave ? 5 : 7) + 3;
 
         var centerOffset = GetSaveMenuOffset(hud);
         hud.LineWrap(m_saveGameSummary.MapName, fontName, textSize, boxWidth - 4, m_lineWrapLines, 
@@ -360,31 +443,34 @@ public partial class MenuLayer
         }
         else
         {
-            var imageBox = new HudBox(boxUpperLeft, boxUpperLeft + (boxWidth, thumbnailHeight));
+            var imageBoxBottom = boxUpperLeft + (boxWidth, thumbnailHeight);
+            var imageBox = new HudBox(boxUpperLeft, imageBoxBottom);
             hud.Image(SaveGameSummary.TEXTURENAME, imageBox);
         }
 
-        Vec2I offset = boxUpperLeft + (2, thumbnailHeight + 2);
+        hud.AddOffset((0, 1));
+        Vec2I offset = boxUpperLeft + (2, thumbnailHeight);
 
         for (int i = 0; i < m_lineWrapLines.Count; i++)
         {
-            hud.Text(m_lineWrapLines[i].AsSpan(), fontName, textSize, offset, out var drawArea);
-            offset += (0, drawArea.Height);
+            hud.Text(m_lineWrapLines[i].AsSpan(), fontName, textSize, offset, out _, color: fontColor);
+            offset += (0, textSize);
         }
 
-        hud.Text(m_saveGameSummary.Date, fontName, textSize, offset, out var area);
+        hud.Text(m_saveGameSummary.Date, fontName, textSize, offset, out var area, color: fontColor);
         offset += (0, area.Height);
         offset += (0, area.Height);
 
         foreach (string str in m_saveGameSummary.Stats ?? [])
         {
-            hud.Text(str, fontName, textSize, offset, out area);
+            hud.Text(str, fontName, textSize, offset, out area, color: fontColor);
             offset += (0, area.Height);
         }
-        if (m_saveGameSummary.VerificationResult != SaveVerificationResult.Success)
+        if (!verifiedSave)
         {
             offset += (0, area.Height);
-            hud.Text(GetResultString(m_saveGameSummary.VerificationResult), fontName, textSize, offset, out area);
+            var result = GetResultString(m_saveGameSummary.VerificationResult);
+            hud.Text(result, fontName, textSize, offset, out _, color: fontColor);
         }
     }
 

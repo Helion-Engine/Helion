@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry.Vectors;
 using Helion.Menus;
 using Helion.Menus.Impl;
@@ -13,7 +14,28 @@ public partial class MenuLayer
 {
     private Vec2I m_lastCursorPos;
 
-    private bool MenuNotChanged(Menu menu) => !m_menus.Empty() && ReferenceEquals(menu, m_menus.Peek());
+    private Menu Peek() => m_menus[^1];
+
+    private Menu Pop()
+    {
+        var menu = m_menus[^1];
+        m_menus.RemoveAt(m_menus.Count - 1);
+        return menu;
+    }
+
+    private bool TryPeekMenu([NotNullWhen(true)] out Menu? menu)
+    {
+        if (m_menus.Count > 0)
+        {
+            menu = Peek();
+            return true;
+        }
+
+        menu = null;
+        return false;
+    }
+
+    private bool MenuNotChanged(Menu menu) => !m_menus.Empty() && ReferenceEquals(menu, Peek());
 
     private void ClearMenu(bool playSound)
     {
@@ -28,13 +50,13 @@ public partial class MenuLayer
         if (m_menus.Empty())
             return;
 
-        Menu menu = m_menus.Peek();
+        Menu menu = Peek();
         if (input.Manager.HasAnyKeyPressed() && menu is MessageMenu messageMenu && messageMenu.ShouldClear(input))
         {
             if (messageMenu.ClearMenus)
                 ClearMenu(false);
             else if (m_menus.Count > 0)
-                m_menus.Pop();
+                Pop();
         }
 
         menu.HandleInput(input);
@@ -57,7 +79,7 @@ public partial class MenuLayer
     {
         m_resetMouse = true;
         UpdateMouseMenu();
-        m_menus.Push(menu);
+        m_menus.Add(menu);
     }
 
     private void HandleInputForMenu(Menu menu, IConsumableInput input)
@@ -88,14 +110,14 @@ public partial class MenuLayer
             if (m_menus.Count >= 1)
             {
                 UpdateMouseMenu();
-                poppedMenu = m_menus.Pop();
+                poppedMenu = Pop();
                 clear = poppedMenu.ClearOnClose;
             }
 
             if (m_menus.Empty() || clear)
             {
                 if (poppedMenu != null)
-                    m_menus.Push(poppedMenu);
+                    m_menus.Add(poppedMenu);
                 ClearMenu(true);
                 return;
             }

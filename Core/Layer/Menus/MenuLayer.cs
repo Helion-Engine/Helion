@@ -26,7 +26,7 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
     private readonly ArchiveCollection m_archiveCollection;
     private readonly SoundManager m_soundManager;
     private readonly SaveGameManager m_saveGameManager;
-    private readonly Stack<Menu> m_menus = new();
+    private readonly List<Menu> m_menus = new();
     private readonly Stopwatch m_stopwatch = new();
     private readonly OptionsLayer m_optionsLayer;
     private readonly IScreenshotGenerator m_screenshotGenerator;
@@ -52,7 +52,7 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
         Animation = new(TimeSpan.FromMilliseconds(200), this);
 
         MainMenu mainMenu = new(this, window, config, console, soundManager, archiveCollection, saveGameManager, optionsLayer, m_screenshotGenerator);
-        m_menus.Push(mainMenu);
+        m_menus.Add(mainMenu);
 
         m_mouseMenu = new(window, config);
     }
@@ -71,7 +71,7 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
         SaveMenu saveMenu = new(this, m_window, m_config, m_console, m_soundManager, m_archiveCollection,
             m_saveGameManager, m_screenshotGenerator, Manager.CanSave, isSave, clearOnExit);
 
-        m_menus.Push(saveMenu);
+        m_menus.Add(saveMenu);
     }
 
     public void ShowOptionsMenu()
@@ -83,7 +83,7 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
 
     public void ShowMessage(MessageMenu message)
     {
-        m_menus.Push(message);
+        m_menus.Add(message);
     }
 
     public void Close()

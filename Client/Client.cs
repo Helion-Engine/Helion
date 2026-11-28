@@ -604,7 +604,7 @@ public partial class Client : IDisposable, IInputManagement
         var worldLayer = result.WorldLayer;
         var mapInfoDef = worldLayer.CurrentMap;
 
-        string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(worldLayer.World.ArchiveCollection.Language)}";
+        var title = $"{SaveGameManager.AutoPrefix} {mapInfoDef.GetMapNameWithPrefix(worldLayer.World.ArchiveCollection.Language)}";
         var saveGameEvent = await m_saveGameManager.WriteNewSaveGameAsync(worldLayer.World, title, m_screenshotGenerator, SaveGameType.Auto);
         if (saveGameEvent.Success)
             m_console.AddMessage($"Saved {saveGameEvent.FileName}");

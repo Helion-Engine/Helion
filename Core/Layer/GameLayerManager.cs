@@ -699,7 +699,7 @@ public class GameLayerManager : IGameLayerManager
         var world = WorldLayer!.World;
         if (isRotating)
         {
-            string name = $"Quick: {world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection.Language)}";
+            var name = $"{SaveGameManager.QuickPrefix} {world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection.Language)}";
             var saveEvent = await m_saveGameManager.WriteSaveGameAsync(world, name, m_screenshotGenerator, null, SaveGameType.Quick);
             HandleSaveEvent(saveEvent, world);
         }
