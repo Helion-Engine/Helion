@@ -1,4 +1,5 @@
 using Helion.Audio.Sounds;
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
@@ -101,7 +102,7 @@ public class SaveMenu : Menu
 
     private void AddPaginationFooter(List<IMenuComponent> components)
     {
-        components.Add(new MenuSmallTextSaveComponent($"<- Page {m_currentPage}/{GetPageCount()} ->", align: Align.BottomMiddle));
+        components.Add(new MenuSmallTextSaveComponent($"<- Page {m_currentPage}/{GetPageCount()} ->", align: Align.BottomMiddle, offset: new Vec2I(0, -2)));
     }
 
     /// <summary>

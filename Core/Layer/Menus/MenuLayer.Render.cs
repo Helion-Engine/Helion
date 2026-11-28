@@ -198,18 +198,18 @@ public partial class MenuLayer
 
             foreach (var line in m_lineWrapLines)
             {
-                hud.Text(line.AsSpan(), text.FontName, text.Size, (0, offsetY + rowHeight), out _, both: align);
+                hud.Text(line.AsSpan(), text.FontName, text.Size, (0, offsetY + rowHeight) + text.Offset, out _, both: align);
                 rowHeight += height;
             }
         }
         else
         {
-            hud.Text(text.Text, text.FontName, text.Size, (0, offsetY), out Dimension area, both: align);
+            hud.Text(text.Text, text.FontName, text.Size, (0, offsetY) + text.Offset, out Dimension area, both: align);
             addHeight = area.Height;
         }
 
         if (align == Align.TopMiddle)
-            offsetY += addHeight;
+            offsetY += addHeight + text.Offset.Y;
     }
 
     private void DrawImage(IHudRenderContext hud, MenuImageComponent image, bool isSelected, ref int offsetY, int upscalingFactor, bool isLegacyMenu, out Box2I drawArea)
