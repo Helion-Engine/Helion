@@ -346,7 +346,8 @@ public partial class MenuLayer
         var textPos = new Vec2I(1, offsetY + 1);
         if (tokenIndex != -1)
         {
-            hud.Text(saveText.AsSpan(0, tokenIndex), fontName, fontSize, textPos, out var textTokenArea, color: Color.Orange);
+            hud.Text(saveText.AsSpan(0, tokenIndex), fontName, fontSize, textPos, out var textTokenArea, 
+                color: verifiedSave ? Color.Orange : textColor);
 
             var offsetX = textDimension.Width * tokenSpaceCount;
             textPos.X += offsetX + textTokenArea.Width;
